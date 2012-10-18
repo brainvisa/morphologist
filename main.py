@@ -1,6 +1,6 @@
 import os
 
-from m_api import BiasCorrection, HistogramAnalysis
+from analyses import BiasCorrection, HistogramAnalysis
 
 def test_bias_correction():
     bias_correction = BiasCorrection()
