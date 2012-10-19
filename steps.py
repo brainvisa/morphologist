@@ -72,13 +72,38 @@ class Step3(Step):
         self._out_file_params= ["param_out"]
 
 
-class IntraAnalysis(Step):
+class IntraAnalysis(object):
 
     def __init__(self):
         super(IntraAnalysis, self).__init__()
-        self.param_in = None
-        self.param_out = None
-       
-        self._in_file_params = ["param_in"]
-        self._out_file_params = ["param_out"]
+        
+        self.param_in_1 = None
+        self.param_in_2 = None
+        self.param_in_3 = None       
+        self.param_in_4 = None       
+        self.param_out_1 = None
+        self.param_out_2 = None
+        self.param_out_3 = None
+
+        self.step1 = Step1()
+        self.step2 = Step2()
+        self.step3 = Step3()
+
+    def run(self):
+        self.step1.param_in = self.param_in_1
+        self.step1.param_out = self.param_out_1
+        self.step2.param_in_1 = self.param_in_2
+        self.step2.param_in_2 = self.param_out_1 
+        self.step2.param_in_3 = self.param_in_3
+        self.step2.param_out = self.param_out_2
+        self.step3.param_in_1 = self.param_in_4
+        self.step3.param_in_2 = self.param_out_2
+        self.step3.param_out = self.param_out_3
+        self.step1.run()
+        self.step2.run()
+        self.step3.run()
+
+
+
+
 

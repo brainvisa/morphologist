@@ -61,11 +61,17 @@ class TestSteps(unittest.TestCase):
 
     def test_run_intra_analysis(self):
         intra_analysis = IntraAnalysis()
-        intra_analysis.param_in = self.in_analysis_file_path
-        intra_analysis.param_out = self.out_analysis_file_path
+        intra_analysis.param_in_1 = self.in_analysis_file_path
+        intra_analysis.param_in_2 = self.in_step2_file_path 
+        intra_analysis.param_in_3 = 10 
+        intra_analysis.param_in_4 = self.in_step3_file_path
+        intra_analysis.param_out_1 = self.out_step1_file_path
+        intra_analysis.param_out_2 = self.out_step2_file_path
+        intra_analysis.param_out_3 = self.out_step3_file_path
         intra_analysis.run()
-        self.assert_(os.path.isfile(self.out_analysis_file_path))
-
+        self.assert_(os.path.isfile(intra_analysis.param_out_1))
+        self.assert_(os.path.isfile(intra_analysis.param_out_2))
+        self.assert_(os.path.isfile(intra_analysis.param_out_1))
 
     def test_raise_missing_input_file(self):
         os.remove(self.in_step_file_path)
