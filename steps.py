@@ -1,13 +1,17 @@
 import os.path
 
 class MissingInputFileError(Exception):
-  pass
+    pass
+
+class OutputFileExistError(Exception):
+    pass
+
 
 class Step(object):
 
     def __init__(self):
-        self._in_file_params = ["param_in"]
-        self._out_file_params = ["param_out"]
+        self._in_file_params = []
+        self._out_file_params = []
 
 
     def check_in_files(self):
@@ -15,9 +19,17 @@ class Step(object):
             in_file_name = getattr(self, in_file_param)
             if not os.path.isfile(in_file_name):
                 raise MissingInputFileError(in_file_param)
-            
+      
+    def check_out_files(self):
+        for out_file_param in self._out_file_params:
+            out_file_name = getattr(self, out_file_param)
+            if os.path.isfile(out_file_name):
+                raise OutputFileExistError
+
+
     def run(self):
         self.check_in_files() 
+        self.check_out_files()
         for out_file_param in self._out_file_params:
             out_file_name = getattr(self, out_file_param)
             out_file = open(out_file_name, "w")
@@ -25,7 +37,14 @@ class Step(object):
   
 
 class Step1(Step):
-    pass
+    
+    def __init__(self):
+        super(Step1, self).__init__()
+        self.param_in = None
+        self.param_out = None
+       
+        self._in_file_params = ["param_in"]
+        self._out_file_params = ["param_out"]
 
 
 class Step2(Step):
@@ -54,4 +73,12 @@ class Step3(Step):
 
 
 class IntraAnalysis(Step):
-    pass 
+
+    def __init__(self):
+        super(IntraAnalysis, self).__init__()
+        self.param_in = None
+        self.param_out = None
+       
+        self._in_file_params = ["param_in"]
+        self._out_file_params = ["param_out"]
+

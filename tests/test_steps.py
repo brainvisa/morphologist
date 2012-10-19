@@ -4,7 +4,7 @@ import unittest
 
 
 from steps import Step, Step1, Step2, Step3, IntraAnalysis
-from steps import MissingInputFileError
+from steps import MissingInputFileError, OutputFileExistError
 
 
 class TestSteps(unittest.TestCase):
@@ -30,7 +30,7 @@ class TestSteps(unittest.TestCase):
 
 
     def test_run_step(self):
-        step = Step()
+        step = Step1()
         step.param_in = self.in_step_file_path
         step.param_out = self.out_step_file_path 
         step.run()
@@ -67,12 +67,21 @@ class TestSteps(unittest.TestCase):
         self.assert_(os.path.isfile(self.out_analysis_file_path))
 
 
-    def test_raise_missing_in_file(self):
+    def test_raise_missing_input_file(self):
         os.remove(self.in_step_file_path)
-        step = Step()
+        step = Step1()
         step.param_in = self.in_step_file_path
         step.param_out = self.out_step_file_path
-        self.assertRaises(MissingInputFileError, Step.run, step)
+        self.assertRaises(MissingInputFileError, Step1.run, step)
+
+
+    def test_raise_output_file_exist(self):
+        out_file = open(self.out_step_file_path, "w")
+        out_file.close()
+        step = Step1()
+        step.param_in = self.in_step_file_path
+        step.param_out = self.out_step_file_path
+        self.assertRaises(OutputFileExistError, Step1.run, step)
 
 
     def tearDown(self):
