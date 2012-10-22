@@ -61,6 +61,14 @@ class TestSteps(unittest.TestCase):
 
     def test_run_intra_analysis(self):
         intra_analysis = IntraAnalysis()
+        self.set_test_parameters_for_intra_analysis(intra_analysis)        
+        intra_analysis.run()
+        self.assert_(os.path.isfile(intra_analysis.param_out_1))
+        self.assert_(os.path.isfile(intra_analysis.param_out_2))
+        self.assert_(os.path.isfile(intra_analysis.param_out_1))
+
+    
+    def set_test_parameters_for_intra_analysis(self, intra_analysis):
         intra_analysis.param_in_1 = self.in_analysis_file_path
         intra_analysis.param_in_2 = self.in_step2_file_path 
         intra_analysis.param_in_3 = 10 
@@ -68,12 +76,9 @@ class TestSteps(unittest.TestCase):
         intra_analysis.param_out_1 = self.out_step1_file_path
         intra_analysis.param_out_2 = self.out_step2_file_path
         intra_analysis.param_out_3 = self.out_step3_file_path
-        intra_analysis.run()
-        self.assert_(os.path.isfile(intra_analysis.param_out_1))
-        self.assert_(os.path.isfile(intra_analysis.param_out_2))
-        self.assert_(os.path.isfile(intra_analysis.param_out_1))
+ 
 
-    def test_raise_missing_input_file(self):
+    def test_missing_input_file_error(self):
         os.remove(self.in_step_file_path)
         step = Step1()
         step.param_in = self.in_step_file_path
@@ -81,7 +86,7 @@ class TestSteps(unittest.TestCase):
         self.assertRaises(MissingInputFileError, Step1.run, step)
 
 
-    def test_raise_output_file_exist(self):
+    def test_output_file_exist_error(self):
         out_file = open(self.out_step_file_path, "w")
         out_file.close()
         step = Step1()
@@ -89,7 +94,8 @@ class TestSteps(unittest.TestCase):
         step.param_out = self.out_step_file_path
         self.assertRaises(OutputFileExistError, Step1.run, step)
 
-    def test_raise_missing_parameter_value(self):
+
+    def test_missing_parameter_value_error(self):
         step = Step1()
         self.assertRaises(MissingParameterValueError, Step1.run, step)
 
@@ -99,6 +105,22 @@ class TestSteps(unittest.TestCase):
         # param_in_3 is not set on purpose
         step.param_out = self.out_step2_file_path
         self.assertRaises(MissingParameterValueError, Step2.run, step)
+
+    def test_correction(self):
+        intra_analysis = IntraAnalysis()
+        self.set_test_parameters_for_intra_analysis(intra_analysis)        
+        intra_analysis.run_step_1()
+        # control of the results 
+        intra_analysis.run_step_2()
+        # control of the results 
+        intra_analysis.param_in_3 = 30 # the problem is that the user would like to know that param_in_3 is an input parameter of the step2, something like intra_analysis.step2.param_in_3 would be more informative.
+        intra_analysis.clear_outputs_after_correction_of_parameters(["param_in_3"])
+        intra_analysis.run_step_2()
+        # control of the results
+        intra_analysis.run_step_3()
+        self.assert_(os.path.isfile(intra_analysis.param_out_1))
+        self.assert_(os.path.isfile(intra_analysis.param_out_2))
+        self.assert_(os.path.isfile(intra_analysis.param_out_1))
 
 
     def tearDown(self):

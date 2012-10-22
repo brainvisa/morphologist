@@ -118,6 +118,32 @@ class IntraAnalysis(object):
         self.step2.run()
         self.step3.run()
 
+    def run_step_1(self):
+        self.step1.param_in = self.param_in_1
+        self.step1.param_out = self.param_out_1
+        self.step1.run()
+
+    def run_step_2(self):
+        self.step2.param_in_1 = self.param_in_2
+        self.step2.param_in_2 = self.param_out_1 
+        self.step2.param_in_3 = self.param_in_3
+        self.step2.param_out = self.param_out_2
+        self.step2.run()
+
+    def run_step_3(self):
+        self.step3.param_in_1 = self.param_in_4
+        self.step3.param_in_2 = self.param_out_2
+        self.step3.param_out = self.param_out_3
+        self.step3.run()
+
+    def clear_outputs_after_correction_of_parameters(self, parameters):
+        # TODO refactor
+        self._remove_file_if_exists(self.param_out_3)
+        self._remove_file_if_exists(self.param_out_2)
+  
+    def _remove_file_if_exists(self, file_name):
+        if os.path.isfile(file_name):
+            os.remove(file_name)
 
 
 
