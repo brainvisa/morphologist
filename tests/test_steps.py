@@ -93,6 +93,13 @@ class TestSteps(unittest.TestCase):
         step = Step1()
         self.assertRaises(MissingParameterValueError, Step1.run, step)
 
+        step = Step2()
+        step.param_in_1 = self.in_step2_file_path
+        step.param_in_2 = self.in_step_file_path
+        # param_in_3 is not set on purpose
+        step.param_out = self.out_step2_file_path
+        self.assertRaises(MissingParameterValueError, Step2.run, step)
+
 
     def tearDown(self):
         if os.path.isfile(self.out_step_file_path):

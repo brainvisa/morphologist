@@ -72,6 +72,7 @@ class Step2(Step):
 
         self._in_file_params = ["param_in_1", "param_in_2"]  
         self._out_file_params= ["param_out"]
+        self._extra_params = ["param_in_3"]
    
 
 class Step3(Step):
