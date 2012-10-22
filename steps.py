@@ -1,9 +1,13 @@
 import os.path
+import copy
 
 class MissingInputFileError(Exception):
     pass
 
 class OutputFileExistError(Exception):
+    pass
+
+class MissingParameterValueError(Exception):
     pass
 
 
@@ -12,7 +16,7 @@ class Step(object):
     def __init__(self):
         self._in_file_params = []
         self._out_file_params = []
-
+        self._extra_params = []
 
     def check_in_files(self):
         for in_file_param in self._in_file_params:
@@ -26,8 +30,18 @@ class Step(object):
             if os.path.isfile(out_file_name):
                 raise OutputFileExistError
 
+    def check_parameter_filled(self):
+        all_the_params = copy.copy(self._in_file_params)
+        all_the_params.extend(self._out_file_params)
+        all_the_params.extend(self._extra_params)
+        for param in all_the_params:
+            param_value = getattr(self, param)
+            if param_value == None:
+                raise MissingParameterValueError(param)
+
 
     def run(self):
+        self.check_parameter_filled()
         self.check_in_files() 
         self.check_out_files()
         for out_file_param in self._out_file_params:
@@ -45,7 +59,7 @@ class Step1(Step):
        
         self._in_file_params = ["param_in"]
         self._out_file_params = ["param_out"]
-
+        
 
 class Step2(Step):
 

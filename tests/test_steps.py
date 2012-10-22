@@ -4,7 +4,7 @@ import unittest
 
 
 from steps import Step, Step1, Step2, Step3, IntraAnalysis
-from steps import MissingInputFileError, OutputFileExistError
+from steps import MissingInputFileError, OutputFileExistError, MissingParameterValueError
 
 
 class TestSteps(unittest.TestCase):
@@ -88,6 +88,10 @@ class TestSteps(unittest.TestCase):
         step.param_in = self.in_step_file_path
         step.param_out = self.out_step_file_path
         self.assertRaises(OutputFileExistError, Step1.run, step)
+
+    def test_raise_missing_parameter_value(self):
+        step = Step1()
+        self.assertRaises(MissingParameterValueError, Step1.run, step)
 
 
     def tearDown(self):
