@@ -2,7 +2,7 @@ import os
 import unittest
 
 
-from steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
+from morphologist.steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
 
 
 class TestSteps(unittest.TestCase):
