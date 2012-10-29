@@ -2,7 +2,7 @@ import os
 import unittest
 
 
-from steps import BiasCorrection, HistogramAnalysis, BrainSegmentation
+from steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
 
 
 class TestSteps(unittest.TestCase):
@@ -19,6 +19,7 @@ class TestSteps(unittest.TestCase):
         self.variance = os.path.join(base_directory, "default_analysis/variance_icbm100T.ima")
         self.histo_analysis = os.path.join(base_directory, "default_analysis/nobias_icbm100T.han")
         self.brain_mask = os.path.join(base_directory, "default_analysis/segmentation/brain_icbm100T.ima")
+        self.split_mask = os.path.join(base_directory, "default_analysis/segmentation/voronoi_icbm100T.ima")
 
 
     def test_bias_correction(self):
@@ -61,7 +62,18 @@ class TestSteps(unittest.TestCase):
     
         brain_segmentation.run()
 
+    def test_split_brain(self):
+        split_brain = SplitBrain()
 
+        split_brain.mri_corrected = self.mri_corrected
+        split_brain.brain_mask = self.brain_mask
+        split_brain.white_ridges = self.white_ridges
+        split_brain.histo_analysis = self.histo_analysis
+        split_brain.commissure_coordinates = self.commissure_coordinates
+
+        split_brain.split_mask = self.split_mask
+
+        split_brain.run()
 
 if __name__ == '__main__':
 

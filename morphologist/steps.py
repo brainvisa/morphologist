@@ -111,5 +111,37 @@ class BrainSegmentation(Step):
 
 class SplitBrain(Step):
 
-    pass
+    def __init__(self):
+        super(SplitBrain, self).__init__()
 
+        self.mri_corrected = None
+        self.brain_mask = None
+        self.white_ridges = None
+        self.histo_analysis = None
+        self.commissure_coordinates = None
+        self.bary_factor = 0.6
+        # output
+        self.split_mask = None
+   
+    def get_command(self):
+        command = ['VipSplitBrain',
+                   '-input',  self.mri_corrected,
+                   '-brain', self.brain_mask,
+                   '-analyse', 'r', 
+                   '-hname', self.histo_analysis,
+                   '-output', self.split_mask,
+                   '-mode', "'Watershed (2011)'",
+                   '-erosion', "2.0",
+                   '-ccsize', "500",
+                   '-Ridge', self.white_ridges,
+                   '-Bary', str(self.bary_factor),
+                   '-walgo','b',
+                   '-Points', self.commissure_coordinates]
+
+        # TODO:
+        # useful option ?? 
+        # "-template", "share/brainvisa-share-4.4/hemitemplate/closedvoronoi.ima"
+        # "-TemplateUse", "y" 
+
+        # TODO referencials
+        return command
