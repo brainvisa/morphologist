@@ -16,24 +16,19 @@ class Step(object):
 
 class BiasCorrection(Step):
  
-    mri = None
-
-    commissure_coordinates = None
-
-    #outputs
-    hfiltered = None
-
-    white_ridges = None
-
-    edges = None
-
-    variance = None
-
-    mri_corrected = None
 
     def __init__(self):
         super(BiasCorrection, self).__init__()
 
+        self.mri = None
+        self.commissure_coordinates = None 
+        #outputs
+        self.hfiltered = None
+        self.white_ridges = None
+        self.edges = None
+        self.variance = None
+        self.mri_corrected = None
+    
     def get_command(self):
         command = ['VipT1BiasCorrection', 
                    '-i', self.mri, 
@@ -58,18 +53,16 @@ class BiasCorrection(Step):
  
 class HistogramAnalysis(Step):
 
-    mri_corrected = None
-
-    hfiltered = None
-
-    white_ridges = None
-
-    # output
-    histo_analysis = None 
-
     def __init__(self):
         super(HistogramAnalysis, self).__init__()
-    
+
+        self.mri_corrected = None
+        self.hfiltered = None
+        self.white_ridges = None
+        # output
+        self.histo_analysis = None 
+
+   
     def get_command(self):
         command = ['VipHistoAnalysis', 
                    '-i', self.mri_corrected, 
@@ -82,26 +75,19 @@ class HistogramAnalysis(Step):
 
 class BrainSegmentation(Step):
 
-    mri_corrected = None
-
-    commissure_coordinates = None
-
-    white_ridges = None
-
-    edges = None
-
-    variance = None
-
-    histo_analysis = None
-
-    erosion_size = None
-
-    # output
-    brain_mask = None
-
     def __init__(self):
         super(BrainSegmentation, self).__init__()
+
+        self.mri_corrected = None
+        self.commissure_coordinates = None
+        self.white_ridges = None
+        self.edges = None
+        self.variance = None
+        self.histo_analysis = None
         self.erosion_size = 1.8
+        # output
+        brain_mask = None
+         
 
     def get_command(self):
         command = ['VipGetBrain',
@@ -121,4 +107,9 @@ class BrainSegmentation(Step):
                    ]
         # TODO referentials
         return command
+
+
+class SplitBrain(Step):
+
+    pass
 
