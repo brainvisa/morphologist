@@ -1,6 +1,6 @@
 import os
 
-class Analysis(object):
+class Step(object):
     ''' Abstract class '''
 
     def __init__(self):
@@ -14,7 +14,7 @@ class Analysis(object):
  
 
 
-class BiasCorrection(Analysis):
+class BiasCorrection(Step):
  
     mri = None
 
@@ -46,7 +46,7 @@ class BiasCorrection(Analysis):
         return command
    
 
-class HistogramAnalysis(Analysis):
+class HistogramAnalysis(Step):
 
     mri_corrected = None
 
@@ -70,6 +70,6 @@ class HistogramAnalysis(Analysis):
                    '-mode', 'i']
         return command
 
-class ComputeBrainMask(Analysis):
+class ComputeBrainMask(Step):
 
   pass
