@@ -11,8 +11,24 @@ class Step(object):
         to_execute = separator.join(self.get_command())
         print "run the command: \n" + to_execute + "\n"
         os.system(to_execute)
- 
 
+
+class SpatialNormalization(Step):
+
+    def __init__(self):
+        super(SpatialNormalization)
+        
+        self.mri = None
+        
+        #outputs
+        self.commissure_coordinates = None
+        self.talairach_transform = None
+
+    def get_command(self):
+        # TODO 
+        command = ['echo', "TO DO : Spatial Normalization !!!"]
+        return command
+ 
 
 class BiasCorrection(Step):
  

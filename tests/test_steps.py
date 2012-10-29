@@ -2,7 +2,7 @@ import os
 import unittest
 
 
-from morphologist.steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
+from morphologist.steps import SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
 
 
 class TestSteps(unittest.TestCase):
@@ -12,6 +12,7 @@ class TestSteps(unittest.TestCase):
 
         self.mri = os.path.join(base_directory, "icbm100T.ima")
         self.commissure_coordinates = os.path.join(base_directory, "icbm100T.APC") 
+        self.talairach_transform = os.path.join(base_directory, "registration/RawT1-icbm100T_default_acquisition_TO_Talairach-MNI.trm")
         self.hfiltered = os.path.join(base_directory, "default_analysis/hfiltered_icbm100T.ima")
         self.white_ridges = os.path.join(base_directory, "default_analysis/whiteridge_icbm100T.ima")
         self.edges = os.path.join(base_directory, "default_analysis/edges_icbm100T.ima")
@@ -20,6 +21,16 @@ class TestSteps(unittest.TestCase):
         self.histo_analysis = os.path.join(base_directory, "default_analysis/nobias_icbm100T.han")
         self.brain_mask = os.path.join(base_directory, "default_analysis/segmentation/brain_icbm100T.ima")
         self.split_mask = os.path.join(base_directory, "default_analysis/segmentation/voronoi_icbm100T.ima")
+
+    def test_spatial_normalization(self):
+        spatial_normalization = SpatialNormalization()
+
+        spatial_normalization.mri = self.mri
+
+        spatial_normalization.commissure_coordinates = self.commissure_coordinates
+        spatial_normalization.talairach_transform = self.talairach_transform
+
+        spatial_normalization.run()
 
 
     def test_bias_correction(self):
@@ -36,6 +47,7 @@ class TestSteps(unittest.TestCase):
 
         bias_correction.run()
     
+
     def test_histogram_analysis(self):
         histo_analysis = HistogramAnalysis()
         
@@ -62,6 +74,7 @@ class TestSteps(unittest.TestCase):
     
         brain_segmentation.run()
 
+
     def test_split_brain(self):
         split_brain = SplitBrain()
 
@@ -75,7 +88,17 @@ class TestSteps(unittest.TestCase):
 
         split_brain.run()
 
+
 if __name__ == '__main__':
 
     unittest.main()
 
+    #tests = []
+    #tests.append('test_spatial_normalization')
+    ##tests.append('test_bias_correction')
+    ##tests.append('test_histogram_analysis')
+    ##tests.append('test_brain_segmentation')
+    ##tests.append('test_split_brain')
+
+    #test_suite = unittest.TestSuite(map(TestSteps, tests))
+    #unittest.TextTestRunner(verbosity=2).run(test_suite)
