@@ -5,7 +5,7 @@ import unittest
 from morphologist.steps import SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
 
 
-class TestSteps(unittest.TestCase):
+class TestIntraAnalysisSteps(unittest.TestCase):
 
     def setUp(self):
         base_directory = "/volatile/laguitton/data/icbm/icbm/icbm100T/t1mri/default_acquisition"
@@ -100,5 +100,5 @@ if __name__ == '__main__':
     ##tests.append('test_brain_segmentation')
     ##tests.append('test_split_brain')
 
-    #test_suite = unittest.TestSuite(map(TestSteps, tests))
+    #test_suite = unittest.TestSuite(map(TestIntraAnalysisSteps, tests))
     #unittest.TextTestRunner(verbosity=2).run(test_suite)
