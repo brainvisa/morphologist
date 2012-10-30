@@ -12,11 +12,33 @@ class Step(object):
         print "run the command: \n" + to_execute + "\n"
         os.system(to_execute)
 
+class MockStep(Step):
+
+    def __init__(self):
+        super(MockStep, self).__init__()
+
+        self.input_1 = None
+        self.input_2 = None
+        self.input_3 = None
+
+        #outputs
+        self.output_1 = None
+        self.output_2 = None
+
+    def get_command(self):
+        message = "MockStep "
+        message += "inputs: %s %s %s outputs: %s %s" %(self.input_1, 
+                                                       self.input_2, 
+                                                       self.input_3, 
+                                                       self.output_1, 
+                                                       self.output_2)
+        command = ["echo", "'" + message + "' ;", "sleep", "20"]
+        return command
 
 class SpatialNormalization(Step):
 
     def __init__(self):
-        super(SpatialNormalization)
+        super(SpatialNormalization, self).__init__()
         
         self.mri = None
         
