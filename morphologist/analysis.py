@@ -1,3 +1,5 @@
+import os
+import threading
 
 from morphologist.steps import MockStep
 
@@ -5,18 +7,43 @@ class Analysis(object):
      
     def __init__(self, step_flow):
         self._step_flow = step_flow
-        self._is_running = False
         self.input_args = self._step_flow.input_args
         self.output_args = self._step_flow.output_args
+        self._execution_thread = threading.Thread(name = "analysis run",
+                                                  target = Analysis._sync_run,
+                                                  args =([self]))
+        self._lock = threading.RLock()
+        self._interruption = False
+
+    def _sync_run(self):
+        command_list = self._step_flow.get_command_list()
+        separator = " " 
+        for command in command_list:
+            with self._lock:
+                if self._interruption:
+                    break
+            command_to_run = separator.join(command)
+            print "run: " + repr(command_to_run)
+            os.system(command_to_run)
+        with self._lock:
+            self._interruption == False
+
 
     def run(self):
-        self._is_running = True
+        if not self._execution_thread.is_alive():
+            self._execution_thread.setDaemon(True)
+            self._execution_thread.start()
 
     def stop(self):
-        self._is_running = False
+        with self._lock:
+            self._interruption = True
+        self._execution_thread.join()
+
+    def wait(self):
+        self._execution_thread.join()
 
     def is_running(self):
-        return self._is_running
+        return self._execution_thread.is_alive() 
 
 
 class Arguments(object):
@@ -26,8 +53,17 @@ class Arguments(object):
         for name in argument_names:
             setattr(self, name, None)
 
-    def list_arguments(self):
+    def list_names(self):
         return self._argument_names
+
+    def get_value(self, name):
+        if not name in self._argument_names:
+            raise UnknownArgumentName(name)
+        return getattr(self, name)
+
+
+class UnknownArgumentName(Exception):
+    pass
 
 
 class OutputArguments(Arguments):
@@ -78,23 +114,23 @@ class MockStepFlow(StepFlow):
  
     def propagate_parameters(self):
 
-        self._steps[1].input_1 = self.input_args.input_1
-        self._steps[1].input_2 = self.input_args.input_2
-        self._steps[1].input_3 = self.input_args.input_3
-        self._steps[1].output_1 = self.output_args.output_1
-        self._steps[1].output_2 = self.output_args.output_2
+        self._steps[0].input_1 = self.input_args.input_1
+        self._steps[0].input_2 = self.input_args.input_2
+        self._steps[0].input_3 = self.input_args.input_3
+        self._steps[0].output_1 = self.output_args.output_1
+        self._steps[0].output_2 = self.output_args.output_2
 
-        self._steps[2].input_1 = self._steps[1].output_1
-        self._steps[2].input_2 = self._steps[1].output_2
-        self._steps[2].input_3 = self.input_args.input_4
-        self._steps[2].output_1 = self.output_args.output_3
-        self._steps[2].output_2 = self.output_args.output_4
+        self._steps[1].input_1 = self._steps[0].output_1
+        self._steps[1].input_2 = self._steps[0].output_2
+        self._steps[1].input_3 = self.input_args.input_4
+        self._steps[1].output_1 = self.output_args.output_3
+        self._steps[1].output_2 = self.output_args.output_4
 
-        self._steps[3].input_1 = self.input_args.input_5
-        self._steps[3].input_2 = self.input_args.input_6
-        self._steps[3].input_3 = self._steps[2].output_1
-        self._steps[3].output_1 = self.output_args.output_5
-        self._steps[3].output_2 = self.output_args.output_6
+        self._steps[2].input_1 = self.input_args.input_5
+        self._steps[2].input_2 = self.input_args.input_6
+        self._steps[2].input_3 = self._steps[1].output_1
+        self._steps[2].output_1 = self.output_args.output_5
+        self._steps[2].output_2 = self.output_args.output_6
     
  
     

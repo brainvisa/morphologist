@@ -12,17 +12,36 @@ class TestAnalysis(unittest.TestCase):
 
     def test_run_analysis(self):
         self.test_case.set_analysis_parameters()
+
         self.analysis.run()
+
         self.assert_(self.analysis.is_running())
 
     def test_stop_analysis(self):
+        self.test_case.set_analysis_parameters()
         self.analysis.run()
+
         self.analysis.stop()
+
         self.assert_(not self.analysis.is_running())
+
+    def test_analysis_has_run(self):
+        self.test_case.set_analysis_parameters()
+        self.analysis.run()
+
+        self.analysis.wait()
+
+        self.assert_output_files_exist()
 
     def tearDown(self):
         if self.analysis.is_running():
             self.analysis.stop()
+
+    def assert_output_files_exist(self):
+        for arg_name in self.analysis.output_args.list_names():
+            out_file_path = self.analysis.output_args.get_value(arg_name)
+            self.assert_(os.path.isfile(out_file_path))  
+
 
 
 def create_test_case():
