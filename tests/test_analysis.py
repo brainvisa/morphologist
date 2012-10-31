@@ -1,5 +1,6 @@
 import unittest
 import os
+import time
 
 from morphologist.analysis import MockStepFlow, Analysis
  
@@ -20,10 +21,21 @@ class TestAnalysis(unittest.TestCase):
     def test_stop_analysis(self):
         self.test_case.set_analysis_parameters()
         self.analysis.run()
+        time.sleep(1) # tested analysis are longer to run than 1 second
 
         self.analysis.stop()
 
         self.assert_(not self.analysis.is_running())
+
+    def test_clear_state_after_interruption(self):
+        self.test_case.set_analysis_parameters()
+        self.analysis.run()
+        time.sleep(1) # tested analysis are longer to run than 1 second
+
+        self.analysis.stop()
+
+        self.assert_output_files_cleared()
+
 
     def test_analysis_has_run(self):
         self.test_case.set_analysis_parameters()
@@ -38,9 +50,15 @@ class TestAnalysis(unittest.TestCase):
             self.analysis.stop()
 
     def assert_output_files_exist(self):
-        for arg_name in self.analysis.output_args.list_names():
+        for arg_name in self.analysis.output_args.list_file_argument_names():
             out_file_path = self.analysis.output_args.get_value(arg_name)
             self.assert_(os.path.isfile(out_file_path))  
+
+    def assert_output_files_cleared(self):
+        for arg_name in self.analysis.output_args.list_file_argument_names():
+            out_file_path = self.analysis.output_args.get_value(arg_name)
+            self.assert_(not os.path.isfile(out_file_path))  
+
 
 
 

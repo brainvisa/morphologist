@@ -21,12 +21,11 @@ class Analysis(object):
         for command in command_list:
             with self._lock:
                 if self._interruption:
+                    self._interruption = False
                     break
             command_to_run = separator.join(command)
-            print "run: " + repr(command_to_run)
+            print "\nrun: " + repr(command_to_run)
             os.system(command_to_run)
-        with self._lock:
-            self._interruption == False
 
 
     def run(self):
@@ -38,6 +37,19 @@ class Analysis(object):
         with self._lock:
             self._interruption = True
         self._execution_thread.join()
+        with self._lock:
+            if self._interruption:
+                # the thread ended without being interrupted
+                self._interruption = False
+            else:
+                self.clear_output_files()
+
+    def clear_output_files(self):
+        for arg_name in self._step_flow.output_args.list_file_argument_names():
+            out_file_path = self._step_flow.output_args.get_value(arg_name)
+            if os.path.isfile(out_file_path):
+                os.remove(out_file_path)
+
 
     def wait(self):
         self._execution_thread.join()
@@ -53,7 +65,7 @@ class Arguments(object):
         for name in argument_names:
             setattr(self, name, None)
 
-    def list_names(self):
+    def list_file_argument_names(self):
         return self._argument_names
 
     def get_value(self, name):
