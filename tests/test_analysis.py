@@ -3,6 +3,7 @@ import os
 import time
 
 from morphologist.analysis import MockStepFlow, Analysis
+from morphologist.analysis import MissingParameterValueError
  
 
 class TestAnalysis(unittest.TestCase):
@@ -11,30 +12,13 @@ class TestAnalysis(unittest.TestCase):
         self.test_case = create_test_case() 
         self.analysis = self.test_case.create_analysis()
 
+
     def test_run_analysis(self):
         self.test_case.set_analysis_parameters()
 
         self.analysis.run()
 
         self.assert_(self.analysis.is_running())
-
-    def test_stop_analysis(self):
-        self.test_case.set_analysis_parameters()
-        self.analysis.run()
-        time.sleep(1) # tested analysis are longer to run than 1 second
-
-        self.analysis.stop()
-
-        self.assert_(not self.analysis.is_running())
-
-    def test_clear_state_after_interruption(self):
-        self.test_case.set_analysis_parameters()
-        self.analysis.run()
-        time.sleep(1) # tested analysis are longer to run than 1 second
-
-        self.analysis.stop()
-
-        self.assert_output_files_cleared()
 
 
     def test_analysis_has_run(self):
@@ -45,14 +29,51 @@ class TestAnalysis(unittest.TestCase):
 
         self.assert_output_files_exist()
 
+
+    def test_stop_analysis(self):
+        self.test_case.set_analysis_parameters()
+        self.analysis.run()
+        time.sleep(1) # tested analysis are longer to run than 1 second
+
+        self.analysis.stop()
+
+        self.assert_(not self.analysis.is_running())
+
+
+    def test_clear_state_after_interruption(self):
+        self.test_case.set_analysis_parameters()
+        self.analysis.run()
+        time.sleep(1) # tested analysis are longer to run than 1 second
+
+        self.analysis.stop()
+
+        self.assert_output_files_cleared()
+
+    def test_missing_parameter_value_error(self):
+        self.test_case.set_analysis_parameters()
+        self.test_case.delete_some_parameter_values()
+
+        self.assertRaises(MissingParameterValueError, Analysis.run, self.analysis)
+        
+
+    def test_missing_input_file_error(self):
+        #TODO
+        pass
+
+    def test_output_file_exist_error(self):
+        #TODO
+        pass
+
     def tearDown(self):
         if self.analysis.is_running():
             self.analysis.stop()
+
 
     def assert_output_files_exist(self):
         for arg_name in self.analysis.output_args.list_file_argument_names():
             out_file_path = self.analysis.output_args.get_value(arg_name)
             self.assert_(os.path.isfile(out_file_path))  
+
 
     def assert_output_files_cleared(self):
         for arg_name in self.analysis.output_args.list_file_argument_names():
@@ -91,6 +112,10 @@ class MockAnalysisTestCase(object):
         self.analysis.output_args.output_4 = generate_out_file_path("output_4")
         self.analysis.output_args.output_5 = generate_out_file_path("output_5")
         self.analysis.output_args.output_6 = generate_out_file_path("output_6")
+
+    def delete_some_parameter_values(self):
+        self.analysis.output_args.output_3 = None
+        self.analysis.input_args.input_4 = None
 
 def generate_in_file_path(file_name):
     file_path = generate_file_path(file_name)

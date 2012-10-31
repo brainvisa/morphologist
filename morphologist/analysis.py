@@ -29,9 +29,27 @@ class Analysis(object):
 
 
     def run(self):
+        self._check_parameter_values_filled()
         if not self._execution_thread.is_alive():
             self._execution_thread.setDaemon(True)
             self._execution_thread.start()
+
+    def _check_parameter_values_filled(self):
+        missing_parameters = []
+        missing_parameters.extend(self._step_flow.input_args.list_missing_parameter_values())  
+        missing_parameters.extend(self._step_flow.output_args.list_missing_parameter_values())
+        if missing_parameters:
+            separator = " ,"
+            message = separator.join(missing_parameters)
+            raise MissingParameterValueError(message)
+
+    def is_running(self):
+        return self._execution_thread.is_alive() 
+
+
+    def wait(self):
+        self._execution_thread.join()
+
 
     def stop(self):
         with self._lock:
@@ -44,6 +62,7 @@ class Analysis(object):
             else:
                 self.clear_output_files()
 
+
     def clear_output_files(self):
         for arg_name in self._step_flow.output_args.list_file_argument_names():
             out_file_path = self._step_flow.output_args.get_value(arg_name)
@@ -51,12 +70,8 @@ class Analysis(object):
                 os.remove(out_file_path)
 
 
-    def wait(self):
-        self._execution_thread.join()
-
-    def is_running(self):
-        return self._execution_thread.is_alive() 
-
+class MissingParameterValueError(Exception):
+    pass
 
 class Arguments(object):
     
@@ -64,6 +79,13 @@ class Arguments(object):
         self._argument_names = argument_names
         for name in argument_names:
             setattr(self, name, None)
+
+    def list_missing_parameter_values(self):
+        missing_values = []
+        for name in self._argument_names:
+            if getattr(self, name) == None:
+                missing_values.append(name)
+        return missing_values
 
     def list_file_argument_names(self):
         return self._argument_names
