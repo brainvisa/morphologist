@@ -6,6 +6,8 @@ class Analysis(object):
     def __init__(self, step_flow):
         self._step_flow = step_flow
         self._is_running = False
+        self.input_args = self._step_flow.input_args
+        self.output_args = self._step_flow.output_args
 
     def run(self):
         self._is_running = True
