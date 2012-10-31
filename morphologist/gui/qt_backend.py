@@ -11,7 +11,7 @@ def choose_pyqt_backend():
     except ImportError, e:
         raise Exception("error: missing PyQt dependency.")
     module = imp.load_module('PyQt4', *module_info)
-    submodules = ['QtCore', 'QtGui', 'QtTest'] #TODO : add missing modules
+    submodules = ['QtCore', 'QtGui', 'QtTest', 'Qt'] #TODO : add missing modules
     for submodule in submodules:
         __builtin__.__import__('PyQt4.' + submodule)
         globals()[submodule] = module.__getattribute__(submodule)
