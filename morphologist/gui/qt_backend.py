@@ -19,10 +19,15 @@ def choose_pyqt_backend():
     import PyQt4.QtCore
     PyQt4.QtCore.Slot = PyQt4.QtCore.pyqtSlot
     PyQt4.QtCore.Signal = PyQt4.QtCore.pyqtSignal
-    global loadUi
+    global loadUi, loadUiType
     def loadUi(uifile, baseinstance=None):
         from PyQt4 import uic
         return uic.loadUi(uifile, baseinstance=baseinstance)
+    def loadUiType(uifile):
+        from PyQt4 import uic
+        return uic.loadUiType(uifile)
+
+
 
 def choose_pyside_backend():
     try:
