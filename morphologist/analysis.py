@@ -1,3 +1,4 @@
+import copy
 import os
 import threading
 
@@ -30,6 +31,7 @@ class Analysis(object):
 
     def run(self):
         self._check_parameter_values_filled()
+        self._check_input_files_exist()
         if not self._execution_thread.is_alive():
             self._execution_thread.setDaemon(True)
             self._execution_thread.start()
@@ -42,6 +44,14 @@ class Analysis(object):
             separator = " ,"
             message = separator.join(missing_parameters)
             raise MissingParameterValueError(message)
+
+    def _check_input_files_exist(self):
+        missing_files = self._step_flow.input_args.list_missing_files()
+        if missing_files:
+            separator = " ,"
+            message = separator.join(missing_files)
+            raise MissingInputFileError(message)
+
 
     def is_running(self):
         return self._execution_thread.is_alive() 
@@ -73,30 +83,45 @@ class Analysis(object):
 class MissingParameterValueError(Exception):
     pass
 
+class MissingInputFileError(Exception):
+    pass
+
+
 class Arguments(object):
     
-    def __init__(self, argument_names):
-        self._argument_names = argument_names
-        for name in argument_names:
+    def __init__(self, file_param_names, other_param_names=None):
+        self._file_param_names = file_param_names
+        self._parameter_names = copy.copy(self._file_param_names)
+        if other_param_names != None:
+            self._parameter_names.extend(other_param_names)
+        for name in self._parameter_names:
             setattr(self, name, None)
 
     def list_missing_parameter_values(self):
         missing_values = []
-        for name in self._argument_names:
+        for name in self._parameter_names:
             if getattr(self, name) == None:
                 missing_values.append(name)
         return missing_values
 
+    def list_missing_files(self):
+        missing_files = []
+        for name in self._file_param_names:
+            file_name = getattr(self, name)
+            if not os.path.isfile(file_name):
+                missing_files.append(file_name)
+        return missing_files
+
     def list_file_argument_names(self):
-        return self._argument_names
+        return self._file_param_names
 
     def get_value(self, name):
-        if not name in self._argument_names:
-            raise UnknownArgumentName(name)
+        if not name in self._parameter_names:
+            raise UnknownParameterName(name)
         return getattr(self, name)
 
 
-class UnknownArgumentName(Exception):
+class UnknownParameterName(Exception):
     pass
 
 
@@ -133,18 +158,19 @@ class MockStepFlow(StepFlow):
         step3 = MockStep()
         self._steps = [step1, step2, step3] 
 
-        self.input_args = InputArguments(argument_names=['input_1',
-                                                         'input_2',
-                                                         'input_3',
-                                                         'input_4',
-                                                         'input_5',
-                                                         'input_6'])
-        self.output_args = OutputArguments(argument_names=['output_1',
-                                                           'output_2',
-                                                           'output_3',
-                                                           'output_4',
-                                                           'output_5',
-                                                           'output_6'])
+        
+        self.input_args = InputArguments(file_param_names=['input_1',
+                                                           'input_2',
+                                                           'input_3',
+                                                           'input_4',
+                                                           'input_5',
+                                                           'input_6'])
+        self.output_args = OutputArguments(file_param_names=['output_1',
+                                                             'output_2',
+                                                             'output_3',
+                                                             'output_4',
+                                                             'output_5',
+                                                             'output_6'])
  
     def propagate_parameters(self):
 
