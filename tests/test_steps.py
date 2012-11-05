@@ -8,19 +8,32 @@ from morphologist.steps import SpatialNormalization, BiasCorrection, HistogramAn
 class TestIntraAnalysisSteps(unittest.TestCase):
 
     def setUp(self):
-        base_directory = "/volatile/laguitton/data/icbm/icbm/icbm100T/t1mri/default_acquisition"
-
-        self.mri = os.path.join(base_directory, "icbm100T.ima")
-        self.commissure_coordinates = os.path.join(base_directory, "icbm100T.APC") 
-        self.talairach_transform = os.path.join(base_directory, "registration/RawT1-icbm100T_default_acquisition_TO_Talairach-MNI.trm")
-        self.hfiltered = os.path.join(base_directory, "default_analysis/hfiltered_icbm100T.ima")
-        self.white_ridges = os.path.join(base_directory, "default_analysis/whiteridge_icbm100T.ima")
-        self.edges = os.path.join(base_directory, "default_analysis/edges_icbm100T.ima")
-        self.mri_corrected = os.path.join(base_directory, "default_analysis/nobias_icbm100T.ima")
-        self.variance = os.path.join(base_directory, "default_analysis/variance_icbm100T.ima")
-        self.histo_analysis = os.path.join(base_directory, "default_analysis/nobias_icbm100T.han")
-        self.brain_mask = os.path.join(base_directory, "default_analysis/segmentation/brain_icbm100T.ima")
-        self.split_mask = os.path.join(base_directory, "default_analysis/segmentation/voronoi_icbm100T.ima")
+        
+        subject = "icbm101T"
+        base_directory = "/volatile/laguitton/data/icbm/icbm/%s/t1mri/default_acquisition" % subject
+  
+        self.mri = os.path.join(base_directory, 
+                                "%s.ima" % subject)
+        self.commissure_coordinates = os.path.join(base_directory, 
+                                      "%s.APC" % subject) 
+        self.talairach_transform = os.path.join(base_directory, 
+                                   "registration/RawT1-%s_default_acquisition_TO_Talairach-MNI.trm" % subject)
+        self.hfiltered = os.path.join(base_directory, 
+                         "default_analysis/hfiltered_%s.ima" % subject)
+        self.white_ridges = os.path.join(base_directory, 
+                            "default_analysis/whiteridge_%s.ima" % subject)
+        self.edges = os.path.join(base_directory, 
+                     "default_analysis/edges_%s.ima" % subject)
+        self.mri_corrected = os.path.join(base_directory, 
+                             "default_analysis/nobias_%s.ima" % subject)
+        self.variance = os.path.join(base_directory, 
+                        "default_analysis/variance_%s.ima" % subject)
+        self.histo_analysis = os.path.join(base_directory, 
+                              "default_analysis/nobias_%s.han" % subject)
+        self.brain_mask = os.path.join(base_directory, 
+                          "default_analysis/segmentation/brain_%s.ima" % subject)
+        self.split_mask = os.path.join(base_directory, 
+                          "default_analysis/segmentation/voronoi_%s.ima" % subject)
 
     def test_spatial_normalization(self):
         spatial_normalization = SpatialNormalization()
