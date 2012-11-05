@@ -1,4 +1,4 @@
-from morphologist.analysis import StepFlow
+from morphologist.analysis import StepFlow, InputParameters, OutputParameters
 from morphologist.steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
 
 
@@ -9,8 +9,10 @@ class IntraAnalysisStepFlow(StepFlow):
         self._histogram_analysis = HistogramAnalysis()
         self._brain_segmentation = BrainSegmentation()
         self._split_brain = SplitBrain()  
-        self._steps = [bias_correction, histogram_analysis, brain_segmentation, split_brain] 
-
+        self._steps = [self._bias_correction, 
+                       self._histogram_analysis, 
+                       self._brain_segmentation, 
+                       self._split_brain] 
 
         # TODO
         self.input_params = InputParameters(file_param_names=['mri',
@@ -27,7 +29,6 @@ class IntraAnalysisStepFlow(StepFlow):
                                                                 'histo_analysis',
                                                                 'brain_mask',
                                                                 'split_mask'])
-)
 
 
     def propagate_parameters(self):
