@@ -8,8 +8,8 @@ class Analysis(object):
      
     def __init__(self, step_flow):
         self._step_flow = step_flow
-        self.input_args = self._step_flow.input_args
-        self.output_args = self._step_flow.output_args
+        self.input_params = self._step_flow.input_params
+        self.output_params = self._step_flow.output_params
         self._execution_thread = threading.Thread(name = "analysis run",
                                                   target = Analysis._sync_run,
                                                   args =([self]))
@@ -40,8 +40,8 @@ class Analysis(object):
 
     def _check_parameter_values_filled(self):
         missing_parameters = []
-        missing_parameters.extend(self._step_flow.input_args.list_missing_parameter_values())  
-        missing_parameters.extend(self._step_flow.output_args.list_missing_parameter_values())
+        missing_parameters.extend(self._step_flow.input_params.list_missing_parameter_values())  
+        missing_parameters.extend(self._step_flow.output_params.list_missing_parameter_values())
         if missing_parameters:
             separator = " ,"
             message = separator.join(missing_parameters)
@@ -49,7 +49,7 @@ class Analysis(object):
 
 
     def _check_input_files_exist(self):
-        missing_files = self._step_flow.input_args.list_missing_files()
+        missing_files = self._step_flow.input_params.list_missing_files()
         if missing_files:
             separator = " ,"
             message = separator.join(missing_files)
@@ -57,7 +57,7 @@ class Analysis(object):
 
 
     def _check_output_files_dont_exist(self):
-        existing_files = self._step_flow.output_args.list_existing_files()
+        existing_files = self._step_flow.output_params.list_existing_files()
         if existing_files:
             separator = " ,"
             message = separator.join(existing_files)
@@ -85,8 +85,8 @@ class Analysis(object):
 
 
     def clear_output_files(self):
-        for arg_name in self._step_flow.output_args.list_file_argument_names():
-            out_file_path = self._step_flow.output_args.get_value(arg_name)
+        for param_name in self._step_flow.output_params.list_file_parameter_names():
+            out_file_path = self._step_flow.output_params.get_value(param_name)
             if os.path.isfile(out_file_path):
                 os.remove(out_file_path)
 
@@ -101,7 +101,7 @@ class OutputFileExistError(Exception):
     pass
 
 
-class Arguments(object):
+class Parameters(object):
     
     def __init__(self, file_param_names, other_param_names=None):
         self._file_param_names = file_param_names
@@ -134,7 +134,7 @@ class Arguments(object):
                 existing_files.append(file_name)
         return existing_files
         
-    def list_file_argument_names(self):
+    def list_file_parameter_names(self):
         return self._file_param_names
 
     def get_value(self, name):
@@ -147,10 +147,10 @@ class UnknownParameterName(Exception):
     pass
 
 
-class OutputArguments(Arguments):
+class OutputParameters(Parameters):
     pass
 
-class InputArguments(Arguments):
+class InputParameters(Parameters):
     pass
 
 
@@ -159,8 +159,8 @@ class StepFlow(object):
     def __init__(self):
         self._steps = []
       
-        self.input_args = InputArgs(argument_names=[])
-        self.output_args = OutputArgs(argument_names=[])
+        self.input_params = InputParameters(parameter_names=[])
+        self.output_params = OutputParameters(parameter_names=[])
 
     def get_command_list(self):
         self.propagate_parameters()
@@ -181,38 +181,38 @@ class MockStepFlow(StepFlow):
         self._steps = [step1, step2, step3] 
 
         
-        self.input_args = InputArguments(file_param_names=['input_1',
-                                                           'input_2',
-                                                           'input_3',
-                                                           'input_4',
-                                                           'input_5',
-                                                           'input_6'])
-        self.output_args = OutputArguments(file_param_names=['output_1',
-                                                             'output_2',
-                                                             'output_3',
-                                                             'output_4',
-                                                             'output_5',
-                                                             'output_6'])
+        self.input_params = InputParameters(file_param_names=['input_1',
+                                                              'input_2',
+                                                              'input_3',
+                                                              'input_4',
+                                                              'input_5',
+                                                              'input_6'])
+        self.output_params = OutputParameters(file_param_names=['output_1',
+                                                                'output_2',
+                                                                'output_3',
+                                                                'output_4',
+                                                                'output_5',
+                                                                'output_6'])
  
     def propagate_parameters(self):
 
-        self._steps[0].input_1 = self.input_args.input_1
-        self._steps[0].input_2 = self.input_args.input_2
-        self._steps[0].input_3 = self.input_args.input_3
-        self._steps[0].output_1 = self.output_args.output_1
-        self._steps[0].output_2 = self.output_args.output_2
+        self._steps[0].input_1 = self.input_params.input_1
+        self._steps[0].input_2 = self.input_params.input_2
+        self._steps[0].input_3 = self.input_params.input_3
+        self._steps[0].output_1 = self.output_params.output_1
+        self._steps[0].output_2 = self.output_params.output_2
 
         self._steps[1].input_1 = self._steps[0].output_1
         self._steps[1].input_2 = self._steps[0].output_2
-        self._steps[1].input_3 = self.input_args.input_4
-        self._steps[1].output_1 = self.output_args.output_3
-        self._steps[1].output_2 = self.output_args.output_4
+        self._steps[1].input_3 = self.input_params.input_4
+        self._steps[1].output_1 = self.output_params.output_3
+        self._steps[1].output_2 = self.output_params.output_4
 
-        self._steps[2].input_1 = self.input_args.input_5
-        self._steps[2].input_2 = self.input_args.input_6
+        self._steps[2].input_1 = self.input_params.input_5
+        self._steps[2].input_2 = self.input_params.input_6
         self._steps[2].input_3 = self._steps[1].output_1
-        self._steps[2].output_1 = self.output_args.output_5
-        self._steps[2].output_2 = self.output_args.output_6
+        self._steps[2].output_1 = self.output_params.output_5
+        self._steps[2].output_2 = self.output_params.output_6
     
  
     

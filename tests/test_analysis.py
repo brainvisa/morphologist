@@ -2,7 +2,7 @@ import unittest
 import os
 import time
 
-from morphologist.analysis import MockStepFlow, Analysis, InputArguments, OutputArguments
+from morphologist.analysis import MockStepFlow, Analysis, InputParameters, OutputParameters
 from morphologist.analysis import MissingParameterValueError, MissingInputFileError, OutputFileExistError, UnknownParameterName
  
 
@@ -74,8 +74,8 @@ class TestAnalysis(unittest.TestCase):
         wrong_parameter_name = self.test_case.get_wrong_parameter_name()
 
         self.assertRaises(UnknownParameterName, 
-                          InputArguments.get_value, 
-                          self.analysis.input_args, wrong_parameter_name)
+                          InputParameters.get_value, 
+                          self.analysis.input_params, wrong_parameter_name)
 
 
     def tearDown(self):
@@ -84,14 +84,14 @@ class TestAnalysis(unittest.TestCase):
 
 
     def assert_output_files_exist(self):
-        for arg_name in self.analysis.output_args.list_file_argument_names():
-            out_file_path = self.analysis.output_args.get_value(arg_name)
+        for arg_name in self.analysis.output_params.list_file_parameter_names():
+            out_file_path = self.analysis.output_params.get_value(arg_name)
             self.assert_(os.path.isfile(out_file_path))  
 
 
     def assert_output_files_cleared(self):
-        for arg_name in self.analysis.output_args.list_file_argument_names():
-            out_file_path = self.analysis.output_args.get_value(arg_name)
+        for arg_name in self.analysis.output_params.list_file_parameter_names():
+            out_file_path = self.analysis.output_params.get_value(arg_name)
             self.assert_(not os.path.isfile(out_file_path))  
 
 
@@ -113,34 +113,34 @@ class MockAnalysisTestCase(object):
         return self.analysis
 
     def set_analysis_parameters(self):
-        self.analysis.input_args.input_1 = generate_in_file_path("input_1")
-        self.analysis.input_args.input_2 = generate_in_file_path("input_2")
-        self.analysis.input_args.input_3 = generate_in_file_path("input_3")
-        self.analysis.input_args.input_4 = generate_in_file_path("input_4")
-        self.analysis.input_args.input_5 = generate_in_file_path("input_5")
-        self.analysis.input_args.input_6 = generate_in_file_path("input_6")
+        self.analysis.input_params.input_1 = generate_in_file_path("input_1")
+        self.analysis.input_params.input_2 = generate_in_file_path("input_2")
+        self.analysis.input_params.input_3 = generate_in_file_path("input_3")
+        self.analysis.input_params.input_4 = generate_in_file_path("input_4")
+        self.analysis.input_params.input_5 = generate_in_file_path("input_5")
+        self.analysis.input_params.input_6 = generate_in_file_path("input_6")
 
-        self.analysis.output_args.output_1 = generate_out_file_path("output_1")
-        self.analysis.output_args.output_2 = generate_out_file_path("output_2")
-        self.analysis.output_args.output_3 = generate_out_file_path("output_3")
-        self.analysis.output_args.output_4 = generate_out_file_path("output_4")
-        self.analysis.output_args.output_5 = generate_out_file_path("output_5")
-        self.analysis.output_args.output_6 = generate_out_file_path("output_6")
+        self.analysis.output_params.output_1 = generate_out_file_path("output_1")
+        self.analysis.output_params.output_2 = generate_out_file_path("output_2")
+        self.analysis.output_params.output_3 = generate_out_file_path("output_3")
+        self.analysis.output_params.output_4 = generate_out_file_path("output_4")
+        self.analysis.output_params.output_5 = generate_out_file_path("output_5")
+        self.analysis.output_params.output_6 = generate_out_file_path("output_6")
 
     def delete_some_parameter_values(self):
-        self.analysis.output_args.output_3 = None
-        self.analysis.input_args.input_4 = None
+        self.analysis.output_params.output_3 = None
+        self.analysis.input_params.input_4 = None
 
     def delete_some_input_files(self):
         parameter_names = ['input_2', 'input_5']
         for name in parameter_names:
-            file_name = self.analysis.input_args.get_value(name)
+            file_name = self.analysis.input_params.get_value(name)
             remove_file(file_name)
 
     def create_some_output_files(self):
         parameter_names = ['output_1', 'output_4']
         for name in parameter_names:
-            file_name = self.analysis.output_args.get_value(name)
+            file_name = self.analysis.output_params.get_value(name)
             f = open(file_name, "w")
             f.write("something\n")
             f.close()
