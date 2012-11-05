@@ -2,8 +2,8 @@ import unittest
 import os
 import time
 
-from morphologist.analysis import MockStepFlow, Analysis
-from morphologist.analysis import MissingParameterValueError, MissingInputFileError, OutputFileExistError
+from morphologist.analysis import MockStepFlow, Analysis, InputArguments, OutputArguments
+from morphologist.analysis import MissingParameterValueError, MissingInputFileError, OutputFileExistError, UnknownParameterName
  
 
 class TestAnalysis(unittest.TestCase):
@@ -69,6 +69,13 @@ class TestAnalysis(unittest.TestCase):
         self.test_case.create_some_output_files()
 
         self.assertRaises(OutputFileExistError, Analysis.run, self.analysis)
+
+    def test_unknown_parameter_error(self):
+        wrong_parameter_name = self.test_case.get_wrong_parameter_name()
+
+        self.assertRaises(UnknownParameterName, 
+                          InputArguments.get_value, 
+                          self.analysis.input_args, wrong_parameter_name)
 
 
     def tearDown(self):
@@ -137,6 +144,9 @@ class MockAnalysisTestCase(object):
             f = open(file_name, "w")
             f.write("something\n")
             f.close()
+
+    def get_wrong_parameter_name(self):
+        return "toto"
 
 
 def remove_file(file_name):
