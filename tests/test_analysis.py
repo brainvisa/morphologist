@@ -115,10 +115,10 @@ class MockAnalysisTestCase(object):
     def set_analysis_parameters(self):
         self.analysis.input_params.input_1 = generate_in_file_path("input_1")
         self.analysis.input_params.input_2 = generate_in_file_path("input_2")
-        self.analysis.input_params.input_3 = generate_in_file_path("input_3")
-        self.analysis.input_params.input_4 = generate_in_file_path("input_4")
+        self.analysis.input_params.input_3 = 1.2 
+        self.analysis.input_params.input_4 = 2.3 
         self.analysis.input_params.input_5 = generate_in_file_path("input_5")
-        self.analysis.input_params.input_6 = generate_in_file_path("input_6")
+        self.analysis.input_params.input_6 = 4.6 
 
         self.analysis.output_params.output_1 = generate_out_file_path("output_1")
         self.analysis.output_params.output_2 = generate_out_file_path("output_2")

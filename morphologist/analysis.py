@@ -146,7 +146,6 @@ class Parameters(object):
 class UnknownParameterName(Exception):
     pass
 
-
 class OutputParameters(Parameters):
     pass
 
@@ -172,6 +171,7 @@ class StepFlow(object):
     def propagate_parameters(self):
         raise Exception("StepFlow is an Abstract class. propagate_parameter must be redifined.") 
       
+
 class MockStepFlow(StepFlow):
 
     def __init__(self):
@@ -183,10 +183,12 @@ class MockStepFlow(StepFlow):
         
         self.input_params = InputParameters(file_param_names=['input_1',
                                                               'input_2',
-                                                              'input_3',
-                                                              'input_4',
-                                                              'input_5',
-                                                              'input_6'])
+                                                              'input_5'],
+                                            other_param_names=['input_3',
+                                                               'input_4',
+                                                               'input_6']
+)
+
         self.output_params = OutputParameters(file_param_names=['output_1',
                                                                 'output_2',
                                                                 'output_3',
@@ -209,10 +211,9 @@ class MockStepFlow(StepFlow):
         self._steps[1].output_2 = self.output_params.output_4
 
         self._steps[2].input_1 = self.input_params.input_5
-        self._steps[2].input_2 = self.input_params.input_6
-        self._steps[2].input_3 = self._steps[1].output_1
+        self._steps[2].input_2 = self._steps[1].output_1
+        self._steps[2].input_3 = self.input_params.input_6
         self._steps[2].output_1 = self.output_params.output_5
         self._steps[2].output_2 = self.output_params.output_6
     
  
-    
