@@ -1,0 +1,2 @@
+# command to generate a PyQt module to load Qt resources
+pyrcc4 resources/morphologist.qrc -o morphologist/gui/ressources.py
