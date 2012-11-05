@@ -3,7 +3,7 @@ import os
 import time
 
 from morphologist.analysis import MockStepFlow, Analysis
-from morphologist.analysis import MissingParameterValueError, MissingInputFileError
+from morphologist.analysis import MissingParameterValueError, MissingInputFileError, OutputFileExistError
  
 
 class TestAnalysis(unittest.TestCase):
@@ -49,6 +49,7 @@ class TestAnalysis(unittest.TestCase):
 
         self.assert_output_files_cleared()
 
+
     def test_missing_parameter_value_error(self):
         self.test_case.set_analysis_parameters()
         self.test_case.delete_some_parameter_values()
@@ -64,8 +65,11 @@ class TestAnalysis(unittest.TestCase):
 
 
     def test_output_file_exist_error(self):
-        #TODO
-        pass
+        self.test_case.set_analysis_parameters()
+        self.test_case.create_some_output_files()
+
+        self.assertRaises(OutputFileExistError, Analysis.run, self.analysis)
+
 
     def tearDown(self):
         if self.analysis.is_running():
@@ -125,6 +129,14 @@ class MockAnalysisTestCase(object):
         for name in parameter_names:
             file_name = self.analysis.input_args.get_value(name)
             remove_file(file_name)
+
+    def create_some_output_files(self):
+        parameter_names = ['output_1', 'output_4']
+        for name in parameter_names:
+            file_name = self.analysis.output_args.get_value(name)
+            f = open(file_name, "w")
+            f.write("something\n")
+            f.close()
 
 
 def remove_file(file_name):

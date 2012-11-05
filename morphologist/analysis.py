@@ -32,9 +32,11 @@ class Analysis(object):
     def run(self):
         self._check_parameter_values_filled()
         self._check_input_files_exist()
+        self._check_output_files_dont_exist()
         if not self._execution_thread.is_alive():
             self._execution_thread.setDaemon(True)
             self._execution_thread.start()
+
 
     def _check_parameter_values_filled(self):
         missing_parameters = []
@@ -45,12 +47,21 @@ class Analysis(object):
             message = separator.join(missing_parameters)
             raise MissingParameterValueError(message)
 
+
     def _check_input_files_exist(self):
         missing_files = self._step_flow.input_args.list_missing_files()
         if missing_files:
             separator = " ,"
             message = separator.join(missing_files)
             raise MissingInputFileError(message)
+
+
+    def _check_output_files_dont_exist(self):
+        existing_files = self._step_flow.output_args.list_existing_files()
+        if existing_files:
+            separator = " ,"
+            message = separator.join(existing_files)
+            raise OutputFileExistError(message) 
 
 
     def is_running(self):
@@ -86,6 +97,9 @@ class MissingParameterValueError(Exception):
 class MissingInputFileError(Exception):
     pass
 
+class OutputFileExistError(Exception):
+    pass
+
 
 class Arguments(object):
     
@@ -112,6 +126,14 @@ class Arguments(object):
                 missing_files.append(file_name)
         return missing_files
 
+    def list_existing_files(self):
+        existing_files = [] 
+        for name in self._file_param_names:
+            file_name = getattr(self, name)
+            if os.path.isfile(file_name):
+                existing_files.append(file_name)
+        return existing_files
+        
     def list_file_argument_names(self):
         return self._file_param_names
 
