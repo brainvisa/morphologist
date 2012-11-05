@@ -10,7 +10,7 @@ class Step(object):
         separator = " "
         to_execute = separator.join(self.get_command())
         print "run the command: \n" + to_execute + "\n"
-        os.system(to_execute)
+        return os.system(to_execute)
 
 class MockStep(Step):
 
@@ -38,6 +38,8 @@ class MockStep(Step):
         out_file_2 = open(self.output_2, "w")
         out_file_2.close()
         return command
+
+
 
 class SpatialNormalization(Step):
 
@@ -115,6 +117,7 @@ class HistogramAnalysis(Step):
                    '-mode', 'i']
         return command
 
+
 class BrainSegmentation(Step):
 
     def __init__(self):
@@ -186,4 +189,5 @@ class SplitBrain(Step):
         # "-TemplateUse", "y" 
 
         # TODO referencials
+
         return command

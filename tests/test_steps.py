@@ -30,7 +30,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         spatial_normalization.commissure_coordinates = self.commissure_coordinates
         spatial_normalization.talairach_transform = self.talairach_transform
 
-        spatial_normalization.run()
+        self.assert_(spatial_normalization.run() == 0)
 
 
     def test_bias_correction(self):
@@ -45,7 +45,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         bias_correction.variance = self.variance 
         bias_correction.mri_corrected = self.mri_corrected 
 
-        bias_correction.run()
+        self.assert_(bias_correction.run() == 0)
     
 
     def test_histogram_analysis(self):
@@ -57,7 +57,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
 
         histo_analysis.histo_analysis = self.histo_analysis
     
-        histo_analysis.run()
+        self.assert_(histo_analysis.run() == 0)
     
     
     def test_brain_segmentation(self):
@@ -72,7 +72,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
 
         brain_segmentation.brain_mask = self.brain_mask
     
-        brain_segmentation.run()
+        self.assert_(brain_segmentation.run() == 0)
 
 
     def test_split_brain(self):
@@ -86,7 +86,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
 
         split_brain.split_mask = self.split_mask
 
-        split_brain.run()
+        self.assert_(split_brain.run() == 0)
 
 
 if __name__ == '__main__':
