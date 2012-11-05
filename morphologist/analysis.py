@@ -15,8 +15,10 @@ class Analysis(object):
                                                   args =([self]))
         self._lock = threading.RLock()
         self._interruption = False
+        self._last_run_failed = False
 
     def _sync_run(self):
+        self._last_run_failed = False
         command_list = self._step_flow.get_command_list()
         separator = " " 
         for command in command_list:
@@ -26,7 +28,10 @@ class Analysis(object):
                     break
             command_to_run = separator.join(command)
             print "\nrun: " + repr(command_to_run)
-            os.system(command_to_run)
+            return_value = os.system(command_to_run)
+            if return_value != 0:
+                self._last_run_failed = True
+                break
 
 
     def run(self):
@@ -70,6 +75,10 @@ class Analysis(object):
 
     def wait(self):
         self._execution_thread.join()
+
+
+    def last_run_failed(self):
+        return self._last_run_failed
 
 
     def stop(self):

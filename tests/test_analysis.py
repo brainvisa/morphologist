@@ -9,9 +9,12 @@ from morphologist.analysis import MissingParameterValueError, MissingInputFileEr
 class TestAnalysis(unittest.TestCase):
 
     def setUp(self):
-        self.test_case = create_test_case() 
+        self.test_case = self.create_test_case() 
         self.analysis = self.test_case.create_analysis()
 
+    def create_test_case(self):
+        test_case = MockAnalysisTestCase()
+        return test_case
 
     def test_run_analysis(self):
         self.test_case.set_analysis_parameters()
@@ -27,6 +30,7 @@ class TestAnalysis(unittest.TestCase):
 
         self.analysis.wait()
 
+        self.assert_(not self.analysis.last_run_failed())
         self.assert_output_files_exist()
 
 
@@ -95,17 +99,34 @@ class TestAnalysis(unittest.TestCase):
             self.assert_(not os.path.isfile(out_file_path))  
 
 
-
-
-def create_test_case():
-    test_case = MockAnalysisTestCase()
-    return test_case
-
-
-class MockAnalysisTestCase(object):
-
+class AnalysisTestCase(object):
+    ''' abstract class '''
     def __init__(self):
         self.analysis = None
+
+    def create_analysis(self):
+        raise Exception("AnalysisTestCase is an abstract class")
+
+    def set_analysis_parameters(self):
+        raise Exception("AnalysisTestCase is an abstract class")
+
+    def delete_some_parameter_values(self):
+        raise Exception("AnalysisTestCase is an abstract class")
+
+    def delete_some_input_files(self):
+        raise Exception("AnalysisTestCase is an abstract class")
+
+    def create_some_output_files(self):
+        raise Exception("AnalysisTestCase is an abstract class")
+
+    def get_wrong_parameter_name(self):
+        raise Exception("AnalysisTestCase is an abstract class")
+
+
+class MockAnalysisTestCase(AnalysisTestCase):
+
+    def __init__(self):
+        super(MockAnalysisTestCase, self).__init__()
 
     def create_analysis(self):
         mock_step_flow = MockStepFlow()
