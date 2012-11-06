@@ -85,6 +85,7 @@ class TestAnalysis(unittest.TestCase):
     def tearDown(self):
         if self.analysis.is_running():
             self.analysis.stop()
+        self.test_case.restore_input_files()
 
 
     def assert_output_files_exist(self):
@@ -97,6 +98,7 @@ class TestAnalysis(unittest.TestCase):
         for arg_name in self.analysis.output_params.list_file_parameter_names():
             out_file_path = self.analysis.output_params.get_value(arg_name)
             self.assert_(not os.path.isfile(out_file_path))  
+
 
 
 class AnalysisTestCase(object):
@@ -122,6 +124,8 @@ class AnalysisTestCase(object):
     def get_wrong_parameter_name(self):
         raise Exception("AnalysisTestCase is an abstract class")
 
+    def restore_input_files(self):
+        raise Exception("AnalysisTestCase is an abstract class")
 
 class MockAnalysisTestCase(AnalysisTestCase):
 
@@ -168,6 +172,10 @@ class MockAnalysisTestCase(AnalysisTestCase):
 
     def get_wrong_parameter_name(self):
         return "toto"
+
+    def restore_input_files(self):
+        # useless because the input files are created in set_analysis_parameters
+        pass
 
 
 def remove_file(file_name):
