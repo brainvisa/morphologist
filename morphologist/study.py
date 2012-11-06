@@ -1,25 +1,13 @@
 from collections import defaultdict
 import os
 
-class QualityCheck(object):
-    UNKNOWN = 0
-    VALID = 1
-    FAILED = 2
-    HANDMADE = 3
-    RUNNING = 3
-
-    def __init__(self, analyses_list):
-        self.quality_check_per_analysis = {}
-        for i in analyses_list:
-            self.quality_check_per_analysis[i] = QualityCheck.UNKNOWN
 
 
 class Subject(object):
-    def __init__(self, imgname, subjectname, groupname=None):
+    def __init__(self, imgname, subjectname, groupname=None)
         self.imgname = imgname
         self.subjectname = subjectname
         self.groupname = groupname
-        self.quality_check_rate = QualityCheck.UNKNOWN
 
     def __repr__(self):
         s = '\t<imgname: ' + str(self.imgname) + ',\n'
@@ -28,11 +16,13 @@ class Subject(object):
         s += '\tquality_check_rate: ' + str(self.quality_check_rate) + '>\n'
         return s
 
+
 class Study(object):
     def __init__(self, name="undefined study", outputdir=None):
         self.name = name
         self.outputdir = outputdir
         self.subjects = []
+        self._analysis = None
 
     @classmethod
     def define_subjectname_from_filename(self, filename):
