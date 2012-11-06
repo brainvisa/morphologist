@@ -4,7 +4,7 @@ import os
 
 
 class Subject(object):
-    def __init__(self, imgname, subjectname, groupname=None)
+    def __init__(self, imgname, subjectname, groupname=None):
         self.imgname = imgname
         self.subjectname = subjectname
         self.groupname = groupname
@@ -13,7 +13,6 @@ class Subject(object):
         s = '\t<imgname: ' + str(self.imgname) + ',\n'
         s += '\tsubjectname: ' + str(self.subjectname) + ',\n'
         s += '\tgroupname: ' + str(self.groupname) + ',\n'
-        s += '\tquality_check_rate: ' + str(self.quality_check_rate) + '>\n'
         return s
 
 
