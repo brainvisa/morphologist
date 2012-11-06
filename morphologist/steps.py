@@ -12,6 +12,10 @@ class Step(object):
         print "run the command: \n" + to_execute + "\n"
         return os.system(to_execute)
 
+    def get_command(self):
+        raise Exception("Step is an abstract class.")
+
+
 class MockStep(Step):
 
     def __init__(self):
