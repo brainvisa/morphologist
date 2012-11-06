@@ -14,13 +14,11 @@ class IntraAnalysisStepFlow(StepFlow):
                        self._brain_segmentation, 
                        self._split_brain] 
 
-        # TODO
         self.input_params = InputParameters(file_param_names=['mri',
                                                               'commissure_coordinates'], 
                                             other_param_names=['erosion_size',
                                                                'bary_factor'])
 
-        # TODO
         self.output_params = OutputParameters(file_param_names=['hfiltered',
                                                                 'white_ridges',
                                                                 'edges',
@@ -65,7 +63,7 @@ class IntraAnalysisStepFlow(StepFlow):
         self._split_brain.brain_mask = self._brain_segmentation.brain_mask
         self._split_brain.white_ridges = self._bias_correction.white_ridges
         self._split_brain.histo_analysis = self._histogram_analysis.histo_analysis
-        self._split_brain.commissure_coordiantes = self.input_params.commissure_coordinates
+        self._split_brain.commissure_coordinates = self.input_params.commissure_coordinates
         self._split_brain.bary_factor = self.input_params.bary_factor
 
         self._split_brain.split_mask = self.output_params.split_mask
