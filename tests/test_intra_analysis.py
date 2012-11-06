@@ -90,5 +90,18 @@ class IntraAnalysisTestCase(AnalysisTestCase):
 
 if __name__ == '__main__':
 
+    #tests = []
+    ##tests.append('test_run_analysis')
+    ##tests.append('test_analysis_has_run')
+    #tests.append('test_stop_analysis')
+    ##tests.append('test_clear_state_after_interruption')
+    ##tests.append('test_missing_parameter_value_error') 
+    ##tests.append('test_missing_input_file_error')
+    ##tests.append('test_output_file_exist_error')
+    ##tests.append('test_unknown_parameter_error')
+
+    #suite = unittest.TestSuite(map(TestIntraAnalysis, tests))
+
+
     suite = unittest.TestLoader().loadTestsFromTestCase(TestIntraAnalysis)
     unittest.TextTestRunner(verbosity=2).run(suite)
