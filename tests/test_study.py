@@ -1,6 +1,7 @@
 import unittest
 import os
 
+import morphologist_test_settings
 from morphologist.study import Study, Subject, SubjectNameExistsError
 
 

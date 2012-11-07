@@ -2,6 +2,7 @@ import unittest
 import os
 import time
 
+import morphologist_test_settings
 from morphologist.analysis import MockStepFlow, Analysis, InputParameters, OutputParameters
 from morphologist.analysis import MissingParameterValueError, MissingInputFileError, OutputFileExistError, UnknownParameterName
  

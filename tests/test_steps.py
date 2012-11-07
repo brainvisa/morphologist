@@ -1,7 +1,7 @@
 import os
 import unittest
 
-
+import morphologist_test_settings
 from morphologist.steps import SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
 
 
