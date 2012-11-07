@@ -31,6 +31,7 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
 prefix = os.path.dirname(__file__)
 ui_directory = os.path.join(prefix, 'ui')
 
+
 class ManageSubjectsWindow(object):
     on_apply_cancel_button_clicked_map = {}
     default_group = 'group 1'
@@ -58,6 +59,8 @@ class ManageSubjectsWindow(object):
         self.ui.cancel_button = self.ui.apply_cancel_buttons.button(cancel_id)
 
         # TODO : fill tablewidget model with the study content
+        self.ui.studyname_lineEdit.setText(self.study.name)
+        self.ui.outputdir_lineEdit.setText(self.study.outputdir)
 
         self._init_qt_connections()
         self._init_ui()
