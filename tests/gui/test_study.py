@@ -15,7 +15,6 @@ class GuiTestCase(unittest.TestCase):
     @staticmethod
     def start_qt_and_test(test):
         def func(self):
-            qApp = QtGui.QApplication(sys.argv)
             timer = QtCore.QTimer()
             func = types.MethodType(test, self, self.__class__)
             timer.singleShot(0, func)
@@ -105,4 +104,5 @@ class StudyGuiTestCase(GuiTestCase):
         # FIXME : test subjects
 
 if __name__ == '__main__':
+    qApp = QtGui.QApplication(sys.argv)
     unittest.main()
