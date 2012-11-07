@@ -52,10 +52,10 @@ class StudyGuiTestCase(GuiTestCase):
         QtTest.QTest.mouseClick(ui.apply_button, QtCore.Qt.LeftButton)
 
     @GuiTestCase.start_qt_and_test
-    def test_define_new_content_for_an_empty_study(self):
-        self.study = Study()
+    def test_defining_new_content_for_an_empty_study(self):
+        self.study = self._create_empty_study()
         filenames = [os.path.join(prefix, filename) for filename in \
-                    ['caca.ima', 'chaos.ima.gz', 'dionysos2.ima', 'hyperion.nii']]
+            ['caca.ima', 'chaos.ima.gz', 'dionysos2.ima', 'hyperion.nii']]
         studyname = 'my_study'
         outputdir = '/neurospin/lnao/Panabase/cati-dev-prod/morphologist/studies/my_study'
         global manage_subjects_window
@@ -65,8 +65,44 @@ class StudyGuiTestCase(GuiTestCase):
                         studyname, outputdir, filenames)
         manage_subjects_window.ui.close()
 
+        subjects = None #FIXME
+        self.assert_study_equal(self.study, studyname, outputdir, subjects)
+
+    @GuiTestCase.start_qt_and_test
+    def test_loading_study_for_modification(self):
+        self.study = self._create_filled_study()
+
+        global manage_subjects_window
+        manage_subjects_window = ManageSubjectsWindow(self.study)
+        manage_subjects_window.ui.show()
+        manage_subjects_window.ui.close()
+
+        studyname = manage_subjects_window.ui.studyname_lineEdit.text()
+        outputdir = manage_subjects_window.ui.outputdir_lineEdit.text()
+
+        subjects = None #FIXME
+        self.assert_study_equal(self.study, studyname, outputdir, subjects)
+
+    def _create_empty_study(self):
+        return Study()
+
+    def _create_filled_study(self):
+        studyname = 'my_study'
+        outputdir = '/neurospin/lnao/Panabase/cati-dev-prod/morphologist/studies/my_study'
+        study = Study(studyname, outputdir)
+        filenames = [os.path.join(prefix, filename) for filename in \
+            ['caca.ima', 'chaos.ima.gz', 'dionysos2.ima', 'hyperion.nii']]
+        subjectnames = ['caca', 'chaos', 'dionysos2', 'hyperion']
+        groupnames = ['group 1', 'group 2', 'group 3', 'group 4']
+        for filename, subjectname, groupname in zip(filenames,
+                                    subjectnames, groupnames):
+            study.add_subject_from_file(filename, subjectname, groupname)
+        return study
+
+    def assert_study_equal(self, study, studyname, outputdir, subjects):
         self.assertEqual(self.study.name, studyname)
         self.assertEqual(self.study.outputdir, outputdir)
+        # FIXME : test subjects
 
 if __name__ == '__main__':
     unittest.main()
