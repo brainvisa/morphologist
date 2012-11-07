@@ -1,7 +1,6 @@
 import unittest
 import os
 
-import morphologist_test_settings
 from morphologist.analysis import Analysis
 from morphologist.intra_analysis import IntraAnalysisStepFlow
 from test_analysis import TestAnalysis, AnalysisTestCase, remove_file

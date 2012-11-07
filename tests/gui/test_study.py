@@ -2,7 +2,6 @@ import os, sys
 import types
 import unittest
 
-import morphologist_test_settings
 from morphologist.gui.qt_backend import QtGui, QtCore, QtTest
 from morphologist.gui import ManageSubjectsWindow
 from morphologist.study import Study
