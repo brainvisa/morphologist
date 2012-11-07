@@ -7,7 +7,7 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
     def __init__(self, manage_subjects_window, subject_manager):
         caption = "Select one or more subjects to be include into your study"
         directory = os.getcwd()
-        filter = "3D Volumes (*.nii *.ima)"
+        filter = self._define_selectable_files_regexp()
         super(SelectSubjectsDialog, self).__init__(manage_subjects_window,
                                                    caption, directory, filter)
         self._subject_manager = subject_manager
@@ -16,6 +16,11 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
         self.setFileMode(QtGui.QFileDialog.ExistingFiles)
         self.filesSelected.connect(self.onfilesSelected)
 #        self.rejected.connect(self.onRejected)
+
+    def _define_selectable_files_regexp(self):
+        formats = ['ima', 'nii']
+        formats_regexp = (' '.join([('*.' + f) for f in formats]))
+        return "3D Volumes (%s)" % formats_regexp
 
     @QtCore.Slot("const QStringList &")
     def onfilesSelected(self, list):
