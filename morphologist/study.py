@@ -4,6 +4,7 @@ import os
 
 
 class Subject(object):
+
     def __init__(self, imgname, subjectname, groupname=None):
         self.imgname = imgname
         self.subjectname = subjectname
@@ -17,7 +18,9 @@ class Subject(object):
 
 
 class Study(object):
-    def __init__(self, name="undefined study", outputdir=None):
+    default_outputdir = os.path.join(os.getcwd(), '.morphologist/studies/study')
+
+    def __init__(self, name="undefined study", outputdir=default_outputdir):
         self.name = name
         self.outputdir = outputdir
         self.subjects = []
