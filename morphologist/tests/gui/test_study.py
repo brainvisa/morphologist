@@ -5,7 +5,7 @@ import unittest
 from morphologist.gui.qt_backend import QtGui, QtCore, QtTest
 from morphologist.gui import ManageStudyWindow
 from morphologist.study import Study
-from gui import TestGui
+from morphologist.tests.gui import TestGui
 
 class TestStudyGui(TestGui):
 
