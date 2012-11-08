@@ -1,28 +1,7 @@
+import os
+
 from morphologist.analysis import StepFlow, InputParameters, OutputParameters
 from morphologist.steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
-
-class IntraAnalysisInputParameters(InputParameters):
-    
-    def __init__(self):
-        file_param_names = ['mri',
-                            'commissure_coordinates']
-        other_param_names = ['erosion_size',
-                             'bary_factor']
-        super(IntraAnalysisInputParameters, self).__init__(file_param_names, 
-                                                           other_param_names)
-
-class IntraAnalysisOutputParameters(OutputParameters):
-
-    def __init__(self):
-        file_param_names =  ['hfiltered',
-                             'white_ridges',
-                             'edges',
-                             'variance',
-                             'mri_corrected',
-                             'histo_analysis',
-                             'brain_mask',
-                             'split_mask']
-        super(IntraAnalysisOutputParameters, self).__init__(file_param_names)
 
 
 class IntraAnalysisStepFlow(StepFlow):
@@ -80,5 +59,93 @@ class IntraAnalysisStepFlow(StepFlow):
         self._split_brain.bary_factor = self.input_params.bary_factor
 
         self._split_brain.split_mask = self.output_params.split_mask
+
+
+class IntraAnalysisInputParameters(InputParameters):
+    
+    def __init__(self):
+        file_param_names = ['mri',
+                            'commissure_coordinates']
+        other_param_names = ['erosion_size',
+                             'bary_factor']
+        super(IntraAnalysisInputParameters, self).__init__(file_param_names, 
+                                                           other_param_names)
+
+    @classmethod
+    def from_brainvisa_hierarchy(cls, img_file_path):
+        #img_file_path should be in path/subject_name/t1mri/default_acquisition
+        # TODO raise an exception if it not the case ?
+        default_acquisition_path = os.path.dirname(img_file_path)
+        t1mri_path = os.path.dirname(default_acquisition_path)
+        subject = os.path.basename(os.path.dirname(t1mri_path))
+
+        parameters = cls()
+
+        parameters.mri = img_file_path
+        parameters.commissure_coordinates = os.path.join(default_acquisition_path, 
+                                                   "%s.APC" % subject)
+        parameters.erosion_size = 1.8
+        parameters.bary_factor = 0.6
+
+        return parameters
+
+
+class IntraAnalysisOutputParameters(OutputParameters):
+
+    def __init__(self):
+        file_param_names =  ['hfiltered',
+                             'white_ridges',
+                             'edges',
+                             'variance',
+                             'mri_corrected',
+                             'histo_analysis',
+                             'brain_mask',
+                             'split_mask']
+        super(IntraAnalysisOutputParameters, self).__init__(file_param_names)
+
+    @classmethod
+    def from_brainvisa_hierarchy(cls, output_dir, subject_name):
+        # the directory hierarchy in the output_dir will be 
+        # subject_name/t1mri/default_acquisition/default_analysis/segmentation
+        
+        subject_path = os.path.join(output_dir, subject_name)
+        create_directory_if_missing(subject_path)
+        
+        t1mri_path = os.path.join(subject_path, "t1mri")
+        create_directory_if_missing(t1mri_path)
+        
+        default_acquisition_path = os.path.join(subject_path, "default_acquisition")
+        create_directory_if_missing(default_acquisition_path)
+
+        default_analysis_path = os.path.join(default_acquisition_path, "default_analysis") 
+        create_directory_if_missing(default_analysis_path)
+          
+        segmentation_path = os.path.join(default_analysis_path, "segmentation")
+        create_directory_if_missing(segmentation_path)       
+ 
+        parameters = cls()
+        parameters.hfiltered = os.path.join(default_analysis_path, 
+                                            "hfiltered_%s.ima" % subject_name)
+        parameters.white_ridges = os.path.join(default_analysis_path, 
+                                            "whiteridge_%s.ima" % subject_name)
+        parameters.edges = os.path.join(default_analysis_path, 
+                                            "edges_%s.ima" % subject_name)
+        parameters.mri_corrected = os.path.join(default_analysis_path, 
+                                            "nobias_%s.ima" % subject_name)
+        parameters.variance = os.path.join(default_analysis_path, 
+                                            "variance_%s.ima" % subject_name)
+        parameters.histo_analysis = os.path.join(default_analysis_path, 
+                                            "nobias_%s.han" % subject_name)
+        parameters.brain_mask = os.path.join(segmentation_path, 
+                                            "brain_%s.ima" % subject_name)
+        parameters.split_mask = os.path.join(segmentation_path, 
+                                            "voronoi_%s.ima" % subject_name)
+        return parameters
+
+
+
+def create_directory_if_missing(dir_path):
+    if not os.path.isdir(dir_path):
+        os.mkdir(dir_path)
 
 
