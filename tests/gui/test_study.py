@@ -5,19 +5,7 @@ import unittest
 from morphologist.gui.qt_backend import QtGui, QtCore, QtTest
 from morphologist.gui import ManageStudyWindow
 from morphologist.study import Study
-
-
-class TestGui(unittest.TestCase):
-
-    @staticmethod
-    def start_qt_and_test(test):
-        def func(self):
-            timer = QtCore.QTimer()
-            func = types.MethodType(test, self, self.__class__)
-            timer.singleShot(0, func)
-            self.assertFalse(qApp.exec_())
-        return func
-
+from gui import TestGui
 
 class TestStudyGui(TestGui):
 
