@@ -3,21 +3,9 @@ import types
 import unittest
 
 from morphologist.gui.qt_backend import QtGui, QtCore, QtTest
-from morphologist.gui import ManageSubjectsWindow
+from morphologist.gui import ManageStudyWindow
 from morphologist.study import Study
-
-
-class TestGui(unittest.TestCase):
-
-    @staticmethod
-    def start_qt_and_test(test):
-        def func(self):
-            timer = QtCore.QTimer()
-            func = types.MethodType(test, self, self.__class__)
-            timer.singleShot(0, func)
-            self.assertFalse(qApp.exec_())
-        return func
-
+from morphologist.tests.gui import TestGui
 
 class TestStudyGui(TestGui):
 
@@ -33,7 +21,7 @@ class TestStudyGui(TestGui):
         self.study = self._create_empty_study()
 
         global manage_subjects_window
-        manage_subjects_window = ManageSubjectsWindow(self.study)
+        manage_subjects_window = ManageStudyWindow(self.study)
         manage_subjects_window.ui.show()
         self.action_define_new_study_content(manage_subjects_window,
             self.test_case.studyname, self.test_case.outputdir,
@@ -47,7 +35,7 @@ class TestStudyGui(TestGui):
         self.study = self._create_filled_study()
 
         global manage_subjects_window
-        manage_subjects_window = ManageSubjectsWindow(self.study)
+        manage_subjects_window = ManageStudyWindow(self.study)
         manage_subjects_window.ui.show()
         manage_subjects_window.ui.close()
 
@@ -69,7 +57,11 @@ class TestStudyGui(TestGui):
             QtTest.QTest.mouseClick(ui.add_one_subject_from_a_file_button,
                                     QtCore.Qt.LeftButton)
             dialog = ui.findChild(QtGui.QFileDialog, 'SelectSubjectsDialog')
-            dialog.selectFile(filename)
+            if os.path.exists(filename):
+                dialog.selectFile(filename)
+            else:
+                msg = "Error: needed ressource missing : "
+                print msg + "'%s'" % filename
             dialog.accept()
             dialog.deleteLater()
             QtGui.qApp.sendPostedEvents(dialog, QtCore.QEvent.DeferredDelete)

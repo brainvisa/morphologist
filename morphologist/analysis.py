@@ -94,6 +94,8 @@ class Analysis(object):
 
 
     def clear_output_files(self):
+        if self.is_running():
+            self.stop()
         for param_name in self._step_flow.output_params.list_file_parameter_names():
             out_file_path = self._step_flow.output_params.get_value(param_name)
             if os.path.isfile(out_file_path):
