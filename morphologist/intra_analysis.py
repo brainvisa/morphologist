@@ -1,6 +1,29 @@
 from morphologist.analysis import StepFlow, InputParameters, OutputParameters
 from morphologist.steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
 
+class IntraAnalysisInputParameters(InputParameters):
+    
+    def __init__(self):
+        file_param_names = ['mri',
+                            'commissure_coordinates']
+        other_param_names = ['erosion_size',
+                             'bary_factor']
+        super(IntraAnalysisInputParameters, self).__init__(file_param_names, 
+                                                           other_param_names)
+
+class IntraAnalysisOutputParameters(OutputParameters):
+
+    def __init__(self):
+        file_param_names =  ['hfiltered',
+                             'white_ridges',
+                             'edges',
+                             'variance',
+                             'mri_corrected',
+                             'histo_analysis',
+                             'brain_mask',
+                             'split_mask']
+        super(IntraAnalysisOutputParameters, self).__init__(file_param_names)
+
 
 class IntraAnalysisStepFlow(StepFlow):
 
@@ -14,19 +37,9 @@ class IntraAnalysisStepFlow(StepFlow):
                        self._brain_segmentation, 
                        self._split_brain] 
 
-        self.input_params = InputParameters(file_param_names=['mri',
-                                                              'commissure_coordinates'], 
-                                            other_param_names=['erosion_size',
-                                                               'bary_factor'])
+        self.input_params = IntraAnalysisInputParameters() 
 
-        self.output_params = OutputParameters(file_param_names=['hfiltered',
-                                                                'white_ridges',
-                                                                'edges',
-                                                                'variance',
-                                                                'mri_corrected',
-                                                                'histo_analysis',
-                                                                'brain_mask',
-                                                                'split_mask'])
+        self.output_params = IntraAnalysisOutputParameters()
 
 
     def propagate_parameters(self):
