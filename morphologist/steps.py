@@ -4,7 +4,7 @@ class Step(object):
     ''' Abstract class '''
 
     def __init__(self):
-      pass
+        pass
 
     def run(self):
         separator = " "
@@ -70,12 +70,14 @@ class BiasCorrection(Step):
 
         self.mri = None
         self.commissure_coordinates = None 
+        self.fix_random_seed = False
         #outputs
         self.hfiltered = None
         self.white_ridges = None
         self.edges = None
         self.variance = None
         self.mri_corrected = None
+
     
     def get_command(self):
         command = ['VipT1BiasCorrection', 
@@ -97,7 +99,9 @@ class BiasCorrection(Step):
                    '-ZregulTuning', "0.5",
                    '-vp', "75",
                    '-e', "3",
-                   '-Last', "auto"]                  
+                   '-Last', "auto"]
+        if self.fix_random_seed:
+            command.extend(['-srand', '10'])                
 
         # TODO referentials
         return command
@@ -111,6 +115,7 @@ class HistogramAnalysis(Step):
         self.mri_corrected = None
         self.hfiltered = None
         self.white_ridges = None
+        self.fix_random_seed = False
         # output
         self.histo_analysis = None 
 
@@ -123,6 +128,8 @@ class HistogramAnalysis(Step):
                    '-Mask', self.hfiltered,
                    '-Ridge', self.white_ridges,
                    '-mode', 'i']
+        if self.fix_random_seed:
+            command.extend(['-srand', '10'])  
         return command
 
 
@@ -138,8 +145,9 @@ class BrainSegmentation(Step):
         self.variance = None
         self.histo_analysis = None
         self.erosion_size = 1.8
+        self.fix_random_seed = False
         # output
-        brain_mask = None
+        self.brain_mask = None
          
 
     def get_command(self):
@@ -158,6 +166,8 @@ class BrainSegmentation(Step):
                    '-Edgesname', self.edges,
                    '-Ridge', self.white_ridges,
                    ]
+        if self.fix_random_seed:
+            command.extend(['-srand', '10'])  
         # TODO referentials
         return command
 
@@ -173,6 +183,7 @@ class SplitBrain(Step):
         self.histo_analysis = None
         self.commissure_coordinates = None
         self.bary_factor = 0.6
+        self.fix_random_seed = False
         # output
         self.split_mask = None
    
@@ -190,6 +201,8 @@ class SplitBrain(Step):
                    '-Bary', str(self.bary_factor),
                    '-walgo','b',
                    '-Points', self.commissure_coordinates]
+        if self.fix_random_seed:
+            command.extend(['-srand', '10'])  
 
         # TODO:
         # useful option ?? 
