@@ -4,6 +4,7 @@ from .qt_backend import QtCore, loadUi
 from .gui import ui_directory
 from ..study import Study
 
+
 class StudyWidget(object):
     uifile = os.path.join(ui_directory, 'display_study.ui')
 
@@ -16,9 +17,9 @@ class IntraAnalysisWindow(object):
 
     def __init__(self):
         self.ui = loadUi(IntraAnalysisWindow.uifile)
-	self.study_widget = StudyWidget(self.ui.study_widget_wrapper)
+        self.study_widget = StudyWidget(self.ui.study_widget_wrapper)
 	
-	self._init_qt_connections()
+        self._init_qt_connections()
         self._init_ui()
 
     def _init_qt_connections(self):

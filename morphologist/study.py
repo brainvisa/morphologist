@@ -38,9 +38,10 @@ class Study(object):
             raise SubjectNameExistsError("subjectname")
         subject = Subject(filename, subjectname, groupname)
         self.subjects[subjectname] = subject
-        self.analysis[subjectname] = create_analysis(subjectname,
-                                                     subject.imgname, 
-                                                     self.outputdir)
+        #FIXME : uncomment
+        #self.analysis[subjectname] = create_analysis(subjectname,
+        #                                             subject.imgname, 
+        #                                             self.outputdir)
 
     def list_subject_names(self):
         return self.subjects.keys()

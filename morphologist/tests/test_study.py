@@ -55,9 +55,6 @@ class FirstStudyTestCase(object):
         print self.study
         return self.study
 
-    def get_existing_subject_name(self):
-        return "icbm100T"
-
 
 if __name__=='__main__':
 
