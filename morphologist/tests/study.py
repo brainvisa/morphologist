@@ -42,13 +42,14 @@ class FlatFilesStudyTestCase(AbstractStudyTestCase):
         self.groupnames = ['group 1', 'group 2', 'group 3', 'group 4']
 
 
-class BrainvisaStudyTestCase(object):
+class BrainvisaStudyTestCase(AbstractStudyTestCase):
 
     def __init__(self):
         super(BrainvisaStudyTestCase, self).__init__()
         self.studyname = 'test'
         self.outputdir = '/volatile/laguitton/data/icbm/icbm'
         self.subjectnames = ['icbm100T', 'icbm101T']
-        self.filenames = [os.path.join(outputdir, subject,
+        self.groupnames = ['group1'] * len(self.subjectnames)
+        self.filenames = [os.path.join(self.outputdir, subject,
                           't1mri', 'default_acquisition',
                           '%s.ima' % subject) for subject in self.subjectnames]
