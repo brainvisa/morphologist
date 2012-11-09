@@ -107,6 +107,9 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="study_widget_dock">
+   <property name="windowTitle">
+    <string>Subjects</string>
+   </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
    </attribute>
