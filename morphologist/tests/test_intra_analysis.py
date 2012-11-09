@@ -2,7 +2,7 @@ import unittest
 import os
 
 from morphologist.analysis import Analysis
-from morphologist.intra_analysis import IntraAnalysisStepFlow
+from morphologist.intra_analysis import IntraAnalysis
 from test_analysis import TestAnalysis, AnalysisTestCase, remove_file
 
 
@@ -19,8 +19,7 @@ class IntraAnalysisTestCase(AnalysisTestCase):
         super(IntraAnalysisTestCase, self).__init__()
 
     def create_analysis(self):
-        intra_analysis_step_flow = IntraAnalysisStepFlow()
-        self.analysis = Analysis(intra_analysis_step_flow)
+        self.analysis = IntraAnalysis()
         return self.analysis
 
 

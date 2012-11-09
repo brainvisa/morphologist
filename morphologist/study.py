@@ -2,7 +2,7 @@ from collections import defaultdict
 import os
 
 from morphologist.analysis import Analysis
-from morphologist.intra_analysis import IntraAnalysisStepFlow
+from morphologist.intra_analysis import IntraAnalysis
 from morphologist.intra_analysis import IntraAnalysisInputParameters, IntraAnalysisOutputParameters
 
 
@@ -45,7 +45,6 @@ class Study(object):
         self.analysis[subjectname].output_params = create_output_parameters(subjectname,
                                                                           subject.imgname, 
                                                                           self.outputdir)
-
         
     def list_subject_names(self):
         return self.subjects.keys()
@@ -81,6 +80,7 @@ class Study(object):
         return s
 
 
+
 class SubjectNameExistsError(Exception):
     pass
 
@@ -97,8 +97,7 @@ def create_output_parameters(subject_name, img_file_path, output_dir):
 
 
 def create_analysis():
-    intra_analysis_step_flow = IntraAnalysisStepFlow()
-    intra_analysis = Analysis(intra_analysis_step_flow)    
+    intra_analysis = IntraAnalysis()    
     return intra_analysis
 
 

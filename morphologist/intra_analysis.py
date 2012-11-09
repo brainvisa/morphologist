@@ -1,8 +1,17 @@
 import os
 
-from morphologist.analysis import StepFlow, InputParameters, OutputParameters
+from morphologist.analysis import Analysis, StepFlow, InputParameters, OutputParameters
 from morphologist.steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
 
+
+class IntraAnalysis(Analysis):
+  
+    def __init__(self):
+       step_flow = IntraAnalysisStepFlow()
+       super(IntraAnalysis, self).__init__(step_flow) 
+ 
+    
+ 
 
 class IntraAnalysisStepFlow(StepFlow):
 
