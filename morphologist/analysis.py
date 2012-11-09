@@ -5,11 +5,10 @@ import threading
 from morphologist.steps import MockStep
 
 class Analysis(object):
-     
+
+    
     def __init__(self, step_flow):
         self._step_flow = step_flow
-        self.input_params = self._step_flow.input_params
-        self.output_params = self._step_flow.output_params
         self._execution_thread = threading.Thread(name = "analysis run",
                                                   target = Analysis._sync_run,
                                                   args =([self]))
@@ -17,6 +16,25 @@ class Analysis(object):
         self._interruption = False
         self._last_run_failed = False
 
+
+    def get_input_params(self):
+        return self._step_flow.input_params
+
+
+    def set_input_params(self, input_params):
+        self._step_flow.input_params = input_params
+
+
+    def get_output_params(self):
+        return self._step_flow.output_params
+
+
+    def set_output_params(self, output_params):
+        self._step_flow.output_params = output_params
+
+    input_params = property(get_input_params, set_input_params)
+    output_params = property(get_output_params, set_output_params) 
+ 
     def _sync_run(self):
         self._last_run_failed = False
         command_list = self._step_flow.get_command_list()

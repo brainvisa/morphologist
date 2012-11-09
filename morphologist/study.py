@@ -38,10 +38,15 @@ class Study(object):
             raise SubjectNameExistsError("subjectname")
         subject = Subject(filename, subjectname, groupname)
         self.subjects[subjectname] = subject
-        self.analysis[subjectname] = create_analysis(subjectname,
-                                                     subject.imgname, 
-                                                     self.outputdir)
+        self.analysis[subjectname] = create_analysis()
+        self.analysis[subjectname].input_params = create_input_parameters(subjectname,
+                                                                          subject.imgname, 
+                                                                          self.outputdir)
+        self.analysis[subjectname].output_params = create_output_parameters(subjectname,
+                                                                          subject.imgname, 
+                                                                          self.outputdir)
 
+        
     def list_subject_names(self):
         return self.subjects.keys()
 
@@ -79,17 +84,20 @@ class Study(object):
 class SubjectNameExistsError(Exception):
     pass
 
-def create_analysis(subject_name, img_file_path, output_dir):
-    intra_analysis_step_flow = IntraAnalysisStepFlow()
-   
 
+def create_input_parameters(subject_name, img_file_path, output_dir):
     input_params = IntraAnalysisInputParameters.from_brainvisa_hierarchy(img_file_path)
+    return input_params
 
+
+def create_output_parameters(subject_name, img_file_path, output_dir):
     output_params = IntraAnalysisOutputParameters.from_brainvisa_hierarchy(output_dir, 
                                                                            subject_name)
+    return output_params
 
-    intra_analysis_step_flow.input_params = input_params
-    intra_analysis_step_flow.output_params = output_params
+
+def create_analysis():
+    intra_analysis_step_flow = IntraAnalysisStepFlow()
     intra_analysis = Analysis(intra_analysis_step_flow)    
     return intra_analysis
 
