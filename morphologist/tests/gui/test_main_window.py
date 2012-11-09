@@ -17,7 +17,8 @@ class TestStudyWidget(TestGui):
 
     @TestGui.start_qt_and_test
     def test_start_main_window(self):
-        self.test_case.create_and_clear_study()
+        self.test_case.create_study()
+        self.test_case.study.clear_results()
         global main_window
         main_window = create_main_window(self.test_case.study)
         main_window.ui.show()

@@ -20,13 +20,7 @@ class AbstractStudyTestCase(object):
             self.study.add_subject_from_file(filename, subjectname, groupname)
         return self.study
 
-    # FIXME : why clear results ?
-    def create_and_clear_study(self):
-        study = self.create_study()
-        study.clear_results()
-        return study
-
-
+    
 class FlatFilesStudyTestCase(AbstractStudyTestCase):
     prefix = '/neurospin/lnao/Panabase/cati-dev-prod/morphologist/raw_irm'
 
