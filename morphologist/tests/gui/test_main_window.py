@@ -17,10 +17,10 @@ class TestStudyWidget(TestGui):
 
     @TestGui.start_qt_and_test
     def test_start_main_window(self):
-        global main_window
-        main_window = create_main_window()
-        main_window.ui.show()
         self.test_case.create_study()
+        global main_window
+        main_window = create_main_window(self.test_case.study)
+        main_window.ui.show()
         #main_window.study.
         # main_window.ui.close() #FIXME: uncomment
 

@@ -53,6 +53,10 @@ class Study(object):
         for analysis in self.analysis.itervalues():
             analysis.wait()
 
+    def stop_analyses(self):
+        for analysis in self.analysis.itervalues():
+            analysis.stop()
+
     def analyses_ended_with_success(self):
         success = True
         for analysis in self.analysis.itervalues():
