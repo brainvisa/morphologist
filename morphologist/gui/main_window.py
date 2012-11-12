@@ -68,13 +68,10 @@ class StudyWidget(object):
         self.selection_model.currentChanged.connect(self.on_selection_changed)
 
     def _init_ui(self):
-        #FIXME : select the first subject
-        #index = QtCore.QModelIndex()
-        #index = index.sibling(0, 0)
-        #self.selection_model.select(index, QtGui.QItemSelectionModel.Rows)
         header = self.study_tableview.horizontalHeader()
         header.setStyleSheet(self.header_style_sheet)
         header.resizeSection(0, self.subjectname_column_width)
+        self.study_tableview.selectRow(0)
 
     @QtCore.Slot("QModelIndex &, QModelIndex &")
     def on_selection_changed(self, current, previous):
