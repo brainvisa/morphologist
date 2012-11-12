@@ -105,8 +105,8 @@ class BiasCorrection(Step):
 
         # TODO referentials
         return command
-   
- 
+    
+     
 class HistogramAnalysis(Step):
 
     def __init__(self):
@@ -131,7 +131,7 @@ class HistogramAnalysis(Step):
         if self.fix_random_seed:
             command.extend(['-srand', '10'])  
         return command
-
+    
 
 class BrainSegmentation(Step):
 
@@ -140,7 +140,6 @@ class BrainSegmentation(Step):
 
         self.mri_corrected = None
         self.commissure_coordinates = None
-        self.white_ridges = None
         self.edges = None
         self.variance = None
         self.histo_analysis = None
@@ -148,6 +147,7 @@ class BrainSegmentation(Step):
         self.fix_random_seed = False
         # output
         self.brain_mask = None
+        self.white_ridges = None #input/output
          
 
     def get_command(self):
@@ -212,3 +212,4 @@ class SplitBrain(Step):
         # TODO referencials
 
         return command
+    

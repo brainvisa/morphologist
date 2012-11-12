@@ -4,13 +4,61 @@ import shutil
 
 from morphologist.steps import SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
 
-class TestIntraAnalysisSteps(unittest.TestCase):
+import brainvisa.axon
+from brainvisa.processes import defaultContext
+from brainvisa.configuration import neuroConfig
+from brainvisa.data import neuroHierarchy
 
-    def setUp(self):
+class TestIntraAnalysisSteps(unittest.TestCase):
+    
+    def create_ref_database(self):
+        if not os.path.exists(self.bv_db_directory):
+            os.makedirs( self.bv_db_directory )
+            brainvisa.axon.initializeProcesses()
+            database_settings = neuroConfig.DatabaseSettings( self.bv_db_directory )
+            database = neuroHierarchy.SQLDatabase( os.path.join(self.bv_db_directory, "database.sqlite"), 
+                                                   self.bv_db_directory, 
+                                                   'brainvisa-3.1.0', 
+                                                   context=defaultContext(), 
+                                                   settings=database_settings )
+            neuroHierarchy.databases.add( database )
+            neuroConfig.dataPath.append( database_settings )
+            input = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/raw_irm/%s.nii" % self.subject
+            t1mri = {"_database" : database.name, '_format' : 'NIFTI-1 image', 
+                         "protocol" : "test", "subject" : self.subject}
+            defaultContext().runProcess('ImportT1MRI', input, t1mri)
+
+            pipeline=brainvisa.processes.getProcessInstance("morphologist")
+            nodes=pipeline.executionNode()
+            ac = [124.010253906, 110.013366699, 74.0999832153]
+            pc = [124.383506775, 136.140884399, 75.3999862671]
+            ip = [123.263755798, 102.175109863, 26.0]
+            # select steps until split brain and fix the random seed
+            nodes.child('TalairachTransformation').setSelected(0)
+            nodes.child('GreyWhiteClassification').setSelected(0)
+            nodes.child('GreyWhiteSurface').setSelected(0)
+            nodes.child('HemispheresMesh').setSelected(0)
+            nodes.child('HeadMesh').setSelected(0)
+            nodes.child('CorticalFoldsGraph').setSelected(0)
+            nodes.child('BiasCorrection').fix_random_seed = True
+            nodes.child('HistoAnalysis').fix_random_seed = True
+            nodes.child('BrainSegmentation').fix_random_seed = True
+            nodes.child('SplitBrain').fix_random_seed = True
+    
+            print "* Run Axon Morphologist to get reference results"
+            defaultContext().runProcess(pipeline, t1mri, Anterior_Commissure=ac, 
+                                  Posterior_Commissure=pc, Interhemispheric_Point=ip)
+            
+            brainvisa.axon.cleanup()
+
         
+    def setUp(self):      
         self.subject = "hyperion"
+        self.bv_db_directory = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/bv_database"
         self.base_directory = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/bv_database/test/%s/t1mri/default_acquisition" % self.subject
         self.output_directory = "/tmp/morphologist_test_steps"
+        
+        self.create_ref_database()
         
         if os.path.exists(self.output_directory):
             shutil.rmtree(self.output_directory)
@@ -127,12 +175,29 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         self.run_brain_segmentation()
         self.run_split_brain()
         
-        for test_result in [self.hfiltered, self.edges, self.variance, self.mri_corrected, self.white_ridges,
-                            self.histo_analysis, self.brain_mask, self.split_mask]:
-            ref_result = os.path.join(self.base_directory, 
-                                      os.path.relpath(test_result, self.output_directory))
-            self.assert_(comp_files(test_result, ref_result), 
-                         "The content of %s in test is different from the reference results" % os.path.basename(test_result))
+        for (dirpath, dirnames, filenames) in os.walk(self.output_directory):
+            for f in filenames:
+                f_test = os.path.join(dirpath, f)
+                f_ref = os.path.join(self.base_directory, os.path.relpath(dirpath, self.output_directory), f)
+                if f.endswith(".minf"):
+                    minf_test = eval(open(f_test).read()[13:])
+                    minf_ref = eval(open(f_ref).read()[13:])
+                    attributes = set(minf_ref.keys())
+                    if "uuid" in attributes:
+                        attributes.remove("uuid")
+                    if "referential" in attributes:
+                        attributes.remove("referential")
+                    for att in attributes:
+                        self.assert_(minf_test.get(att) == minf_ref[att], 
+                                     "The content of %s in test is different from the reference results\
+for the attribute %s.The reference value is %s, whereas the test value is %s."
+                                     % (f, att, str(minf_ref.get(att)), str(minf_test.get(att))))
+                else:
+                    f_test = os.path.join(dirpath, f)
+                    f_ref = os.path.join(self.base_directory, os.path.relpath(dirpath, self.output_directory), f)
+                    self.assertTrue(comp_files(f_ref, f_test), 
+                                    "The content of "+f+" in test is different from the reference results.")
+
     
 
 def comp_files(nfc1, nfc2, lgbuf=32*1024):
