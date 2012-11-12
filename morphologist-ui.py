@@ -1,4 +1,6 @@
 import os, sys
+
+from morphologist.study import Study
 from morphologist.gui.qt_backend import QtGui, loadUi
 from morphologist.gui import ManageStudyWindow, create_main_window
 
