@@ -2,6 +2,7 @@ from collections import defaultdict
 import os
 
 from morphologist.analysis import Analysis
+from morphologist.analysis import MockAnalysis
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.intra_analysis import IntraAnalysisInputParameters, IntraAnalysisOutputParameters
 
@@ -38,13 +39,19 @@ class Study(object):
             raise SubjectNameExistsError("subjectname")
         subject = Subject(filename, subjectname, groupname)
         self.subjects[subjectname] = subject
-        self.analysis[subjectname] = create_analysis()
-        self.analysis[subjectname].input_params = create_input_parameters(subjectname,
-                                                                          subject.imgname, 
-                                                                          self.outputdir)
-        self.analysis[subjectname].output_params = create_output_parameters(subjectname,
-                                                                          subject.imgname, 
-                                                                          self.outputdir)
+        self.analysis[subjectname] = self._create_analysis()
+
+
+    def _create_analysis(self):
+        return IntraAnalysis() 
+
+
+    def set_analysis_parameters(self, parameter_template):
+        for subjectname, subject in self.subjects.iteritems():
+            self.analysis[subjectname].set_parameters(parameter_template, 
+                                                      subjectname,
+                                                      subject.imgname,
+                                                      self.outputdir)
         
     def list_subject_names(self):
         return self.subjects.keys()
@@ -79,6 +86,11 @@ class Study(object):
         s += 'subjects :' + repr(self.subjects) + '\n'
         return s
 
+
+class MockStudy(Study):
+
+    def _create_analysis(self):
+        return MockAnalysis()
 
 
 class SubjectNameExistsError(Exception):

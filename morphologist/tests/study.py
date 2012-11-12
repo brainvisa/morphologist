@@ -1,7 +1,8 @@
 import os
 
 from morphologist.study import Study
-
+from morphologist.study import MockStudy
+from morphologist.intra_analysis import IntraAnalysis
 
 class AbstractStudyTestCase(object):
 
@@ -14,13 +15,35 @@ class AbstractStudyTestCase(object):
         self.groupnames = None
 
     def create_study(self):
-        self.study = Study(self.studyname, self.outputdir)
+        raise Exception('AbstractStudyTestCase is an abstract class')
+
+    def add_subjects(self):
         for filename, subjectname, groupname in zip(self.filenames,
                                 self.subjectnames, self.groupnames):
             self.study.add_subject_from_file(filename, subjectname, groupname)
-        return self.study
 
-    
+    def set_parameters(self):
+        raise Exception('AbstractStudyTestCase is an abstract class')
+
+
+class MockStudyTestCase(AbstractStudyTestCase):
+
+    def __init__(self):
+        super(MockStudyTestCase, self).__init__()
+        self.studyname = 'mock_study'
+        self.outputdir = '/tmp'
+        self.subjectnames = ['bla', 'blabla', 'blablabla'] 
+        self.filenames = ['foo'] * len(self.subjectnames)
+        self.groupnames = ['group1'] * len(self.subjectnames)
+ 
+    def create_study(self):
+        self.study = MockStudy(self.studyname, self.outputdir)
+        return self.study
+ 
+    def set_parameters(self):
+        self.study.set_analysis_parameters(parameter_template='foo')
+ 
+
 class FlatFilesStudyTestCase(AbstractStudyTestCase):
     prefix = '/neurospin/lnao/Panabase/cati-dev-prod/morphologist/raw_irm'
 
@@ -35,6 +58,13 @@ class FlatFilesStudyTestCase(AbstractStudyTestCase):
         self.subjectnames = ['caca', 'chaos', 'dionysos2', 'hyperion']
         self.groupnames = ['group 1', 'group 2', 'group 3', 'group 4']
 
+    def create_study(self):
+        self.study = Study(self.studyname, self.outputdir)
+        return self.study
+
+    def set_parameters(self):
+        self.study.set_analysis_parameters(parameter_template=IntraAnalysis.DEFAULT_PARAM_TEMPLATE)
+
 
 class BrainvisaStudyTestCase(AbstractStudyTestCase):
 
@@ -47,3 +77,11 @@ class BrainvisaStudyTestCase(AbstractStudyTestCase):
         self.filenames = [os.path.join(self.outputdir, subject,
                           't1mri', 'default_acquisition',
                           '%s.ima' % subject) for subject in self.subjectnames]
+
+    def create_study(self):
+        self.study =  Study(self.studyname, self.outputdir)
+        return self.study
+
+    def set_parameters(self):
+        self.study.set_analysis_parameters(parameter_template=IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
+
