@@ -179,6 +179,43 @@ class Parameters(object):
             raise UnknownParameterName(name)
         return getattr(self, name)
 
+    def set_value(self, name, value):
+        if not name in self._parameter_names:
+            raise UnknownParameterName(name)
+        return setattr(self, name, value)
+
+    @classmethod
+    def unserialize(cls, serialized):
+        file_param_names = serialized['file_param_names']
+        parameter_names = serialized['parameter_names'] 
+        other_param_names = []
+        for param_name in parameter_names:
+            if param_name not in file_param_names:
+                other_param_names.append(param_name)    
+        parameters = cls(file_param_names, other_param_names)
+        for param_name in parameter_names:
+            parameters.set_value(param_name, serialized['parameter_values'][param_name])
+        return parameters          
+
+    def serialize(self):
+        serialized = {}
+        serialized['file_param_names'] = self._file_param_names
+        serialized['parameter_names'] = self._parameter_names
+        serialized['parameter_values'] = {}
+        for param_name in self._parameter_names:
+            serialized['parameter_values'][param_name] = self.get_value(param_name) 
+        return serialized
+        
+    def __cmp__(self, other):
+       if self._parameter_names != other._parameter_names:
+           return 1
+       if self._file_param_names != other._file_param_names:
+           return 1
+       for param_name in self._parameter_names:
+           if self.get_value(param_name) != other.get_value(param_name):
+              return 1
+       return 0 
+
 
 class UnknownParameterName(Exception):
     pass
