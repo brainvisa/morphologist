@@ -2,7 +2,8 @@ import unittest
 import os
 import time
 
-from morphologist.analysis import MockStepFlow, Analysis, InputParameters, OutputParameters
+from morphologist.analysis import Analysis, InputParameters, OutputParameters
+from morphologist.analysis import MockAnalysis
 from morphologist.analysis import MissingParameterValueError, MissingInputFileError, OutputFileExistError, UnknownParameterName
  
 
@@ -133,25 +134,15 @@ class MockAnalysisTestCase(AnalysisTestCase):
         super(MockAnalysisTestCase, self).__init__()
 
     def create_analysis(self):
-        mock_step_flow = MockStepFlow()
-        self.analysis = Analysis(mock_step_flow)
+        self.analysis = MockAnalysis()
         return self.analysis
 
     def set_analysis_parameters(self):
-        self.analysis.input_params.input_1 = generate_in_file_path("input_1")
-        self.analysis.input_params.input_2 = generate_in_file_path("input_2")
-        self.analysis.input_params.input_3 = 1.2 
-        self.analysis.input_params.input_4 = 2.3 
-        self.analysis.input_params.input_5 = generate_in_file_path("input_5")
-        self.analysis.input_params.input_6 = 4.6 
-
-        self.analysis.output_params.output_1 = generate_out_file_path("output_1")
-        self.analysis.output_params.output_2 = generate_out_file_path("output_2")
-        self.analysis.output_params.output_3 = generate_out_file_path("output_3")
-        self.analysis.output_params.output_4 = generate_out_file_path("output_4")
-        self.analysis.output_params.output_5 = generate_out_file_path("output_5")
-        self.analysis.output_params.output_6 = generate_out_file_path("output_6")
-
+        self.analysis.set_parameters(parameter_template='foo', 
+                                     name='foo',
+                                     image='foo',
+                                     outputdir='/tmp')
+ 
     def delete_some_parameter_values(self):
         self.analysis.output_params.output_3 = None
         self.analysis.input_params.input_4 = None

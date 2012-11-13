@@ -2,7 +2,7 @@ import unittest
 import os
 
 from morphologist.analysis import Analysis
-from morphologist.intra_analysis import IntraAnalysisStepFlow
+from morphologist.intra_analysis import IntraAnalysis
 from test_analysis import TestAnalysis, AnalysisTestCase, remove_file
 
 
@@ -19,38 +19,23 @@ class IntraAnalysisTestCase(AnalysisTestCase):
         super(IntraAnalysisTestCase, self).__init__()
 
     def create_analysis(self):
-        intra_analysis_step_flow = IntraAnalysisStepFlow()
-        self.analysis = Analysis(intra_analysis_step_flow)
+        self.analysis = IntraAnalysis()
         return self.analysis
 
 
     def set_analysis_parameters(self):
         subject = "icbm100T"
-        base_directory = "/volatile/laguitton/data/icbm/icbm/%s/t1mri/default_acquisition" % subject
-  
-        self.analysis.input_params.mri = os.path.join(base_directory, 
-                                "%s.ima" % subject)
-        self.analysis.input_params.commissure_coordinates = os.path.join(base_directory, 
-                                      "%s.APC" % subject) 
-        self.analysis.input_params.erosion_size = 1.8  
-        self.analysis.input_params.bary_factor = 0.6
+        outputdir = "/volatile/laguitton/data/icbm/icbm/"
+        image_path = os.path.join(outputdir, 
+                             subject, 
+                             "t1mri", 
+                             "default_acquisition",
+                             "%s.ima" % subject) 
 
-        self.analysis.output_params.hfiltered = os.path.join(base_directory, 
-                         "default_analysis/hfiltered_%s.ima" % subject)
-        self.analysis.output_params.white_ridges = os.path.join(base_directory, 
-                            "default_analysis/whiteridge_%s.ima" % subject)
-        self.analysis.output_params.edges = os.path.join(base_directory, 
-                     "default_analysis/edges_%s.ima" % subject)
-        self.analysis.output_params.mri_corrected = os.path.join(base_directory, 
-                             "default_analysis/nobias_%s.ima" % subject)
-        self.analysis.output_params.variance = os.path.join(base_directory, 
-                        "default_analysis/variance_%s.ima" % subject)
-        self.analysis.output_params.histo_analysis = os.path.join(base_directory, 
-                              "default_analysis/nobias_%s.han" % subject)
-        self.analysis.output_params.brain_mask = os.path.join(base_directory, 
-                          "default_analysis/segmentation/brain_%s.ima" % subject)
-        self.analysis.output_params.split_mask = os.path.join(base_directory, 
-                          "default_analysis/segmentation/voronoi_%s.ima" % subject)
+        self.analysis.set_parameters(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE,
+                                     name="icbm100T",
+                                     image=image_path,
+                                     outputdir=outputdir) 
         self.analysis.clear_output_files() 
 
 

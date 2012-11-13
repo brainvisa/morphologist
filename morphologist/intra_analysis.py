@@ -1,7 +1,32 @@
 import os
 
-from morphologist.analysis import StepFlow, InputParameters, OutputParameters
+from morphologist.analysis import Analysis, StepFlow, InputParameters, OutputParameters
 from morphologist.steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
+
+
+class IntraAnalysis(Analysis):
+
+    BRAINVISA_PARAM_TEMPLATE = 'brainvisa'
+    DEFAULT_PARAM_TEMPLATE = 'default'
+    PARAMETER_TEMPLATES = ['brainvisa']
+  
+
+    def __init__(self):
+        step_flow = IntraAnalysisStepFlow()
+        super(IntraAnalysis, self).__init__(step_flow) 
+ 
+
+    def set_parameters(self, parameter_template, name, image, outputdir):
+
+        if parameter_template not in IntraAnalysis.PARAMETER_TEMPLATES:
+            raise UnknownParameterTemplate(parameter_template) 
+
+        if parameter_template == IntraAnalysis.BRAINVISA_PARAM_TEMPLATE:
+            self.input_params = IntraAnalysisInputParameters.from_brainvisa_template(image)
+            self.output_params = IntraAnalysisOutputParameters.from_brainvisa_template(outputdir, 
+                                                                                       name)
+        #elif parameter_template == IntraAnalysis.DEFAULT_PARAM_TEMPLATE:
+            #TODO
 
 
 class IntraAnalysisStepFlow(StepFlow):
@@ -72,7 +97,7 @@ class IntraAnalysisInputParameters(InputParameters):
                                                            other_param_names)
 
     @classmethod
-    def from_brainvisa_hierarchy(cls, img_file_path):
+    def from_brainvisa_template(cls, img_file_path):
         #img_file_path should be in path/subject_name/t1mri/default_acquisition
         # TODO raise an exception if it not the case ?
         default_acquisition_path = os.path.dirname(img_file_path)
@@ -104,7 +129,7 @@ class IntraAnalysisOutputParameters(OutputParameters):
         super(IntraAnalysisOutputParameters, self).__init__(file_param_names)
 
     @classmethod
-    def from_brainvisa_hierarchy(cls, output_dir, subject_name):
+    def from_brainvisa_template(cls, output_dir, subject_name):
         # the directory hierarchy in the output_dir will be 
         # subject_name/t1mri/default_acquisition/default_analysis/segmentation
         

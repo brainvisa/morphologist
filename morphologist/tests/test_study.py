@@ -2,7 +2,7 @@ import unittest
 import os
 
 from morphologist.study import Study, Subject, SubjectNameExistsError
-from morphologist.tests.study import BrainvisaStudyTestCase
+from morphologist.tests.study import BrainvisaStudyTestCase, MockStudyTestCase
 
 
 class TestStudy(unittest.TestCase):
@@ -10,8 +10,10 @@ class TestStudy(unittest.TestCase):
 
     def setUp(self):
         self.test_case = self.create_test_case()
-        self.study = self.test_case.create_study()
- 
+        self.test_case.create_study()
+        self.test_case.add_subjects()
+        self.test_case.set_parameters() 
+        self.study = self.test_case.study
   
     def _test_subject_name_exists_error(self):
         existing_subject_name = self.study.list_subject_names()[0]
@@ -30,7 +32,8 @@ class TestStudy(unittest.TestCase):
         self.assert_(self.study.analyses_ended_with_success())
 
     def create_test_case(self):
-        test_case = BrainvisaStudyTestCase()
+        #test_case = BrainvisaStudyTestCase()
+        test_case = MockStudyTestCase()
         return test_case
 
 

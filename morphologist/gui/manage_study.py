@@ -18,7 +18,6 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.setFileMode(QtGui.QFileDialog.ExistingFiles)
         self.filesSelected.connect(self.onfilesSelected)
-#        self.rejected.connect(self.onRejected)
 
     def _define_selectable_files_regexp(self):
         formats = ['ima', 'nii']
@@ -28,13 +27,6 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
     @QtCore.Slot("const QStringList &")
     def onfilesSelected(self, list):
         self._study_manager.add_subjects(list)
-
-
-#    @QtCore.Slot()
-#    def onRejected(self):
-#        print "!!!!!!!!!!!!!"
-#        print "reject !"
-#        print "!!!!!!!!!!!!!"
 
 
 class ManageStudyWindow(object):

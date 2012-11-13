@@ -5,17 +5,40 @@ import threading
 from morphologist.steps import MockStep
 
 class Analysis(object):
-     
+
+
     def __init__(self, step_flow):
         self._step_flow = step_flow
-        self.input_params = self._step_flow.input_params
-        self.output_params = self._step_flow.output_params
         self._execution_thread = threading.Thread(name = "analysis run",
                                                   target = Analysis._sync_run,
                                                   args =([self]))
         self._lock = threading.RLock()
         self._interruption = False
         self._last_run_failed = False
+
+
+    def set_parameters(self, parameter_template, name, image, outputdir):
+        raise UnknownParameterTemplate(parameter_template)
+
+
+    def get_input_params(self):
+        return self._step_flow.input_params
+
+
+    def set_input_params(self, input_params):
+        self._step_flow.input_params = input_params
+
+
+    def get_output_params(self):
+        return self._step_flow.output_params
+
+
+    def set_output_params(self, output_params):
+        self._step_flow.output_params = output_params
+
+    input_params = property(get_input_params, set_input_params)
+    output_params = property(get_output_params, set_output_params) 
+ 
 
     def _sync_run(self):
         self._last_run_failed = False
@@ -102,6 +125,9 @@ class Analysis(object):
                 os.remove(out_file_path)
 
 
+class UnknownParameterTemplate(Exception):
+    pass
+
 class MissingParameterValueError(Exception):
     pass
 
@@ -181,7 +207,47 @@ class StepFlow(object):
 
     def propagate_parameters(self):
         raise Exception("StepFlow is an Abstract class. propagate_parameter must be redifined.") 
-      
+     
+
+class MockAnalysis(Analysis):
+
+    def __init__(self):
+        step_flow = MockStepFlow()
+        super(MockAnalysis, self).__init__(step_flow) 
+
+    def set_parameters(self, parameter_template, name, image, outputdir):
+        self.input_params.input_1 = self._generate_in_file_path(name, "in1", outputdir)
+        self.input_params.input_2 = self._generate_in_file_path(name, "in2", outputdir)
+        self.input_params.input_3 = 1.2 
+        self.input_params.input_4 = 2.3 
+        self.input_params.input_5 = self._generate_in_file_path(name, "in5", outputdir)
+        self.input_params.input_6 = 4.6 
+
+        self.output_params.output_1 = self._generate_out_file_path(name, "out1", outputdir)
+        self.output_params.output_2 = self._generate_out_file_path(name, "out2", outputdir)
+        self.output_params.output_3 = self._generate_out_file_path(name, "out3", outputdir)
+        self.output_params.output_4 = self._generate_out_file_path(name, "out4", outputdir)
+        self.output_params.output_5 = self._generate_out_file_path(name, "out5", outputdir)
+        self.output_params.output_6 = self._generate_out_file_path(name, "out6", outputdir)
+
+        
+    def _generate_in_file_path(self, prefix, filename, outputdir):
+        file_path = self._generate_file_path(prefix + '_' + filename, outputdir)
+        f = open(file_path, "w")
+        f.close()
+        return file_path
+
+    def _generate_out_file_path(self, prefix, filename, outputdir):
+        file_path = self._generate_file_path(prefix + '_' + filename, outputdir)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+        return file_path
+
+    def _generate_file_path(self, filename, outputdir):
+        return os.path.join(outputdir, filename)
+
+
+
 
 class MockStepFlow(StepFlow):
 

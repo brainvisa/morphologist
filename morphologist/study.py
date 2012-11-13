@@ -2,7 +2,8 @@ from collections import defaultdict
 import os
 
 from morphologist.analysis import Analysis
-from morphologist.intra_analysis import IntraAnalysisStepFlow
+from morphologist.analysis import MockAnalysis
+from morphologist.intra_analysis import IntraAnalysis
 from morphologist.intra_analysis import IntraAnalysisInputParameters, IntraAnalysisOutputParameters
 
 
@@ -38,10 +39,20 @@ class Study(object):
             raise SubjectNameExistsError("subjectname")
         subject = Subject(filename, subjectname, groupname)
         self.subjects[subjectname] = subject
-        self.analysis[subjectname] = create_analysis(subjectname,
-                                                     subject.imgname, 
-                                                     self.outputdir)
+        self.analysis[subjectname] = self._create_analysis()
 
+
+    def _create_analysis(self):
+        return IntraAnalysis() 
+
+
+    def set_analysis_parameters(self, parameter_template):
+        for subjectname, subject in self.subjects.iteritems():
+            self.analysis[subjectname].set_parameters(parameter_template, 
+                                                      subjectname,
+                                                      subject.imgname,
+                                                      self.outputdir)
+        
     def list_subject_names(self):
         return self.subjects.keys()
 
@@ -76,21 +87,29 @@ class Study(object):
         return s
 
 
+class MockStudy(Study):
+
+    def _create_analysis(self):
+        return MockAnalysis()
+
+
 class SubjectNameExistsError(Exception):
     pass
 
-def create_analysis(subject_name, img_file_path, output_dir):
-    intra_analysis_step_flow = IntraAnalysisStepFlow()
-   
 
+def create_input_parameters(subject_name, img_file_path, output_dir):
     input_params = IntraAnalysisInputParameters.from_brainvisa_hierarchy(img_file_path)
+    return input_params
 
+
+def create_output_parameters(subject_name, img_file_path, output_dir):
     output_params = IntraAnalysisOutputParameters.from_brainvisa_hierarchy(output_dir, 
                                                                            subject_name)
+    return output_params
 
-    intra_analysis_step_flow.input_params = input_params
-    intra_analysis_step_flow.output_params = output_params
-    intra_analysis = Analysis(intra_analysis_step_flow)    
+
+def create_analysis():
+    intra_analysis = IntraAnalysis()    
     return intra_analysis
 
 

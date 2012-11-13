@@ -1,24 +1,93 @@
 import os
 
-from .qt_backend import QtCore, loadUi
+from .qt_backend import QtCore, QtGui, loadUi
 from .gui import ui_directory
 from ..study import Study
 
 
+class StudyTableModel(QtCore.QAbstractTableModel):
+    SUBJECTNAME_COL = 0
+
+    def __init__(self, study, parent=None):
+        super(StudyTableModel, self).__init__(parent)
+        self._study = None
+        self._subjectnames = None
+        self._set_study(study)
+        self._header = ['name'] #TODO: to be extended
+
+    def _set_study(self, study):
+        self._study = study
+        self._subjectnames = study.list_subject_names()
+
+    def subjectname_from_row_index(self, index):
+        return self._subjectnames[index]
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self._study.subjects)
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        return 1 #TODO: to be extended
+
+    def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
+        if role == QtCore.Qt.DisplayRole:
+            if orientation == QtCore.Qt.Vertical:
+                return
+            elif orientation == QtCore.Qt.Horizontal:
+                return self._header[section]
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        row, column = index.row(), index.column()
+        if role == QtCore.Qt.DisplayRole:
+            if column == StudyTableModel.SUBJECTNAME_COL:
+                return self._subjectnames[row]
+
+
 class StudyWidget(object):
     uifile = os.path.join(ui_directory, 'display_study.ui')
+    header_style_sheet = '''
+        QHeaderView::section {
+            background-color: qlineargradient( x1:0 y1:0, x2:0 y2:1,
+                                               stop:0 gray, stop:1 black);
+            color:white;
+            border: 0px
+        }'''
+    subjectname_column_width = 100    
 
-    def __init__(self, parent):
-        self.ui = loadUi(StudyWidget.uifile, parent)
-	
+    def __init__(self, intra_analysis_window, parent=None):
+        self.intra_analysis_window = intra_analysis_window
+        self.ui = loadUi(self.uifile, parent)
+        self.study_tablemodel = StudyTableModel(intra_analysis_window.study)
+        self.study_tableview = self.ui.widget()
+        self.study_tableview.setModel(self.study_tablemodel)
+        self.selection_model = self.study_tableview.selectionModel()
+
+        self._init_qt_connections()
+        self._init_ui()
+
+    def _init_qt_connections(self):
+        self.selection_model.currentChanged.connect(self.on_selection_changed)
+
+    def _init_ui(self):
+        header = self.study_tableview.horizontalHeader()
+        header.setStyleSheet(self.header_style_sheet)
+        header.resizeSection(0, self.subjectname_column_width)
+        self.study_tableview.selectRow(0)
+
+    @QtCore.Slot("QModelIndex &, QModelIndex &")
+    def on_selection_changed(self, current, previous):
+        subjectname = self.study_tablemodel.subjectname_from_row_index(\
+                                                        current.row())
+        self.intra_analysis_window.set_current_subjectname(subjectname)
+
 
 class IntraAnalysisWindow(object):
     uifile = os.path.join(ui_directory, 'intra_analysis.ui')
 
     def __init__(self, study):
-        self.ui = loadUi(IntraAnalysisWindow.uifile)
-        self.study_widget = StudyWidget(self.ui.study_widget_wrapper)
+        self.ui = loadUi(self.uifile)
         self.study = study
+        self.study_widget = StudyWidget(self, self.ui.study_widget_dock)
+        self._current_subjectname = None
 	
         self._init_qt_connections()
         self._init_ui()
@@ -41,6 +110,10 @@ class IntraAnalysisWindow(object):
         self.ui.stop_button.setEnabled(False)
         self.study.stop_analyses()
         self.ui.run_button.setEnabled(True)
+
+    def set_current_subjectname(self, subjectname):
+        self._current_subjectname = subjectname
+        # TODO : update image
 
 
 def create_main_window(study):
