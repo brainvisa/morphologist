@@ -53,31 +53,20 @@ class StudyWidget(object):
         }'''
     subjectname_column_width = 100    
 
-    def __init__(self, intra_analysis_window, parent=None):
-        self.intra_analysis_window = intra_analysis_window
+    def __init__(self, study_tablemodel, parent=None):
         self.ui = loadUi(self.uifile, parent)
-        self.study_tablemodel = StudyTableModel(intra_analysis_window.study)
+        self.study_tablemodel = study_tablemodel
         self.study_tableview = self.ui.widget()
         self.study_tableview.setModel(self.study_tablemodel)
         self.selection_model = self.study_tableview.selectionModel()
 
-        self._init_qt_connections()
         self._init_ui()
-
-    def _init_qt_connections(self):
-        self.selection_model.currentChanged.connect(self.on_selection_changed)
 
     def _init_ui(self):
         header = self.study_tableview.horizontalHeader()
         header.setStyleSheet(self.header_style_sheet)
         header.resizeSection(0, self.subjectname_column_width)
         self.study_tableview.selectRow(0)
-
-    @QtCore.Slot("QModelIndex &, QModelIndex &")
-    def on_selection_changed(self, current, previous):
-        subjectname = self.study_tablemodel.subjectname_from_row_index(\
-                                                        current.row())
-        self.intra_analysis_window.set_current_subjectname(subjectname)
 
 
 class IntraAnalysisWindow(object):
@@ -86,9 +75,9 @@ class IntraAnalysisWindow(object):
     def __init__(self, study):
         self.ui = loadUi(self.uifile)
         self.study = study
-        self.study_widget = StudyWidget(self, self.ui.study_widget_dock)
+        self.study_tablemodel = StudyTableModel(self.study)
+        self.study_widget = StudyWidget(self.study_tablemodel, self.ui.study_widget_dock)
         self._current_subjectname = None
-	
         self._init_qt_connections()
         self._init_ui()
 
@@ -98,6 +87,7 @@ class IntraAnalysisWindow(object):
         self.ui.action_new_study.triggered.connect(self.on_new_study_action)
         self.ui.action_open_study.triggered.connect(self.on_open_study_action)
         self.ui.action_save_study.triggered.connect(self.on_save_study_action)
+        self.study_widget.selection_model.currentChanged.connect(self.on_selection_changed)
 
     def _init_ui(self):
         self.ui.setEnabled(True) #FIXME
@@ -119,9 +109,7 @@ class IntraAnalysisWindow(object):
         study = Study()
         manage_study_window = ManageStudyWindow(study)
         if (manage_study_window.ui.exec_() == QtGui.QDialog.Accepted):
-            self.study = study
-            model = StudyTableModel(self.study)
-            self.study_widget.study_tableview.setModel(model)
+            self.set_study(study)
         
     @QtCore.Slot()
     def on_open_study_action(self):
@@ -133,7 +121,18 @@ class IntraAnalysisWindow(object):
         # TODO : save a study in a file
         pass
 
+    @QtCore.Slot("QModelIndex &, QModelIndex &")
+    def on_selection_changed(self, current, previous):
+        subjectname = self.study_tablemodel.subjectname_from_row_index(\
+                                                        current.row())
+        self.set_current_subjectname(subjectname)
 
+    def set_study(self, study):
+        self.study = study
+        self.study_tablemodel = StudyTableModel(self.study)
+        self.study_widget.study_tableview.setModel(self.study_tablemodel)
+        self.ui.setWindowTitle("Morphologist - %s" % self.study.name)
+        
     def set_current_subjectname(self, subjectname):
         self._current_subjectname = subjectname
         # TODO : update image
