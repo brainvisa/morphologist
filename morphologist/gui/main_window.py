@@ -1,9 +1,9 @@
 import os
 
 from .qt_backend import QtCore, QtGui, loadUi
-from .gui import ui_directory
+from .gui import ui_directory 
 from ..study import Study
-
+from .manage_study import ManageStudyWindow
 
 class StudyTableModel(QtCore.QAbstractTableModel):
     SUBJECTNAME_COL = 0
@@ -95,6 +95,9 @@ class IntraAnalysisWindow(object):
     def _init_qt_connections(self):
         self.ui.run_button.clicked.connect(self.on_run_button_clicked)
         self.ui.stop_button.clicked.connect(self.on_stop_button_clicked)
+        self.ui.action_new_study.triggered.connect(self.on_new_study_action)
+        self.ui.action_open_study.triggered.connect(self.on_open_study_action)
+        self.ui.action_save_study.triggered.connect(self.on_save_study_action)
 
     def _init_ui(self):
         self.ui.setEnabled(True) #FIXME
@@ -110,6 +113,26 @@ class IntraAnalysisWindow(object):
         self.ui.stop_button.setEnabled(False)
         self.study.stop_analyses()
         self.ui.run_button.setEnabled(True)
+
+    @QtCore.Slot()
+    def on_new_study_action(self):
+        study = Study()
+        manage_study_window = ManageStudyWindow(study)
+        if (manage_study_window.ui.exec_() == QtGui.QDialog.Accepted):
+            self.study = study
+            model = StudyTableModel(self.study)
+            self.study_widget.study_tableview.setModel(model)
+        
+    @QtCore.Slot()
+    def on_open_study_action(self):
+        # TODO : open a study from a file
+        pass
+
+    @QtCore.Slot()
+    def on_save_study_action(self):
+        # TODO : save a study in a file
+        pass
+
 
     def set_current_subjectname(self, subjectname):
         self._current_subjectname = subjectname

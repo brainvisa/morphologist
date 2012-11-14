@@ -120,9 +120,11 @@ class ManageStudyWindow(object):
         for i in range(self.ui.subjects_tablewidget.rowCount()):
             groupname, subjectname, filename = self._get_subject_data(i)
             self.study.add_subject_from_file(filename, subjectname, groupname)
+        self.ui.accept()
 
     def on_cancel_button_clicked(self):
         print "cancel" #TODO
+        self.ui.reject()
 
     def _add_subject(self, filename, groupname):
         subjectname = Study.define_subjectname_from_filename(filename)
