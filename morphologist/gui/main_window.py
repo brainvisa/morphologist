@@ -113,13 +113,16 @@ class IntraAnalysisWindow(object):
         
     @QtCore.Slot()
     def on_open_study_action(self):
-        # TODO : open a study from a file
-        pass
+        filename = QtGui.QFileDialog.getOpenFileName ( self.ui )
+        if filename is not None:
+            study = Study.from_file(filename)
+            self.set_study(study) 
 
     @QtCore.Slot()
     def on_save_study_action(self):
-        # TODO : save a study in a file
-        pass
+        filename = QtGui.QFileDialog.getSaveFileName ( self.ui )
+        if filename is not None:
+            self.study.save_to_file(filename)
 
     @QtCore.Slot("QModelIndex &, QModelIndex &")
     def on_selection_changed(self, current, previous):
