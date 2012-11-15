@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>415</width>
+    <width>465</width>
     <height>606</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Modify current study</string>
+   <string>Create a new study</string>
   </property>
   <property name="modal">
    <bool>true</bool>
@@ -89,6 +89,9 @@
        </property>
        <property name="showGrid">
         <bool>false</bool>
+       </property>
+       <property name="sortingEnabled">
+        <bool>true</bool>
        </property>
        <property name="cornerButtonEnabled">
         <bool>false</bool>

@@ -23,7 +23,7 @@
       </sizepolicy>
      </property>
      <property name="styleSheet">
-      <string notr="true">QHeaderView::section {background-color:qlineargradient( x1:0 y1:0, x2:0 y2:1, stop:0 gray, stop:1 black);color:white;border: 0px}</string>
+      <string notr="true"/>
      </property>
      <property name="selectionMode">
       <enum>QAbstractItemView::SingleSelection</enum>
@@ -36,6 +36,9 @@
      </property>
      <property name="gridStyle">
       <enum>Qt::NoPen</enum>
+     </property>
+     <property name="sortingEnabled">
+      <bool>true</bool>
      </property>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>

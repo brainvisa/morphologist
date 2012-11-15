@@ -64,7 +64,7 @@ class StudyWidget(object):
 
     def _init_ui(self):
         header = self.study_tableview.horizontalHeader()
-        header.setStyleSheet(self.header_style_sheet)
+        #header.setStyleSheet(self.header_style_sheet)
         header.resizeSection(0, self.subjectname_column_width)
         self.study_tableview.selectRow(0)
 
