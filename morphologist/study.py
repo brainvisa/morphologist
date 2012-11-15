@@ -33,7 +33,7 @@ class Subject(object):
 
 
 class Study(object):
-    default_outputdir = os.path.join(os.getcwd(), '.morphologist/studies/study')
+    default_outputdir = os.path.join(os.getcwd(), '.config/morphologist/studies/study')
 
     def __init__(self, name="undefined study", outputdir=default_outputdir):
         self.name = name
