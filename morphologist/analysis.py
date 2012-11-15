@@ -206,17 +206,7 @@ class Parameters(object):
             serialized['parameter_values'][param_name] = self.get_value(param_name) 
         return serialized
         
-    def __cmp__(self, other):
-       if self._parameter_names != other._parameter_names:
-           return 1
-       if self._file_param_names != other._file_param_names:
-           return 1
-       for param_name in self._parameter_names:
-           if self.get_value(param_name) != other.get_value(param_name):
-              return 1
-       return 0 
-
-
+    
 class UnknownParameterName(Exception):
     pass
 

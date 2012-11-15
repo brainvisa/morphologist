@@ -31,11 +31,6 @@ class Subject(object):
                       groupname=serialized['groupname'])
         return subject
 
-    def __cmp__(self, other):
-        if self.imgname == other.imgname and self.groupname == other.groupname:
-            return 0
-        return 1
-
 
 class Study(object):
     default_outputdir = os.path.join(os.getcwd(), '.morphologist/studies/study')
@@ -108,19 +103,6 @@ class Study(object):
             serialized['output_params'][subjectname] = analysis.output_params.serialize()
         return serialized 
 
-
-    def __cmp__(self, other):
-        if self.name != other.name or self.outputdir != other.outputdir:
-            return 1
-        if self.subjects != other.subjects:
-            return 1
-        for subject in self.subjects:
-            if self.analysis[subject].input_params != other.analysis[subject].input_params:
-                return 1
-            if self.analysis[subject].output_params != other.analysis[subject].output_params:
-                return 1
-        return 0
-         
 
     @staticmethod
     def define_subjectname_from_filename(filename):
