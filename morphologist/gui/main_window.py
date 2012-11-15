@@ -12,12 +12,14 @@ class StudyTableModel(QtCore.QAbstractTableModel):
         super(StudyTableModel, self).__init__(parent)
         self._study = None
         self._subjectnames = None
-        self._set_study(study)
+        self.set_study(study)
         self._header = ['name'] #TODO: to be extended
 
-    def _set_study(self, study):
+    def set_study(self, study):
+        self.beginResetModel()
         self._study = study
         self._subjectnames = study.list_subject_names()
+        self.endResetModel()
 
     def subjectname_from_row_index(self, index):
         return self._subjectnames[index]
@@ -53,10 +55,10 @@ class StudyWidget(object):
         }'''
     subjectname_column_width = 100    
 
-    def __init__(self, study_tablemodel, parent=None):
+    def __init__(self, study, parent=None):
         self.ui = loadUi(self.uifile, parent)
-        self.study_tablemodel = study_tablemodel
         self.study_tableview = self.ui.widget()
+        self.study_tablemodel = StudyTableModel(study)
         self.study_tableview.setModel(self.study_tablemodel)
         self.selection_model = self.study_tableview.selectionModel()
 
@@ -68,15 +70,17 @@ class StudyWidget(object):
         header.resizeSection(0, self.subjectname_column_width)
         self.study_tableview.selectRow(0)
 
+    def set_study(self, study):
+        self.study_tablemodel.set_study(study)
 
 class IntraAnalysisWindow(object):
     uifile = os.path.join(ui_directory, 'intra_analysis.ui')
 
-    def __init__(self, study):
+    def __init__(self):
         self.ui = loadUi(self.uifile)
-        self.study = study
-        self.study_tablemodel = StudyTableModel(self.study)
-        self.study_widget = StudyWidget(self.study_tablemodel, self.ui.study_widget_dock)
+        self.study = Study()
+
+        self.study_widget = StudyWidget(self.study, self.ui.study_widget_dock)
         self._current_subjectname = None
         self._init_qt_connections()
         self._init_ui()
@@ -126,14 +130,13 @@ class IntraAnalysisWindow(object):
 
     @QtCore.Slot("QModelIndex &, QModelIndex &")
     def on_selection_changed(self, current, previous):
-        subjectname = self.study_tablemodel.subjectname_from_row_index(\
+        subjectname = self.study_widget.study_tablemodel.subjectname_from_row_index(\
                                                         current.row())
         self.set_current_subjectname(subjectname)
 
     def set_study(self, study):
         self.study = study
-        self.study_tablemodel = StudyTableModel(self.study)
-        self.study_widget.study_tableview.setModel(self.study_tablemodel)
+        self.study_widget.set_study(self.study)
         self.ui.setWindowTitle("Morphologist - %s" % self.study.name)
         
     def set_current_subjectname(self, subjectname):
@@ -141,5 +144,5 @@ class IntraAnalysisWindow(object):
         # TODO : update image
 
 
-def create_main_window(study):
-    return IntraAnalysisWindow(study)
+def create_main_window():
+    return IntraAnalysisWindow()

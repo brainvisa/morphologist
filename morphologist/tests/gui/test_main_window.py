@@ -22,7 +22,8 @@ class TestStudyWidget(TestGui):
         self.test_case.set_parameters()
         self.test_case.study.clear_results()
         global main_window
-        main_window = create_main_window(self.test_case.study)
+        main_window = create_main_window()
+        main_window.set_study(self.test_case.study)
         main_window.ui.show()
         #main_window.study.
         # main_window.ui.close() #FIXME: uncomment

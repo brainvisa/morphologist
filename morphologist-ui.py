@@ -6,8 +6,7 @@ from morphologist.gui import ManageStudyWindow, create_main_window
 
 def main():
     qApp = QtGui.QApplication(sys.argv)
-    study = Study()
-    main_window = create_main_window(study)
+    main_window = create_main_window()
     main_window.ui.show()
     sys.exit(qApp.exec_())
 
