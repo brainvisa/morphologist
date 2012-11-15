@@ -68,10 +68,10 @@ class StudyWidget(object):
         header = self.study_tableview.horizontalHeader()
         #header.setStyleSheet(self.header_style_sheet)
         header.resizeSection(0, self.subjectname_column_width)
-        self.study_tableview.selectRow(0)
 
     def set_study(self, study):
         self.study_tablemodel.set_study(study)
+        self.study_tableview.selectRow(0)
 
 class IntraAnalysisWindow(object):
     uifile = os.path.join(ui_directory, 'intra_analysis.ui')
