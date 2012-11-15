@@ -3,6 +3,7 @@ import os, sys
 from .qt_backend import QtGui, QtCore, loadUi
 from .gui import ui_directory
 from ..study import Study
+from ..formats import Format, FormatsManager
 
 
 class SelectSubjectsDialog(QtGui.QFileDialog):
@@ -20,9 +21,22 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
         self.filesSelected.connect(self.onfilesSelected)
 
     def _define_selectable_files_regexp(self):
-        formats = ['ima', 'nii']
-        formats_regexp = (' '.join([('*.' + f) for f in formats]))
-        return "3D Volumes (%s)" % formats_regexp
+        formats_manager = FormatsManager.formats_manager()
+        formats = formats_manager.formats()
+
+        volume_filters = []
+        all_volumes_regexp = []
+        for format in formats:
+            extensions = format.extensions
+            extensions_regexp = (' '.join([('*.' + ext) for ext in extensions]))
+            if extensions_regexp == '': continue
+            filter = '%s (%s)' % (format.name, extensions_regexp)
+            volume_filters.append(filter)
+            all_volumes_regexp.append(extensions_regexp)
+        all_volumes_filter = '3D Volumes (%s)' % (' '.join(all_volumes_regexp))
+        all_filters = [all_volumes_filter] + volume_filters + ['All files (*.*)']
+        final_filter = ';;'.join(all_filters)
+        return final_filter
 
     @QtCore.Slot("const QStringList &")
     def onfilesSelected(self, list):
