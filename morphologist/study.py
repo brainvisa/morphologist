@@ -87,7 +87,7 @@ class Study(object):
         try:
             f = open(filename, "w")
             serialized_study = self.serialize()
-            json.dump(serialized_study, f, indent=4)
+            json.dump(serialized_study, f, indent=4, sort_keys=True)
             f.close()
         except Exception, e:
             raise StudySerializationError("%s: %s" %(type(e), e))
