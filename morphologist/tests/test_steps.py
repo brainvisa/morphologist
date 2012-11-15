@@ -1,6 +1,7 @@
 import os
 import unittest
 import shutil
+import filecmp 
 
 from morphologist.steps import SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
 
@@ -206,7 +207,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         for f in results:
             f_ref = os.path.join(self.base_directory, f)
             f_test = os.path.join(self.output_directory, f)
-            self.assert_(comp_files(f_ref, f_test), 
+            self.assert_(filecmp.cmp(f_ref, f_test), 
                          "The content of %s in test is different from the reference results." 
                          % os.path.basename(f))
             self.compare_minf(f_ref+".minf", f_test+".minf")
@@ -236,28 +237,6 @@ Some attributes are not the same: %s." % (os.path.basename(f_minf_ref), str(diff
 for the attribute %s. The reference value is %s, whereas the test value is %s."
 % (os.path.basename(f_minf_ref), att, str(minf_ref.get(att)), str(minf_test.get(att)) ) )
 
-
-def comp_files(nfc1, nfc2, lgbuf=32*1024):
-    """Compare les 2 fichiers et renvoie True seulement s'ils ont un contenu 
-    identique"""
-    f1 = f2 = None
-    result = False
-    try:
-        if os.path.getsize(nfc1) == os.path.getsize(nfc2):
-            f1 = open(nfc1, "rb")
-            f2 = open(nfc2, "rb")
-            while True:
-                buf1 = f1.read(lgbuf)
-                if len(buf1) == 0:
-                    result = True
-                    break
-                buf2 = f2.read(lgbuf)
-                if buf1 != buf2:
-                    break
-    finally:
-        if f1 != None: f1.close()
-        if f2 != None: f2.close()
-    return result
 
 
 if __name__ == '__main__':
