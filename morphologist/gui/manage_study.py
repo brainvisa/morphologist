@@ -1,4 +1,4 @@
-import os, sys
+import os
 
 from .qt_backend import QtGui, QtCore, loadUi
 from .gui import ui_directory
@@ -7,13 +7,13 @@ from ..formats import Format, FormatsManager
 
 
 class SelectSubjectsDialog(QtGui.QFileDialog):
-
+    
     def __init__(self, manage_study_window, study_manager):
         caption = "Select one or more subjects to be include into your study"
-        directory = os.getcwd()
-        filter = self._define_selectable_files_regexp()
+        files_filter = self._define_selectable_files_regexp()
+        default_directory = ""
         super(SelectSubjectsDialog, self).__init__(manage_study_window,
-                                                   caption, directory, filter)
+                                                   caption, default_directory, files_filter)
         self._study_manager = study_manager
         self.setObjectName("SelectSubjectsDialog")
         self.setWindowModality(QtCore.Qt.ApplicationModal)
@@ -39,8 +39,8 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
         return final_filter
 
     @QtCore.Slot("const QStringList &")
-    def onfilesSelected(self, list):
-        self._study_manager.add_subjects(list)
+    def onfilesSelected(self, filenames):
+        self._study_manager.add_subjects(filenames)
 
 
 class ManageStudyWindow(object):
@@ -90,7 +90,6 @@ class ManageStudyWindow(object):
     def _init_ui(self):
         tablewidget = self.ui.subjects_tablewidget
         tablewidget.setColumnWidth(0, ManageStudyWindow.group_column_width)
-        self.ui.apply_button.setEnabled(False)
 
     def add_subjects(self, filenames, groupname=default_group):
         for filename in filenames:
@@ -142,11 +141,12 @@ class ManageStudyWindow(object):
 
     def _add_subject(self, filename, groupname):
         subjectname = Study.define_subjectname_from_filename(filename)
-        self.ui.subjects_tablewidget.insertRow(0)
+        new_row = self.ui.subjects_tablewidget.rowCount()
+        self.ui.subjects_tablewidget.insertRow(new_row)
         if groupname is not None:
-            self._fill_groupname(0, groupname)
-        self._fill_subjectname(0, subjectname)
-        self._fill_filename(0, filename)
+            self._fill_groupname(new_row, groupname)
+        self._fill_subjectname(new_row, subjectname)
+        self._fill_filename(new_row, filename)
 
     def _fill_groupname(self, subject_index, groupname):
         groupname_item = QtGui.QTableWidgetItem(groupname)
