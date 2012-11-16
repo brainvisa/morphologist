@@ -156,7 +156,7 @@ class IntraAnalysisOutputParameters(OutputParameters):
         t1mri_path = os.path.join(subject_path, "t1mri")
         create_directory_if_missing(t1mri_path)
         
-        default_acquisition_path = os.path.join(subject_path, "default_acquisition")
+        default_acquisition_path = os.path.join(t1mri_path, "default_acquisition")
         create_directory_if_missing(default_acquisition_path)
 
         default_analysis_path = os.path.join(default_acquisition_path, "default_analysis") 
