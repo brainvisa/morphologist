@@ -1,5 +1,4 @@
-import os, sys
-import types
+import sys
 import unittest
 
 from morphologist.gui.qt_backend import QtGui, QtCore, QtTest

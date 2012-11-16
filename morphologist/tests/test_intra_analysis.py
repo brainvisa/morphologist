@@ -1,9 +1,8 @@
 import unittest
 import os
 
-from morphologist.analysis import Analysis
 from morphologist.intra_analysis import IntraAnalysis
-from test_analysis import TestAnalysis, AnalysisTestCase, remove_file
+from test_analysis import TestAnalysis, AnalysisTestCase
 
 
 class TestIntraAnalysis(TestAnalysis):
@@ -40,8 +39,8 @@ class IntraAnalysisTestCase(AnalysisTestCase):
 
 
     def delete_some_parameter_values(self):
-       self.analysis.output_params.edges = None
-       self.analysis.input_params.mri = None
+        self.analysis.output_params.edges = None
+        self.analysis.input_params.mri = None
 
 
     def delete_some_input_files(self):

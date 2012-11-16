@@ -1,4 +1,4 @@
-import sys, imp, __builtin__
+import imp, __builtin__
 
 def choose_pyqt_backend():
     import sip
@@ -8,7 +8,7 @@ def choose_pyqt_backend():
         sip.setapi(qt_module, API_VERSION)
     try:
         module_info = imp.find_module('PyQt4')
-    except ImportError, e:
+    except ImportError:
         raise Exception("error: missing PyQt dependency.")
     module = imp.load_module('PyQt4', *module_info)
     submodules = ['QtCore', 'QtGui', 'QtTest', 'Qt'] #TODO : add missing modules
@@ -32,9 +32,9 @@ def choose_pyqt_backend():
 def choose_pyside_backend():
     try:
         module_info = imp.find_module('PySide')
-    except ImportError, e:
+    except ImportError:
         raise Exception("error: missing PySide dependency.")
-    module = imp.load_module('morphologist.gui.qt_backend', *module_info)
+    imp.load_module('morphologist.gui.qt_backend', *module_info)
 
     global loadUi
     def loadUi(uifile, baseinstance=None):

@@ -229,7 +229,7 @@ class StepFlow(object):
         self.propagate_parameters()
         command_list = []
         for step in self._steps:
-             command_list.append(step.get_command())
+            command_list.append(step.get_command())
         return command_list
 
     def propagate_parameters(self):

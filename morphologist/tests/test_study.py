@@ -2,7 +2,7 @@ import unittest
 import os
 import filecmp
 
-from morphologist.study import Study, Subject, SubjectNameExistsError
+from morphologist.study import Study, SubjectNameExistsError
 from morphologist.tests.study import BrainvisaStudyTestCase, MockStudyTestCase
 
 class TestStudy(unittest.TestCase):

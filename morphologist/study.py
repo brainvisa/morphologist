@@ -1,8 +1,7 @@
-from collections import defaultdict
 import os
 import json
 
-from morphologist.analysis import Analysis, InputParameters, OutputParameters
+from morphologist.analysis import InputParameters, OutputParameters
 from morphologist.analysis import MockAnalysis
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.intra_analysis import IntraAnalysisInputParameters, IntraAnalysisOutputParameters
@@ -63,10 +62,10 @@ class Study(object):
         for subject_name in study.subjects.iterkeys():
             if subject_name not in serialized['input_params']:
                 raise StudySerializationError("Cannot find input params"
-                                         " for subject %s" %subjectname)
+                                         " for subject %s" %subject_name)
             if subject_name not in serialized['output_params']:
                 raise StudySerializationError("Cannot find output params" 
-                                         " for subject %s" %subjectname)
+                                         " for subject %s" %subject_name)
             serialized_input_params = serialized['input_params'][subject_name] 
             serialized_output_params = serialized['output_params'][subject_name]
             input_params = InputParameters.unserialize(serialized_input_params) 

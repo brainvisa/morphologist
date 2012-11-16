@@ -1,5 +1,4 @@
 import os, sys
-import types
 import unittest
 
 from morphologist.gui.qt_backend import QtGui, QtCore, QtTest
@@ -39,9 +38,6 @@ class TestStudyGui(TestGui):
         manage_subjects_window = ManageStudyWindow(study)
         manage_subjects_window.ui.show()
         manage_subjects_window.ui.close()
-
-        studyname = manage_subjects_window.ui.studyname_lineEdit.text()
-        outputdir = manage_subjects_window.ui.outputdir_lineEdit.text()
 
         self._assert_study_is_conformed_to_test_case(study)
 
