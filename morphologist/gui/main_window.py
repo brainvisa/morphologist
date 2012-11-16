@@ -2,8 +2,9 @@ import os
 
 from .qt_backend import QtCore, QtGui, loadUi
 from .gui import ui_directory 
-from ..study import Study
+from morphologist.study import Study
 from .manage_study import ManageStudyWindow
+from morphologist.intra_analysis import IntraAnalysis
 
 class StudyTableModel(QtCore.QAbstractTableModel):
     SUBJECTNAME_COL = 0
@@ -113,6 +114,8 @@ class IntraAnalysisWindow(object):
         study = Study()
         manage_study_window = ManageStudyWindow(study)
         if (manage_study_window.ui.exec_() == QtGui.QDialog.Accepted):
+            #study.set_analysis_parameters(IntraAnalysis.DEFAULT_PARAM_TEMPLATE)
+            study.set_analysis_parameters(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
             self.set_study(study)
         
     @QtCore.Slot()
