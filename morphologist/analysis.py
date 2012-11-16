@@ -235,7 +235,7 @@ class StepFlow(object):
     def propagate_parameters(self):
         raise Exception("StepFlow is an Abstract class. propagate_parameter must be redifined.") 
      
-
+#TODO : move to test / examples ?
 class MockAnalysis(Analysis):
 
     def __init__(self):

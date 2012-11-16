@@ -4,7 +4,6 @@ import json
 from morphologist.analysis import InputParameters, OutputParameters
 from morphologist.analysis import MockAnalysis
 from morphologist.intra_analysis import IntraAnalysis
-from morphologist.intra_analysis import IntraAnalysisInputParameters, IntraAnalysisOutputParameters
 
 
 class Subject(object):
@@ -42,10 +41,11 @@ class Study(object):
 
     @classmethod
     def from_file(cls, file_path):
+        #TODO : use with
         try:
-            f = open(file_path, "r")
-            serialized_study = json.load(f)
-            f.close
+            fd = open(file_path, "r")
+            serialized_study = json.load(fd)
+            fd.close()
         except Exception, e:
             raise StudySerializationError("%s: %s" %(type(e), e))
 
@@ -70,7 +70,7 @@ class Study(object):
             serialized_output_params = serialized['output_params'][subject_name]
             input_params = InputParameters.unserialize(serialized_input_params) 
             output_params = OutputParameters.unserialize(serialized_output_params)
-            analysis = study._create_analysis()
+            analysis = cls._create_analysis()
             analysis.input_params = input_params
             analysis.output_params = output_params
             # TO DO => check if the parameters are compatibles with the analysis ?
@@ -78,11 +78,12 @@ class Study(object):
         return study
 
     def save_to_file(self, filename):
+        #TODO : use with
         try:
-            f = open(filename, "w")
+            fd = open(filename, "w")
             serialized_study = self.serialize()
-            json.dump(serialized_study, f, indent=4, sort_keys=True)
-            f.close()
+            json.dump(serialized_study, fd, indent=4, sort_keys=True)
+            fd.close()
         except Exception, e:
             raise StudySerializationError("%s: %s" %(type(e), e))
   
@@ -116,8 +117,8 @@ class Study(object):
         self.subjects[subjectname] = subject
         self.analysis[subjectname] = self._create_analysis()
 
-
-    def _create_analysis(self):
+    @staticmethod
+    def _create_analysis():
         return IntraAnalysis() 
 
 
@@ -164,7 +165,8 @@ class Study(object):
 
 class MockStudy(Study):
 
-    def _create_analysis(self):
+    @staticmethod
+    def _create_analysis():
         return MockAnalysis()
 
 class StudySerializationError(Exception):
@@ -172,20 +174,3 @@ class StudySerializationError(Exception):
 
 class SubjectNameExistsError(Exception):
     pass
-
-def create_input_parameters(subject_name, img_file_path, output_dir):
-    input_params = IntraAnalysisInputParameters.from_brainvisa_hierarchy(img_file_path)
-    return input_params
-
-
-def create_output_parameters(subject_name, img_file_path, output_dir):
-    output_params = IntraAnalysisOutputParameters.from_brainvisa_hierarchy(output_dir, 
-                                                                           subject_name)
-    return output_params
-
-
-def create_analysis():
-    intra_analysis = IntraAnalysis()    
-    return intra_analysis
-
-
