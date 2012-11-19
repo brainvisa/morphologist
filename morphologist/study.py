@@ -41,15 +41,17 @@ class Study(object):
 
     @classmethod
     def from_file(cls, file_path):
-        #TODO : use with
         try:
-            fd = open(file_path, "r")
-            serialized_study = json.load(fd)
-            fd.close()
+            with open(file_path, "r") as fd:
+                    serialized_study = json.load(fd)
         except Exception, e:
-            raise StudySerializationError("%s: %s" %(type(e), e))
+            raise StudySerializationError("%s" %(e))
 
-        study = cls.unserialize(serialized_study)
+        try:
+            study = cls.unserialize(serialized_study)
+        except KeyError, e:
+            raise StudySerializationError("The information does not "
+                                          "match with a study.")
         return study
 
 
@@ -78,14 +80,12 @@ class Study(object):
         return study
 
     def save_to_file(self, filename):
-        #TODO : use with
+        serialized_study = self.serialize()
         try:
-            fd = open(filename, "w")
-            serialized_study = self.serialize()
-            json.dump(serialized_study, fd, indent=4, sort_keys=True)
-            fd.close()
+            with open(filename, "w") as fd:
+                json.dump(serialized_study, fd, indent=4, sort_keys=True)
         except Exception, e:
-            raise StudySerializationError("%s: %s" %(type(e), e))
+            raise StudySerializationError("%s" %(e))
   
 
 
@@ -112,7 +112,7 @@ class Study(object):
         if subjectname is None:
             subjectname = self.define_subjectname_from_filename(subjectname)
         if subjectname in self.subjects:
-            raise SubjectNameExistsError("subjectname")
+            raise SubjectNameExistsError(subjectname)
         subject = Subject(filename, groupname)
         self.subjects[subjectname] = subject
         self.analysis[subjectname] = self._create_analysis()
