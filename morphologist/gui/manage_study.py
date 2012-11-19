@@ -128,12 +128,34 @@ class ManageStudyWindow(object):
     def on_apply_button_clicked(self):
         outputdir = self.ui.outputdir_lineEdit.text()
         studyname = self.ui.studyname_lineEdit.text()
-        self.study.name = studyname
-        self.study.outputdir = outputdir
+        if self._check_study_consistency(): 
+            self.study.name = studyname
+            self.study.outputdir = outputdir
+            for i in range(self.ui.subjects_tablewidget.rowCount()):
+                groupname, subjectname, filename = self._get_subject_data(i)
+                self.study.add_subject_from_file(filename, subjectname, groupname)
+            self.ui.accept()
+
+    def _check_study_consistency(self):
+        study_keys = [] 
+        multiples = []
         for i in range(self.ui.subjects_tablewidget.rowCount()):
             groupname, subjectname, filename = self._get_subject_data(i)
-            self.study.add_subject_from_file(filename, subjectname, groupname)
-        self.ui.accept()
+            if (groupname, subjectname) in study_keys and\
+               (groupname, subjectname) not in multiples:
+                multiples.append((groupname, subjectname))
+            else:
+                study_keys.append((groupname, subjectname))
+        if multiples: 
+            (groupname, subjectname) = multiples[0]
+            multiple_str = "%s in %s" %(subjectname, groupname)
+            for (groupname, subjectname) in multiples[1:len(multiples)]:
+                multiple_str += ", %s in %s" %(subjectname, groupname)
+            QtGui.QMessageBox.critical(self.ui, "Study consistency error",
+                                       "Some subjects have the same "
+                                       "name and group: \n %s" %(multiple_str))
+            return False
+        return True
 
     def on_cancel_button_clicked(self):
         print "cancel" #TODO
