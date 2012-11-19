@@ -137,23 +137,23 @@ class ManageStudyWindow(object):
             self.ui.accept()
 
     def _check_study_consistency(self):
-        study_keys = [] 
+        study_keys = [] #subjectname is the subject uid for now 
         multiples = []
         for i in range(self.ui.subjects_tablewidget.rowCount()):
             groupname, subjectname, filename = self._get_subject_data(i)
-            if (groupname, subjectname) in study_keys and\
-               (groupname, subjectname) not in multiples:
-                multiples.append((groupname, subjectname))
+            if subjectname in study_keys and\
+               subjectname not in multiples:
+                multiples.append(subjectname)
             else:
-                study_keys.append((groupname, subjectname))
+                study_keys.append(subjectname)
         if multiples: 
-            (groupname, subjectname) = multiples[0]
-            multiple_str = "%s in %s" %(subjectname, groupname)
-            for (groupname, subjectname) in multiples[1:len(multiples)]:
-                multiple_str += ", %s in %s" %(subjectname, groupname)
+            subjectname = multiples[0]
+            multiple_str = "%s" %(subjectname)
+            for subjectname in multiples[1:len(multiples)]:
+                multiple_str += ", %s" %(subjectname)
             QtGui.QMessageBox.critical(self.ui, "Study consistency error",
                                        "Some subjects have the same "
-                                       "name and group: \n %s" %(multiple_str))
+                                       "name: \n %s" %(multiple_str))
             return False
         return True
 
