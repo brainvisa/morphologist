@@ -3,6 +3,7 @@ import os
 from .qt_backend import QtCore, QtGui, loadUi
 from .gui import ui_directory 
 from morphologist.study import Study
+from morphologist.study import StudySerializationError
 from .manage_study import ManageStudyWindow
 from morphologist.intra_analysis import IntraAnalysis
 
@@ -120,16 +121,26 @@ class IntraAnalysisWindow(object):
         
     @QtCore.Slot()
     def on_open_study_action(self):
-        filename = QtGui.QFileDialog.getOpenFileName ( self.ui )
-        if filename is not None:
-            study = Study.from_file(filename)
-            self.set_study(study) 
+        filename = QtGui.QFileDialog.getOpenFileName(self.ui)
+        if filename:
+            try:
+                study = Study.from_file(filename)
+            except StudySerializationError, e:
+                QtGui.QMessageBox.critical(self.ui, 
+                                          "Cannot load the study", "%s" %(e))
+            else:
+                self.set_study(study) 
 
     @QtCore.Slot()
     def on_save_study_action(self):
-        filename = QtGui.QFileDialog.getSaveFileName ( self.ui )
-        if filename is not None:
-            self.study.save_to_file(filename)
+        filename = QtGui.QFileDialog.getSaveFileName(self.ui)
+        if filename:
+            try:
+                self.study.save_to_file(filename)
+            except StudySerializationError, e:
+                QtGui.QMessageBox.critical(self.ui, 
+                                          "Cannot save the study", "%s" %(e))
+            
 
     @QtCore.Slot("QModelIndex &, QModelIndex &")
     def on_selection_changed(self, current, previous):
