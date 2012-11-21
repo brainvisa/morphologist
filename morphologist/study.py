@@ -1,8 +1,9 @@
 import os
 import json
 
-from morphologist.analysis import InputParameters, OutputParameters
-from morphologist.intra_analysis import IntraAnalysis
+from .analysis import InputParameters, OutputParameters
+from .intra_analysis import IntraAnalysis
+from .image_importation import ImageImportation
 
 
 class Subject(object):
@@ -127,7 +128,11 @@ class Study(object):
                                                       subjectname,
                                                       subject.imgname,
                                                       self.outputdir)
-        
+
+    def import_data(self):
+        import_step = ImageImportation()
+        import_step.run()
+                
     def list_subject_names(self):
         return self.subjects.keys()
 

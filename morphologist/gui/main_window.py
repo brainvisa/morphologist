@@ -133,6 +133,7 @@ class IntraAnalysisWindow(object):
             # TODO : what to do with this commented line ?
             #study.set_analysis_parameters(IntraAnalysis.DEFAULT_PARAM_TEMPLATE)
             study.set_analysis_parameters(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
+            study.import_data()
             self.set_study(study)
         
     @QtCore.Slot()

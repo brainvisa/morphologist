@@ -16,4 +16,3 @@ class Step(object):
     def get_command(self):
         raise Exception("Step is an abstract class.")
 
-
