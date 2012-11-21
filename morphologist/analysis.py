@@ -222,8 +222,8 @@ class StepFlow(object):
     def __init__(self):
         self._steps = []
       
-        self.input_params = InputParameters(parameter_names=[])
-        self.output_params = OutputParameters(parameter_names=[])
+        self.input_params = InputParameters(file_param_names=[])
+        self.output_params = OutputParameters(file_param_names=[])
 
     def get_command_list(self):
         self.propagate_parameters()

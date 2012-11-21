@@ -4,6 +4,7 @@ from morphologist.analysis import Analysis, StepFlow, InputParameters, OutputPar
 from morphologist.steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
 from morphologist.analysis import UnknownParameterTemplate
 
+
 class IntraAnalysis(Analysis):
 
     BRAINVISA_PARAM_TEMPLATE = 'brainvisa'
@@ -34,6 +35,7 @@ class IntraAnalysis(Analysis):
 class IntraAnalysisStepFlow(StepFlow):
 
     def __init__(self):
+        super(IntraAnalysisStepFlow, self).__init__()
         self._bias_correction = BiasCorrection()
         self._histogram_analysis = HistogramAnalysis()
         self._brain_segmentation = BrainSegmentation()
