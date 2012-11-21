@@ -2,8 +2,8 @@ import os
 
 from .qt_backend import QtGui, QtCore, loadUi
 from .gui import ui_directory
-from ..study import Study
-from ..formats import Format, FormatsManager
+from morphologist.study import Study
+from morphologist.formats import Format, FormatsManager
 
 
 class SelectSubjectsDialog(QtGui.QFileDialog):
