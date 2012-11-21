@@ -9,7 +9,7 @@ class FormatsManager(object):
     _formats = []
     _formats_manager_instance = None
     _formats_backend_modules = {
-    #   XXX: backend name : (backend module name, backend class name)
+    #   backend name : (backend module name, backend class name)
         'brainvisa' : ('morphologist.backends.brainvisa_backend',
                                         'BrainvisaFormatsManager')
     }

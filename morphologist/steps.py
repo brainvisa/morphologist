@@ -63,7 +63,6 @@ class SpatialNormalization(Step):
  
 
 class BiasCorrection(Step):
- 
 
     def __init__(self):
         super(BiasCorrection, self).__init__()

@@ -3,10 +3,10 @@ import os
 import filecmp
 
 from morphologist.study import Study, SubjectNameExistsError
-from morphologist.tests.study import BrainvisaStudyTestCase, MockStudyTestCase
+from morphologist.tests.study import MockStudyTestCase#, BrainvisaStudyTestCase
+
 
 class TestStudy(unittest.TestCase):
-
 
     def setUp(self):
         self.test_case = self.create_test_case()
@@ -53,5 +53,4 @@ class TestStudy(unittest.TestCase):
 
 
 if __name__=='__main__':
-
     unittest.main()

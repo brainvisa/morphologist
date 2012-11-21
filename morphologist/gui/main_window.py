@@ -7,6 +7,7 @@ from morphologist.study import StudySerializationError
 from .manage_study import ManageStudyWindow
 from morphologist.intra_analysis import IntraAnalysis
 
+
 class StudyTableModel(QtCore.QAbstractTableModel):
     SUBJECTNAME_COL = 0
 
