@@ -20,8 +20,8 @@ class TestStudyGui(TestGui):
     def test_defining_new_content_for_an_empty_study(self):
         study = Study()
 
-        global manage_subjects_window
         manage_subjects_window = ManageStudyWindow(study)
+        self.keep_widget_alive(manage_subjects_window)
         manage_subjects_window.ui.show()
         self.action_define_new_study_content(manage_subjects_window,
             self.test_case.studyname, self.test_case.outputdir,
@@ -34,8 +34,8 @@ class TestStudyGui(TestGui):
     def test_loading_study_for_modification(self):
         study = self.test_case.create_study()
 
-        global manage_subjects_window
         manage_subjects_window = ManageStudyWindow(study)
+        self.keep_widget_alive(manage_subjects_window)
         manage_subjects_window.ui.show()
         manage_subjects_window.ui.close()
 

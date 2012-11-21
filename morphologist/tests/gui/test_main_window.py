@@ -6,6 +6,7 @@ from morphologist.gui import create_main_window
 from morphologist.tests.gui import TestGui
 from morphologist.tests.study import FlatFilesStudyTestCase, BrainvisaStudyTestCase, MockStudyTestCase
 
+
 class TestStudyWidget(TestGui):
 
     def __init__(self, *args, **kwargs):
@@ -14,14 +15,17 @@ class TestStudyWidget(TestGui):
     def setUp(self):
         self.test_case = self._create_test_case()
 
+    def _create_test_case(self):
+        raise Exception('TestStudyWidget is an abstract class')
+
     @TestGui.start_qt_and_test
     def test_start_main_window(self):
         self.test_case.create_study()
         self.test_case.add_subjects()
         self.test_case.set_parameters()
         self.test_case.study.clear_results()
-        global main_window
         main_window = create_main_window()
+        self.keep_widget_alive(main_window)
         main_window.set_study(self.test_case.study)
         main_window.ui.show()
         #main_window.study.
