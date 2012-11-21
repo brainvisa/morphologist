@@ -49,6 +49,7 @@ class StudyTableModel(QtCore.QAbstractTableModel):
 
 class StudyWidget(object):
     uifile = os.path.join(ui_directory, 'display_study.ui')
+    # FIXME : missing handling of sorting triangle icon
     header_style_sheet = '''
         QHeaderView::section {
             background-color: qlineargradient( x1:0 y1:0, x2:0 y2:1,
@@ -69,6 +70,8 @@ class StudyWidget(object):
 
     def _init_ui(self):
         header = self.study_tableview.horizontalHeader()
+        # FIXME : stylesheet has been disable and should stay disable until
+        # subject list sorting has not been implementing
         #header.setStyleSheet(self.header_style_sheet)
         header.resizeSection(0, self.subjectname_column_width)
 
@@ -97,7 +100,8 @@ class IntraAnalysisWindow(object):
         self.study_widget.selection_model.currentChanged.connect(self.on_selection_changed)
 
     def _init_ui(self):
-        self.ui.setEnabled(True) #FIXME
+        # FIXME : should be true or false at the opening of the UI ?
+        self.ui.setEnabled(True)
 
     @QtCore.Slot()
     def on_run_button_clicked(self):
@@ -116,6 +120,7 @@ class IntraAnalysisWindow(object):
         study = Study()
         manage_study_window = ManageStudyWindow(study)
         if (manage_study_window.ui.exec_() == QtGui.QDialog.Accepted):
+            # TODO : what to do with this commented line ?
             #study.set_analysis_parameters(IntraAnalysis.DEFAULT_PARAM_TEMPLATE)
             study.set_analysis_parameters(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
             self.set_study(study)
