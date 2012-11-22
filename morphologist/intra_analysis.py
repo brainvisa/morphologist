@@ -6,30 +6,31 @@ from morphologist.analysis import UnknownParameterTemplate
 
 
 class IntraAnalysis(Analysis):
-
+    # TODO: change string by a number
     BRAINVISA_PARAM_TEMPLATE = 'brainvisa'
     DEFAULT_PARAM_TEMPLATE = 'default'
     PARAMETER_TEMPLATES = [BRAINVISA_PARAM_TEMPLATE, DEFAULT_PARAM_TEMPLATE]
-  
+    param_template_map = {}
 
+    @classmethod
+    def _init_class(cls):
+        cls.param_template_map[cls.BRAINVISA_PARAM_TEMPLATE] = \
+                        BrainvisaIntraAnalysisParameterTemplate
+        cls.param_template_map[cls.DEFAULT_PARAM_TEMPLATE] = \
+                        DefaultIntraAnalysisParameterTemplate
+  
     def __init__(self):
+        # FIXME: why super is not the first call ? comment or move
         step_flow = IntraAnalysisStepFlow()
         super(IntraAnalysis, self).__init__(step_flow) 
- 
 
-    def set_parameters(self, parameter_template, name, image, outputdir):
-        if parameter_template not in self.PARAMETER_TEMPLATES:
-            raise UnknownParameterTemplate(parameter_template) 
+    def set_parameters(self, param_template_id, name, image, outputdir):
+        if param_template_id not in self.PARAMETER_TEMPLATES:
+            raise UnknownParameterTemplate(param_template_id)
 
-        if parameter_template == self.BRAINVISA_PARAM_TEMPLATE:
-            self.input_params = IntraAnalysisInputParameters.from_brainvisa_template(image)
-            self.output_params = IntraAnalysisOutputParameters.from_brainvisa_template(outputdir, 
-                                                                                       name)
-        elif parameter_template == self.DEFAULT_PARAM_TEMPLATE:
-            self.input_params = IntraAnalysisInputParameters.from_default_template(name, 
-                                                                                  image)
-            self.output_params = IntraAnalysisOutputParameters.from_default_template(outputdir,
-                                                                                   name)
+        param_template = self.param_template_map[param_template_id]
+        self.input_params = param_template.get_input_params(name, image)
+        self.output_params = param_template.get_output_params(name, outputdir)
 
 
 class IntraAnalysisStepFlow(StepFlow):
@@ -45,9 +46,9 @@ class IntraAnalysisStepFlow(StepFlow):
                        self._brain_segmentation, 
                        self._split_brain] 
 
-        self.input_params = IntraAnalysisInputParameters() 
+        self.input_params = IntraAnalysisParameterTemplate.get_empty_input_params()
 
-        self.output_params = IntraAnalysisOutputParameters()
+        self.output_params = IntraAnalysisParameterTemplate.get_empty_output_params()
 
 
     def propagate_parameters(self):
@@ -89,27 +90,50 @@ class IntraAnalysisStepFlow(StepFlow):
         self._split_brain.split_mask = self.output_params.split_mask
 
 
-class IntraAnalysisInputParameters(InputParameters):
-    
-    def __init__(self):
-        file_param_names = ['mri',
-                            'commissure_coordinates']
-        other_param_names = ['erosion_size',
-                             'bary_factor']
-        super(IntraAnalysisInputParameters, self).__init__(file_param_names, 
-                                                           other_param_names)
+class IntraAnalysisParameterTemplate(object):
+    input_file_param_names = ['mri', 'commissure_coordinates']
+    input_other_param_names = ['erosion_size', 'bary_factor']
+    output_file_param_names = ['hfiltered',
+                               'white_ridges',
+                               'edges',
+                               'variance',
+                               'mri_corrected',
+                               'histo_analysis',
+                               'brain_mask',
+                               'split_mask']
 
     @classmethod
-    def from_brainvisa_template(cls, img_file_path):
-        #img_file_path should be in path/subject_name/t1mri/default_acquisition
+    def get_empty_input_params(cls):
+        return InputParameters(cls.input_file_param_names,
+                               cls.input_other_param_names)
+
+    @classmethod
+    def get_empty_output_params(cls):
+        return OutputParameters(cls.output_file_param_names)
+
+    @classmethod
+    def get_input_params(cls, subjectname, img_filename):
+        raise Exception("IntraAnalysisParameterTemplate is an abstract class")
+
+    @classmethod
+    def get_output_params(cls, subjectname, outputdir):
+        raise Exception("IntraAnalysisParameterTemplate is an abstract class")
+
+
+class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
+
+    @classmethod
+    def get_input_params(cls, subjectname, img_filename):
+        #img_filename should be in path/subjectname/t1mri/default_acquisition
         # TODO raise an exception if it not the case ?
-        default_acquisition_path = os.path.dirname(img_file_path)
+        default_acquisition_path = os.path.dirname(img_filename)
         t1mri_path = os.path.dirname(default_acquisition_path)
         subject = os.path.basename(os.path.dirname(t1mri_path))
 
-        parameters = cls()
+        parameters = InputParameters(cls.input_file_param_names,
+                                     cls.input_other_param_names)
 
-        parameters.mri = img_file_path
+        parameters.mri = img_filename
         parameters.commissure_coordinates = os.path.join(default_acquisition_path, 
                                                    "%s.APC" % subject)
         parameters.erosion_size = 1.8
@@ -118,39 +142,10 @@ class IntraAnalysisInputParameters(InputParameters):
         return parameters
 
     @classmethod
-    def from_default_template(cls, subject_name, img_file_path):
-        parameters = cls()
-
-        parameters.mri = img_file_path
-        mri_dirname = os.path.dirname(img_file_path)
-        parameters.commissure_coordinates = os.path.join(mri_dirname, 
-                                                         "%s.APC" %subject_name)
-      
-        parameters.erosion_size = 1.8
-        parameters.bary_factor = 0.6
-
-        return parameters
-
-
-
-class IntraAnalysisOutputParameters(OutputParameters):
-
-    def __init__(self):
-        file_param_names =  ['hfiltered',
-                             'white_ridges',
-                             'edges',
-                             'variance',
-                             'mri_corrected',
-                             'histo_analysis',
-                             'brain_mask',
-                             'split_mask']
-        super(IntraAnalysisOutputParameters, self).__init__(file_param_names)
-
-    @classmethod
-    def from_brainvisa_template(cls, output_dir, subject_name):
-        # the directory hierarchy in the output_dir will be 
-        # subject_name/t1mri/default_acquisition/default_analysis/segmentation
-        subject_path = os.path.join(output_dir, subject_name)
+    def get_output_params(cls, subjectname, outputdir):
+        # the directory hierarchy in the outputdir will be 
+        # subjectname/t1mri/default_acquisition/default_analysis/segmentation
+        subject_path = os.path.join(outputdir, subjectname)
         create_directory_if_missing(subject_path)
         
         t1mri_path = os.path.join(subject_path, "t1mri")
@@ -165,51 +160,72 @@ class IntraAnalysisOutputParameters(OutputParameters):
         segmentation_path = os.path.join(default_analysis_path, "segmentation")
         create_directory_if_missing(segmentation_path)       
  
-        parameters = cls()
+        parameters = OutputParameters(cls.output_file_param_names)
         parameters.hfiltered = os.path.join(default_analysis_path, 
-                                            "hfiltered_%s.ima" % subject_name)
+                                            "hfiltered_%s.ima" % subjectname)
         parameters.white_ridges = os.path.join(default_analysis_path, 
-                                            "whiteridge_%s.ima" % subject_name)
+                                            "whiteridge_%s.ima" % subjectname)
         parameters.edges = os.path.join(default_analysis_path, 
-                                            "edges_%s.ima" % subject_name)
+                                            "edges_%s.ima" % subjectname)
         parameters.mri_corrected = os.path.join(default_analysis_path, 
-                                            "nobias_%s.ima" % subject_name)
+                                            "nobias_%s.ima" % subjectname)
         parameters.variance = os.path.join(default_analysis_path, 
-                                            "variance_%s.ima" % subject_name)
+                                            "variance_%s.ima" % subjectname)
         parameters.histo_analysis = os.path.join(default_analysis_path, 
-                                            "nobias_%s.han" % subject_name)
+                                            "nobias_%s.han" % subjectname)
         parameters.brain_mask = os.path.join(segmentation_path, 
-                                            "brain_%s.ima" % subject_name)
+                                            "brain_%s.ima" % subjectname)
         parameters.split_mask = os.path.join(segmentation_path, 
-                                            "voronoi_%s.ima" % subject_name)
+                                            "voronoi_%s.ima" % subjectname)
+        return parameters
+
+
+class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
+
+    @classmethod
+    def get_input_params(cls, subjectname, img_filename):
+        parameters = InputParameters(cls.input_file_param_names,
+                                     cls.input_other_param_names)
+
+        parameters.mri = img_filename
+        mri_dirname = os.path.dirname(img_filename)
+        parameters.commissure_coordinates = os.path.join(mri_dirname, 
+                                                         "%s.APC" %subjectname)
+      
+        parameters.erosion_size = 1.8
+        parameters.bary_factor = 0.6
+
         return parameters
 
     @classmethod
-    def from_default_template(cls, output_dir, subject_name):
-        parameters = cls()
+    def get_output_params(cls, subjectname, outputdir):
+        parameters = OutputParameters(cls.output_file_param_names)
 
-        subject_dirname = os.path.join(output_dir, subject_name)
+        subject_dirname = os.path.join(outputdir, subjectname)
         create_directory_if_missing(subject_dirname)    
 
         parameters.hfiltered = os.path.join(subject_dirname, 
-                                            "hfiltered_%s.ima" % subject_name)
+                                            "hfiltered_%s.ima" % subjectname)
         parameters.white_ridges = os.path.join(subject_dirname, 
-                                            "whiteridge_%s.ima" % subject_name)
+                                            "whiteridge_%s.ima" % subjectname)
         parameters.edges = os.path.join(subject_dirname, 
-                                            "edges_%s.ima" % subject_name)
+                                            "edges_%s.ima" % subjectname)
         parameters.mri_corrected = os.path.join(subject_dirname, 
-                                            "nobias_%s.ima" % subject_name)
+                                            "nobias_%s.ima" % subjectname)
         parameters.variance = os.path.join(subject_dirname, 
-                                            "variance_%s.ima" % subject_name)
+                                            "variance_%s.ima" % subjectname)
         parameters.histo_analysis = os.path.join(subject_dirname, 
-                                            "nobias_%s.han" % subject_name)
+                                            "nobias_%s.han" % subjectname)
         parameters.brain_mask = os.path.join(subject_dirname, 
-                                            "brain_%s.ima" % subject_name)
+                                            "brain_%s.ima" % subjectname)
         parameters.split_mask = os.path.join(subject_dirname, 
-                                            "voronoi_%s.ima" % subject_name)
+                                            "voronoi_%s.ima" % subjectname)
         return parameters
 
 
 def create_directory_if_missing(dir_path):
     if not os.path.isdir(dir_path):
         os.mkdir(dir_path)
+
+
+IntraAnalysis._init_class()
