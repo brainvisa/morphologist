@@ -1,6 +1,6 @@
 import os
 
-from .qt_backend import QtCore, QtGui, loadUi
+from .qt_backend import QtCore, QtGui, loadUi 
 from .gui import ui_directory 
 from morphologist.study import Study
 from morphologist.study import StudySerializationError
@@ -109,7 +109,7 @@ class StudyLazyModel(QtCore.QObject):
 
 
 
-class StudyWidget(object):
+class StudyWidget(QtGui.QWidget):
     uifile = os.path.join(ui_directory, 'display_study.ui')
     # FIXME : missing handling of sorting triangle icon
     header_style_sheet = '''
@@ -122,8 +122,9 @@ class StudyWidget(object):
     subjectname_column_width = 100    
 
     def __init__(self, study, parent=None):
-        self.ui = loadUi(self.uifile, parent)
-        self.study_tableview = self.ui.widget()
+        super(StudyWidget, self).__init__(parent)
+        self.ui = loadUi(self.uifile, self)
+        self.study_tableview = self.ui.subjects_tableview
         self.study_tablemodel = StudyTableModel(study)
         self.study_tableview.setModel(self.study_tablemodel)
         self.selection_model = self.study_tableview.selectionModel()
@@ -141,6 +142,7 @@ class StudyWidget(object):
         self.study_tablemodel.set_study(study)
         self.study_tableview.selectRow(0)
 
+
 class IntraAnalysisWindow(object):
     uifile = os.path.join(ui_directory, 'intra_analysis.ui')
 
@@ -148,8 +150,10 @@ class IntraAnalysisWindow(object):
         self.ui = loadUi(self.uifile)
         self.study = self._create_study(study_file)
 
+        # FIXME : why dock is passed to StudyWidget ?
         self.study_widget = StudyWidget(self.study, self.ui.study_widget_dock)
         self.manage_study_window = None
+        self.ui.study_widget_dock.setWidget(self.study_widget)
         self._current_subjectname = None
         self._init_qt_connections()
         self._init_ui()
