@@ -1,6 +1,7 @@
 import unittest
 import os
 
+#from morphologist.intra_analysis import MockIntraAnalysis
 from morphologist.intra_analysis import IntraAnalysis
 from test_analysis import TestAnalysis, AnalysisTestCase
 
@@ -9,6 +10,13 @@ class TestIntraAnalysis(TestAnalysis):
 
     def create_test_case(self):
         test_case = IntraAnalysisTestCase()
+        return test_case
+
+
+class TestMockIntraAnalysis(TestAnalysis):
+
+    def create_test_case(self):
+        test_case = MockIntraAnalysisTestCase()
         return test_case
 
 
@@ -24,7 +32,7 @@ class IntraAnalysisTestCase(AnalysisTestCase):
 
     def set_analysis_parameters(self):
         subject = "icbm100T"
-        outputdir = "/volatile/laguitton/data/icbm/icbm/"
+        outputdir = "/volatile/perrot/data/icbm/icbm/"
         image_path = os.path.join(outputdir, 
                              subject, 
                              "t1mri", 
@@ -69,7 +77,15 @@ class IntraAnalysisTestCase(AnalysisTestCase):
             if file_name != None and os.path.isfile(file_name + "hide_for_test"):
                 os.rename(file_name + "hide_for_test", file_name) 
 
-       
+
+class MockIntraAnalysisTestCase(IntraAnalysisTestCase):
+
+    def __init__(self):
+        super(MockIntraAnalysisTestCase, self).__init__()
+
+    def create_analysis(self):
+        self.analysis = MockIntraAnalysis()
+        return self.analysis
 
 
 if __name__ == '__main__':
@@ -88,4 +104,5 @@ if __name__ == '__main__':
 
 
     suite = unittest.TestLoader().loadTestsFromTestCase(TestIntraAnalysis)
+    #suite = unittest.TestLoader().loadTestsFromTestCase(TestMockIntraAnalysis)
     unittest.TextTestRunner(verbosity=2).run(suite)
