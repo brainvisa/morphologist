@@ -9,14 +9,15 @@ from morphologist.intra_analysis import IntraAnalysis
 
 
 class StudyTableModel(QtCore.QAbstractTableModel):
-    SUBJECTNAME_COL = 0
+    SUBJECTNAME_COL = 0 
+    SUBJECTSTATUS_COL = 1
 
     def __init__(self, study, parent=None):
         super(StudyTableModel, self).__init__(parent)
         self._study = None
         self._subjectnames = None
         self.set_study(study)
-        self._header = ['name'] #TODO: to be extended
+        self._header = ['name', 'status'] #TODO: to be extended
 
     def set_study(self, study):
         self.beginResetModel()
@@ -31,7 +32,7 @@ class StudyTableModel(QtCore.QAbstractTableModel):
         return len(self._study.subjects)
 
     def columnCount(self, parent=QtCore.QModelIndex()):
-        return 1 #TODO: to be extended
+        return 2 #TODO: to be extended
 
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         if role == QtCore.Qt.DisplayRole:
@@ -46,6 +47,17 @@ class StudyTableModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.DisplayRole:
             if column == StudyTableModel.SUBJECTNAME_COL:
                 return self._subjectnames[row]
+            if column == StudyTableModel.SUBJECTSTATUS_COL:
+                analysis = self._study.analysis[self._subjectnames[row]]
+                if analysis.is_running():
+                    return "is running"
+                if analysis.last_run_failed():
+                    return "last run failed"
+                if len(analysis.output_params.list_existing_files()) == 0:
+                    return "no output files"
+                if len(analysis.output_params.list_missing_files()) == 0:
+                    return "output files exist"
+                return "some output files exist"
 
 
 class StudyWidget(object):
