@@ -9,7 +9,7 @@ class IntraAnalysis(Analysis):
 
     BRAINVISA_PARAM_TEMPLATE = 'brainvisa'
     DEFAULT_PARAM_TEMPLATE = 'default'
-    PARAMETER_TEMPLATES = ['brainvisa', 'default']
+    PARAMETER_TEMPLATES = [BRAINVISA_PARAM_TEMPLATE, DEFAULT_PARAM_TEMPLATE]
   
 
     def __init__(self):
@@ -18,19 +18,19 @@ class IntraAnalysis(Analysis):
  
 
     def set_parameters(self, parameter_template, name, image, outputdir):
-
-        if parameter_template not in IntraAnalysis.PARAMETER_TEMPLATES:
+        if parameter_template not in self.PARAMETER_TEMPLATES:
             raise UnknownParameterTemplate(parameter_template) 
 
-        if parameter_template == IntraAnalysis.BRAINVISA_PARAM_TEMPLATE:
+        if parameter_template == self.BRAINVISA_PARAM_TEMPLATE:
             self.input_params = IntraAnalysisInputParameters.from_brainvisa_template(image)
             self.output_params = IntraAnalysisOutputParameters.from_brainvisa_template(outputdir, 
                                                                                        name)
-        elif parameter_template == IntraAnalysis.DEFAULT_PARAM_TEMPLATE:
+        elif parameter_template == self.DEFAULT_PARAM_TEMPLATE:
             self.input_params = IntraAnalysisInputParameters.from_default_template(name, 
                                                                                   image)
             self.output_params = IntraAnalysisOutputParameters.from_default_template(outputdir,
                                                                                    name)
+
 
 class IntraAnalysisStepFlow(StepFlow):
 
@@ -51,7 +51,6 @@ class IntraAnalysisStepFlow(StepFlow):
 
 
     def propagate_parameters(self):
-        
         self._bias_correction.mri = self.input_params.mri
         self._bias_correction.commissure_coordinates = self.input_params.commissure_coordinates
 
@@ -151,7 +150,6 @@ class IntraAnalysisOutputParameters(OutputParameters):
     def from_brainvisa_template(cls, output_dir, subject_name):
         # the directory hierarchy in the output_dir will be 
         # subject_name/t1mri/default_acquisition/default_analysis/segmentation
-        
         subject_path = os.path.join(output_dir, subject_name)
         create_directory_if_missing(subject_path)
         
@@ -209,14 +207,9 @@ class IntraAnalysisOutputParameters(OutputParameters):
                                             "brain_%s.ima" % subject_name)
         parameters.split_mask = os.path.join(subject_dirname, 
                                             "voronoi_%s.ima" % subject_name)
-
-
         return parameters
-
 
 
 def create_directory_if_missing(dir_path):
     if not os.path.isdir(dir_path):
         os.mkdir(dir_path)
-
-
