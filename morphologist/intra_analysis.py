@@ -2,6 +2,7 @@ import os
 
 from morphologist.analysis import Analysis, StepFlow, InputParameters, OutputParameters
 from morphologist.steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
+from morphologist.steps import MockBiasCorrection, MockHistogramAnalysis, MockBrainSegmentation, MockSplitBrain
 from morphologist.analysis import UnknownParameterTemplate
 
 
@@ -20,9 +21,11 @@ class IntraAnalysis(Analysis):
                         DefaultIntraAnalysisParameterTemplate
   
     def __init__(self):
-        # FIXME: why super is not the first call ? comment or move
-        step_flow = IntraAnalysisStepFlow()
-        super(IntraAnalysis, self).__init__(step_flow) 
+        super(IntraAnalysis, self).__init__(step_flow=None) 
+        self._step_flow = self.create_step_flow()
+
+    def create_step_flow(self):
+        return IntraAnalysisStepFlow()
 
     def set_parameters(self, param_template_id, name, image, outputdir):
         if param_template_id not in self.PARAMETER_TEMPLATES:
@@ -33,10 +36,21 @@ class IntraAnalysis(Analysis):
         self.output_params = param_template.get_output_params(name, outputdir)
 
 
+class MockIntraAnalysis(IntraAnalysis):
+    
+    def create_step_flow(self):
+        return MockIntraAnalysisStepFlow()
+
+
 class IntraAnalysisStepFlow(StepFlow):
 
     def __init__(self):
         super(IntraAnalysisStepFlow, self).__init__()
+        self.create_steps()
+        self.input_params = IntraAnalysisParameterTemplate.get_empty_input_params()
+        self.output_params = IntraAnalysisParameterTemplate.get_empty_output_params()
+
+    def create_steps(self):
         self._bias_correction = BiasCorrection()
         self._histogram_analysis = HistogramAnalysis()
         self._brain_segmentation = BrainSegmentation()
@@ -45,11 +59,6 @@ class IntraAnalysisStepFlow(StepFlow):
                        self._histogram_analysis, 
                        self._brain_segmentation, 
                        self._split_brain] 
-
-        self.input_params = IntraAnalysisParameterTemplate.get_empty_input_params()
-
-        self.output_params = IntraAnalysisParameterTemplate.get_empty_output_params()
-
 
     def propagate_parameters(self):
         self._bias_correction.mri = self.input_params.mri
@@ -88,6 +97,23 @@ class IntraAnalysisStepFlow(StepFlow):
         self._split_brain.bary_factor = self.input_params.bary_factor
 
         self._split_brain.split_mask = self.output_params.split_mask
+
+
+class MockIntraAnalysisStepFlow(IntraAnalysisStepFlow):
+
+    def create_steps(self):
+        mock_out_files = BrainvisaIntraAnalysisParameterTemplate.get_output_params("icbm101T",
+                                                                                   "/volatile/laguitton/data/icbm/icbm/")
+        self._bias_correction = MockBiasCorrection(mock_out_files)
+        self._histogram_analysis = MockHistogramAnalysis(mock_out_files)
+        self._brain_segmentation = MockBrainSegmentation(mock_out_files)
+        self._split_brain = MockSplitBrain(mock_out_files)  
+        self._steps = [self._bias_correction, 
+                       self._histogram_analysis, 
+                       self._brain_segmentation, 
+                       self._split_brain] 
+
+        
 
 
 class IntraAnalysisParameterTemplate(object):
