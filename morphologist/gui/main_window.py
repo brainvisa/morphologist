@@ -143,18 +143,64 @@ class StudyWidget(QtGui.QWidget):
         self.study_tableview.selectRow(0)
 
 
+class ViewportModel(QtCore.QObject):
+    changed = QtCore.pyqtSignal()
+
+    def __init__(self, study):
+        super(ViewportModel, self).__init__()
+        self.study = study
+        self._current_subjectname = None
+
+    def set_current_subjectname(self, subjectname):
+        self._current_subjectname = subjectname
+        self.changed.emit()
+        # TODO : update image
+
+
+class ViewportView(QtGui.QWidget):
+
+    def __init__(self, parent=None):
+        super(ViewportView, self).__init__(parent)
+        self._model = None
+
+    def setModel(self, model):
+        if self._model is not None:
+            self._model.changed.disconnect(self.on_model_changed)
+        self._model = model
+        self._model.changed.connect(self.on_model_changed)
+
+    @QtCore.Slot()
+    def on_model_changed(self):
+        print "on_model_changed"
+
+
+class ViewportWidget(QtGui.QWidget):
+    uifile = os.path.join(ui_directory, 'viewport.ui')
+
+    def __init__(self, viewport_model, parent=None):
+        super(ViewportWidget, self).__init__(parent)
+        self.ui = loadUi(self.uifile, parent)
+        self.viewport_model = viewport_model
+        self.viewport_view = ViewportView()
+        self.viewport_view.setModel(self.viewport_model)
+
+
 class IntraAnalysisWindow(object):
     uifile = os.path.join(ui_directory, 'intra_analysis.ui')
 
     def __init__(self, study_file=None):
         self.ui = loadUi(self.uifile)
+
         self.study = self._create_study(study_file)
+        self.viewport_model = ViewportModel(self.study)
 
         # FIXME : why dock is passed to StudyWidget ?
         self.study_widget = StudyWidget(self.study, self.ui.study_widget_dock)
         self.manage_study_window = None
         self.ui.study_widget_dock.setWidget(self.study_widget)
-        self._current_subjectname = None
+        self.viewport_widget = ViewportWidget(self.viewport_model, \
+                                              self.ui.viewport_frame)
+
         self._init_qt_connections()
         self._init_ui()
 
@@ -167,8 +213,7 @@ class IntraAnalysisWindow(object):
         self.study_widget.selection_model.currentChanged.connect(self.on_selection_changed)
 
     def _init_ui(self):
-        # FIXME : should be true or false at the opening of the UI ?
-        self.ui.setEnabled(True)
+        pass
 
 
     def _create_study(self, study_file=None):
@@ -258,16 +303,12 @@ class IntraAnalysisWindow(object):
     def on_selection_changed(self, current, previous):
         subjectname = self.study_widget.study_tablemodel.subjectname_from_row_index(\
                                                         current.row())
-        self.set_current_subjectname(subjectname)
+        self.viewport_model.set_current_subjectname(subjectname)
 
     def set_study(self, study):
         self.study = study
         self.study_widget.set_study(self.study)
         self.ui.setWindowTitle("Morphologist - %s" % self.study.name)
-        
-    def set_current_subjectname(self, subjectname):
-        self._current_subjectname = subjectname
-        # TODO : update image
 
 
 def create_main_window(study_file=None, mock=False):
