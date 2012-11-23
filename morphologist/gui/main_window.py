@@ -41,6 +41,7 @@ class StudyTableModel(QtCore.QAbstractTableModel):
                 return self._header[section]
 
     def data(self, index, role=QtCore.Qt.DisplayRole):
+        # FIXME efficiency
         row, column = index.row(), index.column()
         if role == QtCore.Qt.DisplayRole:
             if column == StudyTableModel.SUBJECTNAME_COL:
@@ -84,7 +85,7 @@ class IntraAnalysisWindow(object):
 
     def __init__(self):
         self.ui = loadUi(self.uifile)
-        self.study = Study()
+        self.study = create_study()
 
         self.study_widget = StudyWidget(self.study, self.ui.study_widget_dock)
         self._current_subjectname = None
@@ -117,7 +118,7 @@ class IntraAnalysisWindow(object):
 
     @QtCore.Slot()
     def on_new_study_action(self):
-        study = Study()
+        study = create_study()
         manage_study_window = ManageStudyWindow(study)
         if (manage_study_window.ui.exec_() == QtGui.QDialog.Accepted):
             # TODO : what to do with this commented line ?
@@ -163,6 +164,11 @@ class IntraAnalysisWindow(object):
         self._current_subjectname = subjectname
         # TODO : update image
 
+def create_study():
+    #from morphologist.tests.mocks.study import MockStudy
+    #return MockStudy.from_file("/tmp/my_study")
+    #return MockStudy()
+    return Study()
 
 def create_main_window():
     return IntraAnalysisWindow()
