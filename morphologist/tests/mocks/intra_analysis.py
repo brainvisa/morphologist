@@ -12,8 +12,9 @@ class MockIntraAnalysis(IntraAnalysis):
 class MockIntraAnalysisStepFlow(IntraAnalysisStepFlow):
 
     def create_steps(self):
-        mock_out_files = BrainvisaIntraAnalysisParameterTemplate.get_output_params("icbm101T",
-                                                                                   "/volatile/laguitton/data/icbm/icbm/")
+
+        mock_out_files = BrainvisaIntraAnalysisParameterTemplate.get_output_params("hyperion",
+                        "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/bv_database/test")
         self._bias_correction = MockBiasCorrection(mock_out_files)
         self._histogram_analysis = MockHistogramAnalysis(mock_out_files)
         self._brain_segmentation = MockBrainSegmentation(mock_out_files)
