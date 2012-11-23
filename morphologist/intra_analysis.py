@@ -165,21 +165,21 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
  
         parameters = OutputParameters(cls.output_file_param_names)
         parameters.hfiltered = os.path.join(default_analysis_path, 
-                                            "hfiltered_%s.ima" % subjectname)
+                                            "hfiltered_%s.nii" % subjectname)
         parameters.white_ridges = os.path.join(default_analysis_path, 
-                                            "whiteridge_%s.ima" % subjectname)
+                                            "whiteridge_%s.nii" % subjectname)
         parameters.edges = os.path.join(default_analysis_path, 
-                                            "edges_%s.ima" % subjectname)
+                                            "edges_%s.nii" % subjectname)
         parameters.mri_corrected = os.path.join(default_analysis_path, 
-                                            "nobias_%s.ima" % subjectname)
+                                            "nobias_%s.nii" % subjectname)
         parameters.variance = os.path.join(default_analysis_path, 
-                                            "variance_%s.ima" % subjectname)
+                                            "variance_%s.nii" % subjectname)
         parameters.histo_analysis = os.path.join(default_analysis_path, 
                                             "nobias_%s.han" % subjectname)
         parameters.brain_mask = os.path.join(segmentation_path, 
-                                            "brain_%s.ima" % subjectname)
+                                            "brain_%s.nii" % subjectname)
         parameters.split_mask = os.path.join(segmentation_path, 
-                                            "voronoi_%s.ima" % subjectname)
+                                            "voronoi_%s.nii" % subjectname)
         return parameters
 
 
@@ -208,21 +208,21 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         create_directory_if_missing(subject_dirname)    
 
         parameters.hfiltered = os.path.join(subject_dirname, 
-                                            "hfiltered_%s.ima" % subjectname)
+                                            "hfiltered_%s.nii" % subjectname)
         parameters.white_ridges = os.path.join(subject_dirname, 
-                                            "whiteridge_%s.ima" % subjectname)
+                                            "whiteridge_%s.nii" % subjectname)
         parameters.edges = os.path.join(subject_dirname, 
-                                            "edges_%s.ima" % subjectname)
+                                            "edges_%s.nii" % subjectname)
         parameters.mri_corrected = os.path.join(subject_dirname, 
-                                            "nobias_%s.ima" % subjectname)
+                                            "nobias_%s.nii" % subjectname)
         parameters.variance = os.path.join(subject_dirname, 
-                                            "variance_%s.ima" % subjectname)
+                                            "variance_%s.nii" % subjectname)
         parameters.histo_analysis = os.path.join(subject_dirname, 
                                             "nobias_%s.han" % subjectname)
         parameters.brain_mask = os.path.join(subject_dirname, 
-                                            "brain_%s.ima" % subjectname)
+                                            "brain_%s.nii" % subjectname)
         parameters.split_mask = os.path.join(subject_dirname, 
-                                            "voronoi_%s.ima" % subjectname)
+                                            "voronoi_%s.nii" % subjectname)
         return parameters
 
 
