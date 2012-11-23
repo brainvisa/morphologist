@@ -2,7 +2,6 @@ import os
 
 from morphologist.analysis import Analysis, StepFlow, InputParameters, OutputParameters
 from morphologist.steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
-from morphologist.steps import MockBiasCorrection, MockHistogramAnalysis, MockBrainSegmentation, MockSplitBrain
 from morphologist.analysis import UnknownParameterTemplate
 
 
@@ -35,11 +34,6 @@ class IntraAnalysis(Analysis):
         self.input_params = param_template.get_input_params(name, image)
         self.output_params = param_template.get_output_params(name, outputdir)
 
-
-class MockIntraAnalysis(IntraAnalysis):
-    
-    def create_step_flow(self):
-        return MockIntraAnalysisStepFlow()
 
 
 class IntraAnalysisStepFlow(StepFlow):
@@ -98,22 +92,6 @@ class IntraAnalysisStepFlow(StepFlow):
 
         self._split_brain.split_mask = self.output_params.split_mask
 
-
-class MockIntraAnalysisStepFlow(IntraAnalysisStepFlow):
-
-    def create_steps(self):
-        mock_out_files = BrainvisaIntraAnalysisParameterTemplate.get_output_params("icbm101T",
-                                                                                   "/volatile/laguitton/data/icbm/icbm/")
-        self._bias_correction = MockBiasCorrection(mock_out_files)
-        self._histogram_analysis = MockHistogramAnalysis(mock_out_files)
-        self._brain_segmentation = MockBrainSegmentation(mock_out_files)
-        self._split_brain = MockSplitBrain(mock_out_files)  
-        self._steps = [self._bias_correction, 
-                       self._histogram_analysis, 
-                       self._brain_segmentation, 
-                       self._split_brain] 
-
-        
 
 
 class IntraAnalysisParameterTemplate(object):

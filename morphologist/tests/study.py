@@ -1,8 +1,8 @@
 import os
 
 from morphologist.study import Study
-from morphologist.study import MockStudy
 from morphologist.intra_analysis import IntraAnalysis
+from morphologist.tests.mocks.study import MockStudy
 
 class AbstractStudyTestCase(object):
 

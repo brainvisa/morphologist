@@ -1,9 +1,9 @@
 import unittest
 import os
 
-from morphologist.intra_analysis import MockIntraAnalysis
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate 
+from morphologist.tests.mocks.intra_analysis import MockIntraAnalysis
 from test_analysis import TestAnalysis, AnalysisTestCase
 
 
@@ -124,6 +124,6 @@ if __name__ == '__main__':
     #suite = unittest.TestSuite(map(TestMockIntraAnalysis, tests))
 
 
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestIntraAnalysis)
-    #suite = unittest.TestLoader().loadTestsFromTestCase(TestMockIntraAnalysis)
+    #suite = unittest.TestLoader().loadTestsFromTestCase(TestIntraAnalysis)
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestMockIntraAnalysis)
     unittest.TextTestRunner(verbosity=2).run(suite)

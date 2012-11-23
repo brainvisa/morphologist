@@ -2,7 +2,6 @@ import os
 import json
 
 from morphologist.analysis import InputParameters, OutputParameters
-from morphologist.analysis import MockAnalysis
 from morphologist.intra_analysis import IntraAnalysis
 
 
@@ -162,12 +161,6 @@ class Study(object):
         s += 'subjects :' + repr(self.subjects) + '\n'
         return s
 
-
-class MockStudy(Study):
-
-    @staticmethod
-    def _create_analysis():
-        return MockAnalysis()
 
 class StudySerializationError(Exception):
     pass
