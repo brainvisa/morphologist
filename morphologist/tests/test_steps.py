@@ -3,7 +3,7 @@ import unittest
 import shutil
 import filecmp 
 
-from morphologist.steps import SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
+from morphologist.intra_analysis_steps import SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
 
 import brainvisa.axon
 from brainvisa.processes import defaultContext

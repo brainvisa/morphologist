@@ -1,6 +1,6 @@
 from morphologist.intra_analysis import IntraAnalysis, IntraAnalysisStepFlow
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate
-from morphologist.tests.mocks.steps import MockBiasCorrection, MockHistogramAnalysis, MockBrainSegmentation, MockSplitBrain
+from morphologist.tests.mocks.intra_analysis_steps import MockBiasCorrection, MockHistogramAnalysis, MockBrainSegmentation, MockSplitBrain
 
 
 class MockIntraAnalysis(IntraAnalysis):

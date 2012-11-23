@@ -1,8 +1,36 @@
 
 import os
 
+from morphologist.steps import Step
 from morphologist.analysis import Analysis, StepFlow, InputParameters, OutputParameters
-from morphologist.tests.mocks.steps import MockStep
+
+
+class MockStep(Step):
+
+    def __init__(self):
+        super(MockStep, self).__init__()
+
+        self.input_1 = None
+        self.input_2 = None
+        self.input_3 = None
+
+        #outputs
+        self.output_1 = None
+        self.output_2 = None
+
+    def get_command(self):
+        message = "MockStep "
+        message += "inputs: %s %s %s outputs: %s %s" %(self.input_1, 
+                                                       self.input_2, 
+                                                       self.input_3, 
+                                                       self.output_1, 
+                                                       self.output_2)
+        command = ["echo", "'" + message + "' ;", "sleep", "1"]
+        out_file_1 = open( self.output_1, "w")
+        out_file_1.close()
+        out_file_2 = open(self.output_2, "w")
+        out_file_2.close()
+        return command
 
 
 class MockAnalysis(Analysis):

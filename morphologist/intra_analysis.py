@@ -1,9 +1,8 @@
 import os
 
 from morphologist.analysis import Analysis, StepFlow, InputParameters, OutputParameters
-from morphologist.steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
 from morphologist.analysis import UnknownParameterTemplate
-
+from morphologist.intra_analysis_steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
 
 class IntraAnalysis(Analysis):
     # TODO: change string by a number
