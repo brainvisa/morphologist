@@ -21,7 +21,7 @@
     <item>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QFrame" name="main_frame">
+       <widget class="QFrame" name="viewport_frame">
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
