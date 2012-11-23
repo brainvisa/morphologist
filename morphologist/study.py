@@ -109,7 +109,7 @@ class Study(object):
 
     def add_subject_from_file(self, filename, subjectname=None, groupname=None):
         if subjectname is None:
-            subjectname = self.define_subjectname_from_filename(subjectname)
+            subjectname = self.define_subjectname_from_filename(filename)
         if subjectname in self.subjects:
             raise SubjectNameExistsError(subjectname)
         subject = Subject(filename, groupname)
