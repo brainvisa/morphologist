@@ -26,6 +26,10 @@ class IntraAnalysis(Analysis):
     def create_step_flow(self):
         return IntraAnalysisStepFlow()
 
+    @classmethod
+    def get_mri_path(cls, param_template_id, subject_name, directory):
+        param_template = cls.param_template_map[param_template_id]
+        return param_template.get_mri_path(subject_name, directory)
 
 
 class IntraAnalysisStepFlow(StepFlow):
@@ -119,6 +123,11 @@ class IntraAnalysisParameterTemplate(object):
 class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
 
     @classmethod
+    def get_mri_path(cls, subjectname, directory):
+        return os.path.join(directory, subjectname, "t1mri", 
+                            "default_acquisition", subjectname + ".nii")
+
+    @classmethod
     def get_input_params(cls, subjectname, img_filename):
         #img_filename should be in path/subjectname/t1mri/default_acquisition
         # TODO raise an exception if it not the case ?
@@ -177,6 +186,10 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
 
 
 class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
+
+    @classmethod
+    def get_mri_path(cls, subjectname, directory):
+        return os.path.join(directory, subjectname, subjectname + ".nii")
 
     @classmethod
     def get_input_params(cls, subjectname, img_filename):

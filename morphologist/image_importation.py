@@ -51,6 +51,7 @@ class ImageImportation(Step):
         print "Run image importation step on ", self.input, self.output
         input_vol = aims.read(self.input)
         temp_input = None
+        input_filename = self.input
         return_value = 0
         
         if self.conversion_needed(input_vol):
@@ -79,7 +80,15 @@ class ImageImportation(Step):
             shutil.copy(self.input, self.output)
             if os.path.exists(self.input+".minf"):
                 shutil.copy(self.input+".minf", self.output+".minf")
-        
+        # FIXME:
+        # Copy APC file for the moment because the normaliZation step is not done
+        apcfile, ext = os.path.splitext(self.input)
+        while (ext != ""):
+            apcfile, ext = os.path.splitext(apcfile)
+        apcfile = apcfile + ".APC"
+        if os.path.exists(apcfile):
+            shutil.copy(apcfile, os.path.join(os.path.dirname(self.output), 
+                                              os.path.basename(apcfile)) )
         return return_value
      
 class ImportationError(Exception):

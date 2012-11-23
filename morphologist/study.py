@@ -129,9 +129,13 @@ class Study(object):
                                                       subject.imgname,
                                                       self.outputdir)
 
-    def import_data(self):
+    def import_data(self, parameter_template):
         import_step = ImageImportation()
-        import_step.run()
+        for subjectname, subject in self.subjects.iteritems():
+            import_step.input = subject.imgname
+            import_step.output = IntraAnalysis.get_mri_path(parameter_template, subjectname, self.outputdir)
+            import_step.run()
+            subject.imgname = import_step.output
                 
     def list_subject_names(self):
         return self.subjects.keys()
