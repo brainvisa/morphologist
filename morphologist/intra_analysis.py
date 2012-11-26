@@ -27,9 +27,14 @@ class IntraAnalysis(Analysis):
         return IntraAnalysisStepFlow()
 
     @classmethod
-    def get_mri_path(cls, param_template_id, subject_name, directory):
+    def get_mri_path(cls, param_template_id, subjectname, directory):
         param_template = cls.param_template_map[param_template_id]
-        return param_template.get_mri_path(subject_name, directory)
+        return param_template.get_mri_path(subjectname, directory)
+    
+    @classmethod
+    def create_outputdirs(cls, param_template_id, subjectname, directory):
+        param_template = cls.param_template_map[param_template_id]
+        param_template.create_outputdirs(subjectname, directory)
 
 
 class IntraAnalysisStepFlow(StepFlow):
@@ -150,20 +155,10 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
     def get_output_params(cls, subjectname, outputdir):
         # the directory hierarchy in the outputdir will be 
         # subjectname/t1mri/default_acquisition/default_analysis/segmentation
-        subject_path = os.path.join(outputdir, subjectname)
-        create_directory_if_missing(subject_path)
-        
-        t1mri_path = os.path.join(subject_path, "t1mri")
-        create_directory_if_missing(t1mri_path)
-        
-        default_acquisition_path = os.path.join(t1mri_path, "default_acquisition")
-        create_directory_if_missing(default_acquisition_path)
-
-        default_analysis_path = os.path.join(default_acquisition_path, "default_analysis") 
-        create_directory_if_missing(default_analysis_path)
+        default_analysis_path = os.path.join(outputdir, subjectname, "t1mri", 
+                                             "default_acquisition", "default_analysis") 
           
         segmentation_path = os.path.join(default_analysis_path, "segmentation")
-        create_directory_if_missing(segmentation_path)       
  
         parameters = OutputParameters(cls.output_file_param_names)
         parameters.hfiltered = os.path.join(default_analysis_path, 
@@ -184,7 +179,24 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                                             "voronoi_%s.nii" % subjectname)
         return parameters
 
+    @classmethod
+    def create_outputdirs(cls, subjectname, outputdir):
+        subject_path = os.path.join(outputdir, subjectname)
+        create_directory_if_missing(subject_path)
+        
+        t1mri_path = os.path.join(subject_path, "t1mri")
+        create_directory_if_missing(t1mri_path)
+        
+        default_acquisition_path = os.path.join(t1mri_path, "default_acquisition")
+        create_directory_if_missing(default_acquisition_path)
+        
+        default_analysis_path = os.path.join(default_acquisition_path, "default_analysis") 
+        create_directory_if_missing(default_analysis_path)
+        
+        segmentation_path = os.path.join(default_analysis_path, "segmentation")
+        create_directory_if_missing(segmentation_path)
 
+           
 class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
 
     @classmethod
@@ -211,7 +223,6 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         parameters = OutputParameters(cls.output_file_param_names)
 
         subject_dirname = os.path.join(outputdir, subjectname)
-        create_directory_if_missing(subject_dirname)    
 
         parameters.hfiltered = os.path.join(subject_dirname, 
                                             "hfiltered_%s.nii" % subjectname)
@@ -230,6 +241,11 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         parameters.split_mask = os.path.join(subject_dirname, 
                                             "voronoi_%s.nii" % subjectname)
         return parameters
+
+    @classmethod
+    def create_outputdirs(cls, subjectname, outputdir):
+        subject_dirname = os.path.join(outputdir, subjectname)
+        create_directory_if_missing(subject_dirname)    
 
 
 def create_directory_if_missing(dir_path):

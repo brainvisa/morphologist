@@ -134,6 +134,7 @@ class Study(object):
         for subjectname, subject in self.subjects.iteritems():
             import_step.input = subject.imgname
             import_step.output = IntraAnalysis.get_mri_path(parameter_template, subjectname, self.outputdir)
+            IntraAnalysis.create_outputdirs(parameter_template, subjectname, self.outputdir)
             import_step.run()
             subject.imgname = import_step.output
                 
