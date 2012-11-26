@@ -85,7 +85,7 @@ class IntraAnalysisWindow(object):
 
     def __init__(self):
         self.ui = loadUi(self.uifile)
-        self.study = create_study()
+        self.study = self._create_study()
 
         self.study_widget = StudyWidget(self.study, self.ui.study_widget_dock)
         self._current_subjectname = None
@@ -103,6 +103,13 @@ class IntraAnalysisWindow(object):
     def _init_ui(self):
         # FIXME : should be true or false at the opening of the UI ?
         self.ui.setEnabled(True)
+
+
+    def _create_study(self):
+        #study = Study.from_file("/tmp/my_study")
+        #study.clear_results()
+        #return study
+        return Study()
 
     @QtCore.Slot()
     def on_run_button_clicked(self):
@@ -164,11 +171,6 @@ class IntraAnalysisWindow(object):
         self._current_subjectname = subjectname
         # TODO : update image
 
-def create_study():
-    #from morphologist.tests.mocks.study import MockStudy
-    #return MockStudy.from_file("/tmp/my_study")
-    #return MockStudy()
-    return Study()
 
 def create_main_window():
     return IntraAnalysisWindow()

@@ -1,7 +1,7 @@
 import sys
 
 from morphologist.gui.qt_backend import QtGui
-from morphologist.gui import create_main_window
+from morphologist.tests.mocks.main_window import create_main_window
 
 def main():
     qApp = QtGui.QApplication(sys.argv)
