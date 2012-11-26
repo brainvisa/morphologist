@@ -21,15 +21,16 @@ class StudyTableModel(QtCore.QAbstractTableModel):
 
     def set_study(self, study):
         self.beginResetModel()
-        self._study = study
-        self._subjectnames = study.list_subject_names()
+        self._study_model = StudyLazyModel(study)
+        self.connect(self._study_model, QtCore.SIGNAL(StudyLazyModel.SIG_STATUS_CHANGED), 
+                     self.status_changed) 
         self.endResetModel()
 
     def subjectname_from_row_index(self, index):
-        return self._subjectnames[index]
+        return self._study_model.get_subjectname(index)
 
     def rowCount(self, parent=QtCore.QModelIndex()):
-        return len(self._study.subjects)
+        return self._study_model.subject_count()
 
     def columnCount(self, parent=QtCore.QModelIndex()):
         return 2 #TODO: to be extended
@@ -42,22 +43,70 @@ class StudyTableModel(QtCore.QAbstractTableModel):
                 return self._header[section]
 
     def data(self, index, role=QtCore.Qt.DisplayRole):
-        # FIXME efficiency
         row, column = index.row(), index.column()
         if role == QtCore.Qt.DisplayRole:
             if column == StudyTableModel.SUBJECTNAME_COL:
-                return self._subjectnames[row]
+                return self._study_model.get_subjectname(row)
             if column == StudyTableModel.SUBJECTSTATUS_COL:
-                analysis = self._study.analysis[self._subjectnames[row]]
-                if analysis.is_running():
-                    return "is running"
-                if analysis.last_run_failed():
-                    return "last run failed"
-                if len(analysis.output_params.list_existing_files()) == 0:
-                    return "no output files"
-                if len(analysis.output_params.list_missing_files()) == 0:
-                    return "output files exist"
-                return "some output files exist"
+                return self._study_model.get_status(row)
+
+    @QtCore.Slot()                
+    def status_changed(self):
+        self.dataChanged.emit(self.index(0, StudyTableModel.SUBJECTSTATUS_COL, 
+                                         QtCore.QModelIndex()),
+                              self.index(self.rowCount(), StudyTableModel.SUBJECTSTATUS_COL, 
+                                         QtCore.QModelIndex()))
+
+
+
+class StudyLazyModel(QtCore.QObject):
+
+    SIG_STATUS_CHANGED = "status_changed"
+
+    def __init__(self, study, parent=None):
+        super(StudyLazyModel, self).__init__(parent)
+        self._study = study
+        self._subjectnames = []
+        self._status = {}
+
+        self._update_interval = 2 # in seconds
+
+        self._update_from_study()
+        
+        self._timer = QtCore.QTimer(self)
+        self._timer.setInterval(self._update_interval * 1000)
+        self._timer.timeout.connect(self._update_from_study)
+        self._timer.start()
+
+    @QtCore.Slot()
+    def _update_from_study(self):
+        self._subjectnames = self._study.subjects.keys()
+        self._subjectnames.sort()
+        for name in self._subjectnames:
+            analysis = self._study.analysis[name]
+            if analysis.is_running():
+                self._status[name] = "is running"
+            elif analysis.last_run_failed():
+                self._status[name] = "last run failed"
+            elif len(analysis.output_params.list_existing_files()) == 0:
+                self._status[name] = "no output files"
+            elif len(analysis.output_params.list_missing_files()) == 0:
+                self._status[name] = "output files exist"
+            else:
+                self._status[name] = "some output files exist"
+        self.emit(QtCore.SIGNAL(StudyLazyModel.SIG_STATUS_CHANGED))
+
+
+    def get_status(self, index):
+        subjectname = self._subjectnames[index]
+        return self._status[subjectname]
+
+    def get_subjectname(self, index):
+        return self._subjectnames[index]
+
+    def subject_count(self):
+        return len(self._subjectnames)
+
 
 
 class StudyWidget(object):
