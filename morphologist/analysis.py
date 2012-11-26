@@ -91,12 +91,14 @@ class Analysis(object):
 
 
     def _check_output_files_dont_exist(self):
-        existing_files = self._step_flow.output_params.list_existing_files()
+        existing_files = self.list_existing_output_files()
         if existing_files:
             separator = " ,"
             message = separator.join(existing_files)
             raise OutputFileExistError(message) 
 
+    def list_existing_output_files(self):
+        return self._step_flow.output_params.list_existing_files()
 
     def is_running(self):
         return self._execution_thread.is_alive() 

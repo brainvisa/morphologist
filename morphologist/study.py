@@ -141,6 +141,13 @@ class Study(object):
     def list_subject_names(self):
         return self.subjects.keys()
 
+    def list_subjects_with_results(self):
+        subjects = []
+        for subjectname, analysis in self.analysis.iteritems():
+            if analysis.list_existing_output_files():
+                subjects.append(subjectname)
+        return subjects
+
     def run_analyses(self):
         for analysis in self.analysis.itervalues():
             analysis.run()     

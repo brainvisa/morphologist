@@ -6,7 +6,7 @@ from morphologist.study import Study
 from morphologist.study import StudySerializationError
 from .manage_study import ManageStudyWindow
 from morphologist.intra_analysis import IntraAnalysis
-
+from morphologist.analysis import OutputFileExistError
 
 class StudyTableModel(QtCore.QAbstractTableModel):
     SUBJECTNAME_COL = 0 
@@ -178,7 +178,24 @@ class IntraAnalysisWindow(object):
     @QtCore.Slot()
     def on_run_button_clicked(self):
         self.ui.run_button.setEnabled(False)
-        self.study.run_analyses()
+        subjects_with_out_files = self.study.list_subjects_with_results()
+        if subjects_with_out_files:
+            answer = QtGui.QMessageBox.question(self.ui, "Existing results",
+                                                "Some results already exist.\n" 
+                                                "Do you want to delete them ?", 
+                                                QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            if answer == QtGui.QMessageBox.No:
+                self.ui.run_button.setEnabled(True)
+                return
+            else:
+                self.study.clear_results()
+        try: 
+            self.study.run_analyses()
+        except OutputFileExistError, e:
+            QtGui.QMessageBox.critical(self.ui, 
+                                       "Run analysis error", 
+                                       "Some analysis were not run.\n%s" %(e))
+
         self.ui.stop_button.setEnabled(True)
 
     @QtCore.Slot()
