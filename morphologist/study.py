@@ -37,7 +37,7 @@ class Study(object):
         self.name = name
         self.outputdir = outputdir
         self.subjects = {}
-        self.analysis = {}
+        self.analyses = {}
 
     @classmethod
     def from_file(cls, file_path):
@@ -76,7 +76,7 @@ class Study(object):
             analysis.input_params = input_params
             analysis.output_params = output_params
             # TO DO => check if the parameters are compatibles with the analysis ?
-            study.analysis[subject_name] = analysis
+            study.analyses[subject_name] = analysis
         return study
 
     def save_to_file(self, filename):
@@ -98,7 +98,7 @@ class Study(object):
             serialized['subjects'][subjectname] = subject.serialize()
         serialized['input_params'] = {}
         serialized['output_params'] = {}
-        for subjectname, analysis in self.analysis.iteritems():
+        for subjectname, analysis in self.analyses.iteritems():
             serialized['input_params'][subjectname] = analysis.input_params.serialize()
             serialized['output_params'][subjectname] = analysis.output_params.serialize()
         return serialized 
@@ -115,7 +115,7 @@ class Study(object):
             raise SubjectNameExistsError(subjectname)
         subject = Subject(filename, groupname)
         self.subjects[subjectname] = subject
-        self.analysis[subjectname] = self._create_analysis()
+        self.analyses[subjectname] = self._create_analysis()
 
     @staticmethod
     def _create_analysis():
@@ -124,7 +124,7 @@ class Study(object):
 
     def set_analysis_parameters(self, parameter_template):
         for subjectname, subject in self.subjects.iteritems():
-            self.analysis[subjectname].set_parameters(parameter_template, 
+            self.analyses[subjectname].set_parameters(parameter_template, 
                                                       subjectname,
                                                       subject.imgname,
                                                       self.outputdir)
@@ -143,33 +143,33 @@ class Study(object):
 
     def list_subjects_with_results(self):
         subjects = []
-        for subjectname, analysis in self.analysis.iteritems():
+        for subjectname, analysis in self.analyses.iteritems():
             if analysis.list_existing_output_files():
                 subjects.append(subjectname)
         return subjects
 
     def run_analyses(self):
-        for analysis in self.analysis.itervalues():
+        for analysis in self.analyses.itervalues():
             analysis.run()     
 
     def wait_analyses_end(self):
-        for analysis in self.analysis.itervalues():
+        for analysis in self.analyses.itervalues():
             analysis.wait()
 
     def stop_analyses(self):
-        for analysis in self.analysis.itervalues():
+        for analysis in self.analyses.itervalues():
             analysis.stop()
 
     def analyses_ended_with_success(self):
         success = True
-        for analysis in self.analysis.itervalues():
+        for analysis in self.analyses.itervalues():
             if analysis.last_run_failed():
                 success = False
                 break
         return success
 
     def clear_results(self):
-        for analysis in self.analysis.itervalues():
+        for analysis in self.analyses.itervalues():
             analysis.clear_output_files()
 
     def __repr__(self):

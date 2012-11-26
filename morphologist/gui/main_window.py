@@ -83,7 +83,7 @@ class StudyLazyModel(QtCore.QObject):
         self._subjectnames = self._study.subjects.keys()
         self._subjectnames.sort()
         for name in self._subjectnames:
-            analysis = self._study.analysis[name]
+            analysis = self._study.analyses[name]
             if analysis.is_running():
                 self._status[name] = "is running"
             elif analysis.last_run_failed():
