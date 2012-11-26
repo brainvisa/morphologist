@@ -1,9 +1,11 @@
 import sys
 import unittest
+import os
 
 from morphologist.gui.qt_backend import QtGui, QtCore, QtTest
 from morphologist.gui import create_main_window
 from morphologist.tests.gui import TestGui
+from morphologist.tests.gui.test_study import TestStudyGui
 from morphologist.tests.study import FlatFilesStudyTestCase, BrainvisaStudyTestCase, MockStudyTestCase
 
 
@@ -14,6 +16,9 @@ class TestStudyWidget(TestGui):
 
     def setUp(self):
         self.test_case = self._create_test_case()
+        if not os.path.exists(self.test_case.outputdir):
+            os.makedirs(self.test_case.outputdir)
+
 
     def _create_test_case(self):
         raise Exception('TestStudyWidget is an abstract class')
@@ -35,6 +40,30 @@ class TestStudyWidget(TestGui):
         main_window.ui.close()
         self.assertEqual(self.test_case.subjectnames, subjectnames)
 
+    @TestGui.start_qt_and_test
+    def test_create_new_study(self):
+        main_window = create_main_window()
+        self.keep_widget_alive(main_window)
+        main_window.ui.show()
+#        main_window.ui.action_new_study.trigger()
+        #QtTest.QTest.mouseClick(main_window.ui.action_new_study,QtCore.Qt.LeftButton)
+        QtTest.QTest.keyClicks(main_window.ui, "n", QtCore.Qt.ControlModifier, 10 )
+                                    
+        dialog = main_window.ui.findChild(QtGui.QDialog, 'ManageStudyDialog')
+        TestStudyGui.action_define_new_study_content(dialog, 
+                                                     self.test_case.studyname, 
+                                                     self.test_case.outputdir,
+                                                     self.test_case.filenames)
+        self.assertEqual(main_window.study.name, self.test_case.studyname)
+        self.assertEqual(main_window.study.outputdir, self.test_case.outputdir)
+        for subjectname in self.test_case.subjectnames:
+            subject = main_window.study.subjects.get(subjectname)
+            self.assert_(subject is not None)
+            self.assert_(os.path.exists(subject.imgname))
+            self.assert_(subject.imgname.startswith(self.test_case.outputdir))
+        
+        main_window.ui.close()
+         
 
 class TestFlatFilesStudyWidget(TestStudyWidget):
 

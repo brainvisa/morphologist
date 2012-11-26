@@ -140,6 +140,9 @@
    <property name="toolTip">
     <string>Create a new study</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
   </action>
   <action name="action_open_study">
    <property name="text">
@@ -148,6 +151,9 @@
    <property name="toolTip">
     <string>Open a saved study</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
   <action name="action_save_study">
    <property name="text">
@@ -155,6 +161,9 @@
    </property>
    <property name="toolTip">
     <string>Save the current study</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
  </widget>

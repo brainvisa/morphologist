@@ -50,8 +50,8 @@ class FlatFilesStudyTestCase(AbstractStudyTestCase):
     def __init__(self):
         super(FlatFilesStudyTestCase, self).__init__()
         self.studyname = 'my_study'
-        self.outputdir = '/neurospin/lnao/Panabase/cati-dev-prod/morphologist/studies/my_study'
-        basenames = ['caca.ima', 'chaos.ima.gz',
+        self.outputdir = '/tmp/morphologist_tests/studies/my_study'
+        basenames = ['caca.ima', 'chaos.nii.gz',
                      'dionysos2.ima', 'hyperion.nii']
         self.filenames = [os.path.join(FlatFilesStudyTestCase.prefix,
                                   filename) for filename in basenames]

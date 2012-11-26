@@ -23,7 +23,7 @@ class TestStudyGui(TestGui):
         manage_subjects_window = ManageStudyWindow(study)
         self.keep_widget_alive(manage_subjects_window)
         manage_subjects_window.ui.show()
-        self.action_define_new_study_content(manage_subjects_window,
+        self.action_define_new_study_content(manage_subjects_window.ui,
             self.test_case.studyname, self.test_case.outputdir,
             self.test_case.filenames)
         manage_subjects_window.ui.close()
@@ -41,9 +41,10 @@ class TestStudyGui(TestGui):
 
         self._assert_study_is_conformed_to_test_case(study)
 
-    def action_define_new_study_content(self, manage_subjects_window,
+    @staticmethod
+    def action_define_new_study_content(manage_subjects_window_ui,
                                         studyname, outputdir, filenames):
-        ui = manage_subjects_window.ui
+        ui = manage_subjects_window_ui
 
         # set studyname and output dir
         ui.studyname_lineEdit.setText(studyname)

@@ -88,6 +88,7 @@ class IntraAnalysisWindow(object):
         self.study = self._create_study(study_file)
 
         self.study_widget = StudyWidget(self.study, self.ui.study_widget_dock)
+        self.manage_study_window = None
         self._current_subjectname = None
         self._init_qt_connections()
         self._init_ui()
@@ -128,15 +129,21 @@ class IntraAnalysisWindow(object):
     @QtCore.Slot()
     def on_new_study_action(self):
         study = self._create_study()
-        manage_study_window = ManageStudyWindow(study)
-        if (manage_study_window.ui.exec_() == QtGui.QDialog.Accepted):
-            # TODO : what to do with this commented line ?
-            #study.set_analysis_parameters(IntraAnalysis.DEFAULT_PARAM_TEMPLATE)
-            
-            study.import_data(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
-            study.set_analysis_parameters(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
-            self.set_study(study)
+        self.manage_study_window = ManageStudyWindow(study, self.ui)
+        self.manage_study_window.ui.accepted.connect(self.on_study_dialog_accepted)
+        self.manage_study_window.ui.show()
         
+    @QtCore.Slot()
+    def on_study_dialog_accepted(self):
+        # TODO : what to do with this commented line ?
+        #study.set_analysis_parameters(IntraAnalysis.DEFAULT_PARAM_TEMPLATE)
+        study = self.manage_study_window.study
+        study.import_data(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
+        study.set_analysis_parameters(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
+        self.set_study(study)
+        self.manage_study_window = None
+
+
     @QtCore.Slot()
     def on_open_study_action(self):
         filename = QtGui.QFileDialog.getOpenFileName(self.ui)
