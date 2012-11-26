@@ -3,10 +3,18 @@ import os
 from .qt_backend import QtCore, QtGui, loadUi 
 from .gui import ui_directory 
 from morphologist.study import Study
+from morphologist.tests.study import MockStudy
 from morphologist.study import StudySerializationError
 from .manage_study import ManageStudyWindow
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.analysis import OutputFileExistError
+
+objects_kept_alive = []
+
+def keep_objects_alive(objects):
+    global objects_kept_alive
+    objects_kept_alive += objects
+
 
 class StudyTableModel(QtCore.QAbstractTableModel):
     SUBJECTNAME_COL = 0 
@@ -129,9 +137,9 @@ class StudyWidget(QtGui.QWidget):
         self.study_tableview.setModel(self.study_tablemodel)
         self.selection_model = self.study_tableview.selectionModel()
 
-        self._init_ui()
+        self._init_widget()
 
-    def _init_ui(self):
+    def _init_widget(self):
         header = self.study_tableview.horizontalHeader()
         # FIXME : stylesheet has been disable and should stay disable until
         # subject list sorting has not been implementing
@@ -146,43 +154,101 @@ class StudyWidget(QtGui.QWidget):
 class ViewportModel(QtCore.QObject):
     changed = QtCore.pyqtSignal()
 
-    def __init__(self, study):
+    def __init__(self, analyses):
         super(ViewportModel, self).__init__()
-        self.study = study
+        self.analyses = analyses
         self._current_subjectname = None
 
     def set_current_subjectname(self, subjectname):
         self._current_subjectname = subjectname
         self.changed.emit()
-        # TODO : update image
 
 
-class ViewportView(QtGui.QWidget):
+#FIXME: to move !
+import anatomist.direct.api as ana
 
-    def __init__(self, parent=None):
-        super(ViewportView, self).__init__(parent)
+
+class ViewportWidget(QtGui.QWidget):
+    uifile = os.path.join(ui_directory, 'viewport.ui')
+    main_frame_style_sheet = '''
+        #viewport_frame { background-color: white }
+        #view1_frame, #view2_frame, #view3_frame, #view4_frame {
+            border: 3px solid black;
+            border-radius: 20px;
+            background: black;
+        }
+        #view1_label, #view2_label, #view3_label, #view4_label {
+            color: white;
+        }
+    '''
+
+    def __init__(self, viewport_model, parent=None):
+        # must be instanciate after the eventloop has been started
+        # FIXME: the line above must be moved
+        self.anatomist_instance = ana.Anatomist( '-b' )
+        super(ViewportWidget, self).__init__(parent)
+        self.ui = loadUi(self.uifile, parent)
         self._model = None
+
+        self.setModel(viewport_model)
+        self._init_widget()
 
     def setModel(self, model):
         if self._model is not None:
             self._model.changed.disconnect(self.on_model_changed)
         self._model = model
         self._model.changed.connect(self.on_model_changed)
+        # TODO: update image
+
+    def _init_widget(self):
+        self.ui.setStyleSheet(self.main_frame_style_sheet)
+        self._create_intra_analysis_views()
+
+    def _create_intra_analysis_views(self):
+        w1 = self.create_normalized_raw_T1_with_ACPC_view(self.ui.view1_hook)
+        w2 = self.create_bias_corrected_T1_view(self.ui.view2_hook)
+        w3 = self.create_brain_mask_view(self.ui.view3_hook)
+        w4 = self.create_split_brain_view(self.ui.view4_hook)
+        keep_objects_alive([w1, w2, w3, w4])
+        
+        self.anatomist_instance.execute('WindowConfig',
+                windows=[w1, w2, w3, w4], cursor_visibility=0,
+                light={ 'background' : [ 0., 0., 0., 1. ] } )
+
+    def create_normalized_raw_T1_with_ACPC_view(self, parent=None):
+        view = self.create_basic_axial_view(parent)
+        return view
+
+    def create_bias_corrected_T1_view(self, parent=None):
+        return self.create_basic_axial_view(parent)
+
+    def create_brain_mask_view(self, parent=None):
+        return self.create_basic_axial_view(parent)
+
+    def create_split_brain_view(self, parent=None):
+        return self.create_basic_axial_view(parent)
+
+    def create_basic_axial_view(self, parent=None):
+        wintype = 'Axial'
+        layout = QtGui.QVBoxLayout(parent)
+        cmd = ana.cpp.CreateWindowCommand(wintype, -1, None,
+                [], 1, parent, 2, 0,
+                { '__syntax__' : 'dictionary',  'no_decoration' : 1})
+        self.anatomist_instance.execute(cmd)
+        window = cmd.createdWindow()
+        window.setWindowFlags(QtCore.Qt.Widget)
+        awindow = self.anatomist_instance.AWindow(self.anatomist_instance, window)
+        layout.addWidget(awindow.getInternalRep())
+        return window
 
     @QtCore.Slot()
     def on_model_changed(self):
         print "on_model_changed"
-
-
-class ViewportWidget(QtGui.QWidget):
-    uifile = os.path.join(ui_directory, 'viewport.ui')
-
-    def __init__(self, viewport_model, parent=None):
-        super(ViewportWidget, self).__init__(parent)
-        self.ui = loadUi(self.uifile, parent)
-        self.viewport_model = viewport_model
-        self.viewport_view = ViewportView()
-        self.viewport_view.setModel(self.viewport_model)
+        # FIXME: move this lines
+        return
+        t1mri = anatomist_instance.loadObject("/volatile/perrot/data/icbm/icbm/icbm100T/t1mri/default_acquisition/icbm100T.ima")
+        awindows.append(t1mri)
+        awindow.addObjects(t1mri)
 
 
 class IntraAnalysisWindow(QtGui.QMainWindow):
@@ -193,7 +259,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self.ui = loadUi(self.uifile, self)
 
         self.study = self._create_study(study_file)
-        self.viewport_model = ViewportModel(self.study)
+        self.viewport_model = ViewportModel(self.study.analyses)
 
         self.study_widget = StudyWidget(self.study, self.ui.study_widget_dock)
         self.manage_study_window = None
@@ -202,9 +268,13 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
                                               self.ui.viewport_frame)
 
         self._init_qt_connections()
+        self._init_widget()
 
     def _init_qt_connections(self):
         self.study_widget.selection_model.currentChanged.connect(self.on_selection_changed)
+
+    def _init_widget(self):
+        pass
 
     def _create_study(self, study_file=None):
         if study_file:
