@@ -3,7 +3,7 @@ import os
 from .qt_backend import QtGui, QtCore, loadUi
 from .gui import ui_directory
 from morphologist.study import Study
-from morphologist.formats import Format, FormatsManager
+from morphologist.formats import FormatsManager
 
 
 class SelectSubjectsDialog(QtGui.QFileDialog):
