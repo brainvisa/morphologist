@@ -106,7 +106,10 @@ class Study(object):
 
     @staticmethod
     def define_subjectname_from_filename(filename):
-        return os.path.splitext(os.path.basename(filename))[0]
+        name, ext = os.path.splitext(os.path.basename(filename))
+        while (ext != ""):
+            name, ext = os.path.splitext(name)
+        return name
 
     def add_subject_from_file(self, filename, subjectname=None, groupname=None):
         if subjectname is None:
