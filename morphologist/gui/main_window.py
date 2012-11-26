@@ -137,12 +137,18 @@ class IntraAnalysisWindow(object):
     def on_study_dialog_accepted(self):
         # TODO : what to do with this commented line ?
         #study.set_analysis_parameters(IntraAnalysis.DEFAULT_PARAM_TEMPLATE)
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         study = self.manage_study_window.study
         study.import_data(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
         study.set_analysis_parameters(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
         self.set_study(study)
         self.manage_study_window = None
-
+        QtGui.QApplication.restoreOverrideCursor()
+        msgbox = QtGui.QMessageBox( QtGui.QMessageBox.Information, "Images importation", 
+                                    "The images have been copied in %s directory." % study.outputdir, 
+                                    QtGui.QMessageBox.Ok, self.ui)
+        msgbox.show()
+        
 
     @QtCore.Slot()
     def on_open_study_action(self):
