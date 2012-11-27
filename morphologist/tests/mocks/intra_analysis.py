@@ -11,7 +11,7 @@ class MockIntraAnalysis(IntraAnalysis):
 
 class MockIntraAnalysisStepFlow(IntraAnalysisStepFlow):
 
-    def create_steps(self):
+    def init_steps(self):
 
         mock_out_files = BrainvisaIntraAnalysisParameterTemplate.get_output_params("hyperion",
                         "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/bv_database/test")

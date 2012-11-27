@@ -25,25 +25,17 @@ class IntraAnalysis(Analysis):
     def create_step_flow(self):
         return IntraAnalysisStepFlow()
 
-    def set_parameters(self, param_template_id, name, image, outputdir):
-        if param_template_id not in self.PARAMETER_TEMPLATES:
-            raise UnknownParameterTemplate(param_template_id)
-
-        param_template = self.param_template_map[param_template_id]
-        self.input_params = param_template.get_input_params(name, image)
-        self.output_params = param_template.get_output_params(name, outputdir)
-
 
 
 class IntraAnalysisStepFlow(StepFlow):
 
     def __init__(self):
         super(IntraAnalysisStepFlow, self).__init__()
-        self.create_steps()
+        self.init_steps()
         self.input_params = IntraAnalysisParameterTemplate.get_empty_input_params()
         self.output_params = IntraAnalysisParameterTemplate.get_empty_output_params()
 
-    def create_steps(self):
+    def init_steps(self):
         self._bias_correction = BiasCorrection()
         self._histogram_analysis = HistogramAnalysis()
         self._brain_segmentation = BrainSegmentation()

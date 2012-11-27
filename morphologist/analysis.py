@@ -5,6 +5,8 @@ import threading
 
 class Analysis(object):
 
+    PARAMETER_TEMPLATES = []
+    param_template_map = {}
 
     def __init__(self, step_flow):
         self._step_flow = step_flow
@@ -16,8 +18,13 @@ class Analysis(object):
         self._last_run_failed = False
 
 
-    def set_parameters(self, parameter_template, name, image, outputdir):
-        raise UnknownParameterTemplate(parameter_template)
+    def set_parameters(self, param_template_id, name, image, outputdir):
+        if param_template_id not in self.PARAMETER_TEMPLATES:
+            raise UnknownParameterTemplate(param_template_id)
+
+        param_template = self.param_template_map[param_template_id]
+        self.input_params = param_template.get_input_params(name, image)
+        self.output_params = param_template.get_output_params(name, outputdir)
 
 
     def get_input_params(self):
