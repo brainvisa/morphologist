@@ -1,5 +1,6 @@
 import os
 
+from morphologist.backends import Backend
 from .qt_backend import QtCore, QtGui, loadUi 
 from .gui import ui_directory 
 from morphologist.study import Study
@@ -151,11 +152,11 @@ class StudyWidget(QtGui.QWidget):
         self.study_tableview.selectRow(0)
 
 
-class ViewportModel(QtCore.QObject):
+class SubjectwiseViewportModel(QtCore.QObject):
     changed = QtCore.pyqtSignal()
 
     def __init__(self, analyses):
-        super(ViewportModel, self).__init__()
+        super(SubjectwiseViewportModel, self).__init__()
         self.analyses = analyses
         self._current_subjectname = None
 
@@ -164,11 +165,16 @@ class ViewportModel(QtCore.QObject):
         self.changed.emit()
 
 
-#FIXME: to move !
-import anatomist.direct.api as ana
+class IntraAnalysisSubjectwiseViewportModel(SubjectwiseViewportModel):
+
+    def __init__(self, analyses):
+        super(IntraAnalysisSubjectwiseViewportModel, self).__init__(analyses)
+        
+    def getRawMRI(self):
+        pass #TODO
 
 
-class ViewportWidget(QtGui.QWidget):
+class IntraAnalysisSubjectwiseViewportView(QtGui.QWidget):
     uifile = os.path.join(ui_directory, 'viewport.ui')
     main_frame_style_sheet = '''
         #viewport_frame { background-color: white }
@@ -182,15 +188,14 @@ class ViewportWidget(QtGui.QWidget):
         }
     '''
 
-    def __init__(self, viewport_model, parent=None):
-        # must be instanciate after the eventloop has been started
-        # FIXME: the line above must be moved
-        self.anatomist_instance = ana.Anatomist( '-b' )
-        super(ViewportWidget, self).__init__(parent)
+    def __init__(self, parent=None):
+        super(IntraAnalysisSubjectwiseViewportView, self).__init__(parent)
         self.ui = loadUi(self.uifile, parent)
+        self._view_hooks = [self.ui.view1_hook, self.ui.view2_hook, 
+                            self.ui.view3_hook, self.ui.view4_hook]
+        self._display_lib = IntraAnalysisDisplayLibrary()
         self._model = None
 
-        self.setModel(viewport_model)
         self._init_widget()
 
     def setModel(self, model):
@@ -202,45 +207,18 @@ class ViewportWidget(QtGui.QWidget):
 
     def _init_widget(self):
         self.ui.setStyleSheet(self.main_frame_style_sheet)
+        for view_hook in self._view_hooks:
+            layout = QtGui.QVBoxLayout(view_hook)
         self._create_intra_analysis_views()
 
     def _create_intra_analysis_views(self):
-        w1 = self.create_normalized_raw_T1_with_ACPC_view(self.ui.view1_hook)
-        w2 = self.create_bias_corrected_T1_view(self.ui.view2_hook)
-        w3 = self.create_brain_mask_view(self.ui.view3_hook)
-        w4 = self.create_split_brain_view(self.ui.view4_hook)
+        w1 = self._display_lib.create_normalized_raw_T1_with_ACPC_view(self.ui.view1_hook)
+        w2 = self._display_lib.create_bias_corrected_T1_view(self.ui.view2_hook)
+        w3 = self._display_lib.create_brain_mask_view(self.ui.view3_hook)
+        w4 = self._display_lib.create_split_brain_view(self.ui.view4_hook)
         keep_objects_alive([w1, w2, w3, w4])
+        self._display_lib.initialize_views([w1, w2, w3, w4])
         
-        self.anatomist_instance.execute('WindowConfig',
-                windows=[w1, w2, w3, w4], cursor_visibility=0,
-                light={ 'background' : [ 0., 0., 0., 1. ] } )
-
-    def create_normalized_raw_T1_with_ACPC_view(self, parent=None):
-        view = self.create_basic_axial_view(parent)
-        return view
-
-    def create_bias_corrected_T1_view(self, parent=None):
-        return self.create_basic_axial_view(parent)
-
-    def create_brain_mask_view(self, parent=None):
-        return self.create_basic_axial_view(parent)
-
-    def create_split_brain_view(self, parent=None):
-        return self.create_basic_axial_view(parent)
-
-    def create_basic_axial_view(self, parent=None):
-        wintype = 'Axial'
-        layout = QtGui.QVBoxLayout(parent)
-        cmd = ana.cpp.CreateWindowCommand(wintype, -1, None,
-                [], 1, parent, 2, 0,
-                { '__syntax__' : 'dictionary',  'no_decoration' : 1})
-        self.anatomist_instance.execute(cmd)
-        window = cmd.createdWindow()
-        window.setWindowFlags(QtCore.Qt.Widget)
-        awindow = self.anatomist_instance.AWindow(self.anatomist_instance, window)
-        layout.addWidget(awindow.getInternalRep())
-        return window
-
     @QtCore.Slot()
     def on_model_changed(self):
         print "on_model_changed"
@@ -251,6 +229,34 @@ class ViewportWidget(QtGui.QWidget):
         awindow.addObjects(t1mri)
 
 
+class DisplayLibrary(object):
+    
+    def __init__(self, backend):
+        self._backend = backend
+        self._backend.initialize_display()
+
+
+class IntraAnalysisDisplayLibrary(DisplayLibrary):
+
+    def __init__(self, backend=Backend.display_backend()):
+        super(IntraAnalysisDisplayLibrary, self).__init__(backend)
+
+    def create_normalized_raw_T1_with_ACPC_view(self, parent=None):
+        return self._backend.create_axial_view(parent)
+
+    def create_bias_corrected_T1_view(self, parent=None):
+        return self._backend.create_axial_view(parent)
+
+    def create_brain_mask_view(self, parent=None):
+        return self._backend.create_axial_view(parent)
+
+    def create_split_brain_view(self, parent=None):
+        return self._backend.create_axial_view(parent)
+
+    def initialize_views(self, views):
+        self._backend.set_bgcolor_views(views, [0., 0., 0., 1.])
+
+
 class IntraAnalysisWindow(QtGui.QMainWindow):
     uifile = os.path.join(ui_directory, 'intra_analysis.ui')
 
@@ -259,13 +265,15 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self.ui = loadUi(self.uifile, self)
 
         self.study = self._create_study(study_file)
-        self.viewport_model = ViewportModel(self.study.analyses)
+        self.viewport_model = IntraAnalysisSubjectwiseViewportModel(\
+                                                self.study.analyses)
 
         self.study_widget = StudyWidget(self.study, self.ui.study_widget_dock)
         self.manage_study_window = None
         self.ui.study_widget_dock.setWidget(self.study_widget)
-        self.viewport_widget = ViewportWidget(self.viewport_model, \
-                                              self.ui.viewport_frame)
+        self.viewport_view = IntraAnalysisSubjectwiseViewportView(\
+                                        self.ui.viewport_frame)
+        self.viewport_view.setModel(self.viewport_model)
 
         self._init_qt_connections()
         self._init_widget()
