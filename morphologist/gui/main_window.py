@@ -83,9 +83,9 @@ class StudyWidget(object):
 class IntraAnalysisWindow(object):
     uifile = os.path.join(ui_directory, 'intra_analysis.ui')
 
-    def __init__(self):
+    def __init__(self, study_file=None):
         self.ui = loadUi(self.uifile)
-        self.study = self._create_study()
+        self.study = self._create_study(study_file)
 
         self.study_widget = StudyWidget(self.study, self.ui.study_widget_dock)
         self._current_subjectname = None
@@ -105,11 +105,13 @@ class IntraAnalysisWindow(object):
         self.ui.setEnabled(True)
 
 
-    def _create_study(self):
-        #study = Study.from_file("/tmp/my_study")
-        #study.clear_results()
-        #return study
-        return Study()
+    def _create_study(self, study_file=None):
+        if study_file:
+          study = Study.from_file(study_file)
+          study.clear_results()
+          return study
+        else:
+          return Study()
 
     @QtCore.Slot()
     def on_run_button_clicked(self):
@@ -125,7 +127,7 @@ class IntraAnalysisWindow(object):
 
     @QtCore.Slot()
     def on_new_study_action(self):
-        study = create_study()
+        study = self._create_study()
         manage_study_window = ManageStudyWindow(study)
         if (manage_study_window.ui.exec_() == QtGui.QDialog.Accepted):
             # TODO : what to do with this commented line ?
@@ -138,7 +140,7 @@ class IntraAnalysisWindow(object):
         filename = QtGui.QFileDialog.getOpenFileName(self.ui)
         if filename:
             try:
-                study = Study.from_file(filename)
+                study = self._create_study(filename)
             except StudySerializationError, e:
                 QtGui.QMessageBox.critical(self.ui, 
                                           "Cannot load the study", "%s" %(e))
@@ -172,5 +174,3 @@ class IntraAnalysisWindow(object):
         # TODO : update image
 
 
-def create_main_window():
-    return IntraAnalysisWindow()
