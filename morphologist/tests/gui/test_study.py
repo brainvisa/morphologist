@@ -23,6 +23,7 @@ class TestStudyGui(TestGui):
         manage_subjects_window = ManageStudyWindow(study)
         self.keep_widget_alive(manage_subjects_window)
         manage_subjects_window.ui.show()
+        #FIXME: replace manage_subjects_window.ui by manage_subjects_window
         self.action_define_new_study_content(manage_subjects_window.ui,
             self.test_case.studyname, self.test_case.outputdir,
             self.test_case.filenames)

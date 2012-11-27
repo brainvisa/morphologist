@@ -1,9 +1,12 @@
-from .steps import Step
-from optparse import OptionParser
-from soma import aims
 import shutil
 import os
 import tempfile
+from optparse import OptionParser
+
+from soma import aims
+
+from .steps import Step
+
 
 class ImageImportation(Step):
     

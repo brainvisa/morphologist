@@ -106,10 +106,7 @@ class Study(object):
 
     @staticmethod
     def define_subjectname_from_filename(filename):
-        name, ext = os.path.splitext(os.path.basename(filename))
-        while (ext != ""):
-            name, ext = os.path.splitext(name)
-        return name
+        return remove_all_extensions(filename)
 
     def add_subject_from_file(self, filename, subjectname=None, groupname=None):
         if subjectname is None:
@@ -173,6 +170,12 @@ class Study(object):
         s += 'outputdir :' + str(self.outputdir) + '\n'
         s += 'subjects :' + repr(self.subjects) + '\n'
         return s
+
+def remove_all_extensions(filename):
+    name, ext = os.path.splitext(os.path.basename(filename))
+    while (ext != ""):
+        name, ext = os.path.splitext(name)
+    return name
 
 
 class StudySerializationError(Exception):

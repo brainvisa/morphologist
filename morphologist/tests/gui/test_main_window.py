@@ -63,7 +63,7 @@ class TestStudyWidget(TestGui):
             self.assert_(subject.imgname.startswith(self.test_case.outputdir))
         
         main_window.ui.close()
-         
+
 
 class TestFlatFilesStudyWidget(TestStudyWidget):
 
