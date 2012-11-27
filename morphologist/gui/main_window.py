@@ -170,7 +170,6 @@ class IntraAnalysisWindow(object):
     def _create_study(self, study_file=None):
         if study_file:
           study = Study.from_file(study_file)
-          study.clear_results()
           return study
         else:
           return Study()
