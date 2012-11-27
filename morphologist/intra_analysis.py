@@ -11,6 +11,7 @@ class IntraAnalysis(Analysis):
     PARAMETER_TEMPLATES = [BRAINVISA_PARAM_TEMPLATE, DEFAULT_PARAM_TEMPLATE]
     param_template_map = {}
 
+    # TODO: reimplement a standard python method ?
     @classmethod
     def _init_class(cls):
         cls.param_template_map[cls.BRAINVISA_PARAM_TEMPLATE] = \
