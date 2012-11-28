@@ -141,10 +141,17 @@ class Study(object):
     def list_subject_names(self):
         return self.subjects.keys()
 
-    def list_subjects_with_results(self):
+    def list_subjects_with_some_results(self):
         subjects = []
         for subjectname, analysis in self.analyses.iteritems():
             if analysis.list_existing_output_files():
+                subjects.append(subjectname)
+        return subjects
+    
+    def list_subjects_with_missing_results(self):
+        subjects = []
+        for subjectname, analysis in self.analysis.iteritems():
+            if analysis.list_missing_files():
                 subjects.append(subjectname)
         return subjects
 

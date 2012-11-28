@@ -367,7 +367,7 @@ class IntraAnalysisWindow(object):
     @QtCore.Slot()
     def on_run_button_clicked(self):
         self.ui.run_button.setEnabled(False)
-        subjects_with_out_files = self.study.list_subjects_with_results()
+        subjects_with_out_files = self.study.list_subjects_with_some_results()
         if subjects_with_out_files:
             answer = QtGui.QMessageBox.question(self.ui, "Existing results",
                                                 "Some results already exist.\n" 
