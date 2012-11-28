@@ -2,7 +2,7 @@ import unittest
 import os
 import filecmp
 
-from morphologist.study import Study, SubjectNameExistsError
+from morphologist.study import SubjectNameExistsError
 from morphologist.tests.study import MockStudyTestCase#, BrainvisaStudyTestCase
 
 
@@ -19,7 +19,7 @@ class TestStudy(unittest.TestCase):
         existing_subject_name = self.study.list_subject_names()[0]
         
         self.assertRaises(SubjectNameExistsError, 
-                          Study.add_subject_from_file,
+                          self.test_case.study_cls.add_subject_from_file,
                           self.study,
                           "/mypath/imgpath", 
                           existing_subject_name) 
@@ -31,6 +31,8 @@ class TestStudy(unittest.TestCase):
 
         self.assert_(self.study.analyses_ended_with_success())
 
+   
+        
 
     def test_save_load_study(self):
         studyfilepath = os.path.join(self.study.outputdir, "test_study_file")
@@ -40,7 +42,7 @@ class TestStudy(unittest.TestCase):
         print "save to " + repr(studyfilepath)
 
         self.study.save_to_file(studyfilepath)
-        loaded_study = Study.from_file(studyfilepath)
+        loaded_study = self.test_case.study_cls.from_file(studyfilepath)
         loaded_study.save_to_file(studyfilepath2)
 
         self.assert_(filecmp.cmp(studyfilepath, studyfilepath2))
