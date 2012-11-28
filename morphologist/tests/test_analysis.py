@@ -86,7 +86,8 @@ class TestAnalysis(unittest.TestCase):
     def tearDown(self):
         if self.analysis.is_running():
             self.analysis.stop()
-        self.test_case.restore_input_files()
+        #some input files are removed in test_missing_input_file_error:
+        self.test_case.restore_input_files() 
 
 
     def assert_output_files_exist(self):
