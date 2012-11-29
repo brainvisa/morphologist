@@ -23,17 +23,17 @@ class StudyTableModel(QtCore.QAbstractTableModel):
     SUBJECTSTATUS_COL = 1
     header = ['name', 'status'] #TODO: to be extended
 
-    def __init__(self, study, parent=None):
+    def __init__(self, study_model, parent=None):
         super(StudyTableModel, self).__init__(parent)
-        self._study = None
+        self._study_model = None
         self._subjectnames = None
-        self.set_study(study)
+        self.setModel(study_model)
 
-    def set_study(self, study):
+    def setModel(self, study_model):
         self.beginResetModel()
-        self._study_model = StudyLazyModel(study)
-        self.connect(self._study_model, QtCore.SIGNAL(StudyLazyModel.SIG_STATUS_CHANGED), 
-                     self.status_changed) 
+        self._study_model = study_model
+        self._study_model.status_changed.connect(self.status_changed)
+        self._study_model.study_changed.connect(self.study_changed)
         self.endResetModel()
         self.reset()
 
@@ -63,6 +63,10 @@ class StudyTableModel(QtCore.QAbstractTableModel):
 
     @QtCore.Slot()                
     def status_changed(self):
+        self.study_changed()
+
+    @QtCore.Slot()                
+    def study_changed(self):
         top_left = self.index(0, StudyTableModel.SUBJECTSTATUS_COL,
                               QtCore.QModelIndex())
         bottom_right = self.index(self.rowCount(),
@@ -72,7 +76,8 @@ class StudyTableModel(QtCore.QAbstractTableModel):
 
 
 class StudyLazyModel(QtCore.QObject):
-    SIG_STATUS_CHANGED = "status_changed"
+    study_changed = QtCore.pyqtSignal()
+    status_changed = QtCore.pyqtSignal()
 
     def __init__(self, study, parent=None):
         super(StudyLazyModel, self).__init__(parent)
@@ -88,6 +93,20 @@ class StudyLazyModel(QtCore.QObject):
         self._timer.setInterval(self._update_interval * 1000)
         self._timer.timeout.connect(self._update_from_study)
         self._timer.start()
+
+    def set_study(self, study):
+        self._study = study
+        self.study_changed.emit()
+
+    def get_status(self, index):
+        subjectname = self._subjectnames[index]
+        return self._status[subjectname]
+
+    def get_subjectname(self, index):
+        return self._subjectnames[index]
+
+    def subject_count(self):
+        return len(self._subjectnames)
 
     @QtCore.Slot()
     def _update_from_study(self):
@@ -105,17 +124,7 @@ class StudyLazyModel(QtCore.QObject):
                 self._status[name] = "output files exist"
             else:
                 self._status[name] = "some output files exist"
-        self.emit(QtCore.SIGNAL(StudyLazyModel.SIG_STATUS_CHANGED))
-
-    def get_status(self, index):
-        subjectname = self._subjectnames[index]
-        return self._status[subjectname]
-
-    def get_subjectname(self, index):
-        return self._subjectnames[index]
-
-    def subject_count(self):
-        return len(self._subjectnames)
+        self.status_changed.emit()
 
 
 class StudyTableView(QtGui.QWidget):
@@ -270,13 +279,15 @@ class IntraAnalysisWindow(object):
         self.ui = loadUi(self.uifile)
 
         self.study = self._create_study(study_file)
-        self.study_model = StudyTableModel(self.study)
-        self.study_selection_model = QtGui.QItemSelectionModel(self.study_model)
+        self.study_model = StudyLazyModel(self.study)
+        self.study_tablemodel = StudyTableModel(self.study_model)
+        self.study_selection_model = QtGui.QItemSelectionModel(\
+                                            self.study_tablemodel)
         self.viewport_model = IntraAnalysisSubjectwiseViewportModel(\
                                                 self.study.analyses)
 
         self.study_view = StudyTableView(self.ui.study_widget_dock)
-        self.study_view.setModel(self.study_model)
+        self.study_view.setModel(self.study_tablemodel)
         self.study_view.setSelectionModel(self.study_selection_model)
         self.ui.study_widget_dock.setWidget(self.study_view)
 
@@ -382,7 +393,7 @@ class IntraAnalysisWindow(object):
 
     @QtCore.Slot("QModelIndex &, QModelIndex &")
     def on_selection_changed(self, current, previous):
-        subjectname = self.study_model.subjectname_from_row_index(current.row())
+        subjectname = self.study_tablemodel.subjectname_from_row_index(current.row())
         self.viewport_model.set_current_subjectname(subjectname)
 
     def set_study(self, study):
