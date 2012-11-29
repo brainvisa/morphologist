@@ -45,7 +45,9 @@ class Analysis(object):
     input_params = property(get_input_params, set_input_params)
     output_params = property(get_output_params, set_output_params) 
  
-
+    def get_command_list(self):
+        return self._step_flow.get_command_list()
+        
     def _sync_run(self):
         self._last_run_failed = False
         command_list = self._step_flow.get_command_list()
@@ -64,15 +66,15 @@ class Analysis(object):
 
 
     def run(self):
-        self._check_parameter_values_filled()
-        self._check_input_files_exist()
-        self._check_output_files_dont_exist()
+        self.check_parameter_values_filled()
+        self.check_input_files_exist()
+        self.check_output_files_dont_exist()
         if not self._execution_thread.is_alive():
             self._execution_thread.setDaemon(True)
             self._execution_thread.start()
 
 
-    def _check_parameter_values_filled(self):
+    def check_parameter_values_filled(self):
         missing_parameters = []
         missing_parameters.extend(self._step_flow.input_params.list_missing_parameter_values())  
         missing_parameters.extend(self._step_flow.output_params.list_missing_parameter_values())
@@ -82,7 +84,7 @@ class Analysis(object):
             raise MissingParameterValueError(message)
 
 
-    def _check_input_files_exist(self):
+    def check_input_files_exist(self):
         missing_files = self._step_flow.input_params.list_missing_files()
         if missing_files:
             separator = " ,"
@@ -90,7 +92,7 @@ class Analysis(object):
             raise MissingInputFileError(message)
 
 
-    def _check_output_files_dont_exist(self):
+    def check_output_files_dont_exist(self):
         existing_files = self.list_existing_output_files()
         if existing_files:
             separator = " ,"
@@ -100,6 +102,9 @@ class Analysis(object):
     def list_existing_output_files(self):
         return self._step_flow.output_params.list_existing_files()
 
+    def list_missing_output_files(self):
+        return self._step_flow.output_params.list_missing_files()
+        
     def is_running(self):
         return self._execution_thread.is_alive() 
 

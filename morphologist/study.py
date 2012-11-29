@@ -151,7 +151,7 @@ class Study(object):
     def list_subjects_with_missing_results(self):
         subjects = []
         for subjectname, analysis in self.analysis.iteritems():
-            if analysis.list_missing_files():
+            if analysis.list_missing_output_files():
                 subjects.append(subjectname)
         return subjects
 
