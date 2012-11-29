@@ -34,6 +34,7 @@ class StudyTableModel(QtCore.QAbstractTableModel):
         self.connect(self._study_model, QtCore.SIGNAL(StudyLazyModel.SIG_STATUS_CHANGED), 
                      self.status_changed) 
         self.endResetModel()
+        self.reset()
 
     def subjectname_from_row_index(self, index):
         return self._study_model.get_subjectname(index)
@@ -117,8 +118,7 @@ class StudyLazyModel(QtCore.QObject):
         return len(self._subjectnames)
 
 
-
-class StudyWidget(QtGui.QWidget):
+class StudyTableView(QtGui.QWidget):
     uifile = os.path.join(ui_directory, 'display_study.ui')
     # FIXME : missing handling of sorting triangle icon
     header_style_sheet = '''
@@ -130,26 +130,33 @@ class StudyWidget(QtGui.QWidget):
         }'''
     subjectname_column_width = 100    
 
-    def __init__(self, study, parent=None):
-        super(StudyWidget, self).__init__(parent)
+    def __init__(self, parent=None):
+        super(StudyTableView, self).__init__(parent)
         self.ui = loadUi(self.uifile, self)
-        self.study_tableview = self.ui.subjects_tableview
-        self.study_tablemodel = StudyTableModel(study)
-        self.study_tableview.setModel(self.study_tablemodel)
-        self.selection_model = self.study_tableview.selectionModel()
-
+        self._tableview = self.ui.subjects_tableview
+        self._tablemodel = None
         self._init_widget()
 
     def _init_widget(self):
-        header = self.study_tableview.horizontalHeader()
+        header = self._tableview.horizontalHeader()
         # FIXME : stylesheet has been disable and should stay disable until
         # subject list sorting has not been implementing
         #header.setStyleSheet(self.header_style_sheet)
         header.resizeSection(0, self.subjectname_column_width)
 
-    def set_study(self, study):
-        self.study_tablemodel.set_study(study)
+    @QtCore.Slot()
+    def on_modelReset(self):
         self.study_tableview.selectRow(0)
+
+    def setModel(self, model):
+        if self._tablemodel:
+            self._tablemodel.modelReset.disconnect(self.on_modelReset)
+        self._tablemodel = model
+        self._tablemodel.modelReset.connect(self.on_modelReset)
+        self._tableview.setModel(model)
+
+    def setSelectionModel(self, selection_model):
+        self._tableview.setSelectionModel(selection_model)
 
 
 class SubjectwiseViewportModel(QtCore.QObject):
@@ -203,7 +210,6 @@ class IntraAnalysisSubjectwiseViewportView(QtGui.QWidget):
             self._model.changed.disconnect(self.on_model_changed)
         self._model = model
         self._model.changed.connect(self.on_model_changed)
-        # TODO: update image
 
     def _init_widget(self):
         self.ui.setStyleSheet(self.main_frame_style_sheet)
@@ -264,16 +270,21 @@ class IntraAnalysisWindow(object):
         self.ui = loadUi(self.uifile)
 
         self.study = self._create_study(study_file)
+        self.study_model = StudyTableModel(self.study)
+        self.study_selection_model = QtGui.QItemSelectionModel(self.study_model)
         self.viewport_model = IntraAnalysisSubjectwiseViewportModel(\
                                                 self.study.analyses)
 
-        # FIXME : why dock is passed to StudyWidget ?
-        self.study_widget = StudyWidget(self.study, self.ui.study_widget_dock)
-        self.manage_study_window = None
-        self.ui.study_widget_dock.setWidget(self.study_widget)
+        self.study_view = StudyTableView(self.ui.study_widget_dock)
+        self.study_view.setModel(self.study_model)
+        self.study_view.setSelectionModel(self.study_selection_model)
+        self.ui.study_widget_dock.setWidget(self.study_view)
+
         self.viewport_view = IntraAnalysisSubjectwiseViewportView(\
                                         self.ui.viewport_frame)
         self.viewport_view.setModel(self.viewport_model)
+
+        self.manage_study_window = None
 
         self._init_qt_connections()
         self._init_widget()
@@ -284,7 +295,7 @@ class IntraAnalysisWindow(object):
         self.ui.action_new_study.triggered.connect(self.on_new_study_action)
         self.ui.action_open_study.triggered.connect(self.on_open_study_action)
         self.ui.action_save_study.triggered.connect(self.on_save_study_action)
-        self.study_widget.selection_model.currentChanged.connect(self.on_selection_changed)
+        self.study_selection_model.currentChanged.connect(self.on_selection_changed)
 
     def _init_widget(self):
         pass
@@ -335,8 +346,6 @@ class IntraAnalysisWindow(object):
         
     @QtCore.Slot()
     def on_study_dialog_accepted(self):
-        # TODO : what to do with this commented line ?
-        #study.set_analysis_parameters(IntraAnalysis.DEFAULT_PARAM_TEMPLATE)
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         study = self.manage_study_window.study
         study.import_data(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
@@ -344,11 +353,11 @@ class IntraAnalysisWindow(object):
         self.set_study(study)
         self.manage_study_window = None
         QtGui.QApplication.restoreOverrideCursor()
-        msgbox = QtGui.QMessageBox( QtGui.QMessageBox.Information, "Images importation", 
-                                    "The images have been copied in %s directory." % study.outputdir, 
-                                    QtGui.QMessageBox.Ok, self.ui)
+        msg = "The images have been copied in %s directory." % study.outputdir
+        msgbox = QtGui.QMessageBox(QtGui.QMessageBox.Information,
+                                   "Images importation", msg,
+                                   QtGui.QMessageBox.Ok, self.ui)
         msgbox.show()
-        
 
     @QtCore.Slot()
     def on_open_study_action(self):
@@ -371,17 +380,15 @@ class IntraAnalysisWindow(object):
             except StudySerializationError, e:
                 QtGui.QMessageBox.critical(self.ui, 
                                           "Cannot save the study", "%s" %(e))
-            
 
     @QtCore.Slot("QModelIndex &, QModelIndex &")
     def on_selection_changed(self, current, previous):
-        subjectname = self.study_widget.study_tablemodel.subjectname_from_row_index(\
-                                                        current.row())
+        subjectname = self.study_model.subjectname_from_row_index(current.row())
         self.viewport_model.set_current_subjectname(subjectname)
 
     def set_study(self, study):
         self.study = study
-        self.study_widget.set_study(self.study)
+        self.study_model.set_study(self.study)
         self.ui.setWindowTitle("Morphologist - %s" % self.study.name)
 
 
