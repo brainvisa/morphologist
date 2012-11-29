@@ -3,7 +3,9 @@ import time
     
 from morphologist.runner import ThreadRunner
 from morphologist.tests.study import MockStudyTestCase#, BrainvisaStudyTestCase
-    
+from morphologist.tests.test_analysis import MockAnalysisTestCase
+from morphologist.analysis import MissingInputFileError, OutputFileExistError
+
 class TestRunner(unittest.TestCase):
     
     def setUp(self):
@@ -12,6 +14,8 @@ class TestRunner(unittest.TestCase):
         self.test_case.add_subjects()
         self.test_case.set_parameters() 
         self.study = self.test_case.study
+        self.analysis_test_case = MockAnalysisTestCase()
+        self.analysis_test_case.analysis = self.study.analysis.values()[0]
         self.runner = self.create_runner(self.study)
     
     def create_runner(self, study):
@@ -74,16 +78,23 @@ class TestRunner(unittest.TestCase):
         
         self.assert_output_files_cleared()
         
-    def _test_missing_input_file_error(self):
-        #TODO
-        pass
+    def test_missing_input_file_error(self):
+        self.study.clear_results()
+        self.analysis_test_case.delete_some_input_files()
+
+        self.assertRaises(MissingInputFileError, self.runner.run)
+
     
-    def _test_output_file_exist_error(self):
-        #TODO
-        pass
+    def test_output_file_exist_error(self):
+        self.study.clear_results()
+        self.analysis_test_case.create_some_output_files()
+        
+        self.assertRaises(OutputFileExistError, self.runner.run)
+       
         
     def assert_output_files_exist(self):
         self.assertEqual(len(self.study.list_subjects_with_missing_results()), 0)
+       
         
     def assert_output_files_cleared(self):
         self.assertEqual(len(self.study.list_subjects_with_some_results()), 0)
@@ -92,6 +103,9 @@ class TestRunner(unittest.TestCase):
     def tearDown(self):
         if self.runner.is_running():
             self.runner.stop()
+        #some input files are removed in test_missing_input_file_error:
+        self.analysis_test_case.restore_input_files() 
+
         
         
 if __name__=='__main__':
