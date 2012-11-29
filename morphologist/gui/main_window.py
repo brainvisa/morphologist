@@ -75,23 +75,23 @@ class StudyTableModel(QtCore.QAbstractTableModel):
         self.dataChanged.emit(top_left, bottom_right)
 
 
-class StudyLazyModel(QtCore.QObject):
+class LazyStudyModel(QtCore.QObject):
     study_changed = QtCore.pyqtSignal()
     status_changed = QtCore.pyqtSignal()
 
     def __init__(self, study, parent=None):
-        super(StudyLazyModel, self).__init__(parent)
+        super(LazyStudyModel, self).__init__(parent)
         self._study = study
         self._subjectnames = []
         self._status = {}
 
         self._update_interval = 2 # in seconds
 
-        self._update_from_study()
+        self._update_all_status()
         
         self._timer = QtCore.QTimer(self)
         self._timer.setInterval(self._update_interval * 1000)
-        self._timer.timeout.connect(self._update_from_study)
+        self._timer.timeout.connect(self._update_all_status)
         self._timer.start()
 
     def set_study(self, study):
@@ -109,7 +109,7 @@ class StudyLazyModel(QtCore.QObject):
         return len(self._subjectnames)
 
     @QtCore.Slot()
-    def _update_from_study(self):
+    def _update_all_status(self):
         self._subjectnames = self._study.subjects.keys()
         self._subjectnames.sort()
         for name in self._subjectnames:
@@ -280,7 +280,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self.ui = loadUi(self.uifile, self)
 
         self.study = self._create_study(study_file)
-        self.study_model = StudyLazyModel(self.study)
+        self.study_model = LazyStudyModel(self.study)
         self.study_tablemodel = StudyTableModel(self.study_model)
         self.study_selection_model = QtGui.QItemSelectionModel(\
                                             self.study_tablemodel)
