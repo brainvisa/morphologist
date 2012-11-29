@@ -81,21 +81,26 @@ class LazyStudyModel(QtCore.QObject):
 
     def __init__(self, study, parent=None):
         super(LazyStudyModel, self).__init__(parent)
-        self._study = study
+        self._study = None
         self._subjectnames = []
         self._status = {}
 
         self._update_interval = 2 # in seconds
 
-        self._update_all_status()
-        
         self._timer = QtCore.QTimer(self)
         self._timer.setInterval(self._update_interval * 1000)
         self._timer.timeout.connect(self._update_all_status)
+        self.set_study(study)
         self._timer.start()
 
     def set_study(self, study):
+        self._timer.timeout.disconnect(self._update_all_status)
         self._study = study
+        self._subjectnames = self._study.subjects.keys()
+        self._subjectnames.sort()
+        self._status = {}
+        self._update_all_status()
+        self._timer.timeout.connect(self._update_all_status)
         self.study_changed.emit()
 
     def get_status(self, index):
@@ -110,21 +115,38 @@ class LazyStudyModel(QtCore.QObject):
 
     @QtCore.Slot()
     def _update_all_status(self):
-        self._subjectnames = self._study.subjects.keys()
-        self._subjectnames.sort()
-        for name in self._subjectnames:
-            analysis = self._study.analyses[name]
-            if analysis.is_running():
-                self._status[name] = "is running"
-            elif analysis.last_run_failed():
-                self._status[name] = "last run failed"
-            elif len(analysis.output_params.list_existing_files()) == 0:
-                self._status[name] = "no output files"
-            elif len(analysis.output_params.list_missing_files()) == 0:
-                self._status[name] = "output files exist"
-            else:
-                self._status[name] = "some output files exist"
-        self.status_changed.emit()
+        has_changed = False
+        for subjectname in self._subjectnames:
+            has_changed |= self._update_status_for_one_subject(subjectname) 
+        if has_changed:
+            self.status_changed.emit()
+
+    def _update_status_for_one_subject(self, subjectname):
+        analysis = self._study.analyses[subjectname]
+        has_changed = False
+        if analysis.is_running():
+            has_changed = self._update_one_status_for_one_subject_if_needed(\
+                                                subjectname, "is running")
+        elif analysis.last_run_failed():
+            has_changed = self._update_one_status_for_one_subject_if_needed(\
+                                                subjectname, "last run failed")
+        elif len(analysis.output_params.list_existing_files()) == 0:
+            has_changed = self._update_one_status_for_one_subject_if_needed(\
+                                                subjectname, "no output files")
+        elif len(analysis.output_params.list_missing_files()) == 0:
+            has_changed = self._update_one_status_for_one_subject_if_needed(\
+                                            subjectname, "output files exist")
+        else:
+            has_changed = self._update_one_status_for_one_subject_if_needed(\
+                                        subjectname, "some output files exist")
+        return has_changed
+
+    def _update_one_status_for_one_subject_if_needed(self, subjectname, status):
+        has_changed = False 
+        if self._status.get(subjectname) != status:
+            self._status[subjectname] = status
+            has_changed = True
+        return has_changed
 
 
 class StudyTableView(QtGui.QWidget):
