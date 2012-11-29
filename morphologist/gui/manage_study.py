@@ -43,7 +43,7 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
         self._study_manager.add_subjects(filenames)
 
 
-class ManageStudyWindow(object):
+class ManageStudyWindow(QtGui.QDialog):
     on_apply_cancel_button_clicked_map = {}
     default_group = 'group 1'
     group_column_width = 100
@@ -60,9 +60,14 @@ class ManageStudyWindow(object):
         map[reject_role] = cls.on_cancel_button_clicked
 
     def __init__(self, study, parent=None):
+        super(ManageStudyWindow, self).__init__(parent)
         self.study = study
         uifile = os.path.join(ui_directory, 'manage_study.ui')
-        self.ui = loadUi(uifile, parent)
+        self.ui = loadUi(uifile, self)
+        #self.ui = loadUi(uifile)
+        #if parent is not None:
+        #    print type(parent), type(self.ui)
+        #    self.ui.setParent(parent, QtCore.Qt.Window)
         apply_id = QtGui.QDialogButtonBox.Apply
         cancel_id = QtGui.QDialogButtonBox.Cancel
         self.ui.apply_button = self.ui.apply_cancel_buttons.button(apply_id)
@@ -95,7 +100,7 @@ class ManageStudyWindow(object):
         for filename in filenames:
             self._add_subject(filename, groupname)
 
-    @QtCore.Slot("QString &")
+    @QtCore.Slot("const QString &")
     def on_lineEdit_changed(self, text):
         outputdir = self.ui.outputdir_lineEdit.text()
         studyname = self.ui.studyname_lineEdit.text()
