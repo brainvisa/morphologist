@@ -1,10 +1,9 @@
 import unittest
 import time
     
-from morphologist.runner import ThreadRunner
+from morphologist.runner import ThreadRunner, MissingInputFileError, OutputFileExistError
 from morphologist.tests.study import MockStudyTestCase#, BrainvisaStudyTestCase
 from morphologist.tests.test_analysis import MockAnalysisTestCase
-from morphologist.analysis import MissingInputFileError, OutputFileExistError
 
 class TestRunner(unittest.TestCase):
     
