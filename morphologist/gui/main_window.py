@@ -21,13 +21,13 @@ def keep_objects_alive(objects):
 class StudyTableModel(QtCore.QAbstractTableModel):
     SUBJECTNAME_COL = 0 
     SUBJECTSTATUS_COL = 1
+    header = ['name', 'status'] #TODO: to be extended
 
     def __init__(self, study, parent=None):
         super(StudyTableModel, self).__init__(parent)
         self._study = None
         self._subjectnames = None
         self.set_study(study)
-        self._header = ['name', 'status'] #TODO: to be extended
 
     def set_study(self, study):
         self.beginResetModel()
@@ -51,7 +51,7 @@ class StudyTableModel(QtCore.QAbstractTableModel):
             if orientation == QtCore.Qt.Vertical:
                 return
             elif orientation == QtCore.Qt.Horizontal:
-                return self._header[section]
+                return self.header[section]
 
     def data(self, index, role=QtCore.Qt.DisplayRole):
         row, column = index.row(), index.column()
