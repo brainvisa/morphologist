@@ -10,6 +10,7 @@ from .manage_study import ManageStudyWindow
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.analysis import OutputFileExistError
 
+
 objects_kept_alive = []
 
 def keep_objects_alive(objects):
@@ -62,15 +63,15 @@ class StudyTableModel(QtCore.QAbstractTableModel):
 
     @QtCore.Slot()                
     def status_changed(self):
-        self.dataChanged.emit(self.index(0, StudyTableModel.SUBJECTSTATUS_COL, 
-                                         QtCore.QModelIndex()),
-                              self.index(self.rowCount(), StudyTableModel.SUBJECTSTATUS_COL, 
-                                         QtCore.QModelIndex()))
-
+        top_left = self.index(0, StudyTableModel.SUBJECTSTATUS_COL,
+                              QtCore.QModelIndex())
+        bottom_right = self.index(self.rowCount(),
+                                  StudyTableModel.SUBJECTSTATUS_COL, 
+                                  QtCore.QModelIndex())
+        self.dataChanged.emit(top_left, bottom_right)
 
 
 class StudyLazyModel(QtCore.QObject):
-
     SIG_STATUS_CHANGED = "status_changed"
 
     def __init__(self, study, parent=None):
@@ -105,7 +106,6 @@ class StudyLazyModel(QtCore.QObject):
             else:
                 self._status[name] = "some output files exist"
         self.emit(QtCore.SIGNAL(StudyLazyModel.SIG_STATUS_CHANGED))
-
 
     def get_status(self, index):
         subjectname = self._subjectnames[index]
