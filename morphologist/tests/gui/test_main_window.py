@@ -33,7 +33,7 @@ class TestStudyWidget(TestGui):
         self.keep_widget_alive(main_window)
         main_window.set_study(self.test_case.study)
         main_window.ui.show()
-        model = main_window.study_widget.study_tablemodel
+        model = main_window.study_tablemodel
         subjectnames = [model.data(model.index(i, 0)) \
                         for i in range(model.rowCount())]
         subjectnames = sorted(subjectnames)
