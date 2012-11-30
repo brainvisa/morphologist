@@ -172,8 +172,13 @@ class  SWRunner(Runner):
         Helper.wait_workflow(self._workflow_id, self._workflow_controller)
         
     def last_run_failed(self):
-        return Helper.list_failed_jobs(self._workflow_id, self._workflow_controller, 
-                                       include_aborted_jobs=True, include_user_killed_jobs=True)
+        failed = False
+        if self._workflow_id is not None:
+            failed = (len(Helper.list_failed_jobs(self._workflow_id, 
+                                                  self._workflow_controller, 
+                                                  include_aborted_jobs=True, 
+                                                  include_user_killed_jobs=True)) != 0)
+        return failed     
         
     def stop(self):
         if self.is_running():
