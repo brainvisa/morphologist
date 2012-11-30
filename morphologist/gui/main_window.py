@@ -4,11 +4,10 @@ from morphologist.backends import Backend
 from .qt_backend import QtCore, QtGui, loadUi 
 from .gui import ui_directory 
 from morphologist.study import Study
-from morphologist.tests.study import MockStudy
 from morphologist.study import StudySerializationError
 from .manage_study import ManageStudyWindow
 from morphologist.intra_analysis import IntraAnalysis
-from morphologist.analysis import OutputFileExistError
+from morphologist.runner import OutputFileExistError
 
 
 objects_kept_alive = []
