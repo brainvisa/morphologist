@@ -18,63 +18,6 @@ def keep_objects_alive(objects):
     objects_kept_alive += objects
 
 
-class StudyTableModel(QtCore.QAbstractTableModel):
-    SUBJECTNAME_COL = 0 
-    SUBJECTSTATUS_COL = 1
-    header = ['name', 'status'] #TODO: to be extended
-
-    def __init__(self, study_model, parent=None):
-        super(StudyTableModel, self).__init__(parent)
-        self._study_model = None
-        self._subjectnames = None
-        self.setModel(study_model)
-
-    def setModel(self, study_model):
-        self.beginResetModel()
-        self._study_model = study_model
-        self._study_model.status_changed.connect(self.status_changed)
-        self._study_model.study_changed.connect(self.study_changed)
-        self.endResetModel()
-        self.reset()
-
-    def subjectname_from_row_index(self, index):
-        return self._study_model.get_subjectname(index)
-
-    def rowCount(self, parent=QtCore.QModelIndex()):
-        return self._study_model.subject_count()
-
-    def columnCount(self, parent=QtCore.QModelIndex()):
-        return 2 #TODO: to be extended
-
-    def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
-        if role == QtCore.Qt.DisplayRole:
-            if orientation == QtCore.Qt.Vertical:
-                return
-            elif orientation == QtCore.Qt.Horizontal:
-                return self.header[section]
-
-    def data(self, index, role=QtCore.Qt.DisplayRole):
-        row, column = index.row(), index.column()
-        if role == QtCore.Qt.DisplayRole:
-            if column == StudyTableModel.SUBJECTNAME_COL:
-                return self._study_model.get_subjectname(row)
-            if column == StudyTableModel.SUBJECTSTATUS_COL:
-                return self._study_model.get_status(row)
-
-    @QtCore.Slot()                
-    def status_changed(self):
-        self.study_changed()
-
-    @QtCore.Slot()                
-    def study_changed(self):
-        top_left = self.index(0, StudyTableModel.SUBJECTSTATUS_COL,
-                              QtCore.QModelIndex())
-        bottom_right = self.index(self.rowCount(),
-                                  StudyTableModel.SUBJECTSTATUS_COL, 
-                                  QtCore.QModelIndex())
-        self.dataChanged.emit(top_left, bottom_right)
-
-
 class LazyStudyModel(QtCore.QObject):
     study_changed = QtCore.pyqtSignal()
     status_changed = QtCore.pyqtSignal()
@@ -147,6 +90,63 @@ class LazyStudyModel(QtCore.QObject):
             self._status[subjectname] = status
             has_changed = True
         return has_changed
+
+
+class StudyTableModel(QtCore.QAbstractTableModel):
+    SUBJECTNAME_COL = 0 
+    SUBJECTSTATUS_COL = 1
+    header = ['name', 'status'] #TODO: to be extended
+
+    def __init__(self, study_model, parent=None):
+        super(StudyTableModel, self).__init__(parent)
+        self._study_model = None
+        self._subjectnames = None
+        self.setModel(study_model)
+
+    def setModel(self, study_model):
+        self.beginResetModel()
+        self._study_model = study_model
+        self._study_model.status_changed.connect(self.status_changed)
+        self._study_model.study_changed.connect(self.study_changed)
+        self.endResetModel()
+        self.reset()
+
+    def subjectname_from_row_index(self, index):
+        return self._study_model.get_subjectname(index)
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return self._study_model.subject_count()
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        return 2 #TODO: to be extended
+
+    def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
+        if role == QtCore.Qt.DisplayRole:
+            if orientation == QtCore.Qt.Vertical:
+                return
+            elif orientation == QtCore.Qt.Horizontal:
+                return self.header[section]
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        row, column = index.row(), index.column()
+        if role == QtCore.Qt.DisplayRole:
+            if column == StudyTableModel.SUBJECTNAME_COL:
+                return self._study_model.get_subjectname(row)
+            if column == StudyTableModel.SUBJECTSTATUS_COL:
+                return self._study_model.get_status(row)
+
+    @QtCore.Slot()                
+    def status_changed(self):
+        self.study_changed()
+
+    @QtCore.Slot()                
+    def study_changed(self):
+        top_left = self.index(0, StudyTableModel.SUBJECTSTATUS_COL,
+                              QtCore.QModelIndex())
+        bottom_right = self.index(self.rowCount(),
+                                  StudyTableModel.SUBJECTSTATUS_COL, 
+                                  QtCore.QModelIndex())
+        self.dataChanged.emit(top_left, bottom_right)
 
 
 class StudyTableView(QtGui.QWidget):
