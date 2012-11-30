@@ -44,7 +44,7 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
 
 
 class ManageStudyWindow(QtGui.QDialog):
-    on_apply_cancel_button_clicked_map = {}
+    on_apply_cancel_buttons_clicked_map = {}
     default_group = 'group 1'
     group_column_width = 100
     GROUPNAME_COL = 0
@@ -55,7 +55,7 @@ class ManageStudyWindow(QtGui.QDialog):
     def _init_class(cls):
         apply_role = QtGui.QDialogButtonBox.ApplyRole
         reject_role = QtGui.QDialogButtonBox.RejectRole
-        map = cls.on_apply_cancel_button_clicked_map
+        map = cls.on_apply_cancel_buttons_clicked_map
         map[apply_role] = cls.on_apply_button_clicked
         map[reject_role] = cls.on_cancel_button_clicked
 
@@ -73,20 +73,7 @@ class ManageStudyWindow(QtGui.QDialog):
         self.ui.studyname_lineEdit.setText(self.study.name)
         self.ui.outputdir_lineEdit.setText(self.study.outputdir)
 
-        self._init_qt_connections()
         self._init_ui()
-
-    def _init_qt_connections(self):
-        self.ui.studyname_lineEdit.textChanged.connect(\
-                self.on_lineEdit_changed)
-        self.ui.outputdir_lineEdit.textChanged.connect(\
-                self.on_lineEdit_changed)
-        self.ui.outputdir_button.clicked.connect(\
-                self.on_outputdir_button_clicked)
-        self.ui.add_one_subject_from_a_file_button.clicked.connect(\
-                self.on_add_one_subject_from_a_file_button_clicked)
-        self.ui.apply_cancel_buttons.clicked.connect(\
-                self.on_apply_cancel_button_clicked)
 
     def _init_ui(self):
         tablewidget = self.ui.subjects_tablewidget
@@ -96,13 +83,23 @@ class ManageStudyWindow(QtGui.QDialog):
         for filename in filenames:
             self._add_subject(filename, groupname)
 
+    # this slot is automagically connected
     @QtCore.Slot("const QString &")
-    def on_lineEdit_changed(self, text):
+    def on_studyname_lineEdit_textChanged(self, text):
+        self.on_lineEdit_textChanged(text)
+
+    # this slot is automagically connected
+    @QtCore.Slot("const QString &")
+    def on_outputdir_lineEdit_textChanged(self, text):
+        self.on_lineEdit_textChanged(text)
+
+    def on_lineEdit_textChanged(self, text):
         outputdir = self.ui.outputdir_lineEdit.text()
         studyname = self.ui.studyname_lineEdit.text()
         status = (outputdir != '' and studyname != '')
         self.ui.apply_button.setEnabled(status)
 
+    # this slot is automagically connected
     @QtCore.Slot()
     def on_outputdir_button_clicked(self):
         caption = 'Select study output directory'
@@ -116,15 +113,17 @@ class ManageStudyWindow(QtGui.QDialog):
         if selected_directory != '':
             self.ui.outputdir_lineEdit.setText(selected_directory)
 
+    # this slot is automagically connected
     @QtCore.Slot()
     def on_add_one_subject_from_a_file_button_clicked(self):
         dialog = SelectSubjectsDialog(self.ui, self)
         dialog.show()
 
+    # this slot is automagically connected
     @QtCore.Slot("QAbstractButton *")
-    def on_apply_cancel_button_clicked(self, button):
+    def on_apply_cancel_buttons_clicked(self, button):
         role = self.ui.apply_cancel_buttons.buttonRole(button)
-        ManageStudyWindow.on_apply_cancel_button_clicked_map[role](self)
+        ManageStudyWindow.on_apply_cancel_buttons_clicked_map[role](self)
 
     def on_apply_button_clicked(self):
         outputdir = self.ui.outputdir_lineEdit.text()
@@ -136,6 +135,14 @@ class ManageStudyWindow(QtGui.QDialog):
                 groupname, subjectname, filename = self._get_subject_data(i)
                 self.study.add_subject_from_file(filename, subjectname, groupname)
             self.ui.accept()
+
+    def on_cancel_button_clicked(self):
+        print "cancel" #TODO
+        self.ui.reject()
+
+
+
+
 
     def _check_study_consistency(self):
         study_keys = [] #subjectname is the subject uid for now 
@@ -157,10 +164,6 @@ class ManageStudyWindow(QtGui.QDialog):
                                        "name: \n %s" %(multiple_str))
             return False
         return True
-
-    def on_cancel_button_clicked(self):
-        print "cancel" #TODO
-        self.ui.reject()
 
     def _add_subject(self, filename, groupname):
         subjectname = Study.define_subjectname_from_filename(filename)
