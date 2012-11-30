@@ -2,16 +2,7 @@ import sys
 import optparse
 
 from morphologist.gui.qt_backend import QtGui
-
-def create_main_window(study_file=None, mock=False):
-    if study_file: print "load " + str(study_file)
-    if not mock:
-        from morphologist.gui.main_window import IntraAnalysisWindow
-        return IntraAnalysisWindow(study_file)
-    else:
-        print "mock mode"
-        from morphologist.tests.mocks.main_window import MockIntraAnalysisWindow
-        return MockIntraAnalysisWindow(study_file) 
+from morphologist.gui.main_window import create_main_window
 
 def option_parser():
     parser = optparse.OptionParser()

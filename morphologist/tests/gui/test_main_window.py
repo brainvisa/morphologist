@@ -3,7 +3,7 @@ import unittest
 import os
 
 from morphologist.gui.qt_backend import QtGui, QtCore, QtTest
-from morphologist.gui import create_main_window
+from morphologist.gui.main_window import create_main_window
 from morphologist.tests.gui import TestGui
 from morphologist.tests.gui.test_study import TestStudyGui
 from morphologist.tests.study import FlatFilesStudyTestCase, BrainvisaStudyTestCase, MockStudyTestCase

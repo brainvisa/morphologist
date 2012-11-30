@@ -173,10 +173,10 @@ class IntraAnalysisWindow(object):
 
     def _create_study(self, study_file=None):
         if study_file:
-          study = Study.from_file(study_file)
-          return study
+            study = Study.from_file(study_file)
+            return study
         else:
-          return Study()
+            return Study()
 
     @QtCore.Slot()
     def on_run_button_clicked(self):
@@ -270,3 +270,11 @@ class IntraAnalysisWindow(object):
         # TODO : update image
 
 
+def create_main_window(study_file=None, mock=False):
+    if study_file: print "load " + str(study_file)
+    if not mock:
+        return IntraAnalysisWindow(study_file)
+    else:
+        print "mock mode"
+        from morphologist.tests.mocks.main_window import MockIntraAnalysisWindow
+        return MockIntraAnalysisWindow(study_file) 
