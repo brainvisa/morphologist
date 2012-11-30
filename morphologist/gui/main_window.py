@@ -19,32 +19,30 @@ def keep_objects_alive(objects):
 
 
 class LazyStudyModel(QtCore.QObject):
-    study_changed = QtCore.pyqtSignal()
+    changed = QtCore.pyqtSignal()
     status_changed = QtCore.pyqtSignal()
 
-    def __init__(self, study, parent=None):
+    def __init__(self, study=None, parent=None):
         super(LazyStudyModel, self).__init__(parent)
         self._study = None
         self._subjectnames = []
         self._status = {}
 
         self._update_interval = 2 # in seconds
-
         self._timer = QtCore.QTimer(self)
         self._timer.setInterval(self._update_interval * 1000)
         self._timer.timeout.connect(self._update_all_status)
-        self.set_study(study)
+        if study is not None:
+            self.set_study(study)
         self._timer.start()
 
     def set_study(self, study):
-        self._timer.timeout.disconnect(self._update_all_status)
         self._study = study
         self._subjectnames = self._study.subjects.keys()
         self._subjectnames.sort()
         self._status = {}
         self._update_all_status()
-        self._timer.timeout.connect(self._update_all_status)
-        self.study_changed.emit()
+        self.changed.emit()
 
     def get_status(self, index):
         subjectname = self._subjectnames[index]
@@ -97,17 +95,23 @@ class StudyTableModel(QtCore.QAbstractTableModel):
     SUBJECTSTATUS_COL = 1
     header = ['name', 'status'] #TODO: to be extended
 
-    def __init__(self, study_model, parent=None):
+    def __init__(self, study_model=None, parent=None):
         super(StudyTableModel, self).__init__(parent)
         self._study_model = None
         self._subjectnames = None
-        self.setModel(study_model)
+        if study_model is not None:
+            self.setModel(study_model)
 
     def setModel(self, study_model):
         self.beginResetModel()
+        if self._study_model is not None:
+            self._study_model.status_changed.disconnect(\
+                        self.on_study_model_status_changed)
+            self._study_model.changed.disconnect(self.on_study_model_changed)
         self._study_model = study_model
-        self._study_model.status_changed.connect(self.status_changed)
-        self._study_model.study_changed.connect(self.study_changed)
+        self._study_model.status_changed.connect(\
+                    self.on_study_model_status_changed)
+        self._study_model.changed.connect(self.on_study_model_changed)
         self.endResetModel()
         self.reset()
 
@@ -136,17 +140,20 @@ class StudyTableModel(QtCore.QAbstractTableModel):
                 return self._study_model.get_status(row)
 
     @QtCore.Slot()                
-    def status_changed(self):
-        self.study_changed()
+    def on_study_model_status_changed(self):
+        self._update_all_index()
 
-    @QtCore.Slot()                
-    def study_changed(self):
+    def _update_all_index(self):
         top_left = self.index(0, StudyTableModel.SUBJECTSTATUS_COL,
                               QtCore.QModelIndex())
         bottom_right = self.index(self.rowCount(),
                                   StudyTableModel.SUBJECTSTATUS_COL, 
                                   QtCore.QModelIndex())
         self.dataChanged.emit(top_left, bottom_right)
+
+    @QtCore.Slot()                
+    def on_study_model_changed(self):
+        self.reset()
 
 
 class StudyTableView(QtGui.QWidget):
@@ -177,14 +184,15 @@ class StudyTableView(QtGui.QWidget):
 
     @QtCore.Slot()
     def on_modelReset(self):
-        self.study_tableview.selectRow(0)
+        self._tableview.selectRow(0)
 
     def setModel(self, model):
-        if self._tablemodel:
+        if self._tablemodel is not None:
             self._tablemodel.modelReset.disconnect(self.on_modelReset)
         self._tablemodel = model
-        self._tablemodel.modelReset.connect(self.on_modelReset)
         self._tableview.setModel(model)
+        self._tablemodel.modelReset.connect(self.on_modelReset)
+        self.on_modelReset()
 
     def setSelectionModel(self, selection_model):
         self._tableview.setSelectionModel(selection_model)
@@ -193,20 +201,35 @@ class StudyTableView(QtGui.QWidget):
 class SubjectwiseViewportModel(QtCore.QObject):
     changed = QtCore.pyqtSignal()
 
-    def __init__(self, analyses):
+    def __init__(self):
         super(SubjectwiseViewportModel, self).__init__()
-        self.analyses = analyses
-        self._current_subjectname = None
+        self._analysis_model = None
 
-    def set_current_subjectname(self, subjectname):
-        self._current_subjectname = subjectname
+    def setModel(self, model):
+        if self._analysis_model is not None:
+            self._analysis_model.changed.disconnect(\
+                        self.on_analysis_model_changed)
+            self._analysis_model.outputs_changed.disconnect(\
+                        self.on_analysis_model_outputs_changed)
+        self._analysis_model = model
+        self._analysis_model.changed.connect(self.on_analysis_model_changed)
+        self._analysis_model.outputs_changed.connect(\
+                self.on_analysis_model_outputs_changed)
         self.changed.emit()
+
+    @QtCore.Slot()
+    def on_analysis_model_changed(self):
+        print "on_analysis_model_changed"
+
+    @QtCore.Slot()
+    def on_analysis_model_outputs_changed(self):
+        print "on_analysis_model_outputs_changed"
 
 
 class IntraAnalysisSubjectwiseViewportModel(SubjectwiseViewportModel):
 
-    def __init__(self, analyses):
-        super(IntraAnalysisSubjectwiseViewportModel, self).__init__(analyses)
+    def __init__(self):
+        super(IntraAnalysisSubjectwiseViewportModel, self).__init__()
         
     def getRawMRI(self):
         pass #TODO
@@ -300,13 +323,11 @@ class IntraAnalysisWindow(object):
     def __init__(self, study_file=None):
         self.ui = loadUi(self.uifile)
 
-        self.study = self._create_study(study_file)
-        self.study_model = LazyStudyModel(self.study)
+        self.study_model = LazyStudyModel()
         self.study_tablemodel = StudyTableModel(self.study_model)
         self.study_selection_model = QtGui.QItemSelectionModel(\
                                             self.study_tablemodel)
-        self.viewport_model = IntraAnalysisSubjectwiseViewportModel(\
-                                                self.study.analyses)
+        self.viewport_model = IntraAnalysisSubjectwiseViewportModel()
 
         self.study_view = StudyTableView(self.ui.study_widget_dock)
         self.study_view.setModel(self.study_tablemodel)
@@ -321,6 +342,9 @@ class IntraAnalysisWindow(object):
 
         self._init_qt_connections()
         self._init_widget()
+
+        self.study = self._create_study(study_file)
+        self.set_study(self.study)
 
     def _init_qt_connections(self):
         self.ui.run_button.clicked.connect(self.on_run_button_clicked)
@@ -413,10 +437,13 @@ class IntraAnalysisWindow(object):
                 QtGui.QMessageBox.critical(self.ui, 
                                           "Cannot save the study", "%s" %(e))
 
+    # FIXME : move code elsewhere
     @QtCore.Slot("QModelIndex &, QModelIndex &")
     def on_selection_changed(self, current, previous):
         subjectname = self.study_tablemodel.subjectname_from_row_index(current.row())
-        self.viewport_model.set_current_subjectname(subjectname)
+        analysis = self.study.analyses[subjectname]
+        # FIXME : to be removed
+        #self.viewport_model.set_current_subjectname(subjectname)
 
     def set_study(self, study):
         self.study = study
