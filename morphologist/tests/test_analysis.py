@@ -1,9 +1,8 @@
 import unittest
 import os
-import time
 
 from morphologist.analysis import Analysis, InputParameters 
-from morphologist.analysis import MissingParameterValueError, MissingInputFileError, OutputFileExistError, UnknownParameterName
+from morphologist.analysis import MissingParameterValueError, UnknownParameterName
 from morphologist.tests.mocks.analysis import MockAnalysis
 
 
@@ -17,63 +16,13 @@ class TestAnalysis(unittest.TestCase):
         test_case = MockAnalysisTestCase()
         return test_case
 
-    def test_run_analysis(self):
-        self.test_case.set_analysis_parameters()
-
-        self.analysis.run()
-
-        self.assert_(self.analysis.is_running())
-
-
-    def test_analysis_has_run(self):
-        self.test_case.set_analysis_parameters()
-        self.analysis.run()
-
-        self.analysis.wait()
-
-        self.assert_(not self.analysis.last_run_failed())
-        self.assert_output_files_exist()
-
-
-    def test_stop_analysis(self):
-        self.test_case.set_analysis_parameters()
-        self.analysis.run()
-        time.sleep(1) # tested analysis are longer to run than 1 second
-
-        self.analysis.stop()
-
-        self.assert_(not self.analysis.is_running())
-
-
-    def test_clear_state_after_interruption(self):
-        self.test_case.set_analysis_parameters()
-        self.analysis.run()
-        time.sleep(1) # tested analysis are longer to run than 1 second
-
-        self.analysis.stop()
-
-        self.assert_output_files_cleared()
-
 
     def test_missing_parameter_value_error(self):
         self.test_case.set_analysis_parameters()
         self.test_case.delete_some_parameter_values()
 
-        self.assertRaises(MissingParameterValueError, Analysis.run, self.analysis)
+        self.assertRaises(MissingParameterValueError, Analysis.get_command_list, self.analysis)
         
-
-    def test_missing_input_file_error(self):
-        self.test_case.set_analysis_parameters()
-        self.test_case.delete_some_input_files()
-
-        self.assertRaises(MissingInputFileError, Analysis.run, self.analysis)
-
-
-    def test_output_file_exist_error(self):
-        self.test_case.set_analysis_parameters()
-        self.test_case.create_some_output_files()
-
-        self.assertRaises(OutputFileExistError, Analysis.run, self.analysis)
 
     def test_unknown_parameter_error(self):
         wrong_parameter_name = self.test_case.get_wrong_parameter_name()
@@ -82,25 +31,17 @@ class TestAnalysis(unittest.TestCase):
                           InputParameters.get_value, 
                           self.analysis.input_params, wrong_parameter_name)
 
-
+    def test_clear_output_files(self):
+        self.test_case.set_analysis_parameters()
+        self.test_case.create_some_output_files()
+        
+        self.assertNotEqual(len(self.analysis.list_existing_output_files()), 0)
+        self.analysis.clear_output_files()
+        self.assertEqual(len(self.analysis.list_existing_output_files()), 0)
+        
+        
     def tearDown(self):
-        if self.analysis.is_running():
-            self.analysis.stop()
-        #some input files are removed in test_missing_input_file_error:
-        self.test_case.restore_input_files() 
-
-
-    def assert_output_files_exist(self):
-        for arg_name in self.analysis.output_params.list_file_parameter_names():
-            out_file_path = self.analysis.output_params.get_value(arg_name)
-            self.assert_(os.path.isfile(out_file_path))  
-
-
-    def assert_output_files_cleared(self):
-        for arg_name in self.analysis.output_params.list_file_parameter_names():
-            out_file_path = self.analysis.output_params.get_value(arg_name)
-            self.assert_(not os.path.isfile(out_file_path))  
-
+        pass
 
 
 class AnalysisTestCase(object):

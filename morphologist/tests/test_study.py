@@ -23,16 +23,7 @@ class TestStudy(unittest.TestCase):
                           self.study,
                           "/mypath/imgpath", 
                           existing_subject_name) 
- 
-    def test_run_analyses(self):
-        self.study.clear_results()
-        self.study.run_analyses()
-        self.study.wait_analyses_end()       
-
-        self.assert_(self.study.analyses_ended_with_success())
-
    
-        
 
     def test_save_load_study(self):
         studyfilepath = os.path.join(self.study.outputdir, "test_study_file")
