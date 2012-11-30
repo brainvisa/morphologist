@@ -23,7 +23,7 @@ class LazyStudyModel(QtCore.QObject):
     status_changed = QtCore.pyqtSignal()
 
 
-    def __init__(self, study, runner, parent=None):
+    def __init__(self, study=None, runner=None, parent=None):
         super(LazyStudyModel, self).__init__(parent)
         self._study = None
         self._runner = None
@@ -34,8 +34,8 @@ class LazyStudyModel(QtCore.QObject):
         self._timer = QtCore.QTimer(self)
         self._timer.setInterval(self._update_interval * 1000)
         self._timer.timeout.connect(self._update_all_status)
-        if study is not None:
-            self.set_study(study)
+        if study is not None and runner is not None:
+            self.set_study(study, runner)
         self._timer.start()
 
 
