@@ -8,17 +8,15 @@ from morphologist.formats import FormatsManager
 
 class SelectSubjectsDialog(QtGui.QFileDialog):
     
-    def __init__(self, manage_study_window, study_manager):
+    def __init__(self, parent):
         caption = "Select one or more subjects to be include into your study"
         files_filter = self._define_selectable_files_regexp()
         default_directory = ""
-        super(SelectSubjectsDialog, self).__init__(manage_study_window,
-                                                   caption, default_directory, files_filter)
-        self._study_manager = study_manager
+        super(SelectSubjectsDialog, self).__init__(parent, caption,
+                                    default_directory, files_filter)
         self.setObjectName("SelectSubjectsDialog")
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.setFileMode(QtGui.QFileDialog.ExistingFiles)
-        self.filesSelected.connect(self.onfilesSelected)
 
     def _define_selectable_files_regexp(self):
         formats_manager = FormatsManager.formats_manager()
@@ -34,13 +32,9 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
             volume_filters.append(filter)
             all_volumes_regexp.append(extensions_regexp)
         all_volumes_filter = '3D Volumes (%s)' % (' '.join(all_volumes_regexp))
-        all_filters = [all_volumes_filter] + volume_filters + ['All files (*.*)']
+        all_filters = [all_volumes_filter] + volume_filters +['All files (*.*)']
         final_filter = ';;'.join(all_filters)
         return final_filter
-
-    @QtCore.Slot("const QStringList &")
-    def onfilesSelected(self, filenames):
-        self._study_manager.add_subjects(filenames)
 
 
 class ManageStudyWindow(QtGui.QDialog):
@@ -116,7 +110,8 @@ class ManageStudyWindow(QtGui.QDialog):
     # this slot is automagically connected
     @QtCore.Slot()
     def on_add_one_subject_from_a_file_button_clicked(self):
-        dialog = SelectSubjectsDialog(self.ui, self)
+        dialog = SelectSubjectsDialog(self.ui)
+        dialog.filesSelected.connect(self.onSelectSubjectsDialogfilesSelected)
         dialog.show()
 
     # this slot is automagically connected
@@ -140,9 +135,9 @@ class ManageStudyWindow(QtGui.QDialog):
         print "cancel" #TODO
         self.ui.reject()
 
-
-
-
+    @QtCore.Slot("const QStringList &")
+    def onSelectSubjectsDialogfilesSelected(self, filenames):
+        self.add_subjects(filenames)
 
     def _check_study_consistency(self):
         study_keys = [] #subjectname is the subject uid for now 
