@@ -375,8 +375,10 @@ class IntraAnalysisWindow(object):
         return SWRunner(study)
 
     def _run_analyses(self):
+        run = False
         try:
             self.runner.run()
+            run = True
         except MissingParameterValueError, e:
             QtGui.QMessageBox.critical(self.ui, 
                                        "Run analysis error", 
@@ -392,14 +394,17 @@ class IntraAnalysisWindow(object):
                                                 QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
             if answer == QtGui.QMessageBox.Yes:
                 self.study.clear_results()
-                self._run_analyses()
+                run = self._run_analyses()
+        return run
 
         
     @QtCore.Slot()
     def on_run_button_clicked(self):
         self.ui.run_button.setEnabled(False)
-        self._run_analyses()
-        self.ui.stop_button.setEnabled(True)
+        if self._run_analyses():
+            self.ui.stop_button.setEnabled(True)
+        else:
+            self.ui.run_button.setEnabled(True)
 
     @QtCore.Slot()
     def on_stop_button_clicked(self):
@@ -431,7 +436,8 @@ class IntraAnalysisWindow(object):
 
     @QtCore.Slot()
     def on_open_study_action(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self.ui)
+        filename = QtGui.QFileDialog.getOpenFileName(self.ui, caption = "Open a study", directory="", 
+                                                     options=QtGui.QFileDialog.DontUseNativeDialog)
         if filename:
             try:
                 study = self._create_study(filename)
@@ -443,7 +449,8 @@ class IntraAnalysisWindow(object):
 
     @QtCore.Slot()
     def on_save_study_action(self):
-        filename = QtGui.QFileDialog.getSaveFileName(self.ui)
+        filename = QtGui.QFileDialog.getSaveFileName(self.ui, caption="Save a study", directory="", 
+                                                     options=QtGui.QFileDialog.DontUseNativeDialog)
         if filename:
             try:
                 self.study.save_to_file(filename)
