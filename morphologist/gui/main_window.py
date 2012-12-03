@@ -21,12 +21,13 @@ def keep_objects_alive(objects):
 class LazyStudyModel(QtCore.QObject):
     changed = QtCore.pyqtSignal()
     status_changed = QtCore.pyqtSignal()
+    runner_status_changed = QtCore.pyqtSignal(bool) 
 
 
     def __init__(self, study=None, runner=None, parent=None):
         super(LazyStudyModel, self).__init__(parent)
-        self._study = None
-        self._runner = None
+        self.study = None
+        self.runner = None
         self._subjectnames = []
         self._status = {}
 
@@ -40,11 +41,12 @@ class LazyStudyModel(QtCore.QObject):
 
 
     def set_study(self, study, runner):
-        self._study = study
-        self._runner = runner
-        self._subjectnames = self._study.subjects.keys()
+        self.study = study
+        self.runner = runner
+        self._subjectnames = self.study.subjects.keys()
         self._subjectnames.sort()
         self._status = {}
+        self._runner_is_running = False
         self._update_all_status()
         self.changed.emit()
 
@@ -61,18 +63,22 @@ class LazyStudyModel(QtCore.QObject):
     @QtCore.Slot()
     def _update_all_status(self):
         has_changed = False
+        new_runner_status = self.runner.is_running()
+        if new_runner_status != self._runner_is_running:
+            self._runner_is_running = new_runner_status
+            self.runner_status_changed.emit(self._runner_is_running)
         for subjectname in self._subjectnames:
             has_changed |= self._update_status_for_one_subject(subjectname) 
         if has_changed:
             self.status_changed.emit()
 
     def _update_status_for_one_subject(self, subjectname):
-        analysis = self._study.analyses[subjectname]
+        analysis = self.study.analyses[subjectname]
         has_changed = False
-        if self._runner.is_running():
+        if self.runner.is_running(subjectname):
             has_changed = self._update_one_status_for_one_subject_if_needed(\
                                                 subjectname, "is running")
-        elif self._runner.last_run_failed():
+        elif self.runner.last_run_failed():
             has_changed = self._update_one_status_for_one_subject_if_needed(\
                                                 subjectname, "last run failed")
         elif len(analysis.output_params.list_existing_files()) == 0:
@@ -319,8 +325,72 @@ class IntraAnalysisDisplayLibrary(DisplayLibrary):
 
     def initialize_views(self, views):
         self._backend.set_bgcolor_views(views, [0., 0., 0., 1.])
+        
+    
+class RunnerView(QtGui.QWidget):
+    uifile = os.path.join(ui_directory, 'runner.ui')
+    
+    def __init__(self, parent=None):
+        super(RunnerView, self).__init__(parent)
+        loadUi(self.uifile, self)
+        self._model = None
 
+        
+    def set_model(self, model):
+        if self._model is not None:
+            self._model.runner_status_changed.disconnect(self.on_model_changed)
+        self._model = model
+        self._model.runner_status_changed.connect(self.on_model_changed)
+    
+    @QtCore.Slot(bool)
+    def on_model_changed(self, running):
+        if running:
+            self.run_button.setEnabled(False)
+            self.stop_button.setEnabled(True)
+        else:
+            self.run_button.setEnabled(True)
+            self.stop_button.setEnabled(False)
+   
+    def _run_analyses(self):
+        run = False
+        try:
+            self._model.runner.run()
+            run = True
+        except MissingParameterValueError, e:
+            QtGui.QMessageBox.critical(self, 
+                                       "Run analysis error", 
+                                       "Some parameter value are missing.\n%s" %(e))
+        except MissingInputFileError, e:
+            QtGui.QMessageBox.critical(self, 
+                                       "Run analysis error", 
+                                       "Some input files do not exist.\n%s" %(e))
+        except OutputFileExistError, e:
+            answer = QtGui.QMessageBox.question(self, "Existing results",
+                                                "Some results already exist.\n" 
+                                                "Do you want to delete them ?", 
+                                                QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            if answer == QtGui.QMessageBox.Yes:
+                self._model.study.clear_results()
+                run = self._run_analyses()
+        return run
+            
+    @QtCore.Slot()
+    def on_run_button_clicked(self):
+        if self._model is not None:
+            self.run_button.setEnabled(False)
+            if self._run_analyses():
+                self.stop_button.setEnabled(True)
+            else:
+                self.run_button.setEnabled(True)
 
+    @QtCore.Slot()
+    def on_stop_button_clicked(self):
+        if self._model is not None:
+            self.stop_button.setEnabled(False)
+            self.runner.stop()
+            self.run_button.setEnabled(True)
+
+        
 class IntraAnalysisWindow(object):
     uifile = os.path.join(ui_directory, 'intra_analysis.ui')
 
@@ -345,6 +415,13 @@ class IntraAnalysisWindow(object):
                                         self.ui.viewport_frame)
         self.viewport_view.setModel(self.viewport_model)
 
+        self.runner_view = RunnerView(self.ui.runner_frame)
+        layout = QtGui.QVBoxLayout()
+        self.ui.runner_frame.setLayout(layout)
+        layout.addWidget(self.runner_view)
+        self.runner_view.set_model(self.study_model)
+        
+
         self.manage_study_window = None
 
         self._init_qt_connections()
@@ -353,8 +430,6 @@ class IntraAnalysisWindow(object):
         self.set_study(self._create_study(study_file))
 
     def _init_qt_connections(self):
-        self.ui.run_button.clicked.connect(self.on_run_button_clicked)
-        self.ui.stop_button.clicked.connect(self.on_stop_button_clicked)
         self.ui.action_new_study.triggered.connect(self.on_new_study_action)
         self.ui.action_open_study.triggered.connect(self.on_open_study_action)
         self.ui.action_save_study.triggered.connect(self.on_save_study_action)
@@ -374,44 +449,7 @@ class IntraAnalysisWindow(object):
         #return ThreadRunner(study)
         return SWRunner(study)
 
-    def _run_analyses(self):
-        run = False
-        try:
-            self.runner.run()
-            run = True
-        except MissingParameterValueError, e:
-            QtGui.QMessageBox.critical(self.ui, 
-                                       "Run analysis error", 
-                                       "Some parameter value are missing.\n%s" %(e))
-        except MissingInputFileError, e:
-            QtGui.QMessageBox.critical(self.ui, 
-                                       "Run analysis error", 
-                                       "Some input files do not exist.\n%s" %(e))
-        except OutputFileExistError, e:
-            answer = QtGui.QMessageBox.question(self.ui, "Existing results",
-                                                "Some results already exist.\n" 
-                                                "Do you want to delete them ?", 
-                                                QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-            if answer == QtGui.QMessageBox.Yes:
-                self.study.clear_results()
-                run = self._run_analyses()
-        return run
-
         
-    @QtCore.Slot()
-    def on_run_button_clicked(self):
-        self.ui.run_button.setEnabled(False)
-        if self._run_analyses():
-            self.ui.stop_button.setEnabled(True)
-        else:
-            self.ui.run_button.setEnabled(True)
-
-    @QtCore.Slot()
-    def on_stop_button_clicked(self):
-        self.ui.stop_button.setEnabled(False)
-        self.runner.stop()
-        self.ui.run_button.setEnabled(True)
-
     @QtCore.Slot()
     def on_new_study_action(self):
         study = self._create_study()
