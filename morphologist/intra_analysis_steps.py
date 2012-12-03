@@ -148,7 +148,7 @@ class SplitBrain(Step):
                    '-analyse', 'r', 
                    '-hname', self.histo_analysis,
                    '-output', self.split_mask,
-                   '-mode', "'Watershed (2011)'",
+                   '-mode', 'Watershed (2011)',
                    '-erosion', "2.0",
                    '-ccsize', "500",
                    '-Ridge', self.white_ridges,
