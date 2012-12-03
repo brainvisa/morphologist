@@ -50,7 +50,8 @@ class TestRunner(unittest.TestCase):
         self.study.clear_results()
         self.runner.run()
         
-        self.assert_(self.runner.is_running())
+        self.assert_(self.runner.is_running() or 
+                     (len(self.study.list_subjects_with_missing_results()) == 0))
         
     def test_has_run(self):
         self.study.clear_results()
