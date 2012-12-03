@@ -1,9 +1,11 @@
 import threading
 import os
 import time
+from datetime import timedelta, datetime
 
 from soma.workflow.client import WorkflowController, Helper, Workflow, Job, Group
-from soma.workflow.constants import WORKFLOW_IN_PROGRESS
+from soma.workflow.constants import WORKFLOW_IN_PROGRESS 
+from soma.workflow.constants import NOT_SUBMITTED, DONE, FAILED, DELETE_PENDING, KILL_PENDING, WARNING
 
 class Runner(object):
     ''' Abstract class '''
@@ -15,7 +17,7 @@ class Runner(object):
     def run(self):
         raise Exception("Runner is an abstract class.")
     
-    def is_runnning(self):
+    def is_runnning(self, subject_name=None):
         raise Exception("Runner is an abstract class.")
     
     def wait(self):
@@ -71,13 +73,14 @@ class ThreadRunner(Runner):
         command_list = []
         for analysis in self._study.analyses.values():
             command_list.extend( analysis.get_command_list() )
-        separator = " " 
         for command in command_list:
             with self._lock:
                 if self._interruption:
                     self._interruption = False
                     break
-            command_to_run = separator.join(command)
+            command_to_run = ""
+            for arg in command:
+                command_to_run += "\"%s\" " % arg
             print "\nrun: " + repr(command_to_run)
             return_value = os.system(command_to_run)
             if return_value != 0:
@@ -92,7 +95,7 @@ class ThreadRunner(Runner):
             self._execution_thread.start()
     
     
-    def is_running(self):
+    def is_running(self, subject_name=None):
         return self._execution_thread.is_alive() 
     
              
@@ -119,11 +122,24 @@ class ThreadRunner(Runner):
 class  SWRunner(Runner):
     """Soma-Workflow runner"""
     
+    WORKFLOW_NAME_SUFFIX = "Morphologist user friendly analysis"
+    
     def __init__(self, study):
         super(SWRunner, self).__init__(study)
         self._workflow_controller = WorkflowController()
         self._workflow_id = None
+        self._subjects_jobs = None  #subject_name -> list of job_ids
+        self._jobs_status = None #job_id -> status
+        self._last_status_update = None
+        self._delete_old_workflows()
+        self._workflow_controller.scheduler_config.set_proc_nb(Helper.cpu_count() - 1)
         
+    def _delete_old_workflows(self):        
+        for (workflow_id, (name, _)) in self._workflow_controller.workflows().iteritems():
+            if name is not None and name.endswith(self.WORKFLOW_NAME_SUFFIX):
+                self._workflow_controller.delete_workflow(workflow_id)
+
+
     def create_workflow(self):
         jobs = []
         dependencies = []
@@ -140,33 +156,79 @@ class  SWRunner(Runner):
                     dependencies.append((previous_job, job))
                 previous_job = job
                 
-            group = Group(name=self._define_group_name(subjectname), elements=subject_jobs)
+            group = Group(name=subjectname, elements=subject_jobs)
             groups.append(group)
             jobs.extend(subject_jobs)
         
         workflow = Workflow(jobs=jobs, dependencies=dependencies, 
-                            name = self._define_workflow_name(), root_group = groups)
+                            name=self._define_workflow_name(), root_group=groups)
         return workflow
         
     def _define_workflow_name(self): 
-        return "%s Morphologist analysis" % self._study.name
-        
-    def _define_group_name(self, subjectname):
-        return "%s analysis" % subjectname
+        return self._study.name + " " + self.WORKFLOW_NAME_SUFFIX
     
     def run(self):
         self._check_input_output_files()
         workflow = self.create_workflow()
-        self._workflow_id = self._workflow_controller.submit_workflow(workflow)
-        # FIXME: the status does not change immediately after run
-        time.sleep(2)
+        if self._workflow_id is not None:
+            self._workflow_controller.delete_workflow(self._workflow_id)
+        self._workflow_id = self._workflow_controller.submit_workflow(workflow, name=workflow.name)
+        self._update_subjects_jobs()
+        # the status does not change immediately after run, 
+        # so we wait for the status WORKFLOW_IN_PROGRESS or timeout
+        status = self._workflow_controller.workflow_status(self._workflow_id)
+        try_count = 10
+        while ((status != WORKFLOW_IN_PROGRESS) and (try_count > 0)):
+            time.sleep(0.5)
+            status = self._workflow_controller.workflow_status(self._workflow_id)
+            try_count -= 1
+        
+    def _update_subjects_jobs(self):
+        self._subjects_jobs = {}
+        engine_workflow = self._workflow_controller.workflow(self._workflow_id)
+        for group in engine_workflow.groups:
+            subject_name = group.name
+            job_list = group.elements 
+            job_ids = []
+            for job in job_list:
+                engine_job = engine_workflow.job_mapping[job]
+                job_ids.append(engine_job.job_id)
+            self._subjects_jobs[subject_name] = job_ids
+            
     
-    def is_running(self):
+    def is_running(self, subject_name=None):
         running = False
         if self._workflow_id is not None:
-            status = self._workflow_controller.workflow_status(self._workflow_id)
-            running = (status == WORKFLOW_IN_PROGRESS)
+            if subject_name:
+                running = self._subject_is_running(subject_name)
+            else:
+                status = self._workflow_controller.workflow_status(self._workflow_id)
+                running = (status == WORKFLOW_IN_PROGRESS)
         return running
+    
+    def _subject_is_running(self, subject_name):
+        if self._jobs_status == None or datetime.now() - self._last_status_update > timedelta(seconds=2):
+            self._update_jobs_status()
+            self._last_status_update = datetime.now()
+        running = False
+        for job_id in self._subjects_jobs[subject_name]:
+            if self._job_is_running(self._job_status[job_id]):
+                running = True
+                break
+        return running
+            
+    def _update_jobs_status(self):
+        print "update jobs status"
+        self._job_status = {}
+        workflow_elements_status = self._workflow_controller.workflow_elements_status(self._workflow_id)
+        for job_info in workflow_elements_status[0]:
+            job_id = job_info[0]
+            status = job_info[1]
+            self._job_status[job_id] = status
+            
+    def _job_is_running(self, status):
+        return not status in [NOT_SUBMITTED, DONE, FAILED, DELETE_PENDING, KILL_PENDING, WARNING]
+            
     
     def wait(self):
         Helper.wait_workflow(self._workflow_id, self._workflow_controller)
