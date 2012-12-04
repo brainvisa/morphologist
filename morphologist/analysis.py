@@ -181,7 +181,15 @@ class Parameters(object):
             if os.path.isfile(file_name):
                 existing_files.append(file_name)
         return existing_files
-        
+
+    def list_parameters_with_existing_files(self):
+        existing_files = {}
+        for name in self._file_param_names:
+            file_name = getattr(self, name)
+            if os.path.isfile(file_name):
+                existing_files[name] = file_name
+        return existing_files
+
     def list_file_parameter_names(self):
         return self._file_param_names
 
