@@ -156,6 +156,9 @@ class Parameters(object):
         for name in self._parameter_names:
             setattr(self, name, None)
 
+    def __getitem__(self, key):
+        return getattr(self, key)
+
     def list_missing_parameter_values(self):
         missing_values = []
         for name in self._parameter_names:
