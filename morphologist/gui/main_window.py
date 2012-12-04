@@ -158,9 +158,6 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self._init_qt_connections()
 
     def _init_qt_connections(self):
-        self.ui.action_new_study.triggered.connect(self.on_new_study_action)
-        self.ui.action_open_study.triggered.connect(self.on_open_study_action)
-        self.ui.action_save_study.triggered.connect(self.on_save_study_action)
         self.study_widget.selection_model.currentChanged.connect(self.on_selection_changed)
 
 
@@ -200,8 +197,9 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self.study.stop_analyses()
         self.run_button.setEnabled(True)
 
+    # this slot is automagically connected
     @QtCore.Slot()
-    def on_new_study_action(self):
+    def on_action_new_study_triggered(self):
         study = self._create_study()
         self.manage_study_window = ManageStudyWindow(study, self)
         self.manage_study_window.ui.accepted.connect(self.on_study_dialog_accepted)
@@ -224,8 +222,9 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         msgbox.show()
         
 
+    # this slot is automagically connected
     @QtCore.Slot()
-    def on_open_study_action(self):
+    def on_action_open_study_triggered(self):
         filename = QtGui.QFileDialog.getOpenFileName(self)
         if filename:
             try:
@@ -236,8 +235,9 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
             else:
                 self.set_study(study) 
 
+    # this slot is automagically connected
     @QtCore.Slot()
-    def on_save_study_action(self):
+    def on_action_save_study_triggered(self):
         filename = QtGui.QFileDialog.getSaveFileName(self)
         if filename:
             try:
