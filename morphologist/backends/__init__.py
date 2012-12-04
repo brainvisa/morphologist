@@ -3,6 +3,7 @@ from morphologist import settings
 
 class Backend(object):
     DISPLAY_ROLE = 'display_backend'
+    OBJECTS_LOADER_ROLE = 'objects_backend'
     _backend_instance = {}
     _backend_loading_info = {
         'pyanatomist' : ('morphologist.backends.pyanatomist_backend',
@@ -16,6 +17,14 @@ class Backend(object):
     @classmethod
     def select_display_backend(cls, backend_name):
         cls.select_backend_from_role(cls.DISPLAY_ROLE)
+
+    @classmethod
+    def objects_loader_backend(cls):
+        return cls.backend_from_role(cls.OBJECTS_LOADER_ROLE)
+
+    @classmethod
+    def select_objects_loader_backend(cls, backend_name):
+        cls.select_backend_from_role(cls.OBJECTS_LOADER_ROLE)
 
     @classmethod
     def backend_from_role(cls, role):
@@ -50,5 +59,20 @@ class DisplayManagerMixin(object):
     def create_axial_view(self, parent=None):
         raise Exception("DisplayManagerMixin is an abstract class")
 
+    def add_objects_to_window(self, objects, window):
+        raise Exception("DisplayManagerMixin is an abstract class")
+
+    def center_window_on_object(self, window, object):
+        raise Exception("DisplayManagerMixin is an abstract class")
+
     def set_bgcolor_views(self, views, rgba_color):
         raise Exception("DisplayManagerMixin is an abstract class")
+
+
+class ObjectsManagerMixin(object):
+
+    def load_object(self, filename):
+        raise Exception("ObjectsLoaderMixin is an abstract class")
+
+    def delete_objects(self, objects):
+        raise Exception("ObjectsLoaderMixin is an abstract class")
