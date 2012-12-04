@@ -14,7 +14,7 @@ class MockBiasCorrection(BiasCorrection):
                    'cp', self.out_files.edges, self.edges, ';', 
                    'cp', self.out_files.mri_corrected, self.mri_corrected, ';',
                    'cp', self.out_files.variance, self.variance, ';', 
-                   'sleep', '2']    
+                   'sleep', '10']    
         return command
 
 class MockHistogramAnalysis(HistogramAnalysis):
@@ -25,7 +25,7 @@ class MockHistogramAnalysis(HistogramAnalysis):
  
     def get_command(self):
         command = ['cp', self.out_files.histo_analysis, self.histo_analysis, ';',
-                   'sleep', '2']    
+                   'sleep', '10']    
         return command
 
 
@@ -38,7 +38,7 @@ class MockBrainSegmentation(BrainSegmentation):
     def get_command(self):
         command = ['cp', self.out_files.brain_mask, self.brain_mask, ';',
                    'cp', self.out_files.white_ridges, self.white_ridges, ';',
-                   'sleep', '2']    
+                   'sleep', '10']    
         return command
 
 
@@ -50,7 +50,7 @@ class MockSplitBrain(SplitBrain):
  
     def get_command(self):
         command = ['cp', self.out_files.split_mask, self.split_mask, ';',
-                   'sleep', '2']    
+                   'sleep', '10']    
         return command
 
 
