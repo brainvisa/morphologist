@@ -540,13 +540,13 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
                                        "Run analysis error", 
                                        "Some analysis were not run.\n%s" %(e))
 
-        self.stop_button.setEnabled(True)
+        self.ui.stop_button.setEnabled(True)
 
     @QtCore.Slot()
     def on_stop_button_clicked(self):
-        self.stop_button.setEnabled(False)
+        self.ui.stop_button.setEnabled(False)
         self.study.stop_analyses()
-        self.run_button.setEnabled(True)
+        self.ui.run_button.setEnabled(True)
 
     # this slot is automagically connected
     @QtCore.Slot()
