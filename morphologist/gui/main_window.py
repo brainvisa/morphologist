@@ -143,32 +143,25 @@ class StudyWidget(QtGui.QWidget):
         self.study_tableview.selectRow(0)
 
 
-class IntraAnalysisWindow(object):
+class IntraAnalysisWindow(QtGui.QMainWindow):
     uifile = os.path.join(ui_directory, 'intra_analysis.ui')
 
     def __init__(self, study_file=None):
-        self.ui = loadUi(self.uifile)
+        super(IntraAnalysisWindow, self).__init__()
+        self.ui = loadUi(self.uifile, self)
         self.study = self._create_study(study_file)
 
-        # FIXME : why dock is passed to StudyWidget ?
         self.study_widget = StudyWidget(self.study, self.ui.study_widget_dock)
         self.manage_study_window = None
         self.ui.study_widget_dock.setWidget(self.study_widget)
         self._current_subjectname = None
         self._init_qt_connections()
-        self._init_ui()
 
     def _init_qt_connections(self):
-        self.ui.run_button.clicked.connect(self.on_run_button_clicked)
-        self.ui.stop_button.clicked.connect(self.on_stop_button_clicked)
         self.ui.action_new_study.triggered.connect(self.on_new_study_action)
         self.ui.action_open_study.triggered.connect(self.on_open_study_action)
         self.ui.action_save_study.triggered.connect(self.on_save_study_action)
         self.study_widget.selection_model.currentChanged.connect(self.on_selection_changed)
-
-    def _init_ui(self):
-        # FIXME : should be true or false at the opening of the UI ?
-        self.ui.setEnabled(True)
 
 
     def _create_study(self, study_file=None):
@@ -183,7 +176,7 @@ class IntraAnalysisWindow(object):
         self.ui.run_button.setEnabled(False)
         subjects_with_out_files = self.study.list_subjects_with_results()
         if subjects_with_out_files:
-            answer = QtGui.QMessageBox.question(self.ui, "Existing results",
+            answer = QtGui.QMessageBox.question(self, "Existing results",
                                                 "Some results already exist.\n" 
                                                 "Do you want to delete them ?", 
                                                 QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
@@ -195,22 +188,22 @@ class IntraAnalysisWindow(object):
         try: 
             self.study.run_analyses()
         except OutputFileExistError, e:
-            QtGui.QMessageBox.critical(self.ui, 
+            QtGui.QMessageBox.critical(self, 
                                        "Run analysis error", 
                                        "Some analysis were not run.\n%s" %(e))
 
-        self.ui.stop_button.setEnabled(True)
+        self.stop_button.setEnabled(True)
 
     @QtCore.Slot()
     def on_stop_button_clicked(self):
-        self.ui.stop_button.setEnabled(False)
+        self.stop_button.setEnabled(False)
         self.study.stop_analyses()
-        self.ui.run_button.setEnabled(True)
+        self.run_button.setEnabled(True)
 
     @QtCore.Slot()
     def on_new_study_action(self):
         study = self._create_study()
-        self.manage_study_window = ManageStudyWindow(study, self.ui)
+        self.manage_study_window = ManageStudyWindow(study, self)
         self.manage_study_window.ui.accepted.connect(self.on_study_dialog_accepted)
         self.manage_study_window.ui.show()
         
@@ -227,34 +220,34 @@ class IntraAnalysisWindow(object):
         QtGui.QApplication.restoreOverrideCursor()
         msgbox = QtGui.QMessageBox( QtGui.QMessageBox.Information, "Images importation", 
                                     "The images have been copied in %s directory." % study.outputdir, 
-                                    QtGui.QMessageBox.Ok, self.ui)
+                                    QtGui.QMessageBox.Ok, self)
         msgbox.show()
         
 
     @QtCore.Slot()
     def on_open_study_action(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self.ui)
+        filename = QtGui.QFileDialog.getOpenFileName(self)
         if filename:
             try:
                 study = self._create_study(filename)
             except StudySerializationError, e:
-                QtGui.QMessageBox.critical(self.ui, 
+                QtGui.QMessageBox.critical(self, 
                                           "Cannot load the study", "%s" %(e))
             else:
                 self.set_study(study) 
 
     @QtCore.Slot()
     def on_save_study_action(self):
-        filename = QtGui.QFileDialog.getSaveFileName(self.ui)
+        filename = QtGui.QFileDialog.getSaveFileName(self)
         if filename:
             try:
                 self.study.save_to_file(filename)
             except StudySerializationError, e:
-                QtGui.QMessageBox.critical(self.ui, 
+                QtGui.QMessageBox.critical(self, 
                                           "Cannot save the study", "%s" %(e))
             
 
-    @QtCore.Slot("QModelIndex &, QModelIndex &")
+    @QtCore.Slot("const QModelIndex &", "const QModelIndex &")
     def on_selection_changed(self, current, previous):
         subjectname = self.study_widget.study_tablemodel.subjectname_from_row_index(\
                                                         current.row())
@@ -263,7 +256,7 @@ class IntraAnalysisWindow(object):
     def set_study(self, study):
         self.study = study
         self.study_widget.set_study(self.study)
-        self.ui.setWindowTitle("Morphologist - %s" % self.study.name)
+        self.setWindowTitle("Morphologist - %s" % self.study.name)
         
     def set_current_subjectname(self, subjectname):
         self._current_subjectname = subjectname

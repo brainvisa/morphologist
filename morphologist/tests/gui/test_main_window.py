@@ -32,24 +32,22 @@ class TestStudyWidget(TestGui):
         main_window = create_main_window()
         self.keep_widget_alive(main_window)
         main_window.set_study(self.test_case.study)
-        main_window.ui.show()
+        main_window.show()
         model = main_window.study_widget.study_tablemodel
         subjectnames = [model.data(model.index(i, 0)) \
                         for i in range(model.rowCount())]
         subjectnames = sorted(subjectnames)
-        main_window.ui.close()
+        main_window.close()
         self.assertEqual(self.test_case.subjectnames, subjectnames)
 
     @TestGui.start_qt_and_test
     def test_create_new_study(self):
         main_window = create_main_window()
         self.keep_widget_alive(main_window)
-        main_window.ui.show()
-#        main_window.ui.action_new_study.trigger()
-        #QtTest.QTest.mouseClick(main_window.ui.action_new_study,QtCore.Qt.LeftButton)
-        QtTest.QTest.keyClicks(main_window.ui, "n", QtCore.Qt.ControlModifier, 10 )
+        main_window.show()
+        QtTest.QTest.keyClicks(main_window, "n", QtCore.Qt.ControlModifier, 10 )
                                     
-        dialog = main_window.ui.findChild(QtGui.QDialog, 'ManageStudyDialog')
+        dialog = main_window.findChild(QtGui.QDialog, 'ManageStudyDialog')
         TestStudyGui.action_define_new_study_content(dialog, 
                                                      self.test_case.studyname, 
                                                      self.test_case.outputdir,
@@ -62,7 +60,7 @@ class TestStudyWidget(TestGui):
             self.assert_(os.path.exists(subject.imgname))
             self.assert_(subject.imgname.startswith(self.test_case.outputdir))
         
-        main_window.ui.close()
+        main_window.close()
 
 
 class TestFlatFilesStudyWidget(TestStudyWidget):

@@ -23,7 +23,7 @@ def main():
 
     qApp = QtGui.QApplication(sys.argv)
     main_window = create_main_window(options.study_file, options.mock)
-    main_window.ui.show()
+    main_window.show()
     sys.exit(qApp.exec_())
 
 
