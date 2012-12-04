@@ -32,7 +32,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>1 )</string>
+         <string>1 ) Anterior/posterior commissures</string>
         </property>
        </widget>
       </item>
@@ -67,7 +67,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>2 )</string>
+         <string>2 ) Bias corrected MRI</string>
         </property>
        </widget>
       </item>
@@ -102,7 +102,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>4 )</string>
+         <string>4 ) Cerebellum and hemispheres </string>
         </property>
        </widget>
       </item>
@@ -137,7 +137,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>3 )</string>
+         <string>3 ) Brain mask</string>
         </property>
        </widget>
       </item>
