@@ -27,6 +27,7 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         window.setWindowFlags(QtCore.Qt.Widget)
         awindow = self.anatomist.AWindow(self.anatomist, window)
         parent.layout().addWidget(awindow.getInternalRep())
+        awindow.releaseAppRef()
         return window
 
     def add_objects_to_window(self, objects, window):
@@ -47,7 +48,9 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
 
 ### objects loader backend
     def load_object(self, filename):
-        return self.anatomist.loadObject(filename)
+        object = self.anatomist.loadObject(filename)
+        object.releaseAppRef()
+        return object
 
     def delete_objects(self, objects):
         return self.anatomist.deleteObjects(objects)
