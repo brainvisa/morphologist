@@ -3,8 +3,7 @@ import os
 import filecmp
 
 from morphologist.study import SubjectNameExistsError
-from morphologist.tests.study import MockStudyTestCase#, BrainvisaStudyTestCase
-
+from morphologist.tests.study import MockStudyTestCase
 
 class TestStudy(unittest.TestCase):
 
@@ -14,7 +13,8 @@ class TestStudy(unittest.TestCase):
         self.test_case.add_subjects()
         self.test_case.set_parameters() 
         self.study = self.test_case.study
-  
+        self.study.import_data(self.test_case.parameter_template()) 
+ 
     def test_subject_name_exists_error(self):
         existing_subject_name = self.study.list_subject_names()[0]
         
@@ -40,10 +40,10 @@ class TestStudy(unittest.TestCase):
 
 
     def create_test_case(self):
-        #test_case = BrainvisaStudyTestCase()
         test_case = MockStudyTestCase()
         return test_case
 
 
 if __name__=='__main__':
+
     unittest.main()
