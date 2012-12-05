@@ -12,13 +12,6 @@ from morphologist.intra_analysis import IntraAnalysis
 from morphologist.runner import OutputFileExistError, MissingInputFileError, SWRunner#, ThreadRunner
 
 
-objects_kept_alive = []
-
-def keep_objects_alive(objects):
-    global objects_kept_alive
-    objects_kept_alive += objects
-
-
 class LazyStudyModel(QtCore.QObject):
     changed = QtCore.pyqtSignal()
     status_changed = QtCore.pyqtSignal()
