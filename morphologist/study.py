@@ -137,7 +137,10 @@ class Study(object):
             IntraAnalysis.create_outputdirs(parameter_template, subjectname, self.outputdir)
             import_step.run()
             subject.imgname = import_step.output
-                
+
+    def has_subjects(self):
+        return len(self.subjects) != 0
+                        
     def list_subject_names(self):
         return self.subjects.keys()
 
