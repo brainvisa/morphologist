@@ -77,18 +77,20 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         
     @QtCore.Slot()
     def on_study_dialog_accepted(self):
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         study = self.manage_study_window.study
-        study.import_data(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
-        study.set_analysis_parameters(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
-        self.set_study(study)
-        self.manage_study_window = None
-        QtGui.QApplication.restoreOverrideCursor()
-        msg = "The images have been copied in %s directory." % study.outputdir
-        msgbox = QtGui.QMessageBox(QtGui.QMessageBox.Information,
+        if study.has_subjects():
+            QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+            study.import_data(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
+            study.set_analysis_parameters(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
+            QtGui.QApplication.restoreOverrideCursor()
+            msg = "The images have been copied in %s directory." % study.outputdir
+            msgbox = QtGui.QMessageBox(QtGui.QMessageBox.Information,
                                    "Images importation", msg,
                                    QtGui.QMessageBox.Ok, self)
-        msgbox.show()
+            msgbox.show()
+        self.set_study(study)
+        self.manage_study_window = None
+
 
     # this slot is automagically connected
     @QtCore.Slot()
