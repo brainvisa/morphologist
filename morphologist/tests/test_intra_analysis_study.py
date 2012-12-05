@@ -1,7 +1,7 @@
 import unittest
 
 from morphologist.tests.test_study import TestStudy
-from morphologist.tests.study import IntraAnalysisStudyTestCaseBvParamTemplate, IntraAnalysisStudyTestCase
+from morphologist.tests.intra_analysis_study import IntraAnalysisStudyTestCaseBvParamTemplate, IntraAnalysisStudyTestCase
 
 
 class TestBrainvisaTemplateStudy(TestStudy):
