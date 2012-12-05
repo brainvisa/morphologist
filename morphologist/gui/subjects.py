@@ -4,13 +4,13 @@ from .qt_backend import QtCore, QtGui, loadUi
 from .gui import ui_directory 
 
 
-class StudyTableModel(QtCore.QAbstractTableModel):
+class SubjectsTableModel(QtCore.QAbstractTableModel):
     SUBJECTNAME_COL = 0 
     SUBJECTSTATUS_COL = 1
     header = ['name', 'status'] #TODO: to be extended
 
     def __init__(self, study_model=None, parent=None):
-        super(StudyTableModel, self).__init__(parent)
+        super(SubjectsTableModel, self).__init__(parent)
         self._study_model = None
         self._subjectnames = None
         if study_model is not None:
@@ -48,9 +48,9 @@ class StudyTableModel(QtCore.QAbstractTableModel):
     def data(self, index, role=QtCore.Qt.DisplayRole):
         row, column = index.row(), index.column()
         if role == QtCore.Qt.DisplayRole:
-            if column == StudyTableModel.SUBJECTNAME_COL:
+            if column == SubjectsTableModel.SUBJECTNAME_COL:
                 return self._study_model.get_subjectname(row)
-            if column == StudyTableModel.SUBJECTSTATUS_COL:
+            if column == SubjectsTableModel.SUBJECTSTATUS_COL:
                 return self._study_model.get_status(row)
 
     @QtCore.Slot()                
@@ -58,10 +58,10 @@ class StudyTableModel(QtCore.QAbstractTableModel):
         self._update_all_index()
 
     def _update_all_index(self):
-        top_left = self.index(0, StudyTableModel.SUBJECTSTATUS_COL,
+        top_left = self.index(0, SubjectsTableModel.SUBJECTSTATUS_COL,
                               QtCore.QModelIndex())
         bottom_right = self.index(self.rowCount(),
-                                  StudyTableModel.SUBJECTSTATUS_COL, 
+                                  SubjectsTableModel.SUBJECTSTATUS_COL, 
                                   QtCore.QModelIndex())
         self.dataChanged.emit(top_left, bottom_right)
 
@@ -70,7 +70,7 @@ class StudyTableModel(QtCore.QAbstractTableModel):
         self.reset()
 
 
-class StudyTableView(QtGui.QWidget):
+class SubjectsTableView(QtGui.QWidget):
     uifile = os.path.join(ui_directory, 'display_study.ui')
     # FIXME : missing handling of sorting triangle icon
     header_style_sheet = '''
@@ -83,7 +83,7 @@ class StudyTableView(QtGui.QWidget):
     subjectname_column_width = 100    
 
     def __init__(self, parent=None):
-        super(StudyTableView, self).__init__(parent)
+        super(SubjectsTableView, self).__init__(parent)
         self.ui = loadUi(self.uifile, self)
         self._tableview = self.ui.subjects_tableview
         self._tablemodel = None

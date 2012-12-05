@@ -10,7 +10,7 @@ from morphologist.runner import SWRunner#, ThreadRunner
 from .study_model import LazyStudyModel
 from .viewport import LazyAnalysisModel, IntraAnalysisSubjectwiseViewportModel, \
                         IntraAnalysisSubjectwiseViewportView
-from .subjects import StudyTableModel, StudyTableView
+from .subjects import SubjectsTableModel, SubjectsTableView
 from .runner import RunnerView
 
 class IntraAnalysisWindow(QtGui.QMainWindow):
@@ -24,12 +24,12 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self.runner = None
         self.study_model = LazyStudyModel()
         self.analysis_model = LazyAnalysisModel()
-        self.study_tablemodel = StudyTableModel(self.study_model)
+        self.study_tablemodel = SubjectsTableModel(self.study_model)
         self.study_selection_model = QtGui.QItemSelectionModel(\
                                             self.study_tablemodel)
         self.viewport_model = IntraAnalysisSubjectwiseViewportModel()
 
-        self.study_view = StudyTableView(self.ui.study_widget_dock)
+        self.study_view = SubjectsTableView(self.ui.study_widget_dock)
         self.study_view.setModel(self.study_tablemodel)
         self.study_view.setSelectionModel(self.study_selection_model)
         self.ui.study_widget_dock.setWidget(self.study_view)
