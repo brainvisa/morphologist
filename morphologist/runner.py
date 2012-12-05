@@ -218,7 +218,6 @@ class  SWRunner(Runner):
         return running
             
     def _update_jobs_status(self):
-        print "update jobs status"
         self._job_status = {}
         workflow_elements_status = self._workflow_controller.workflow_elements_status(self._workflow_id)
         for job_info in workflow_elements_status[0]:
