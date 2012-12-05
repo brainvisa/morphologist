@@ -17,15 +17,18 @@ class LazyStudyModel(QtCore.QObject):
         self._update_interval = 2 # in seconds
         self._timer = QtCore.QTimer(self)
         self._timer.setInterval(self._update_interval * 1000)
-        self._timer.timeout.connect(self._update_all_status)
         if study is not None and runner is not None:
             self.set_study(study, runner)
         self._timer.start()
 
 
     def set_study(self, study, runner):
+        if self.runner is None:
+            self.runner = runner
+            self._timer.timeout.connect(self._update_all_status)
+        else:
+            self.runner = runner
         self.study = study
-        self.runner = runner
         self._subjectnames = self.study.subjects.keys()
         self._subjectnames.sort()
         self._status = {}

@@ -23,9 +23,12 @@ class LazyAnalysisModel(QtCore.QObject):
         self._timer.start()
 
     def set_analysis(self, analysis):
-        self._analysis = analysis 
+        if self._analysis is None:
+            self._analysis = analysis 
+            self._timer.timeout.connect(self._check_changed_files)
+        else:
+            self._analysis = analysis 
         self._modification_time_of_existing_files = {}
-        self._timer.timeout.connect(self._check_changed_files)
         self.changed.emit()
 
     def _check_changed_files(self):
