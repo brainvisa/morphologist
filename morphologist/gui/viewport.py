@@ -25,20 +25,23 @@ class LazyAnalysisModel(QtCore.QObject):
     def set_analysis(self, analysis):
         if self._analysis is None:
             self._analysis = analysis 
-            self._timer.timeout.connect(self._check_changed_files)
+            self._timer.timeout.connect(self._check_output_changed_files)
         else:
             self._analysis = analysis 
         self._modification_time_of_existing_files = {}
         self.changed.emit()
+        self._check_input_changed_files()
 
-    def _check_changed_files(self):
+    def _check_input_changed_files(self):
         checked_inputs = \
             self._analysis.input_params.list_parameters_with_existing_files()
+        changed_input_parameters = self._changed_parameters(checked_inputs)
+        self.input_parameters_changed.emit(changed_input_parameters)
+
+    def _check_output_changed_files(self):
         checked_outputs = \
             self._analysis.output_params.list_parameters_with_existing_files()
-        changed_input_parameters = self._changed_parameters(checked_inputs)
         changed_output_parameters = self._changed_parameters(checked_outputs)
-        self.input_parameters_changed.emit(changed_input_parameters)
         self.output_parameters_changed.emit(changed_output_parameters)
 
     def _changed_parameters(self, checked_items):
