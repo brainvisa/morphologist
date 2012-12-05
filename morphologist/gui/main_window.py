@@ -6,7 +6,7 @@ from morphologist.study import Study
 from morphologist.study import StudySerializationError
 from .manage_study import ManageStudyWindow
 from morphologist.intra_analysis import IntraAnalysis
-from morphologist.runner import SWRunner#, ThreadRunner
+from morphologist.runner import SomaWorkflowRunner
 from .study_model import LazyStudyModel
 from .viewport import LazyAnalysisModel, IntraAnalysisSubjectwiseViewportModel, \
                         IntraAnalysisSubjectwiseViewportView
@@ -66,8 +66,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
             return Study()
         
     def _create_runner(self, study):
-        #return ThreadRunner(study)
-        return SWRunner(study)
+        return SomaWorkflowRunner(study)
 
     @QtCore.Slot()
     def on_action_new_study_triggered(self):

@@ -119,13 +119,12 @@ class ThreadRunner(Runner):
                 self._clear_output_files()
             
               
-class  SWRunner(Runner):
-    """Soma-Workflow runner"""
+class  SomaWorkflowRunner(Runner):
     
     WORKFLOW_NAME_SUFFIX = "Morphologist user friendly analysis"
     
     def __init__(self, study):
-        super(SWRunner, self).__init__(study)
+        super(SomaWorkflowRunner, self).__init__(study)
         self._workflow_controller = WorkflowController()
         self._workflow_id = None
         self._subjects_jobs = None  #subject_name -> list of job_ids

@@ -1,7 +1,7 @@
 import unittest
 import time
     
-from morphologist.runner import MissingInputFileError, OutputFileExistError, SWRunner #, ThreadRunner
+from morphologist.runner import MissingInputFileError, OutputFileExistError, SomaWorkflowRunner #, ThreadRunner
 from morphologist.tests.study import MockStudyTestCase#, BrainvisaStudyTestCase
 from morphologist.tests.test_analysis import MockAnalysisTestCase
 
@@ -19,7 +19,7 @@ class TestRunner(unittest.TestCase):
     
     def create_runner(self, study):
         #return ThreadRunner(study)
-        return SWRunner(study)
+        return SomaWorkflowRunner(study)
     
     def create_test_case(self):
         #test_case = BrainvisaStudyTestCase()
