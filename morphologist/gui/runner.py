@@ -17,12 +17,21 @@ class RunnerView(QtGui.QWidget):
         
     def set_model(self, model):
         if self._model is not None:
-            self._model.runner_status_changed.disconnect(self.on_model_changed)
+            self._model.runner_status_changed.disconnect(self.on_runner_status_changed)
+            self._model.changed.disconnect(self.on_model_changed)
         self._model = model
-        self._model.runner_status_changed.connect(self.on_model_changed)
-    
+        self._model.runner_status_changed.connect(self.on_runner_status_changed)
+        self._model.changed.connect(self.on_model_changed)
+   
+    @QtCore.Slot()
+    def on_model_changed(self):
+        if self._model.study.has_subjects():
+            self.ui.run_button.setEnabled(True)
+        else:
+            self.ui.run_button.setEnabled(False)
+        
     @QtCore.Slot(bool)
-    def on_model_changed(self, running):
+    def on_runner_status_changed(self, running):
         if running:
             self.ui.run_button.setEnabled(False)
             self.ui.stop_button.setEnabled(True)
