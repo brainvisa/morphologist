@@ -34,6 +34,10 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         awindow = self.anatomist.AWindow(self.anatomist, window)
         awindow.addObjects(objects)
 
+    def remove_objects_from_window(self, objects, window):
+        awindow = self.anatomist.AWindow(self.anatomist, window)
+        awindow.removeObjects(objects)
+
     def center_window_on_object(self, window, object):
         bb = object.boundingbox()
         position = (bb[1] - bb[0]) / 2
