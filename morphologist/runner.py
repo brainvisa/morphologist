@@ -32,7 +32,7 @@ class Runner(object):
     def _check_input_output_files(self):
         subjects_with_missing_inputs = []
         subjects_with_existing_outputs = []
-        for subjectname, analysis in self._study.analyses.items():
+        for subjectname, analysis in self._study.analyses.iteritems():
             if (analysis.input_params.list_missing_files() != []):
                 subjects_with_missing_inputs.append( subjectname )
             if analysis.output_params.list_existing_files() != []:
@@ -144,7 +144,7 @@ class  SomaWorkflowRunner(Runner):
         dependencies = []
         groups = []
         
-        for subjectname, analysis in self._study.analyses.items():
+        for subjectname, analysis in self._study.analyses.iteritems():
             subject_jobs=[]
             previous_job=None
             
