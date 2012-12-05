@@ -121,29 +121,50 @@ class ManageStudyWindow(QtGui.QDialog):
         ManageStudyWindow.on_apply_cancel_buttons_clicked_map[role](self)
 
     def on_apply_button_clicked(self):
-        outputdir = self.ui.outputdir_lineEdit.text()
         studyname = self.ui.studyname_lineEdit.text()
-        if self._check_study_consistency(): 
+        outputdir = self.ui.outputdir_lineEdit.text()
+        subjects_data = []
+        for i in range(self.ui.subjects_tablewidget.rowCount()):
+            subjects_data.append(self._get_subject_data(i))
+            
+        if self._check_study_consistency(outputdir, subjects_data): 
             self.study.name = studyname
             self.study.outputdir = outputdir
-            for i in range(self.ui.subjects_tablewidget.rowCount()):
-                groupname, subjectname, filename = self._get_subject_data(i)
+            for groupname, subjectname, filename in subjects_data:
                 self.study.add_subject_from_file(filename, subjectname, groupname)
             self.ui.accept()
 
     def on_cancel_button_clicked(self):
-        print "cancel" #TODO
         self.ui.reject()
 
     @QtCore.Slot("const QStringList &")
     def onSelectSubjectsDialogfilesSelected(self, filenames):
         self.add_subjects(filenames)
 
-    def _check_study_consistency(self):
+    def _check_study_consistency(self, outputdir, subjects_data):
+        consistency = True
+        consistency &= self._check_valid_outputdir(outputdir)
+        consistency &= self._check_duplicated_subjects(subjects_data)
+        return consistency
+        
+    def _check_valid_outputdir(self, outputdir):
+        consistency=True
+        msg = ""
+        if not os.path.exists(outputdir):
+            consistency = False
+            msg = "The output directory %s does not exist." % outputdir
+        elif len(os.listdir(outputdir)) != 0:
+            consistency = False
+            msg = "The output directory %s is not empty." % outputdir
+        if not consistency:
+            QtGui.QMessageBox.critical(self, "Study consistency error", msg)
+        return consistency
+            
+        
+    def _check_duplicated_subjects(self, subjects_data):
         study_keys = [] #subjectname is the subject uid for now 
         multiples = []
-        for i in range(self.ui.subjects_tablewidget.rowCount()):
-            groupname, subjectname, filename = self._get_subject_data(i)
+        for groupname, subjectname, filename in subjects_data:
             if subjectname in study_keys and\
                subjectname not in multiples:
                 multiples.append(subjectname)
@@ -154,12 +175,13 @@ class ManageStudyWindow(QtGui.QDialog):
             multiple_str = "%s" %(subjectname)
             for subjectname in multiples[1:len(multiples)]:
                 multiple_str += ", %s" %(subjectname)
-            QtGui.QMessageBox.critical(self.ui, "Study consistency error",
+            QtGui.QMessageBox.critical(self, "Study consistency error",
                                        "Some subjects have the same "
                                        "name: \n %s" %(multiple_str))
             return False
         return True
-
+        
+        
     def _add_subject(self, filename, groupname):
         subjectname = Study.define_subjectname_from_filename(filename)
         new_row = self.ui.subjects_tablewidget.rowCount()
