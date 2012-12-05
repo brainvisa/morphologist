@@ -66,6 +66,6 @@ class RunnerView(QtGui.QWidget):
     def on_stop_button_clicked(self):
         if self._model is not None:
             self.stop_button.setEnabled(False)
-            self.runner.stop()
+            self._model.runner.stop()
             self.run_button.setEnabled(True)
             
