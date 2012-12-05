@@ -13,13 +13,13 @@ class TestStudy(unittest.TestCase):
         self.test_case.add_subjects()
         self.test_case.set_parameters() 
         self.study = self.test_case.study
-        self.study.import_data(self.test_case.parameter_template()) 
+        #self.study.import_data(self.test_case.parameter_template()) 
  
     def test_subject_name_exists_error(self):
         existing_subject_name = self.study.list_subject_names()[0]
         
         self.assertRaises(SubjectNameExistsError, 
-                          self.test_case.study_cls.add_subject_from_file,
+                          self.test_case.study_cls().add_subject_from_file,
                           self.study,
                           "/mypath/imgpath", 
                           existing_subject_name) 
@@ -33,7 +33,7 @@ class TestStudy(unittest.TestCase):
         print "save to " + repr(studyfilepath)
 
         self.study.save_to_file(studyfilepath)
-        loaded_study = self.test_case.study_cls.from_file(studyfilepath)
+        loaded_study = self.test_case.study_cls().from_file(studyfilepath)
         loaded_study.save_to_file(studyfilepath2)
 
         self.assert_(filecmp.cmp(studyfilepath, studyfilepath2))
