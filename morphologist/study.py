@@ -141,32 +141,19 @@ class Study(object):
     def list_subject_names(self):
         return self.subjects.keys()
 
-    def list_subjects_with_results(self):
+    def list_subjects_with_some_results(self):
         subjects = []
         for subjectname, analysis in self.analyses.iteritems():
             if analysis.list_existing_output_files():
                 subjects.append(subjectname)
         return subjects
-
-    def run_analyses(self):
-        for analysis in self.analyses.itervalues():
-            analysis.run()     
-
-    def wait_analyses_end(self):
-        for analysis in self.analyses.itervalues():
-            analysis.wait()
-
-    def stop_analyses(self):
-        for analysis in self.analyses.itervalues():
-            analysis.stop()
-
-    def analyses_ended_with_success(self):
-        success = True
-        for analysis in self.analyses.itervalues():
-            if analysis.last_run_failed():
-                success = False
-                break
-        return success
+    
+    def list_subjects_with_missing_results(self):
+        subjects = []
+        for subjectname, analysis in self.analyses.iteritems():
+            if analysis.list_missing_output_files():
+                subjects.append(subjectname)
+        return subjects
 
     def clear_results(self):
         for analysis in self.analyses.itervalues():

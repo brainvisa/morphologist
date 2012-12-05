@@ -1,6 +1,5 @@
 import copy
 import os
-import threading
 
 
 class Analysis(object):
@@ -10,12 +9,6 @@ class Analysis(object):
 
     def __init__(self, step_flow):
         self._step_flow = step_flow
-        self._execution_thread = threading.Thread(name = "analysis run",
-                                                  target = Analysis._sync_run,
-                                                  args =([self]))
-        self._lock = threading.RLock()
-        self._interruption = False
-        self._last_run_failed = False
 
 
     def set_parameters(self, param_template_id, name, image, outputdir):
@@ -44,32 +37,11 @@ class Analysis(object):
 
     input_params = property(get_input_params, set_input_params)
     output_params = property(get_output_params, set_output_params) 
- 
-
-    def _sync_run(self):
-        self._last_run_failed = False
-        command_list = self._step_flow.get_command_list()
-        separator = " " 
-        for command in command_list:
-            with self._lock:
-                if self._interruption:
-                    self._interruption = False
-                    break
-            command_to_run = separator.join(command)
-            print "\nrun: " + repr(command_to_run)
-            return_value = os.system(command_to_run)
-            if return_value != 0:
-                self._last_run_failed = True
-                break
-
-
-    def run(self):
+    
+    
+    def get_command_list(self):
         self._check_parameter_values_filled()
-        self._check_input_files_exist()
-        self._check_output_files_dont_exist()
-        if not self._execution_thread.is_alive():
-            self._execution_thread.setDaemon(True)
-            self._execution_thread.start()
+        return self._step_flow.get_command_list()
 
 
     def _check_parameter_values_filled(self):
@@ -82,51 +54,15 @@ class Analysis(object):
             raise MissingParameterValueError(message)
 
 
-    def _check_input_files_exist(self):
-        missing_files = self._step_flow.input_params.list_missing_files()
-        if missing_files:
-            separator = " ,"
-            message = separator.join(missing_files)
-            raise MissingInputFileError(message)
-
-
-    def _check_output_files_dont_exist(self):
-        existing_files = self.list_existing_output_files()
-        if existing_files:
-            separator = " ,"
-            message = separator.join(existing_files)
-            raise OutputFileExistError(message) 
-
     def list_existing_output_files(self):
         return self._step_flow.output_params.list_existing_files()
 
-    def is_running(self):
-        return self._execution_thread.is_alive() 
 
-
-    def wait(self):
-        self._execution_thread.join()
-
-
-    def last_run_failed(self):
-        return self._last_run_failed
-
-
-    def stop(self):
-        with self._lock:
-            self._interruption = True
-        self._execution_thread.join()
-        with self._lock:
-            if self._interruption:
-                # the thread ended without being interrupted
-                self._interruption = False
-            else:
-                self.clear_output_files()
+    def list_missing_output_files(self):
+        return self._step_flow.output_params.list_missing_files()
 
 
     def clear_output_files(self):
-        if self.is_running():
-            self.stop()
         for param_name in self._step_flow.output_params.list_file_parameter_names():
             out_file_path = self._step_flow.output_params.get_value(param_name)
             if os.path.isfile(out_file_path):
@@ -137,12 +73,6 @@ class UnknownParameterTemplate(Exception):
     pass
 
 class MissingParameterValueError(Exception):
-    pass
-
-class MissingInputFileError(Exception):
-    pass
-
-class OutputFileExistError(Exception):
     pass
 
 

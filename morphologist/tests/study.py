@@ -8,6 +8,7 @@ class AbstractStudyTestCase(object):
 
     def __init__(self):
         self.study = None
+        self.study_cls = None
         self.studyname = None
         self.outputdir = None
         self.filenames = None
@@ -30,6 +31,7 @@ class MockStudyTestCase(AbstractStudyTestCase):
 
     def __init__(self):
         super(MockStudyTestCase, self).__init__()
+        self.study_cls = MockStudy
         self.studyname = 'mock_study'
         self.outputdir = '/tmp'
         self.subjectnames = ['bla', 'blabla', 'blablabla'] 
@@ -49,6 +51,7 @@ class FlatFilesStudyTestCase(AbstractStudyTestCase):
 
     def __init__(self):
         super(FlatFilesStudyTestCase, self).__init__()
+        self.study_cls = Study
         self.studyname = 'my_study'
         self.outputdir = '/tmp/morphologist_tests/studies/my_study'
         basenames = ['caca.ima', 'chaos.nii.gz',
@@ -70,6 +73,7 @@ class BrainvisaStudyTestCase(AbstractStudyTestCase):
 
     def __init__(self):
         super(BrainvisaStudyTestCase, self).__init__()
+        self.study_cls = Study
         self.studyname = 'test'
         self.outputdir = '/volatile/laguitton/data/icbm/icbm'
         self.subjectnames = ['icbm100T', 'icbm101T']
