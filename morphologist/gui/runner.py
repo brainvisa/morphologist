@@ -11,7 +11,7 @@ class RunnerView(QtGui.QWidget):
     
     def __init__(self, parent=None):
         super(RunnerView, self).__init__(parent)
-        loadUi(self.uifile, self)
+        self.ui = loadUi(self.uifile, self)
         self._model = None
 
         
@@ -24,11 +24,11 @@ class RunnerView(QtGui.QWidget):
     @QtCore.Slot(bool)
     def on_model_changed(self, running):
         if running:
-            self.run_button.setEnabled(False)
-            self.stop_button.setEnabled(True)
+            self.ui.run_button.setEnabled(False)
+            self.ui.stop_button.setEnabled(True)
         else:
-            self.run_button.setEnabled(True)
-            self.stop_button.setEnabled(False)
+            self.ui.run_button.setEnabled(True)
+            self.ui.stop_button.setEnabled(False)
    
     def _run_analyses(self):
         run = False
@@ -56,16 +56,16 @@ class RunnerView(QtGui.QWidget):
     @QtCore.Slot()
     def on_run_button_clicked(self):
         if self._model is not None:
-            self.run_button.setEnabled(False)
+            self.ui.run_button.setEnabled(False)
             if self._run_analyses():
-                self.stop_button.setEnabled(True)
+                self.ui.stop_button.setEnabled(True)
             else:
-                self.run_button.setEnabled(True)
+                self.ui.run_button.setEnabled(True)
 
     @QtCore.Slot()
     def on_stop_button_clicked(self):
         if self._model is not None:
-            self.stop_button.setEnabled(False)
+            self.ui.stop_button.setEnabled(False)
             self._model.runner.stop()
-            self.run_button.setEnabled(True)
+            self.ui.run_button.setEnabled(True)
             
