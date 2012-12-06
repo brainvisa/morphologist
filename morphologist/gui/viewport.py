@@ -225,14 +225,16 @@ class IntraAnalysisSubjectwiseViewportView(QtGui.QWidget):
         
     @QtCore.Slot()
     def on_model_changed(self):
-        self._views = []
-        objects = self._objects_view1 + self._objects_view2 + \
-                    self._objects_view3 + self._objects_view4
-        self._display_lib._backend.delete_objects(objects)
-        # FIXME: vider toutes les vues anatomist
-        # FIXME: move this lines
-        return
+        self._display_lib._backend.remove_objects_from_window(self._objects_view1, self.view1)
+        self._display_lib._backend.remove_objects_from_window(self._objects_view2, self.view2)
+        self._display_lib._backend.remove_objects_from_window(self._objects_view3, self.view3)
+        self._display_lib._backend.remove_objects_from_window(self._objects_view4, self.view4)
+        self._objects_view1 = []
+        self._objects_view2 = []
+        self._objects_view3 = []
+        self._objects_view4 = []
 
+        
     @QtCore.Slot()
     def on_raw_mri_changed(self):
         object = self._model.observed_objects['mri']

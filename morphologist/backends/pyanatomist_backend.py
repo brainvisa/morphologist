@@ -53,7 +53,6 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
 ### objects loader backend
     def load_object(self, filename):
         object = self.anatomist.loadObject(filename)
-        object.releaseAppRef()
         return object
 
     def delete_objects(self, objects):
