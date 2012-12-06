@@ -64,17 +64,13 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         object = self.anatomist.loadObject(filename)
         return object
 
-    def reload_object(self, object):
+    def reload_object_if_needed(self, object):
         object.reload()
         return object
-
-    def reload_object_if_needed(self, object):
-        filename = object.fileName()
-        if os.path.exists(filename):
-            object.reload()
-            return object
-        else:
-            return None
         
     def delete_objects(self, objects):
         return self.anatomist.deleteObjects(objects)
+
+    def set_palette(self, object, palette_name):
+        object.setPalette(palette_name)
+        

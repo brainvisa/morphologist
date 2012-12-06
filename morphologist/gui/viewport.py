@@ -162,7 +162,10 @@ class IntraAnalysisSubjectwiseViewportModel(SubjectwiseViewportModel):
             object = self.observed_objects[parameter]
             filename = filename_from_parameter(parameter)
             if object is not None:
-                object = self._objects_loader_backend.reload_object_if_needed(object)
+                if os.path.exists(filename):
+                    object = self._objects_loader_backend.reload_object_if_needed(object)
+                else:
+                    object = None
             else:
                 try:
                     object = self._objects_loader_backend.load_object(filename)
@@ -248,18 +251,21 @@ class IntraAnalysisSubjectwiseViewportView(QtGui.QWidget):
     def on_corrected_mri_changed(self):
         object = self._model.observed_objects['mri_corrected']
         if object is not None:
+            self._display_lib._backend.set_palette(object, "Rainbow2")
             self._display_lib._backend.add_objects_to_window(object, self.view2)
 
     @QtCore.Slot()
     def on_brain_mask_changed(self):
         object = self._model.observed_objects['brain_mask']
         if object is not None:
+            self._display_lib._backend.set_palette(object, "GREEN-lfusion")
             self._display_lib._backend.add_objects_to_window(object, self.view3)
 
     @QtCore.Slot()
     def on_split_mask_changed(self):
         object = self._model.observed_objects['split_mask']
         if object is not None:
+            self._display_lib._backend.set_palette(object, "RAINBOW")
             self._display_lib._backend.add_objects_to_window(object, self.view4)
 
 
