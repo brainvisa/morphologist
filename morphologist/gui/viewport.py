@@ -13,7 +13,8 @@ class LazyAnalysisModel(QtCore.QObject):
     def __init__(self, analysis=None, parent=None):
         super(LazyAnalysisModel, self).__init__(parent)
         self._analysis = None 
-        self._modification_time_of_existing_files = {}
+        self._input_parameters_file_modification_time = {}
+        self._output_parameters_file_modification_time = {}
 
         self._update_interval = 2 # in seconds
         self._timer = QtCore.QTimer(self)
@@ -28,31 +29,44 @@ class LazyAnalysisModel(QtCore.QObject):
             self._timer.timeout.connect(self._check_output_changed_files)
         else:
             self._analysis = analysis 
-        self._modification_time_of_existing_files = {}
+        self._input_parameters_file_modification_time = {}
+        self._output_parameters_file_modification_time = {}
         self.changed.emit()
         self._check_input_changed_files()
 
     def _check_input_changed_files(self):
         checked_inputs = \
             self._analysis.input_params.list_parameters_with_existing_files()
-        changed_input_parameters = self._changed_parameters(checked_inputs)
+        changed_input_parameters = self._changed_parameters(checked_inputs,
+                            self._input_parameters_file_modification_time)
         self.input_parameters_changed.emit(changed_input_parameters)
 
     def _check_output_changed_files(self):
         checked_outputs = \
             self._analysis.output_params.list_parameters_with_existing_files()
-        changed_output_parameters = self._changed_parameters(checked_outputs)
+        changed_output_parameters = self._changed_parameters(checked_outputs,
+                            self._output_parameters_file_modification_time)
         self.output_parameters_changed.emit(changed_output_parameters)
 
-    def _changed_parameters(self, checked_items):
+    def _changed_parameters(self, existing_items,
+            parameters_file_modification_time):
         changed_parameters = []
-        for parameter_name, filename in checked_items.items():
+        for parameter_name, filename in existing_items.items():
             stat = os.stat(filename)
-            last_modification_time = self._modification_time_of_existing_files.get(filename, 0)
+            last_modification_time = parameters_file_modification_time.get(parameter_name, 0)
             new_modification_time = stat.st_mtime
             if new_modification_time > last_modification_time:
-                self._modification_time_of_existing_files[filename] = new_modification_time
+                parameters_file_modification_time[parameter_name] = \
+                                                    new_modification_time
                 changed_parameters.append(parameter_name)
+
+        prev_parameters = set(parameters_file_modification_time.keys())
+        new_parameters = set(existing_items.keys())
+        deleted_parameters = prev_parameters.difference(new_parameters)
+        for parameter_name in deleted_parameters:
+            changed_parameters.append(parameter_name)
+            del parameters_file_modification_time[parameter_name]
+        
         return changed_parameters
 
     def filename_from_input_parameter(self, parameter):
@@ -146,16 +160,17 @@ class IntraAnalysisSubjectwiseViewportModel(SubjectwiseViewportModel):
             if not parameter in self.observed_objects.keys():
                 continue
             object = self.observed_objects[parameter]
-            if object is not None:
-                self._objects_loader_backend.reload_object(object)
             filename = filename_from_parameter(parameter)
-            try:
-                object = self._objects_loader_backend.load_object(filename)
-            except Exception, e:
-                # XXX: should be propagated to the GUI ?
-                print "error: parameter '%s':" % parameter, \
-                        "can't load '%s'" % filename, e 
-                continue
+            if object is not None:
+                object = self._objects_loader_backend.reload_object_if_needed(object)
+            else:
+                try:
+                    object = self._objects_loader_backend.load_object(filename)
+                except Exception, e:
+                    # XXX: should be propagated to the GUI ?
+                    print "error: parameter '%s':" % parameter, \
+                            "can't load '%s'" % filename, e 
+                    continue
             self.observed_objects[parameter] = object
             signal = self.signal_map.get(parameter)
             if signal is not None:
@@ -221,27 +236,31 @@ class IntraAnalysisSubjectwiseViewportView(QtGui.QWidget):
     @QtCore.Slot()
     def on_model_changed(self):
         self._display_lib._backend.clear_windows(self._views)
-        
+
     @QtCore.Slot()
     def on_raw_mri_changed(self):
         object = self._model.observed_objects['mri']
-        self._display_lib._backend.add_objects_to_window(object, self.view1)
-        self._display_lib._backend.center_window_on_object(self.view1, object)
+        if object is not None:
+            self._display_lib._backend.add_objects_to_window(object, self.view1)
+            self._display_lib._backend.center_window_on_object(self.view1, object)
 
     @QtCore.Slot()
     def on_corrected_mri_changed(self):
         object = self._model.observed_objects['mri_corrected']
-        self._display_lib._backend.add_objects_to_window(object, self.view2)
+        if object is not None:
+            self._display_lib._backend.add_objects_to_window(object, self.view2)
 
     @QtCore.Slot()
     def on_brain_mask_changed(self):
         object = self._model.observed_objects['brain_mask']
-        self._display_lib._backend.add_objects_to_window(object, self.view3)
+        if object is not None:
+            self._display_lib._backend.add_objects_to_window(object, self.view3)
 
     @QtCore.Slot()
     def on_split_mask_changed(self):
         object = self._model.observed_objects['split_mask']
-        self._display_lib._backend.add_objects_to_window(object, self.view4)
+        if object is not None:
+            self._display_lib._backend.add_objects_to_window(object, self.view4)
 
 
 class DisplayLibrary(object):
