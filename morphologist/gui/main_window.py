@@ -8,10 +8,11 @@ from .manage_study import ManageStudyWindow
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.runner import SomaWorkflowRunner
 from .study_model import LazyStudyModel
-from .viewport import LazyAnalysisModel, IntraAnalysisSubjectwiseViewportModel, \
-                        IntraAnalysisSubjectwiseViewportView
+from .viewport import LazyAnalysisModel, IntraAnalysisSubjectwiseViewportModel,\
+                      IntraAnalysisSubjectwiseViewportView
 from .subjects import SubjectsTableModel, SubjectsTableView
 from .runner import RunnerView
+
 
 class IntraAnalysisWindow(QtGui.QMainWindow):
     uifile = os.path.join(ui_directory, 'intra_analysis.ui')
