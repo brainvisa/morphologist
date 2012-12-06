@@ -65,7 +65,7 @@ def main():
 
     stepname = sys.argv[1]
     args = sys.argv[2:]
-    time_to_sleep = 5
+    time_to_sleep = 2
 
     if stepname == 'bias_correction':
         out_files_hfiltered, hfiltered, \
@@ -73,26 +73,26 @@ def main():
         out_files_edges, edges, \
         out_files_mri_corrected, mri_corrected, \
         out_files_variance, variance = args
+        time.sleep(time_to_sleep)
         shutil.copy(out_files_hfiltered, hfiltered)
         shutil.copy(out_files_white_ridges, white_ridges)
         shutil.copy(out_files_edges, edges)
         shutil.copy(out_files_mri_corrected, mri_corrected)
         shutil.copy(out_files_variance, variance)
-        time.sleep(time_to_sleep)
     elif stepname == 'histogram_analysis':
         out_files_histo_analysis, histo_analysis = args
-        shutil.copy(out_files_histo_analysis, histo_analysis)
         time.sleep(time_to_sleep)
+        shutil.copy(out_files_histo_analysis, histo_analysis)
     elif stepname == 'brain_segmentation':
         out_files_brain_mask, brain_mask, \
             out_files_white_ridges, white_ridges = args
+        time.sleep(time_to_sleep)
         shutil.copy(out_files_brain_mask, brain_mask)
         shutil.copy(out_files_white_ridges, white_ridges)
-        time.sleep(time_to_sleep)
     elif stepname == 'split_brain':
         out_files_split_mask, split_mask = args
-        shutil.copy(out_files_split_mask, split_mask)
         time.sleep(time_to_sleep)
+        shutil.copy(out_files_split_mask, split_mask)
     
 
 if __name__ == '__main__' : main()
