@@ -32,7 +32,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>1 ) Anterior/posterior commissures</string>
+         <string>1 ) Raw MRI + Anterior/posterior commissures</string>
         </property>
        </widget>
       </item>
