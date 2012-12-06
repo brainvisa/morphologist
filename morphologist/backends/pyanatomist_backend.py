@@ -1,6 +1,6 @@
 import anatomist.direct.api as ana
 
-from morphologist.gui.qt_backend import QtCore, QtGui, loadUi 
+from morphologist.gui.qt_backend import QtCore
 from morphologist.backends import Backend, \
             DisplayManagerMixin, ObjectsManagerMixin
 
@@ -27,7 +27,6 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         window.setWindowFlags(QtCore.Qt.Widget)
         awindow = self.anatomist.AWindow(self.anatomist, window)
         parent.layout().addWidget(awindow.getInternalRep())
-        awindow.releaseAppRef()
         return window
 
     def add_objects_to_window(self, objects, window):
@@ -38,6 +37,14 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         awindow = self.anatomist.AWindow(self.anatomist, window)
         awindow.removeObjects(objects)
 
+    def clear_window(self, window):
+        awindow = self.anatomist.AWindow(self.anatomist, window)
+        awindow.removeObjects(awindow.objects)
+        
+    def clear_windows(self, windows):
+        for window in windows:
+            self.clear_window(window)
+        
     def center_window_on_object(self, window, object):
         bb = object.boundingbox()
         position = (bb[1] - bb[0]) / 2
@@ -55,5 +62,9 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         object = self.anatomist.loadObject(filename)
         return object
 
+    def reload_object(self, object):
+        object.reload()
+        return object
+        
     def delete_objects(self, objects):
         return self.anatomist.deleteObjects(objects)

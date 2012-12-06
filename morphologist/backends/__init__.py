@@ -64,7 +64,14 @@ class DisplayManagerMixin(object):
 
     def remove_objects_from_window(self, objects, window):
         raise Exception("DisplayManagerMixin is an abstract class")
-
+   
+    def clear_window(self, window):
+        raise Exception("DisplayManagerMixin is an abstract class")
+    
+    def clear_windows(self, windows):
+        for window in windows:
+            self.clear_window(window)
+        
     def center_window_on_object(self, window, object):
         raise Exception("DisplayManagerMixin is an abstract class")
 
@@ -77,5 +84,8 @@ class ObjectsManagerMixin(object):
     def load_object(self, filename):
         raise Exception("ObjectsLoaderMixin is an abstract class")
 
+    def reload_object(self, object):
+        raise Exception("ObjectsLoaderMixin is an abstract class")
+        
     def delete_objects(self, objects):
         raise Exception("ObjectsLoaderMixin is an abstract class")
