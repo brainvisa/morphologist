@@ -13,7 +13,7 @@ class TestStudy(unittest.TestCase):
         self.test_case.add_subjects()
         self.test_case.set_parameters() 
         self.study = self.test_case.study
-        #self.study.import_data(self.test_case.parameter_template()) 
+ 
  
     def test_subject_name_exists_error(self):
         existing_subject_name = self.study.list_subject_names()[0]
@@ -45,5 +45,5 @@ class TestStudy(unittest.TestCase):
 
 
 if __name__=='__main__':
-
-    unittest.main()
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestStudy)
+    unittest.TextTestRunner(verbosity=2).run(suite)

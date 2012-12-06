@@ -250,8 +250,8 @@ for the attribute %s. The reference value is %s, whereas the test value is %s."
 
 
 if __name__ == '__main__':
-
-    unittest.main()
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestIntraAnalysisSteps)
+    unittest.TextTestRunner(verbosity=2).run(suite)
 
     #tests = []
     #tests.append('test_spatial_normalization')
