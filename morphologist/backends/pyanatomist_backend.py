@@ -1,3 +1,5 @@
+import os
+
 import anatomist.direct.api as ana
 
 from morphologist.gui.qt_backend import QtCore
@@ -65,6 +67,14 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
     def reload_object(self, object):
         object.reload()
         return object
+
+    def reload_object_if_needed(self, object):
+        filename = object.fileName()
+        if os.path.exists(filename):
+            object.reload()
+            return object
+        else:
+            return None
         
     def delete_objects(self, objects):
         return self.anatomist.deleteObjects(objects)
