@@ -7,7 +7,7 @@ from morphologist.gui.main_window import create_main_window
 def option_parser():
     parser = optparse.OptionParser()
 
-    parser.add_option('-f', '--file', 
+    parser.add_option('-s', '--study', 
                       dest="study_file", metavar="STUDY_FILE", default=None, 
                       help="Opens the interface with the study loaded.")
     parser.add_option('--mock', action="store_true", 
