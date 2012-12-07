@@ -3,12 +3,12 @@ from morphologist.tests.mocks.study import MockIntraAnalysisStudy
 
 class MockIntraAnalysisWindow(IntraAnalysisWindow):
 
-   def _create_study(self, study_file=None):
-      if study_file:
-          study = MockIntraAnalysisStudy.from_file(study_file)
-          return study
-      else:
-          return MockIntraAnalysisStudy()
+    def _create_study(self, study_file=None):
+        if study_file:
+            study = MockIntraAnalysisStudy.from_file(study_file)
+            return study
+        else:
+            return MockIntraAnalysisStudy()
 
 
 
