@@ -131,7 +131,10 @@ class  SomaWorkflowRunner(Runner):
         self._jobs_status = None #job_id -> status
         self._last_status_update = None
         self._delete_old_workflows()
-        self._workflow_controller.scheduler_config.set_proc_nb(Helper.cpu_count() - 1)
+        cpu_count = Helper.cpu_count()
+        if cpu_count > 1:
+            cpu_count -= 1
+        self._workflow_controller.scheduler_config.set_proc_nb(cpu_count)
         
     def _delete_old_workflows(self):        
         for (workflow_id, (name, _)) in self._workflow_controller.workflows().iteritems():
