@@ -134,10 +134,8 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
 
 
 def create_main_window(study_file=None, mock=False):
-    if study_file: print "load " + str(study_file)
     if not mock:
         return IntraAnalysisWindow(study_file)
     else:
-        print "mock mode"
         from morphologist.tests.mocks.main_window import MockIntraAnalysisWindow
         return MockIntraAnalysisWindow(study_file) 
