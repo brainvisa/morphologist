@@ -53,10 +53,6 @@ class RunnerView(QtGui.QWidget):
         try:
             self._model.runner.run()
             run = True
-        except MissingParameterValueError, e:
-            QtGui.QMessageBox.critical(self, 
-                                       "Run analysis error", 
-                                       "Some parameter value are missing.\n%s" %(e))
         except MissingInputFileError, e:
             QtGui.QMessageBox.critical(self, 
                                        "Run analysis error", 
