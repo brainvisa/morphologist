@@ -215,10 +215,8 @@ class  SomaWorkflowRunner(Runner):
             
     def _update_jobs_status(self):
         self._job_status = {}
-        workflow_elements_status = self._workflow_controller.workflow_elements_status(self._workflow_id)
-        for job_info in workflow_elements_status[0]:
-            job_id = job_info[0]
-            status = job_info[1]
+        job_info_seq, _, _, _ = self._workflow_controller.workflow_elements_status(self._workflow_id)
+        for job_id, status, _, _, _ in job_info_seq:
             self._job_status[job_id] = status
             
     def _job_is_running(self, status):
