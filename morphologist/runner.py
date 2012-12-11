@@ -38,9 +38,9 @@ class Runner(object):
             if analysis.output_params.list_existing_files() != []:
                 subjects_with_existing_outputs.append( subjectname )
         if subjects_with_missing_inputs != []:
-            raise MissingInputFileError( "Subjects : %s" % ", ".join(subjects_with_missing_inputs) )
+            raise MissingInputFileError( "Subjects: %s" % ", ".join(subjects_with_missing_inputs) )
         if subjects_with_existing_outputs != []:
-            raise OutputFileExistError( "Subjects : %s" % ", ".join(subjects_with_existing_outputs) )
+            raise OutputFileExistError( "Subjects: %s" % ", ".join(subjects_with_existing_outputs) )
         
  
 class MissingInputFileError(Exception):
