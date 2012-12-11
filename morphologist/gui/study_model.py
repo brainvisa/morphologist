@@ -22,7 +22,7 @@ class LazyStudyModel(QtCore.QObject):
         self._timer.start()
 
 
-    def set_study(self, study, runner):
+    def set_study_and_runner(self, study, runner):
         if self.runner is None:
             self.runner = runner
             self._timer.timeout.connect(self._update_all_status)

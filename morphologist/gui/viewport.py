@@ -79,11 +79,12 @@ class LazyAnalysisModel(QtCore.QObject):
 class SubjectwiseViewportModel(QtCore.QObject):
     changed = QtCore.pyqtSignal()
 
-    def __init__(self):
+    def __init__(self, model):
         super(SubjectwiseViewportModel, self).__init__()
         self._analysis_model = None
+        self._set_model(model)
 
-    def setModel(self, model):
+    def _set_model(self, model):
         if self._analysis_model is not None:
             self._analysis_model.changed.disconnect(\
                         self.on_analysis_model_changed)
@@ -125,8 +126,8 @@ class IntraAnalysisSubjectwiseViewportModel(SubjectwiseViewportModel):
         'split_mask' : 'split_mask_changed'
     }
 
-    def __init__(self):
-        super(IntraAnalysisSubjectwiseViewportModel, self).__init__()
+    def __init__(self, model):
+        super(IntraAnalysisSubjectwiseViewportModel, self).__init__(model)
         self._objects_loader_backend = Backend.objects_loader_backend()
         self.__init__3d_objects()
 
@@ -205,7 +206,7 @@ class IntraAnalysisSubjectwiseViewportView(QtGui.QWidget):
 
         self._init_widget()
 
-    def setModel(self, model):
+    def set_model(self, model):
         if self._model is not None:
             self._model.changed.disconnect(self.on_model_changed)
             self._model.raw_mri_changed.disconnect(self.on_raw_mri_changed)

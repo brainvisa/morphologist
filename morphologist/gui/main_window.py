@@ -28,17 +28,17 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self.study_tablemodel = SubjectsTableModel(self.study_model)
         self.study_selection_model = QtGui.QItemSelectionModel(\
                                             self.study_tablemodel)
-        self.viewport_model = IntraAnalysisSubjectwiseViewportModel()
+        self.viewport_model = IntraAnalysisSubjectwiseViewportModel(
+                                                    self.analysis_model)
 
         self.study_view = SubjectsTableView(self.ui.study_widget_dock)
-        self.study_view.setModel(self.study_tablemodel)
-        self.study_view.setSelectionModel(self.study_selection_model)
+        self.study_view.set_model(self.study_tablemodel)
+        self.study_view.set_selection_model(self.study_selection_model)
         self.ui.study_widget_dock.setWidget(self.study_view)
 
         self.viewport_view = IntraAnalysisSubjectwiseViewportView(\
                                         self.ui.viewport_frame)
-        self.viewport_view.setModel(self.viewport_model)
-        self.viewport_model.setModel(self.analysis_model)
+        self.viewport_view.set_model(self.viewport_model)
 
         self.runner_view = RunnerView(self.ui.runner_frame)
         layout = QtGui.QVBoxLayout()
@@ -129,7 +129,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
     def set_study(self, study):
         self.study = study
         self.runner = self._create_runner(self.study)
-        self.study_model.set_study(self.study, self.runner)
+        self.study_model.set_study_and_runner(self.study, self.runner)
         self.setWindowTitle("Morphologist - %s" % self.study.name)
 
 

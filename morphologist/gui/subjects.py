@@ -9,14 +9,13 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
     SUBJECTSTATUS_COL = 1
     header = ['name', 'status'] #TODO: to be extended
 
-    def __init__(self, study_model=None, parent=None):
+    def __init__(self, study_model, parent=None):
         super(SubjectsTableModel, self).__init__(parent)
         self._study_model = None
         self._subjectnames = None
-        if study_model is not None:
-            self.setModel(study_model)
+        self._set_model(study_model)
 
-    def setModel(self, study_model):
+    def _set_model(self, study_model):
         self.beginResetModel()
         if self._study_model is not None:
             self._study_model.status_changed.disconnect(\
@@ -100,7 +99,7 @@ class SubjectsTableView(QtGui.QWidget):
     def on_modelReset(self):
         self._tableview.selectRow(0)
 
-    def setModel(self, model):
+    def set_model(self, model):
         if self._tablemodel is not None:
             self._tablemodel.modelReset.disconnect(self.on_modelReset)
         self._tablemodel = model
@@ -108,5 +107,5 @@ class SubjectsTableView(QtGui.QWidget):
         self._tablemodel.modelReset.connect(self.on_modelReset)
         self.on_modelReset()
 
-    def setSelectionModel(self, selection_model):
+    def set_selection_model(self, selection_model):
         self._tableview.setSelectionModel(selection_model)
