@@ -3,9 +3,9 @@ import os
 import time
 from datetime import timedelta, datetime
 
+import soma.workflow as sw
 from soma.workflow.client import WorkflowController, Helper, Workflow, Job, Group
-from soma.workflow.constants import WORKFLOW_IN_PROGRESS 
-from soma.workflow.constants import NOT_SUBMITTED, DONE, FAILED, DELETE_PENDING, KILL_PENDING, WARNING
+import soma.workflow.constants
 
 class Runner(object):
     ''' Abstract class '''
@@ -150,7 +150,8 @@ class  SomaWorkflowRunner(Runner):
         # so we wait for the status WORKFLOW_IN_PROGRESS or timeout
         status = self._workflow_controller.workflow_status(self._workflow_id)
         try_count = 8
-        while ((status != WORKFLOW_IN_PROGRESS) and (try_count > 0)):
+        while ((status != sw.constants.WORKFLOW_IN_PROGRESS) and \
+                                                (try_count > 0)):
             time.sleep(0.25)
             status = self._workflow_controller.workflow_status(self._workflow_id)
             try_count -= 1
@@ -199,7 +200,7 @@ class  SomaWorkflowRunner(Runner):
                 running = self._subject_is_running(subject_name)
             else:
                 status = self._workflow_controller.workflow_status(self._workflow_id)
-                running = (status == WORKFLOW_IN_PROGRESS)
+                running = (status == sw.constants.WORKFLOW_IN_PROGRESS)
         return running
     
     def _subject_is_running(self, subject_name):
@@ -220,9 +221,13 @@ class  SomaWorkflowRunner(Runner):
             self._job_status[job_id] = status
             
     def _job_is_running(self, status):
-        return not status in [NOT_SUBMITTED, DONE, FAILED, DELETE_PENDING, KILL_PENDING, WARNING]
-            
-    
+        return not status in [sw.constants.NOT_SUBMITTED,
+                              sw.constants.DONE,
+                              sw.constants.FAILED,
+                              sw.constants.DELETE_PENDING,
+                              sw.constants.KILL_PENDING,
+                              sw.constants.WARNING]
+
     def wait(self):
         Helper.wait_workflow(self._workflow_id, self._workflow_controller)
         
