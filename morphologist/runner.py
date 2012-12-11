@@ -135,9 +135,27 @@ class  SomaWorkflowRunner(Runner):
         for (workflow_id, (name, _)) in self._workflow_controller.workflows().iteritems():
             if name is not None and name.endswith(self.WORKFLOW_NAME_SUFFIX):
                 self._workflow_controller.delete_workflow(workflow_id)
+       
+    def _define_workflow_name(self): 
+        return self._study.name + " " + self.WORKFLOW_NAME_SUFFIX
+    
+    def run(self):
+        self._check_input_output_files()
+        workflow = self._create_workflow()
+        if self._workflow_id is not None:
+            self._workflow_controller.delete_workflow(self._workflow_id)
+        self._workflow_id = self._workflow_controller.submit_workflow(workflow, name=workflow.name)
+        self._update_subjects_jobs()
+        # the status does not change immediately after run, 
+        # so we wait for the status WORKFLOW_IN_PROGRESS or timeout
+        status = self._workflow_controller.workflow_status(self._workflow_id)
+        try_count = 8
+        while ((status != WORKFLOW_IN_PROGRESS) and (try_count > 0)):
+            time.sleep(0.25)
+            status = self._workflow_controller.workflow_status(self._workflow_id)
+            try_count -= 1
 
-
-    def create_workflow(self):
+    def _create_workflow(self):
         jobs = []
         dependencies = []
         groups = []
@@ -160,26 +178,7 @@ class  SomaWorkflowRunner(Runner):
         workflow = Workflow(jobs=jobs, dependencies=dependencies, 
                             name=self._define_workflow_name(), root_group=groups)
         return workflow
-        
-    def _define_workflow_name(self): 
-        return self._study.name + " " + self.WORKFLOW_NAME_SUFFIX
-    
-    def run(self):
-        self._check_input_output_files()
-        workflow = self.create_workflow()
-        if self._workflow_id is not None:
-            self._workflow_controller.delete_workflow(self._workflow_id)
-        self._workflow_id = self._workflow_controller.submit_workflow(workflow, name=workflow.name)
-        self._update_subjects_jobs()
-        # the status does not change immediately after run, 
-        # so we wait for the status WORKFLOW_IN_PROGRESS or timeout
-        status = self._workflow_controller.workflow_status(self._workflow_id)
-        try_count = 10
-        while ((status != WORKFLOW_IN_PROGRESS) and (try_count > 0)):
-            time.sleep(0.5)
-            status = self._workflow_controller.workflow_status(self._workflow_id)
-            try_count -= 1
-        
+ 
     def _update_subjects_jobs(self):
         self._subjects_jobs = {}
         engine_workflow = self._workflow_controller.workflow(self._workflow_id)
