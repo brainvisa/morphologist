@@ -204,7 +204,8 @@ class  SomaWorkflowRunner(Runner):
         return running
     
     def _subject_is_running(self, subject_name):
-        if self._jobs_status == None or datetime.now() - self._last_status_update > timedelta(seconds=2):
+        if self._jobs_status == None or \
+            datetime.now() - self._last_status_update > timedelta(seconds=2):
             self._update_jobs_status()
             self._last_status_update = datetime.now()
         running = False
