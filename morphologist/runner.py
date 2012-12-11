@@ -42,11 +42,6 @@ class Runner(object):
         if subjects_with_existing_outputs != []:
             raise OutputFileExistError( "Subjects : %s" % ", ".join(subjects_with_existing_outputs) )
         
-    def _clear_output_files(self):
-        for analysis in self._study.analyses.values():
-            analysis.clear_output_files()
-            
-
  
 class MissingInputFileError(Exception):
     pass
@@ -116,7 +111,7 @@ class ThreadRunner(Runner):
                 # the thread ended without being interrupted
                 self._interruption = False
             else:
-                self._clear_output_files()
+                self._study.clear_results()
             
               
 class  SomaWorkflowRunner(Runner):
@@ -246,4 +241,4 @@ class  SomaWorkflowRunner(Runner):
     def stop(self):
         if self.is_running():
             self._workflow_controller.stop_workflow(self._workflow_id)
-            self._clear_output_files()
+            self._study.clear_results()
