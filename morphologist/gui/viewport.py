@@ -34,6 +34,12 @@ class LazyAnalysisModel(QtCore.QObject):
         self.changed.emit()
         self._check_input_changed_files()
 
+    def remove_analysis(self):
+        if self._analysis is not None:
+            self._timer.timeout.disconnect(self._check_output_changed_files)
+        self._analysis = None
+        self.changed.emit()
+              
     def _check_input_changed_files(self):
         checked_inputs = \
             self._analysis.input_params.list_parameters_with_existing_files()
