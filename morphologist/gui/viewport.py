@@ -89,24 +89,15 @@ class SubjectwiseViewportModel(QtCore.QObject):
 
     def __init__(self, model):
         super(SubjectwiseViewportModel, self).__init__()
-        self._analysis_model = None
-        self._set_model(model)
+        self._init_model(model)
 
-    def _set_model(self, model):
-        if self._analysis_model is not None:
-            self._analysis_model.changed.disconnect(\
-                        self.on_analysis_model_changed)
-            self._analysis_model.input_files_changed.disconnect(\
-                        self.on_analysis_model_input_files_changed)
-            self._analysis_model.output_files_changed.disconnect(\
-                        self.on_analysis_model_output_files_changed)
+    def _init_model(self, model):
         self._analysis_model = model
         self._analysis_model.changed.connect(self.on_analysis_model_changed)
         self._analysis_model.input_files_changed.connect(\
                 self.on_analysis_model_input_files_changed)
         self._analysis_model.output_files_changed.connect(\
                 self.on_analysis_model_output_files_changed)
-        self.changed.emit()
 
     @QtCore.Slot()
     def on_analysis_model_changed(self):

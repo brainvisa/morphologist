@@ -11,22 +11,13 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
 
     def __init__(self, study_model, parent=None):
         super(SubjectsTableModel, self).__init__(parent)
-        self._study_model = None
-        self._subjectnames = None
-        self._set_model(study_model)
+        self._init_model(study_model)
 
-    def _set_model(self, study_model):
-        self.beginResetModel()
-        if self._study_model is not None:
-            self._study_model.status_changed.disconnect(\
-                        self.on_study_model_status_changed)
-            self._study_model.changed.disconnect(self.on_study_model_changed)
+    def _init_model(self, study_model):
         self._study_model = study_model
         self._study_model.status_changed.connect(\
                     self.on_study_model_status_changed)
         self._study_model.changed.connect(self.on_study_model_changed)
-        self.endResetModel()
-        self.reset()
 
     def subjectname_from_row_index(self, index):
         return self._study_model.get_subjectname(index)
