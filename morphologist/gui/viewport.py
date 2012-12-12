@@ -7,8 +7,8 @@ from morphologist.gui import ui_directory
 
 class LazyAnalysisModel(QtCore.QObject):
     changed = QtCore.pyqtSignal()
-    input_parameters_changed = QtCore.pyqtSignal(list)
-    output_parameters_changed = QtCore.pyqtSignal(list)
+    input_files_changed = QtCore.pyqtSignal(list)
+    output_files_changed = QtCore.pyqtSignal(list)
 
     def __init__(self, analysis=None, parent=None):
         super(LazyAnalysisModel, self).__init__(parent)
@@ -26,33 +26,33 @@ class LazyAnalysisModel(QtCore.QObject):
     def set_analysis(self, analysis):
         if self._analysis is None:
             self._analysis = analysis 
-            self._timer.timeout.connect(self._check_output_changed_files)
+            self._timer.timeout.connect(self._check_output_files_changed)
         else:
             self._analysis = analysis 
         self._input_parameters_file_modification_time = {}
         self._output_parameters_file_modification_time = {}
         self.changed.emit()
-        self._check_input_changed_files()
+        self._check_input_files_changed()
 
     def remove_analysis(self):
         if self._analysis is not None:
-            self._timer.timeout.disconnect(self._check_output_changed_files)
+            self._timer.timeout.disconnect(self._check_output_files_changed)
         self._analysis = None
         self.changed.emit()
               
-    def _check_input_changed_files(self):
+    def _check_input_files_changed(self):
         checked_inputs = \
             self._analysis.input_params.list_parameters_with_existing_files()
         changed_input_parameters = self._changed_parameters(checked_inputs,
                             self._input_parameters_file_modification_time)
-        self.input_parameters_changed.emit(changed_input_parameters)
+        self.input_files_changed.emit(changed_input_parameters)
 
-    def _check_output_changed_files(self):
+    def _check_output_files_changed(self):
         checked_outputs = \
             self._analysis.output_params.list_parameters_with_existing_files()
         changed_output_parameters = self._changed_parameters(checked_outputs,
                             self._output_parameters_file_modification_time)
-        self.output_parameters_changed.emit(changed_output_parameters)
+        self.output_files_changed.emit(changed_output_parameters)
 
     def _changed_parameters(self, existing_items,
             parameters_file_modification_time):
@@ -94,16 +94,16 @@ class SubjectwiseViewportModel(QtCore.QObject):
         if self._analysis_model is not None:
             self._analysis_model.changed.disconnect(\
                         self.on_analysis_model_changed)
-            self._analysis_model.input_parameters_changed.disconnect(\
-                        self.on_analysis_model_input_parameters_changed)
-            self._analysis_model.output_parameters_changed.disconnect(\
-                        self.on_analysis_model_output_parameters_changed)
+            self._analysis_model.input_files_changed.disconnect(\
+                        self.on_analysis_model_input_files_changed)
+            self._analysis_model.output_files_changed.disconnect(\
+                        self.on_analysis_model_output_files_changed)
         self._analysis_model = model
         self._analysis_model.changed.connect(self.on_analysis_model_changed)
-        self._analysis_model.input_parameters_changed.connect(\
-                self.on_analysis_model_input_parameters_changed)
-        self._analysis_model.output_parameters_changed.connect(\
-                self.on_analysis_model_output_parameters_changed)
+        self._analysis_model.input_files_changed.connect(\
+                self.on_analysis_model_input_files_changed)
+        self._analysis_model.output_files_changed.connect(\
+                self.on_analysis_model_output_files_changed)
         self.changed.emit()
 
     @QtCore.Slot()
@@ -111,11 +111,11 @@ class SubjectwiseViewportModel(QtCore.QObject):
         raise Exception("SubjectwiseViewportModel is an abstract class")
 
     @QtCore.Slot(list)
-    def on_analysis_model_input_parameters_changed(self, changed_parameters):
+    def on_analysis_model_input_files_changed(self, changed_parameters):
         raise Exception("SubjectwiseViewportModel is an abstract class")
 
     @QtCore.Slot(list)
-    def on_analysis_model_output_parameters_changed(self, changed_parameters):
+    def on_analysis_model_output_files_changed(self, changed_parameters):
         raise Exception("SubjectwiseViewportModel is an abstract class")
 
 
@@ -152,16 +152,16 @@ class IntraAnalysisSubjectwiseViewportModel(SubjectwiseViewportModel):
         self.changed.emit()
 
     @QtCore.Slot(list)
-    def on_analysis_model_input_parameters_changed(self, changed_inputs):
-        self._on_analysis_model_parameters_changed(changed_inputs,
+    def on_analysis_model_input_files_changed(self, changed_inputs):
+        self._on_analysis_model_files_changed(changed_inputs,
                 self._analysis_model.filename_from_input_parameter)
 
     @QtCore.Slot(list)
-    def on_analysis_model_output_parameters_changed(self, changed_outputs):
-        self._on_analysis_model_parameters_changed(changed_outputs,
+    def on_analysis_model_output_files_changed(self, changed_outputs):
+        self._on_analysis_model_files_changed(changed_outputs,
                 self._analysis_model.filename_from_output_parameter)
 
-    def _on_analysis_model_parameters_changed(self, changed_parameters,
+    def _on_analysis_model_files_changed(self, changed_parameters,
                                                 filename_from_parameter):
         for parameter in changed_parameters:
             if not parameter in self.observed_objects.keys():
