@@ -206,8 +206,6 @@ class IntraAnalysisSubjectwiseViewportView(QtGui.QWidget):
     def __init__(self, parent=None):
         super(IntraAnalysisSubjectwiseViewportView, self).__init__(parent)
         self.ui = loadUi(self.uifile, parent)
-        self._view_hooks = [self.ui.view1_hook, self.ui.view2_hook, 
-                            self.ui.view3_hook, self.ui.view4_hook]
         self._views = []
         self._display_lib = IntraAnalysisDisplayLibrary()
         self._model = None
@@ -233,16 +231,12 @@ class IntraAnalysisSubjectwiseViewportView(QtGui.QWidget):
 
     def _init_widget(self):
         self.ui.setStyleSheet(self.main_frame_style_sheet)
-        for view_hook in self._view_hooks:
+        for view_hook in [self.ui.view1_hook, self.ui.view2_hook, 
+                          self.ui.view3_hook, self.ui.view4_hook]:
             QtGui.QVBoxLayout(view_hook)
-        self._create_intra_analysis_views()
-
-    def _create_intra_analysis_views(self):
-        self.view1 = self._display_lib.create_normalized_raw_T1_with_ACPC_view(self.ui.view1_hook)
-        self.view2 = self._display_lib.create_bias_corrected_T1_view(self.ui.view2_hook)
-        self.view3 = self._display_lib.create_brain_mask_view(self.ui.view3_hook)
-        self.view4 = self._display_lib.create_split_brain_view(self.ui.view4_hook)
-        self._views = [self.view1, self.view2, self.view3, self.view4]
+            view = self._display_lib._backend.create_axial_view(view_hook)
+            self._views.append(view)
+        self.view1, self.view2, self.view3, self.view4 = self._views
         self._display_lib.initialize_views(self._views)
         
     @QtCore.Slot()
@@ -289,18 +283,6 @@ class IntraAnalysisDisplayLibrary(DisplayLibrary):
 
     def __init__(self, backend=Backend.display_backend()):
         super(IntraAnalysisDisplayLibrary, self).__init__(backend)
-
-    def create_normalized_raw_T1_with_ACPC_view(self, parent=None):
-        return self._backend.create_axial_view(parent)
-
-    def create_bias_corrected_T1_view(self, parent=None):
-        return self._backend.create_axial_view(parent)
-
-    def create_brain_mask_view(self, parent=None):
-        return self._backend.create_axial_view(parent)
-
-    def create_split_brain_view(self, parent=None):
-        return self._backend.create_axial_view(parent)
 
     def initialize_views(self, views):
         self._backend.set_bgcolor_views(views, [0., 0., 0., 1.])
