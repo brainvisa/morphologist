@@ -128,9 +128,9 @@ class IntraAnalysisSubjectwiseViewportModel(SubjectwiseViewportModel):
     def __init__(self, model):
         super(IntraAnalysisSubjectwiseViewportModel, self).__init__(model)
         self._objects_loader_backend = Backend.objects_loader_backend()
-        self.__init__3d_objects()
+        self._init_3d_objects()
 
-    def __init__3d_objects(self):
+    def _init_3d_objects(self):
         self.observed_objects = { \
             'mri' : None,
             'mri_corrected' : None,
@@ -141,7 +141,7 @@ class IntraAnalysisSubjectwiseViewportModel(SubjectwiseViewportModel):
     @QtCore.Slot()
     def on_analysis_model_changed(self):
         # XXX : may need a cache ?
-        self.__init__3d_objects()
+        self._init_3d_objects()
         self.changed.emit()
 
     @QtCore.Slot(list)
