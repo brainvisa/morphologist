@@ -2,7 +2,7 @@ import os
 
 from morphologist.backends import Backend
 from .qt_backend import QtCore, QtGui, loadUi 
-from .gui import ui_directory 
+from morphologist.gui import ui_directory 
 
 
 class LazyAnalysisModel(QtCore.QObject):

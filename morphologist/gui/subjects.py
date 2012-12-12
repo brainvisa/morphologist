@@ -1,7 +1,7 @@
 import os
 
 from .qt_backend import QtCore, QtGui, loadUi 
-from .gui import ui_directory 
+from morphologist.gui import ui_directory 
 
 
 class SubjectsTableModel(QtCore.QAbstractTableModel):

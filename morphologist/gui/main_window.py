@@ -1,7 +1,7 @@
 import os
 
 from .qt_backend import QtCore, QtGui, loadUi 
-from .gui import ui_directory 
+from morphologist.gui import ui_directory 
 from morphologist.study import Study
 from morphologist.study import StudySerializationError
 from .manage_study import ManageStudyWindow
