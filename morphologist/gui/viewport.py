@@ -45,14 +45,16 @@ class LazyAnalysisModel(QtCore.QObject):
             self._analysis.input_params.list_parameters_with_existing_files()
         changed_input_parameters = self._changed_parameters(checked_inputs,
                             self._input_parameters_file_modification_time)
-        self.input_files_changed.emit(changed_input_parameters)
+        if len(changed_input_parameters) > 0:
+            self.input_files_changed.emit(changed_input_parameters)
 
     def _check_output_files_changed(self):
         checked_outputs = \
             self._analysis.output_params.list_parameters_with_existing_files()
         changed_output_parameters = self._changed_parameters(checked_outputs,
                             self._output_parameters_file_modification_time)
-        self.output_files_changed.emit(changed_output_parameters)
+        if len(changed_output_parameters) > 0:
+            self.output_files_changed.emit(changed_output_parameters)
 
     def _changed_parameters(self, existing_items,
             parameters_file_modification_time):
