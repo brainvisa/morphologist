@@ -8,9 +8,9 @@ from .study_editor_widget import StudyEditorDialog
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.runner import SomaWorkflowRunner
 from .study_model import LazyStudyModel
-from .viewport_widget import LazyAnalysisModel, \
-                IntraAnalysisSubjectwiseViewportModel,\
-                IntraAnalysisSubjectwiseViewportView
+from morphologist.gui.analysis_model import LazyAnalysisModel
+from .viewport_widget import IntraAnalysisSubjectwiseViewportModel,\
+                             IntraAnalysisSubjectwiseViewportView
 from .subjects_widget import SubjectsTableModel, SubjectsTableView
 from .runner_widget import RunnerView
 
