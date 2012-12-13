@@ -2,7 +2,7 @@ import os, sys
 import unittest
 
 from morphologist.gui.qt_backend import QtGui, QtCore, QtTest
-from morphologist.gui import StudyEditorDialog
+from morphologist.gui.study_editor_widget import StudyEditorDialog
 from morphologist.study import Study
 from morphologist.tests.gui import TestGui
 from morphologist.tests.study import FlatFilesStudyTestCase
