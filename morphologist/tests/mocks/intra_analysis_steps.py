@@ -1,5 +1,5 @@
 from morphologist.intra_analysis_steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
-
+from morphologist.intra_analysis import IntraAnalysis
 #TODO MockSpatialNormalization
 
 class MockBiasCorrection(BiasCorrection):
@@ -11,11 +11,11 @@ class MockBiasCorrection(BiasCorrection):
     def get_command(self):
         command = ['python', '-m',
             'morphologist.tests.mocks.intra_analysis_steps', 'bias_correction',
-            self.out_files.hfiltered, self.hfiltered,
-            self.out_files.white_ridges, self.white_ridges, 
-            self.out_files.edges, self.edges, 
-            self.out_files.mri_corrected, self.mri_corrected, 
-            self.out_files.variance, self.variance]
+            self.out_files[IntraAnalysis.HFILTERED], self.hfiltered,
+            self.out_files[IntraAnalysis.WHITE_RIDGES], self.white_ridges, 
+            self.out_files[IntraAnalysis.EDGES], self.edges, 
+            self.out_files[IntraAnalysis.CORRECTED_MRI], self.corrected_mri, 
+            self.out_files[IntraAnalysis.VARIANCE], self.variance]
         return command
 
 class MockHistogramAnalysis(HistogramAnalysis):
@@ -28,7 +28,7 @@ class MockHistogramAnalysis(HistogramAnalysis):
         command = ['python', '-m',
             'morphologist.tests.mocks.intra_analysis_steps',
             'histogram_analysis',
-            self.out_files.histo_analysis, self.histo_analysis]
+            self.out_files[IntraAnalysis.HISTO_ANALYSIS], self.histo_analysis]
         return command
 
 
@@ -42,8 +42,8 @@ class MockBrainSegmentation(BrainSegmentation):
         command = ['python', '-m',
             'morphologist.tests.mocks.intra_analysis_steps',
             'brain_segmentation',
-            self.out_files.brain_mask, self.brain_mask,
-            self.out_files.white_ridges, self.white_ridges]
+            self.out_files[IntraAnalysis.BRAIN_MASK], self.brain_mask,
+            self.out_files[IntraAnalysis.WHITE_RIDGES], self.white_ridges]
         return command
 
 
@@ -56,7 +56,7 @@ class MockSplitBrain(SplitBrain):
     def get_command(self):
         command = ['python', '-m',
             'morphologist.tests.mocks.intra_analysis_steps', 'split_brain',
-            self.out_files.split_mask, self.split_mask]
+            self.out_files[IntraAnalysis.SPLIT_MASK], self.split_mask]
         return command
 
 
@@ -71,13 +71,13 @@ def main():
         out_files_hfiltered, hfiltered, \
         out_files_white_ridges, white_ridges, \
         out_files_edges, edges, \
-        out_files_mri_corrected, mri_corrected, \
+        out_files_corrected_mri, corrected_mri, \
         out_files_variance, variance = args
         time.sleep(time_to_sleep)
         shutil.copy(out_files_hfiltered, hfiltered)
         shutil.copy(out_files_white_ridges, white_ridges)
         shutil.copy(out_files_edges, edges)
-        shutil.copy(out_files_mri_corrected, mri_corrected)
+        shutil.copy(out_files_corrected_mri, corrected_mri)
         shutil.copy(out_files_variance, variance)
     elif stepname == 'histogram_analysis':
         out_files_histo_analysis, histo_analysis = args

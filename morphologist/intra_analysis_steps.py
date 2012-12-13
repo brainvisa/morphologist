@@ -30,13 +30,13 @@ class BiasCorrection(Step):
         self.white_ridges = None
         self.edges = None
         self.variance = None
-        self.mri_corrected = None
+        self.corrected_mri = None
 
     
     def get_command(self):
         command = ['VipT1BiasCorrection', 
                    '-i', self.mri, 
-                   '-o', self.mri_corrected, 
+                   '-o', self.corrected_mri, 
                    '-Wwrite', 'yes',
                    '-wridge', self.white_ridges, 
                    '-eWrite', 'yes',
@@ -66,7 +66,7 @@ class HistogramAnalysis(Step):
     def __init__(self):
         super(HistogramAnalysis, self).__init__()
 
-        self.mri_corrected = None
+        self.corrected_mri = None
         self.hfiltered = None
         self.white_ridges = None
         self.fix_random_seed = False
@@ -76,7 +76,7 @@ class HistogramAnalysis(Step):
    
     def get_command(self):
         command = ['VipHistoAnalysis', 
-                   '-i', self.mri_corrected, 
+                   '-i', self.corrected_mri, 
                    '-o', self.histo_analysis, 
                    '-Save', 'y',
                    '-Mask', self.hfiltered,
@@ -92,7 +92,7 @@ class BrainSegmentation(Step):
     def __init__(self):
         super(BrainSegmentation, self).__init__()
 
-        self.mri_corrected = None
+        self.corrected_mri = None
         self.commissure_coordinates = None
         self.edges = None
         self.variance = None
@@ -107,7 +107,7 @@ class BrainSegmentation(Step):
     def get_command(self):
         command = ['VipGetBrain',
                    '-berosion', str(self.erosion_size),
-                   '-i', self.mri_corrected,
+                   '-i', self.corrected_mri,
                    '-analyse', 'r', 
                    '-hname',  self.histo_analysis,
                    '-bname', self.brain_mask,
@@ -131,7 +131,7 @@ class SplitBrain(Step):
     def __init__(self):
         super(SplitBrain, self).__init__()
 
-        self.mri_corrected = None
+        self.corrected_mri = None
         self.brain_mask = None
         self.white_ridges = None
         self.histo_analysis = None
@@ -143,7 +143,7 @@ class SplitBrain(Step):
    
     def get_command(self):
         command = ['VipSplitBrain',
-                   '-input',  self.mri_corrected,
+                   '-input',  self.corrected_mri,
                    '-brain', self.brain_mask,
                    '-analyse', 'r', 
                    '-hname', self.histo_analysis,

@@ -98,7 +98,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         self.white_ridges = os.path.join("default_analysis", "whiteridge_%s.nii" % self.subject)
         self.white_ridges_bc = os.path.join("default_analysis", "whiteridge_%s_bc.nii" % self.subject)
         self.edges = os.path.join("default_analysis", "edges_%s.nii" % self.subject)
-        self.mri_corrected = os.path.join("default_analysis", "nobias_%s.nii" % self.subject)
+        self.corrected_mri = os.path.join("default_analysis", "nobias_%s.nii" % self.subject)
         self.variance = os.path.join("default_analysis", "variance_%s.nii" % self.subject)
         self.histo_analysis = os.path.join("default_analysis", "nobias_%s.han" % self.subject)
         
@@ -146,19 +146,19 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         bias_correction.white_ridges = os.path.join(self.output_directory, self.white_ridges_bc)
         bias_correction.edges = os.path.join(self.output_directory, self.edges) 
         bias_correction.variance = os.path.join(self.output_directory, self.variance) 
-        bias_correction.mri_corrected = os.path.join(self.output_directory, self.mri_corrected) 
+        bias_correction.corrected_mri = os.path.join(self.output_directory, self.corrected_mri) 
 
         self.assert_(bias_correction.run() == 0)
         
         self.compare_results([self.hfiltered, self.white_ridges_bc, self.edges, 
-                              self.variance, self.mri_corrected])
+                              self.variance, self.corrected_mri])
         
             
 
     def test_histogram_analysis(self):
         histo_analysis = HistogramAnalysis()
         
-        histo_analysis.mri_corrected = os.path.join(self.base_directory, self.mri_corrected)
+        histo_analysis.corrected_mri = os.path.join(self.base_directory, self.corrected_mri)
         histo_analysis.white_ridges = os.path.join(self.base_directory, self.white_ridges_bc)
         histo_analysis.hfiltered = os.path.join(self.base_directory, self.hfiltered)
         histo_analysis.fix_random_seed = True
@@ -173,7 +173,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
     def test_brain_segmentation(self):
         brain_segmentation = BrainSegmentation()
     
-        brain_segmentation.mri_corrected = os.path.join(self.base_directory, self.mri_corrected)
+        brain_segmentation.corrected_mri = os.path.join(self.base_directory, self.corrected_mri)
         brain_segmentation.commissure_coordinates = os.path.join(self.base_directory, 
                                                                  self.commissure_coordinates)
         brain_segmentation.edges = os.path.join(self.base_directory, self.edges)
@@ -198,7 +198,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
     def test_split_brain(self):
         split_brain = SplitBrain()
 
-        split_brain.mri_corrected = os.path.join(self.base_directory, self.mri_corrected)
+        split_brain.corrected_mri = os.path.join(self.base_directory, self.corrected_mri)
         split_brain.brain_mask = os.path.join(self.base_directory, self.brain_mask)
 
         split_brain.histo_analysis = os.path.join(self.base_directory, self.histo_analysis)

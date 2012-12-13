@@ -11,6 +11,19 @@ class IntraAnalysis(Analysis):
     PARAMETER_TEMPLATES = [BRAINVISA_PARAM_TEMPLATE, DEFAULT_PARAM_TEMPLATE]
     param_template_map = {}
 
+    MRI = 'mri'
+    COMMISSURE_COORDINATES = 'commissure_coordinates'
+    EROSION_SIZE = 'erosion_size' 
+    BARY_FACTOR = 'bary_factor'
+    HFILTERED = 'hfiltered'
+    WHITE_RIDGES = 'white_ridges'
+    EDGES = 'edges'
+    VARIANCE = 'variance'
+    CORRECTED_MRI = 'corrected_mri'
+    HISTO_ANALYSIS = 'histo_analysis'
+    BRAIN_MASK = 'brain_mask'
+    SPLIT_MASK = 'split_mask'
+
     # TODO: reimplement a standard python method ?
     @classmethod
     def _init_class(cls):
@@ -56,56 +69,56 @@ class IntraAnalysisStepFlow(StepFlow):
                        self._split_brain] 
 
     def propagate_parameters(self):
-        self._bias_correction.mri = self.input_params.mri
-        self._bias_correction.commissure_coordinates = self.input_params.commissure_coordinates
+        self._bias_correction.mri = self.input_params[IntraAnalysis.MRI]
+        self._bias_correction.commissure_coordinates = self.input_params[IntraAnalysis.COMMISSURE_COORDINATES]
 
-        self._bias_correction.hfiltered = self.output_params.hfiltered
-        self._bias_correction.white_ridges = self.output_params.white_ridges
-        self._bias_correction.edges = self.output_params.edges
-        self._bias_correction.variance = self.output_params.variance
-        self._bias_correction.mri_corrected = self.output_params.mri_corrected
+        self._bias_correction.hfiltered = self.output_params[IntraAnalysis.HFILTERED]
+        self._bias_correction.white_ridges = self.output_params[IntraAnalysis.WHITE_RIDGES]
+        self._bias_correction.edges = self.output_params[IntraAnalysis.EDGES]
+        self._bias_correction.variance = self.output_params[IntraAnalysis.VARIANCE]
+        self._bias_correction.corrected_mri = self.output_params[IntraAnalysis.CORRECTED_MRI]
 
 
-        self._histogram_analysis.mri_corrected = self._bias_correction.mri_corrected
+        self._histogram_analysis.corrected_mri = self._bias_correction.corrected_mri
         self._histogram_analysis.hfiltered = self._bias_correction.hfiltered
         self._histogram_analysis.white_ridges = self._bias_correction.white_ridges
         
-        self._histogram_analysis.histo_analysis = self.output_params.histo_analysis
+        self._histogram_analysis.histo_analysis = self.output_params[IntraAnalysis.HISTO_ANALYSIS]
 
 
-        self._brain_segmentation.mri_corrected = self._bias_correction.mri_corrected
-        self._brain_segmentation.commissure_coordinates = self.input_params.commissure_coordinates
+        self._brain_segmentation.corrected_mri = self._bias_correction.corrected_mri
+        self._brain_segmentation.commissure_coordinates = self.input_params[IntraAnalysis.COMMISSURE_COORDINATES]
         self._brain_segmentation.white_ridges = self._bias_correction.white_ridges
         self._brain_segmentation.edges = self._bias_correction.edges
         self._brain_segmentation.variance = self._bias_correction.variance
         self._brain_segmentation.histo_analysis = self._histogram_analysis.histo_analysis        
-        self._brain_segmentation.erosion_size = self.input_params.erosion_size
+        self._brain_segmentation.erosion_size = self.input_params[IntraAnalysis.EROSION_SIZE]
 
-        self._brain_segmentation.brain_mask = self.output_params.brain_mask
+        self._brain_segmentation.brain_mask = self.output_params[IntraAnalysis.BRAIN_MASK]
 
   
-        self._split_brain.mri_corrected = self._bias_correction.mri_corrected
+        self._split_brain.corrected_mri = self._bias_correction.corrected_mri
         self._split_brain.brain_mask = self._brain_segmentation.brain_mask
         self._split_brain.white_ridges = self._bias_correction.white_ridges
         self._split_brain.histo_analysis = self._histogram_analysis.histo_analysis
-        self._split_brain.commissure_coordinates = self.input_params.commissure_coordinates
-        self._split_brain.bary_factor = self.input_params.bary_factor
+        self._split_brain.commissure_coordinates = self.input_params[IntraAnalysis.COMMISSURE_COORDINATES]
+        self._split_brain.bary_factor = self.input_params[IntraAnalysis.BARY_FACTOR]
 
-        self._split_brain.split_mask = self.output_params.split_mask
+        self._split_brain.split_mask = self.output_params[IntraAnalysis.SPLIT_MASK]
 
 
 
 class IntraAnalysisParameterTemplate(object):
-    input_file_param_names = ['mri', 'commissure_coordinates']
-    input_other_param_names = ['erosion_size', 'bary_factor']
-    output_file_param_names = ['hfiltered',
-                               'white_ridges',
-                               'edges',
-                               'variance',
-                               'mri_corrected',
-                               'histo_analysis',
-                               'brain_mask',
-                               'split_mask']
+    input_file_param_names = [IntraAnalysis.MRI, IntraAnalysis.COMMISSURE_COORDINATES]
+    input_other_param_names = [IntraAnalysis.EROSION_SIZE, IntraAnalysis.BARY_FACTOR]
+    output_file_param_names = [IntraAnalysis.HFILTERED,
+                               IntraAnalysis.WHITE_RIDGES,
+                               IntraAnalysis.EDGES,
+                               IntraAnalysis.VARIANCE,
+                               IntraAnalysis.CORRECTED_MRI,
+                               IntraAnalysis.HISTO_ANALYSIS,
+                               IntraAnalysis.BRAIN_MASK,
+                               IntraAnalysis.SPLIT_MASK]
 
     @classmethod
     def get_empty_input_params(cls):
@@ -143,11 +156,11 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         parameters = InputParameters(cls.input_file_param_names,
                                      cls.input_other_param_names)
 
-        parameters.mri = img_filename
-        parameters.commissure_coordinates = os.path.join(default_acquisition_path, 
+        parameters[IntraAnalysis.MRI] = img_filename
+        parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(default_acquisition_path, 
                                                    "%s.APC" % subject)
-        parameters.erosion_size = 1.8
-        parameters.bary_factor = 0.6
+        parameters[IntraAnalysis.EROSION_SIZE] = 1.8
+        parameters[IntraAnalysis.BARY_FACTOR] = 0.6
 
         return parameters
 
@@ -161,21 +174,21 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         segmentation_path = os.path.join(default_analysis_path, "segmentation")
  
         parameters = OutputParameters(cls.output_file_param_names)
-        parameters.hfiltered = os.path.join(default_analysis_path, 
+        parameters[IntraAnalysis.HFILTERED] = os.path.join(default_analysis_path, 
                                             "hfiltered_%s.nii" % subjectname)
-        parameters.white_ridges = os.path.join(default_analysis_path, 
+        parameters[IntraAnalysis.WHITE_RIDGES] = os.path.join(default_analysis_path, 
                                             "whiteridge_%s.nii" % subjectname)
-        parameters.edges = os.path.join(default_analysis_path, 
+        parameters[IntraAnalysis.EDGES] = os.path.join(default_analysis_path, 
                                             "edges_%s.nii" % subjectname)
-        parameters.mri_corrected = os.path.join(default_analysis_path, 
+        parameters[IntraAnalysis.CORRECTED_MRI] = os.path.join(default_analysis_path, 
                                             "nobias_%s.nii" % subjectname)
-        parameters.variance = os.path.join(default_analysis_path, 
+        parameters[IntraAnalysis.VARIANCE] = os.path.join(default_analysis_path, 
                                             "variance_%s.nii" % subjectname)
-        parameters.histo_analysis = os.path.join(default_analysis_path, 
+        parameters[IntraAnalysis.HISTO_ANALYSIS] = os.path.join(default_analysis_path, 
                                             "nobias_%s.han" % subjectname)
-        parameters.brain_mask = os.path.join(segmentation_path, 
+        parameters[IntraAnalysis.BRAIN_MASK] = os.path.join(segmentation_path, 
                                             "brain_%s.nii" % subjectname)
-        parameters.split_mask = os.path.join(segmentation_path, 
+        parameters[IntraAnalysis.SPLIT_MASK] = os.path.join(segmentation_path, 
                                             "voronoi_%s.nii" % subjectname)
         return parameters
 
@@ -208,13 +221,13 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         parameters = InputParameters(cls.input_file_param_names,
                                      cls.input_other_param_names)
 
-        parameters.mri = img_filename
+        parameters[IntraAnalysis.MRI] = img_filename
         mri_dirname = os.path.dirname(img_filename)
-        parameters.commissure_coordinates = os.path.join(mri_dirname, 
+        parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(mri_dirname, 
                                                          "%s.APC" %subjectname)
       
-        parameters.erosion_size = 1.8
-        parameters.bary_factor = 0.6
+        parameters[IntraAnalysis.EROSION_SIZE] = 1.8
+        parameters[IntraAnalysis.BARY_FACTOR] = 0.6
 
         return parameters
 
@@ -224,21 +237,21 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
 
         subject_dirname = os.path.join(outputdir, subjectname)
 
-        parameters.hfiltered = os.path.join(subject_dirname, 
+        parameters[IntraAnalysis.HFILTERED] = os.path.join(subject_dirname, 
                                             "hfiltered_%s.nii" % subjectname)
-        parameters.white_ridges = os.path.join(subject_dirname, 
+        parameters[IntraAnalysis.WHITE_RIDGES] = os.path.join(subject_dirname, 
                                             "whiteridge_%s.nii" % subjectname)
-        parameters.edges = os.path.join(subject_dirname, 
+        parameters[IntraAnalysis.EDGES] = os.path.join(subject_dirname, 
                                             "edges_%s.nii" % subjectname)
-        parameters.mri_corrected = os.path.join(subject_dirname, 
+        parameters[IntraAnalysis.CORRECTED_MRI] = os.path.join(subject_dirname, 
                                             "nobias_%s.nii" % subjectname)
-        parameters.variance = os.path.join(subject_dirname, 
+        parameters[IntraAnalysis.VARIANCE] = os.path.join(subject_dirname, 
                                             "variance_%s.nii" % subjectname)
-        parameters.histo_analysis = os.path.join(subject_dirname, 
+        parameters[IntraAnalysis.HISTO_ANALYSIS] = os.path.join(subject_dirname, 
                                             "nobias_%s.han" % subjectname)
-        parameters.brain_mask = os.path.join(subject_dirname, 
+        parameters[IntraAnalysis.BRAIN_MASK] = os.path.join(subject_dirname, 
                                             "brain_%s.nii" % subjectname)
-        parameters.split_mask = os.path.join(subject_dirname, 
+        parameters[IntraAnalysis.SPLIT_MASK] = os.path.join(subject_dirname, 
                                             "voronoi_%s.nii" % subjectname)
         return parameters
 

@@ -3,7 +3,7 @@ import os
 from morphologist.backends import Backend
 from .qt_backend import QtCore, QtGui, loadUi 
 from morphologist.gui import ui_directory 
-
+from morphologist.intra_analysis import IntraAnalysis
 
 class AnalysisViewportModel(QtCore.QObject):
     changed = QtCore.pyqtSignal()
@@ -61,10 +61,10 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
     brain_mask_changed = QtCore.pyqtSignal()
     split_mask_changed = QtCore.pyqtSignal()
     signal_map = { \
-        'mri' : 'raw_mri_changed',
-        'mri_corrected' : 'corrected_mri_changed',
-        'brain_mask' : 'brain_mask_changed',
-        'split_mask' : 'split_mask_changed'
+        IntraAnalysis.MRI : 'raw_mri_changed',
+        IntraAnalysis.CORRECTED_MRI : 'corrected_mri_changed',
+        IntraAnalysis.BRAIN_MASK : 'brain_mask_changed',
+        IntraAnalysis.SPLIT_MASK : 'split_mask_changed'
     }
 
     def __init__(self, model):
@@ -72,10 +72,10 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
 
     def _init_3d_objects(self):
         self.observed_objects = { \
-            'mri' : None,
-            'mri_corrected' : None,
-            'brain_mask' : None,
-            'split_mask' : None
+            IntraAnalysis.MRI : None,
+            IntraAnalysis.CORRECTED_MRI : None,
+            IntraAnalysis.BRAIN_MASK : None,
+            IntraAnalysis.SPLIT_MASK : None
         }
 
 
@@ -136,28 +136,28 @@ class IntraAnalysisViewportView(QtGui.QWidget):
 
     @QtCore.Slot()
     def on_raw_mri_changed(self):
-        object = self._viewport_model.observed_objects['mri']
+        object = self._viewport_model.observed_objects[IntraAnalysis.MRI]
         if object is not None:
             self._display_lib._backend.add_objects_to_window(object, self.view1)
             self._display_lib._backend.center_window_on_object(self.view1, object)
 
     @QtCore.Slot()
     def on_corrected_mri_changed(self):
-        object = self._viewport_model.observed_objects['mri_corrected']
+        object = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
         if object is not None:
             self._display_lib._backend.set_palette(object, "Rainbow2")
             self._display_lib._backend.add_objects_to_window(object, self.view2)
 
     @QtCore.Slot()
     def on_brain_mask_changed(self):
-        object = self._viewport_model.observed_objects['brain_mask']
+        object = self._viewport_model.observed_objects[IntraAnalysis.BRAIN_MASK]
         if object is not None:
             self._display_lib._backend.set_palette(object, "GREEN-lfusion")
             self._display_lib._backend.add_objects_to_window(object, self.view3)
 
     @QtCore.Slot()
     def on_split_mask_changed(self):
-        object = self._viewport_model.observed_objects['split_mask']
+        object = self._viewport_model.observed_objects[IntraAnalysis.SPLIT_MASK]
         if object is not None:
             self._display_lib._backend.set_palette(object, "RAINBOW")
             self._display_lib._backend.add_objects_to_window(object, self.view4)

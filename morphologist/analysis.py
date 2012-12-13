@@ -86,8 +86,24 @@ class Parameters(object):
         for name in self._parameter_names:
             setattr(self, name, None)
 
+    # Always use set_value, get_value or [] operator in morphologist code.
+    # Access to the parameters using directy member is reserved to external use.
     def __getitem__(self, key):
-        return getattr(self, key)
+        return self.get_value(key)
+
+    def __setitem__(self, key, value):
+        self.set_value(key, value)
+
+    def get_value(self, name):
+        if not name in self._parameter_names:
+            raise UnknownParameterName(name)
+        return getattr(self, name)
+
+    def set_value(self, name, value):
+        if not name in self._parameter_names:
+            raise UnknownParameterName(name)
+        return setattr(self, name, value)
+
 
     def list_missing_parameter_values(self):
         missing_values = []
@@ -122,16 +138,6 @@ class Parameters(object):
 
     def list_file_parameter_names(self):
         return self._file_param_names
-
-    def get_value(self, name):
-        if not name in self._parameter_names:
-            raise UnknownParameterName(name)
-        return getattr(self, name)
-
-    def set_value(self, name, value):
-        if not name in self._parameter_names:
-            raise UnknownParameterName(name)
-        return setattr(self, name, value)
 
     @classmethod
     def unserialize(cls, serialized):
