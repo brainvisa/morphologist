@@ -1,6 +1,6 @@
 import os
 
-from morphologist.analysis import Analysis, StepFlow, InputParameters, OutputParameters
+from morphologist.analysis import Analysis, InputParameters, OutputParameters
 from morphologist.analysis import UnknownParameterTemplate
 from morphologist.intra_analysis_steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
 
@@ -32,33 +32,15 @@ class IntraAnalysis(Analysis):
         cls.param_template_map[cls.DEFAULT_PARAM_TEMPLATE] = \
                         DefaultIntraAnalysisParameterTemplate
   
-    def __init__(self):
-        super(IntraAnalysis, self).__init__(step_flow=None) 
-        self._step_flow = self.create_step_flow()
-
-    def create_step_flow(self):
-        return IntraAnalysisStepFlow()
-
-    @classmethod
-    def get_mri_path(cls, param_template_id, subjectname, directory):
-        param_template = cls.param_template_map[param_template_id]
-        return param_template.get_mri_path(subjectname, directory)
-    
-    @classmethod
-    def create_outputdirs(cls, param_template_id, subjectname, directory):
-        param_template = cls.param_template_map[param_template_id]
-        param_template.create_outputdirs(subjectname, directory)
-
-
-class IntraAnalysisStepFlow(StepFlow):
 
     def __init__(self):
-        super(IntraAnalysisStepFlow, self).__init__()
-        self.init_steps()
+        super(IntraAnalysis, self).__init__() 
+        self._init_steps()
         self.input_params = IntraAnalysisParameterTemplate.get_empty_input_params()
         self.output_params = IntraAnalysisParameterTemplate.get_empty_output_params()
 
-    def init_steps(self):
+
+    def _init_steps(self):
         self._bias_correction = BiasCorrection()
         self._histogram_analysis = HistogramAnalysis()
         self._brain_segmentation = BrainSegmentation()
@@ -67,6 +49,7 @@ class IntraAnalysisStepFlow(StepFlow):
                        self._histogram_analysis, 
                        self._brain_segmentation, 
                        self._split_brain] 
+
 
     def propagate_parameters(self):
         self._bias_correction.mri = self.input_params[IntraAnalysis.MRI]
@@ -105,6 +88,18 @@ class IntraAnalysisStepFlow(StepFlow):
         self._split_brain.bary_factor = self.input_params[IntraAnalysis.BARY_FACTOR]
 
         self._split_brain.split_mask = self.output_params[IntraAnalysis.SPLIT_MASK]
+
+
+    @classmethod
+    def get_mri_path(cls, param_template_id, subjectname, directory):
+        param_template = cls.param_template_map[param_template_id]
+        return param_template.get_mri_path(subjectname, directory)
+    
+
+    @classmethod
+    def create_outputdirs(cls, param_template_id, subjectname, directory):
+        param_template = cls.param_template_map[param_template_id]
+        param_template.create_outputdirs(subjectname, directory)
 
 
 

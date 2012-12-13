@@ -1,18 +1,16 @@
-from morphologist.intra_analysis import IntraAnalysis, IntraAnalysisStepFlow
+from morphologist.intra_analysis import IntraAnalysis
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate
 from morphologist.tests.mocks.intra_analysis_steps import MockBiasCorrection, MockHistogramAnalysis, MockBrainSegmentation, MockSplitBrain
 
 
 class MockIntraAnalysis(IntraAnalysis):
-    
-    def create_step_flow(self):
-        return MockIntraAnalysisStepFlow()
+
+    def __init__(self):
+        super(MockIntraAnalysis, self).__init__()
+        self._init_steps()   
 
 
-class MockIntraAnalysisStepFlow(IntraAnalysisStepFlow):
-
-    def init_steps(self):
-
+    def _init_steps(self):
         mock_out_files = BrainvisaIntraAnalysisParameterTemplate.get_output_params("hyperion",
                         "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/bv_database/test")
         self._bias_correction = MockBiasCorrection(mock_out_files)
@@ -24,6 +22,5 @@ class MockIntraAnalysisStepFlow(IntraAnalysisStepFlow):
                        self._brain_segmentation, 
                        self._split_brain] 
 
-        
 
 

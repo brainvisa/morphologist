@@ -7,8 +7,11 @@ class Analysis(object):
     PARAMETER_TEMPLATES = []
     param_template_map = {}
 
-    def __init__(self, step_flow):
-        self._step_flow = step_flow
+
+    def __init__(self):
+        self._steps = []
+        self.input_params = InputParameters(file_param_names=[])
+        self.output_params = OutputParameters(file_param_names=[])
 
 
     def set_parameters(self, param_template_id, name, image, outputdir):
@@ -20,34 +23,23 @@ class Analysis(object):
         self.output_params = param_template.get_output_params(name, outputdir)
 
 
-    def get_input_params(self):
-        return self._step_flow.input_params
-
-
-    def set_input_params(self, input_params):
-        self._step_flow.input_params = input_params
-
-
-    def get_output_params(self):
-        return self._step_flow.output_params
-
-
-    def set_output_params(self, output_params):
-        self._step_flow.output_params = output_params
-
-    input_params = property(get_input_params, set_input_params)
-    output_params = property(get_output_params, set_output_params) 
-    
-    
     def get_command_list(self):
         self._check_parameter_values_filled()
-        return self._step_flow.get_command_list()
+        self.propagate_parameters()
+        command_list = []
+        for step in self._steps:
+            command_list.append(step.get_command())
+        return command_list
 
+
+    def propagate_parameters(self):
+        raise Exception("Analysis is an Abstract class. propagate_parameter must be redifined.") 
+ 
 
     def _check_parameter_values_filled(self):
         missing_parameters = []
-        missing_parameters.extend(self._step_flow.input_params.list_missing_parameter_values())  
-        missing_parameters.extend(self._step_flow.output_params.list_missing_parameter_values())
+        missing_parameters.extend(self.input_params.list_missing_parameter_values())  
+        missing_parameters.extend(self.output_params.list_missing_parameter_values())
         if missing_parameters:
             separator = " ,"
             message = separator.join(missing_parameters)
@@ -55,16 +47,16 @@ class Analysis(object):
 
 
     def list_existing_output_files(self):
-        return self._step_flow.output_params.list_existing_files()
+        return self.output_params.list_existing_files()
 
 
     def list_missing_output_files(self):
-        return self._step_flow.output_params.list_missing_files()
+        return self.output_params.list_missing_files()
 
 
     def clear_output_files(self):
-        for param_name in self._step_flow.output_params.list_file_parameter_names():
-            out_file_path = self._step_flow.output_params.get_value(param_name)
+        for param_name in self.output_params.list_file_parameter_names():
+            out_file_path = self.output_params.get_value(param_name)
             if os.path.isfile(out_file_path):
                 os.remove(out_file_path)
 
@@ -171,23 +163,4 @@ class OutputParameters(Parameters):
 class InputParameters(Parameters):
     pass
 
-
-class StepFlow(object):
-
-    def __init__(self):
-        self._steps = []
-      
-        self.input_params = InputParameters(file_param_names=[])
-        self.output_params = OutputParameters(file_param_names=[])
-
-    def get_command_list(self):
-        self.propagate_parameters()
-        command_list = []
-        for step in self._steps:
-            command_list.append(step.get_command())
-        return command_list
-
-    def propagate_parameters(self):
-        raise Exception("StepFlow is an Abstract class. propagate_parameter must be redifined.") 
-     
 
