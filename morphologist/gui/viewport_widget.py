@@ -120,26 +120,27 @@ class IntraAnalysisSubjectwiseViewportView(QtGui.QWidget):
         self.ui = loadUi(self.uifile, parent)
         self._views = []
         self._display_lib = IntraAnalysisDisplayLibrary()
-        self._model = None
+        self._viewport_model = None
 
         self._init_widget()
 
     def set_model(self, model):
-        if self._model is not None:
-            self._model.changed.disconnect(self.on_model_changed)
-            self._model.raw_mri_changed.disconnect(self.on_raw_mri_changed)
-            self._model.corrected_mri_changed.disconnect(\
-                            self.on_corrected_mri_changed)
-            self._model.brain_mask_changed.disconnect(\
-                            self.on_brain_mask_changed)
-            self._model.split_mask_changed.disconnect(\
-                            self.on_split_mask_changed)
-        self._model = model
-        self._model.changed.connect(self.on_model_changed)
-        self._model.raw_mri_changed.connect(self.on_raw_mri_changed)
-        self._model.corrected_mri_changed.connect(self.on_corrected_mri_changed)
-        self._model.brain_mask_changed.connect(self.on_brain_mask_changed)
-        self._model.split_mask_changed.connect(self.on_split_mask_changed)
+        if self._viewport_model is not None:
+            self._viewport_model.changed.disconnect(self.on_model_changed)
+            self._viewport_model.raw_mri_changed.disconnect(\
+                                    self.on_raw_mri_changed)
+            self._viewport_model.corrected_mri_changed.disconnect(\
+                                    self.on_corrected_mri_changed)
+            self._viewport_model.brain_mask_changed.disconnect(\
+                                    self.on_brain_mask_changed)
+            self._viewport_model.split_mask_changed.disconnect(\
+                                    self.on_split_mask_changed)
+        self._viewport_model = model
+        self._viewport_model.changed.connect(self.on_model_changed)
+        self._viewport_model.raw_mri_changed.connect(self.on_raw_mri_changed)
+        self._viewport_model.corrected_mri_changed.connect(self.on_corrected_mri_changed)
+        self._viewport_model.brain_mask_changed.connect(self.on_brain_mask_changed)
+        self._viewport_model.split_mask_changed.connect(self.on_split_mask_changed)
 
     def _init_widget(self):
         self.ui.setStyleSheet(self.main_frame_style_sheet)
@@ -157,28 +158,28 @@ class IntraAnalysisSubjectwiseViewportView(QtGui.QWidget):
 
     @QtCore.Slot()
     def on_raw_mri_changed(self):
-        object = self._model.observed_objects['mri']
+        object = self._viewport_model.observed_objects['mri']
         if object is not None:
             self._display_lib._backend.add_objects_to_window(object, self.view1)
             self._display_lib._backend.center_window_on_object(self.view1, object)
 
     @QtCore.Slot()
     def on_corrected_mri_changed(self):
-        object = self._model.observed_objects['mri_corrected']
+        object = self._viewport_model.observed_objects['mri_corrected']
         if object is not None:
             self._display_lib._backend.set_palette(object, "Rainbow2")
             self._display_lib._backend.add_objects_to_window(object, self.view2)
 
     @QtCore.Slot()
     def on_brain_mask_changed(self):
-        object = self._model.observed_objects['brain_mask']
+        object = self._viewport_model.observed_objects['brain_mask']
         if object is not None:
             self._display_lib._backend.set_palette(object, "GREEN-lfusion")
             self._display_lib._backend.add_objects_to_window(object, self.view3)
 
     @QtCore.Slot()
     def on_split_mask_changed(self):
-        object = self._model.observed_objects['split_mask']
+        object = self._viewport_model.observed_objects['split_mask']
         if object is not None:
             self._display_lib._backend.set_palette(object, "RAINBOW")
             self._display_lib._backend.add_objects_to_window(object, self.view4)
