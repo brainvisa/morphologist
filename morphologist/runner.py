@@ -37,17 +37,17 @@ class Runner(object):
         subjects_with_missing_inputs = []
         for subjectname, analysis in self._study.analyses.iteritems():
             if len(analysis.input_params.list_missing_files()) != 0:
-                subjects_with_missing_inputs.append( subjectname )
+                subjects_with_missing_inputs.append(subjectname)
         if len(subjects_with_missing_inputs) != 0:
-            raise MissingInputFileError( "Subjects: %s" % ", ".join(subjects_with_missing_inputs) )
+            raise MissingInputFileError("Subjects: %s" % ", ".join(subjects_with_missing_inputs))
 
     def _check_output_files(self):
         subjects_with_existing_outputs = []
         for subjectname, analysis in self._study.analyses.iteritems():
             if len(analysis.output_params.list_existing_files()) != 0:
-                subjects_with_existing_outputs.append( subjectname )
+                subjects_with_existing_outputs.append(subjectname)
         if len(subjects_with_existing_outputs) != 0:
-            raise OutputFileExistError( "Subjects: %s" % ", ".join(subjects_with_existing_outputs) )
+            raise OutputFileExistError("Subjects: %s" % ", ".join(subjects_with_existing_outputs))
         
  
 class MissingInputFileError(Exception):
@@ -74,7 +74,7 @@ class ThreadRunner(Runner):
         self._last_run_failed = False
         command_list = []
         for analysis in self._study.analyses.values():
-            command_list.extend( analysis.get_command_list() )
+            command_list.extend(analysis.get_command_list())
         for command in command_list:
             with self._lock:
                 if self._interruption:

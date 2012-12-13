@@ -14,16 +14,16 @@ from brainvisa.data import neuroHierarchy
 class TestIntraAnalysisSteps(unittest.TestCase):
     
     def create_ref_database(self):
-        os.makedirs( self.bv_db_directory )
+        os.makedirs(self.bv_db_directory)
         brainvisa.axon.initializeProcesses()
-        database_settings = neuroConfig.DatabaseSettings( self.bv_db_directory )
-        database = neuroHierarchy.SQLDatabase( os.path.join(self.bv_db_directory, "database.sqlite"), 
+        database_settings = neuroConfig.DatabaseSettings(self.bv_db_directory)
+        database = neuroHierarchy.SQLDatabase(os.path.join(self.bv_db_directory, "database.sqlite"), 
                                                self.bv_db_directory, 
                                                'brainvisa-3.1.0', 
                                                context=defaultContext(), 
                                                settings=database_settings )
-        neuroHierarchy.databases.add( database )
-        neuroConfig.dataPath.append( database_settings )
+        neuroHierarchy.databases.add(database)
+        neuroConfig.dataPath.append(database_settings)
         raw_mri = os.path.join(self.raw_mri_directory, self.mri)
         t1mri = {"_database" : database.name, '_format' : 'NIFTI-1 image', 
                      "protocol" : "test", "subject" : self.subject}

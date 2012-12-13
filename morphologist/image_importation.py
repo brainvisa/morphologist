@@ -35,7 +35,7 @@ class ImageImportation(Step):
         header = input_vol.header()
         data_type=header["data_type"]
         need_resampling = False
-        if data_type in ( 'FLOAT', 'DOUBLE' ):
+        if data_type in ('FLOAT', 'DOUBLE'):
             need_resampling = True
         else:
             min_value = input_vol.arraydata().min()
@@ -48,7 +48,7 @@ class ImageImportation(Step):
     def remove_nan_needed(input_vol):
         header = input_vol.header()
         data_type=header["data_type"]
-        return data_type in ( 'FLOAT', 'DOUBLE' )
+        return data_type in ('FLOAT', 'DOUBLE')
             
     def run(self):
         print "Run image importation step on ", self.input, self.output
@@ -99,10 +99,10 @@ class ImportationError(Exception):
         
 if __name__ == '__main__':
     
-    parser = OptionParser( usage='%prog input_file output_file' )
+    parser = OptionParser(usage='%prog input_file output_file')
     options, args = parser.parse_args()
-    if len( args ) != 2:
-        parser.error( 'Invalid arguments : input_file and output_file are mandatory.' )
+    if len(args) != 2:
+        parser.error('Invalid arguments : input_file and output_file are mandatory.')
     importation = ImageImportation()
     importation.input = args[0]
     importation.output = args[1]
