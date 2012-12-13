@@ -17,10 +17,8 @@ class AnalysisViewportModel(QtCore.QObject):
     def _init_model(self, model):
         self._analysis_model = model
         self._analysis_model.changed.connect(self.on_analysis_model_changed)
-        self._analysis_model.input_files_changed.connect(\
-                self.on_analysis_model_input_files_changed)
-        self._analysis_model.output_files_changed.connect(\
-                self.on_analysis_model_output_files_changed)
+        self._analysis_model.files_changed.connect(\
+                self.on_analysis_model_files_changed)
 
     def _init_3d_objects(self):
         raise Exception("SubjectwiseViewportModel is an abstract class")
@@ -31,23 +29,12 @@ class AnalysisViewportModel(QtCore.QObject):
         self._init_3d_objects()
         self.changed.emit()
 
-    @QtCore.Slot(list)
-    def on_analysis_model_input_files_changed(self, changed_inputs):
-        self._on_analysis_model_files_changed(changed_inputs,
-                self._analysis_model.filename_from_input_parameter)
-
-    @QtCore.Slot(list)
-    def on_analysis_model_output_files_changed(self, changed_outputs):
-        self._on_analysis_model_files_changed(changed_outputs,
-                self._analysis_model.filename_from_output_parameter)
-
-    def _on_analysis_model_files_changed(self, changed_parameters,
-                                                filename_from_parameter):
-        for parameter in changed_parameters:
-            if not parameter in self.observed_objects.keys():
+    @QtCore.Slot(dict)
+    def on_analysis_model_files_changed(self, changed_parameters):
+        for parameter_name, filename in changed_parameters.items():
+            if not parameter_name in self.observed_objects.keys():
                 continue
-            object = self.observed_objects[parameter]
-            filename = filename_from_parameter(parameter)
+            object = self.observed_objects[parameter_name]
             if object is not None:
                 if os.path.exists(filename):
                     object = self._objects_loader_backend.reload_object_if_needed(object)
@@ -58,11 +45,11 @@ class AnalysisViewportModel(QtCore.QObject):
                     object = self._objects_loader_backend.load_object(filename)
                 except Exception, e:
                     # XXX: should be propagated to the GUI ?
-                    print "error: parameter '%s':" % parameter, \
+                    print "error: parameter '%s':" % parameter_name, \
                             "can't load '%s'" % filename, e 
                     continue
-            self.observed_objects[parameter] = object
-            signal = self.signal_map.get(parameter)
+            self.observed_objects[parameter_name] = object
+            signal = self.signal_map.get(parameter_name)
             if signal is not None:
                 self.__getattribute__(signal).emit()
  
