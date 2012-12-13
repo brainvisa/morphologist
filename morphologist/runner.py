@@ -30,15 +30,22 @@ class Runner(object):
         raise Exception("Runner is an abstract class.")
 
     def _check_input_output_files(self):
+        self._check_input_files()
+        self._check_output_files()
+
+    def _check_input_files(self):
         subjects_with_missing_inputs = []
-        subjects_with_existing_outputs = []
         for subjectname, analysis in self._study.analyses.iteritems():
             if len(analysis.input_params.list_missing_files()) != 0:
                 subjects_with_missing_inputs.append( subjectname )
-            if len(analysis.output_params.list_existing_files()) != 0:
-                subjects_with_existing_outputs.append( subjectname )
         if len(subjects_with_missing_inputs) != 0:
             raise MissingInputFileError( "Subjects: %s" % ", ".join(subjects_with_missing_inputs) )
+
+    def _check_output_files(self):
+        subjects_with_existing_outputs = []
+        for subjectname, analysis in self._study.analyses.iteritems():
+            if len(analysis.output_params.list_existing_files()) != 0:
+                subjects_with_existing_outputs.append( subjectname )
         if len(subjects_with_existing_outputs) != 0:
             raise OutputFileExistError( "Subjects: %s" % ", ".join(subjects_with_existing_outputs) )
         
