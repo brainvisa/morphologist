@@ -4,7 +4,6 @@ import tempfile
 from optparse import OptionParser
 
 from soma import aims
-from soma.aims import aimssip
 
 from .steps import Step
 
