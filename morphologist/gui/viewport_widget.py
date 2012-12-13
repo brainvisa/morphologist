@@ -5,11 +5,11 @@ from .qt_backend import QtCore, QtGui, loadUi
 from morphologist.gui import ui_directory 
 
 
-class SubjectwiseViewportModel(QtCore.QObject):
+class AnalysisViewportModel(QtCore.QObject):
     changed = QtCore.pyqtSignal()
 
     def __init__(self, model):
-        super(SubjectwiseViewportModel, self).__init__()
+        super(AnalysisViewportModel, self).__init__()
         self._objects_loader_backend = Backend.objects_loader_backend()
         self._init_model(model)
         self._init_3d_objects()
@@ -67,7 +67,7 @@ class SubjectwiseViewportModel(QtCore.QObject):
                 self.__getattribute__(signal).emit()
  
 
-class IntraAnalysisSubjectwiseViewportModel(SubjectwiseViewportModel):
+class IntraAnalysisViewportModel(AnalysisViewportModel):
     changed = QtCore.pyqtSignal()
     raw_mri_changed = QtCore.pyqtSignal()
     corrected_mri_changed = QtCore.pyqtSignal()
@@ -81,7 +81,7 @@ class IntraAnalysisSubjectwiseViewportModel(SubjectwiseViewportModel):
     }
 
     def __init__(self, model):
-        super(IntraAnalysisSubjectwiseViewportModel, self).__init__(model)
+        super(IntraAnalysisViewportModel, self).__init__(model)
 
     def _init_3d_objects(self):
         self.observed_objects = { \
@@ -92,7 +92,7 @@ class IntraAnalysisSubjectwiseViewportModel(SubjectwiseViewportModel):
         }
 
 
-class IntraAnalysisSubjectwiseViewportView(QtGui.QWidget):
+class IntraAnalysisViewportView(QtGui.QWidget):
     uifile = os.path.join(ui_directory, 'viewport_widget.ui')
     main_frame_style_sheet = '''
         #viewport_frame { background-color: white }
@@ -107,7 +107,7 @@ class IntraAnalysisSubjectwiseViewportView(QtGui.QWidget):
     '''
 
     def __init__(self, parent=None):
-        super(IntraAnalysisSubjectwiseViewportView, self).__init__(parent)
+        super(IntraAnalysisViewportView, self).__init__(parent)
         self.ui = loadUi(self.uifile, parent)
         self._views = []
         self._display_lib = IntraAnalysisDisplayLibrary()

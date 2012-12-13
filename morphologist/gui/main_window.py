@@ -9,8 +9,8 @@ from morphologist.intra_analysis import IntraAnalysis
 from morphologist.runner import SomaWorkflowRunner
 from .study_model import LazyStudyModel
 from morphologist.gui.analysis_model import LazyAnalysisModel
-from .viewport_widget import IntraAnalysisSubjectwiseViewportModel,\
-                             IntraAnalysisSubjectwiseViewportView
+from .viewport_widget import IntraAnalysisViewportModel,\
+                             IntraAnalysisViewportView
 from .subjects_widget import SubjectsTableModel, SubjectsTableView
 from .runner_widget import RunnerView
 
@@ -29,7 +29,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self.study_tablemodel = SubjectsTableModel(self.study_model)
         self.study_selection_model = QtGui.QItemSelectionModel(\
                                             self.study_tablemodel)
-        self.viewport_model = IntraAnalysisSubjectwiseViewportModel(
+        self.viewport_model = IntraAnalysisViewportModel(
                                                     self.analysis_model)
 
         self.study_view = SubjectsTableView(self.ui.study_widget_dock)
@@ -37,7 +37,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self.study_view.set_selection_model(self.study_selection_model)
         self.ui.study_widget_dock.setWidget(self.study_view)
 
-        self.viewport_view = IntraAnalysisSubjectwiseViewportView(\
+        self.viewport_view = IntraAnalysisViewportView(\
                                         self.ui.viewport_frame)
         self.viewport_view.set_model(self.viewport_model)
 
