@@ -33,13 +33,13 @@ class Runner(object):
         subjects_with_missing_inputs = []
         subjects_with_existing_outputs = []
         for subjectname, analysis in self._study.analyses.iteritems():
-            if (analysis.input_params.list_missing_files() != []):
+            if len(analysis.input_params.list_missing_files()) != 0:
                 subjects_with_missing_inputs.append( subjectname )
-            if analysis.output_params.list_existing_files() != []:
+            if len(analysis.output_params.list_existing_files()) != 0:
                 subjects_with_existing_outputs.append( subjectname )
-        if subjects_with_missing_inputs != []:
+        if len(subjects_with_missing_inputs) != 0:
             raise MissingInputFileError( "Subjects: %s" % ", ".join(subjects_with_missing_inputs) )
-        if subjects_with_existing_outputs != []:
+        if len(subjects_with_existing_outputs) != 0:
             raise OutputFileExistError( "Subjects: %s" % ", ".join(subjects_with_existing_outputs) )
         
  
