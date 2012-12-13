@@ -4,7 +4,7 @@ from .qt_backend import QtCore, QtGui, loadUi
 from morphologist.gui import ui_directory 
 from morphologist.study import Study
 from morphologist.study import StudySerializationError
-from .study_editor_widget import ManageStudyWindow
+from .study_editor_widget import StudyEditorDialog
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.runner import SomaWorkflowRunner
 from .study_model import LazyStudyModel
@@ -73,7 +73,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
     @QtCore.Slot()
     def on_action_new_study_triggered(self):
         study = self._create_study()
-        self.study_editor_widget_window = ManageStudyWindow(study, self)
+        self.study_editor_widget_window = StudyEditorDialog(study, self)
         self.study_editor_widget_window.ui.accepted.connect(self.on_study_dialog_accepted)
         self.study_editor_widget_window.ui.show()
         

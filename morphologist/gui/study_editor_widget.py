@@ -37,7 +37,7 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
         return final_filter
 
 
-class ManageStudyWindow(QtGui.QDialog):
+class StudyEditorDialog(QtGui.QDialog):
     on_apply_cancel_buttons_clicked_map = {}
     default_group = 'group 1'
     group_column_width = 100
@@ -54,7 +54,7 @@ class ManageStudyWindow(QtGui.QDialog):
         map[reject_role] = cls.on_cancel_button_clicked
 
     def __init__(self, study, parent=None):
-        super(ManageStudyWindow, self).__init__(parent)
+        super(StudyEditorDialog, self).__init__(parent)
         self.study = study
         uifile = os.path.join(ui_directory, 'study_editor_widget.ui')
         self.ui = loadUi(uifile, self)
@@ -71,7 +71,7 @@ class ManageStudyWindow(QtGui.QDialog):
 
     def _init_ui(self):
         tablewidget = self.ui.subjects_tablewidget
-        tablewidget.setColumnWidth(0, ManageStudyWindow.group_column_width)
+        tablewidget.setColumnWidth(0, self.group_column_width)
 
     def add_subjects(self, filenames, groupname=default_group):
         for filename in filenames:
@@ -118,7 +118,7 @@ class ManageStudyWindow(QtGui.QDialog):
     @QtCore.Slot("QAbstractButton *")
     def on_apply_cancel_buttons_clicked(self, button):
         role = self.ui.apply_cancel_buttons.buttonRole(button)
-        ManageStudyWindow.on_apply_cancel_buttons_clicked_map[role](self)
+        self.on_apply_cancel_buttons_clicked_map[role](self)
 
     def on_apply_button_clicked(self):
         studyname = self.ui.studyname_lineEdit.text()
@@ -194,26 +194,23 @@ class ManageStudyWindow(QtGui.QDialog):
     def _fill_groupname(self, subject_index, groupname):
         groupname_item = QtGui.QTableWidgetItem(groupname)
         self.ui.subjects_tablewidget.setItem(subject_index,
-            ManageStudyWindow.GROUPNAME_COL, groupname_item)
+                         self.GROUPNAME_COL, groupname_item)
 
     def _fill_subjectname(self, subject_index, subjectname):
         subjectname_item = QtGui.QTableWidgetItem(subjectname)
         self.ui.subjects_tablewidget.setItem(subject_index,
-            ManageStudyWindow.SUBJECTNAME_COL, subjectname_item)
+                        self.SUBJECTNAME_COL, subjectname_item)
 
     def _fill_filename(self, subject_index, filename):
         filename_item = QtGui.QTableWidgetItem(filename)
         self.ui.subjects_tablewidget.setItem(subject_index,
-            ManageStudyWindow.FILENAME_COL, filename_item)
+                            self.FILENAME_COL, filename_item)
 
     def _get_subject_data(self, subject_index):
         tablewidget = self.ui.subjects_tablewidget
-        groupname = tablewidget.item(subject_index,
-                        ManageStudyWindow.GROUPNAME_COL).text()
-        subjectname = tablewidget.item(subject_index,
-                        ManageStudyWindow.SUBJECTNAME_COL).text()
-        filename = tablewidget.item(subject_index,
-                        ManageStudyWindow.FILENAME_COL).text()
+        groupname = tablewidget.item(subject_index, self.GROUPNAME_COL).text()
+        subjectname = tablewidget.item(subject_index, self.SUBJECTNAME_COL).text()
+        filename = tablewidget.item(subject_index, self.FILENAME_COL).text()
         return groupname, subjectname, filename
 
-ManageStudyWindow._init_class()
+StudyEditorDialog._init_class()

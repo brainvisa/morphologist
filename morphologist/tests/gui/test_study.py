@@ -2,7 +2,7 @@ import os, sys
 import unittest
 
 from morphologist.gui.qt_backend import QtGui, QtCore, QtTest
-from morphologist.gui import ManageStudyWindow
+from morphologist.gui import StudyEditorDialog
 from morphologist.study import Study
 from morphologist.tests.gui import TestGui
 from morphologist.tests.study import FlatFilesStudyTestCase
@@ -20,7 +20,7 @@ class TestStudyGui(TestGui):
     def test_defining_new_content_for_an_empty_study(self):
         study = Study()
 
-        manage_subjects_window = ManageStudyWindow(study)
+        manage_subjects_window = StudyEditorDialog(study)
         self.keep_widget_alive(manage_subjects_window)
         manage_subjects_window.ui.show()
         #FIXME: replace manage_subjects_window.ui by manage_subjects_window
@@ -35,7 +35,7 @@ class TestStudyGui(TestGui):
     def test_loading_study_for_modification(self):
         study = self.test_case.create_study()
 
-        manage_subjects_window = ManageStudyWindow(study)
+        manage_subjects_window = StudyEditorDialog(study)
         self.keep_widget_alive(manage_subjects_window)
         manage_subjects_window.ui.show()
         manage_subjects_window.ui.close()
