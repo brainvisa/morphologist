@@ -2,6 +2,7 @@ import os
 import json
 
 from morphologist.analysis import InputParameters, OutputParameters
+from morphologist.image_importation import ImportationError
 
 
 class Subject(object):
@@ -131,12 +132,23 @@ class Study(object):
                                                       self.outputdir)
 
     def import_data(self, parameter_template):
+        subjects_failed = []
         for subjectname, subject in self.subjects.iteritems():
-            new_imgname = self._analysis_cls().import_data(parameter_template, 
+            try:
+                new_imgname = self._analysis_cls().import_data(parameter_template, 
                                                                  subject.imgname,
                                                                  subjectname,
                                                                  self.outputdir)
-            subject.imgname = new_imgname 
+                subject.imgname = new_imgname
+            except ImportationError, e:
+                print e
+                subjects_failed.append(subjectname) 
+        if len(subjects_failed) > 0:
+            for subjectname in subjects_failed:
+                del self.subjects[subjectname]
+                del self.analyses[subjectname]
+            raise ImportationError("The importation failed for the following subjects:\n%s."
+                                   % ", ".join(subjects_failed))
 
     def has_subjects(self):
         return len(self.subjects) != 0

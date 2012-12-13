@@ -13,6 +13,7 @@ from .viewport_widget import IntraAnalysisViewportModel,\
                              IntraAnalysisViewportView
 from .subjects_widget import SubjectsTableModel, SubjectsTableView
 from .runner_widget import RunnerView
+from morphologist.image_importation import ImportationError
 
 
 class IntraAnalysisWindow(QtGui.QMainWindow):
@@ -82,14 +83,22 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         study = self.study_editor_widget_window.study
         if study.has_subjects():
             QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
-            study.import_data(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
-            study.set_analysis_parameters(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
-            QtGui.QApplication.restoreOverrideCursor()
-            msg = "The images have been copied in %s directory." % study.outputdir
-            msgbox = QtGui.QMessageBox(QtGui.QMessageBox.Information,
+            try:
+                study.import_data(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
+            except ImportationError, e:
+                QtGui.QApplication.restoreOverrideCursor()
+                QtGui.QMessageBox.critical(self, 
+                                          "Cannot import some images", "%s" %(e)) 
+            finally:
+                QtGui.QApplication.restoreOverrideCursor()
+            if study.has_subjects():
+                msg = "The images have been imported in %s directory." % study.outputdir
+                msgbox = QtGui.QMessageBox(QtGui.QMessageBox.Information,
                                    "Images importation", msg,
                                    QtGui.QMessageBox.Ok, self)
-            msgbox.show()
+                msgbox.show()
+                
+            study.set_analysis_parameters(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
         self.set_study(study)
         self.study_editor_widget_window = None
 
