@@ -181,7 +181,7 @@ class IntraAnalysisSubjectwiseViewportModel(SubjectwiseViewportModel):
             
 
 class IntraAnalysisSubjectwiseViewportView(QtGui.QWidget):
-    uifile = os.path.join(ui_directory, 'viewport.ui')
+    uifile = os.path.join(ui_directory, 'viewport_widget.ui')
     main_frame_style_sheet = '''
         #viewport_frame { background-color: white }
         #view1_frame, #view2_frame, #view3_frame, #view4_frame {

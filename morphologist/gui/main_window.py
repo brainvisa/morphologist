@@ -4,18 +4,19 @@ from .qt_backend import QtCore, QtGui, loadUi
 from morphologist.gui import ui_directory 
 from morphologist.study import Study
 from morphologist.study import StudySerializationError
-from .manage_study import ManageStudyWindow
+from .study_editor_widget import ManageStudyWindow
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.runner import SomaWorkflowRunner
 from .study_model import LazyStudyModel
-from .viewport import LazyAnalysisModel, IntraAnalysisSubjectwiseViewportModel,\
-                      IntraAnalysisSubjectwiseViewportView
-from .subjects import SubjectsTableModel, SubjectsTableView
-from .runner import RunnerView
+from .viewport_widget import LazyAnalysisModel, \
+                IntraAnalysisSubjectwiseViewportModel,\
+                IntraAnalysisSubjectwiseViewportView
+from .subjects_widget import SubjectsTableModel, SubjectsTableView
+from .runner_widget import RunnerView
 
 
 class IntraAnalysisWindow(QtGui.QMainWindow):
-    uifile = os.path.join(ui_directory, 'intra_analysis.ui')
+    uifile = os.path.join(ui_directory, 'main_window.ui')
 
     def __init__(self, study_file=None):
         super(IntraAnalysisWindow, self).__init__()
@@ -46,7 +47,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         layout.addWidget(self.runner_view)
         self.runner_view.set_model(self.study_model)
         
-        self.manage_study_window = None
+        self.study_editor_widget_window = None
 
         self._init_qt_connections()
         self._init_widget()
@@ -72,13 +73,13 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
     @QtCore.Slot()
     def on_action_new_study_triggered(self):
         study = self._create_study()
-        self.manage_study_window = ManageStudyWindow(study, self)
-        self.manage_study_window.ui.accepted.connect(self.on_study_dialog_accepted)
-        self.manage_study_window.ui.show()
+        self.study_editor_widget_window = ManageStudyWindow(study, self)
+        self.study_editor_widget_window.ui.accepted.connect(self.on_study_dialog_accepted)
+        self.study_editor_widget_window.ui.show()
         
     @QtCore.Slot()
     def on_study_dialog_accepted(self):
-        study = self.manage_study_window.study
+        study = self.study_editor_widget_window.study
         if study.has_subjects():
             QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
             study.import_data(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
@@ -90,7 +91,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
                                    QtGui.QMessageBox.Ok, self)
             msgbox.show()
         self.set_study(study)
-        self.manage_study_window = None
+        self.study_editor_widget_window = None
 
 
     # this slot is automagically connected

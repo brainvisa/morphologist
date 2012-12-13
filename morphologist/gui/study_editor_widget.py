@@ -56,7 +56,7 @@ class ManageStudyWindow(QtGui.QDialog):
     def __init__(self, study, parent=None):
         super(ManageStudyWindow, self).__init__(parent)
         self.study = study
-        uifile = os.path.join(ui_directory, 'manage_study.ui')
+        uifile = os.path.join(ui_directory, 'study_editor_widget.ui')
         self.ui = loadUi(uifile, self)
         apply_id = QtGui.QDialogButtonBox.Apply
         cancel_id = QtGui.QDialogButtonBox.Cancel

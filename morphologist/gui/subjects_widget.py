@@ -61,7 +61,7 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
 
 
 class SubjectsTableView(QtGui.QWidget):
-    uifile = os.path.join(ui_directory, 'display_study.ui')
+    uifile = os.path.join(ui_directory, 'subjects_widget.ui')
     # FIXME : missing handling of sorting triangle icon
     header_style_sheet = '''
         QHeaderView::section {

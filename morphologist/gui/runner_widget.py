@@ -6,7 +6,7 @@ from morphologist.runner import OutputFileExistError, MissingInputFileError
 
 
 class RunnerView(QtGui.QWidget):
-    uifile = os.path.join(ui_directory, 'runner.ui')
+    uifile = os.path.join(ui_directory, 'runner_widget.ui')
     
     def __init__(self, parent=None):
         super(RunnerView, self).__init__(parent)
