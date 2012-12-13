@@ -10,7 +10,9 @@ class SubjectwiseViewportModel(QtCore.QObject):
 
     def __init__(self, model):
         super(SubjectwiseViewportModel, self).__init__()
+        self._objects_loader_backend = Backend.objects_loader_backend()
         self._init_model(model)
+        self._init_3d_objects()
 
     def _init_model(self, model):
         self._analysis_model = model
@@ -20,44 +22,8 @@ class SubjectwiseViewportModel(QtCore.QObject):
         self._analysis_model.output_files_changed.connect(\
                 self.on_analysis_model_output_files_changed)
 
-    @QtCore.Slot()
-    def on_analysis_model_changed(self):
-        raise Exception("SubjectwiseViewportModel is an abstract class")
-
-    @QtCore.Slot(list)
-    def on_analysis_model_input_files_changed(self, changed_parameters):
-        raise Exception("SubjectwiseViewportModel is an abstract class")
-
-    @QtCore.Slot(list)
-    def on_analysis_model_output_files_changed(self, changed_parameters):
-        raise Exception("SubjectwiseViewportModel is an abstract class")
-
-
-class IntraAnalysisSubjectwiseViewportModel(SubjectwiseViewportModel):
-    changed = QtCore.pyqtSignal()
-    raw_mri_changed = QtCore.pyqtSignal()
-    corrected_mri_changed = QtCore.pyqtSignal()
-    brain_mask_changed = QtCore.pyqtSignal()
-    split_mask_changed = QtCore.pyqtSignal()
-    signal_map = { \
-        'mri' : 'raw_mri_changed',
-        'mri_corrected' : 'corrected_mri_changed',
-        'brain_mask' : 'brain_mask_changed',
-        'split_mask' : 'split_mask_changed'
-    }
-
-    def __init__(self, model):
-        super(IntraAnalysisSubjectwiseViewportModel, self).__init__(model)
-        self._objects_loader_backend = Backend.objects_loader_backend()
-        self._init_3d_objects()
-
     def _init_3d_objects(self):
-        self.observed_objects = { \
-            'mri' : None,
-            'mri_corrected' : None,
-            'brain_mask' : None,
-            'split_mask' : None
-        }
+        raise Exception("SubjectwiseViewportModel is an abstract class")
 
     @QtCore.Slot()
     def on_analysis_model_changed(self):
@@ -99,7 +65,32 @@ class IntraAnalysisSubjectwiseViewportModel(SubjectwiseViewportModel):
             signal = self.signal_map.get(parameter)
             if signal is not None:
                 self.__getattribute__(signal).emit()
-            
+ 
+
+class IntraAnalysisSubjectwiseViewportModel(SubjectwiseViewportModel):
+    changed = QtCore.pyqtSignal()
+    raw_mri_changed = QtCore.pyqtSignal()
+    corrected_mri_changed = QtCore.pyqtSignal()
+    brain_mask_changed = QtCore.pyqtSignal()
+    split_mask_changed = QtCore.pyqtSignal()
+    signal_map = { \
+        'mri' : 'raw_mri_changed',
+        'mri_corrected' : 'corrected_mri_changed',
+        'brain_mask' : 'brain_mask_changed',
+        'split_mask' : 'split_mask_changed'
+    }
+
+    def __init__(self, model):
+        super(IntraAnalysisSubjectwiseViewportModel, self).__init__(model)
+
+    def _init_3d_objects(self):
+        self.observed_objects = { \
+            'mri' : None,
+            'mri_corrected' : None,
+            'brain_mask' : None,
+            'split_mask' : None
+        }
+
 
 class IntraAnalysisSubjectwiseViewportView(QtGui.QWidget):
     uifile = os.path.join(ui_directory, 'viewport_widget.ui')
