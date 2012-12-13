@@ -1,21 +1,5 @@
 from morphologist.steps import Step
 
-class SpatialNormalization(Step):
-
-    def __init__(self):
-        super(SpatialNormalization, self).__init__()
-        
-        self.mri = None
-        
-        #outputs
-        self.commissure_coordinates = None
-        self.talairach_transform = None
-
-    def get_command(self):
-        # TODO 
-        command = ['echo', "TO DO : Spatial Normalization !!!"]
-        return command
- 
 
 class BiasCorrection(Step):
 
