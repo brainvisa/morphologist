@@ -17,14 +17,14 @@ class SpatialNormalization(Step):
         
         #outputs
         self.commissure_coordinates = None
-        self.talairach_transform = None
+        self.talairach_transformation = None
 
     def get_command(self):
         # TODO 
         command = ['python', '-m', 'morphologist.intra_analysis_normalization', 
                    self.mri, 
                    self.commissure_coordinates, 
-                   self.talairach_transform]
+                   self.talairach_transformation]
         return command
  
     @staticmethod
@@ -35,7 +35,7 @@ class SpatialNormalization(Step):
     def run(self):
         print "Run spatial normalization on ", self.mri    
         brainvisa.axon.initializeProcesses()
-        transformations_directory = os.path.dirname(self.talairach_transform)
+        transformations_directory = os.path.dirname(self.talairach_transformation)
         mri_name = os.path.basename(self.mri)
         mri_name = mri_name.split(".")[0]
         mri_path = os.path.dirname(self.mri)
@@ -55,10 +55,14 @@ class SpatialNormalization(Step):
         mri_referential_file.close()
         defaultContext().runProcess("TalairachTransformationFromNormalization", 
                                     talairach_mni_transform, 
-                                    self.talairach_transform, 
+                                    self.talairach_transformation, 
                                     self.commissure_coordinates, 
                                     self.mri, mri_referential)
         brainvisa.axon.cleanup()
+        for temp_filename in (talairach_mni_transform, spm_transformation, 
+                              normalized_mri, mri_referential):
+            if os.path.exists(temp_filename):
+                os.remove(temp_filename)
         return neuroConfig.exitValue
      
          
@@ -73,5 +77,5 @@ if __name__ == '__main__':
     normalization = SpatialNormalization()
     normalization.mri = args[0]
     normalization.commissure_coordinates = args[1]
-    normalization.talairach_transform = args[2]
+    normalization.talairach_transformation = args[2]
     normalization.run()

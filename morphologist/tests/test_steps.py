@@ -84,7 +84,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         if not os.path.exists(os.path.join(self.output_directory, "registration")):
             os.mkdir(os.path.join(self.output_directory, "registration"))
 
-        self.talairach_transform = os.path.join("registration", 
+        self.talairach_transformation = os.path.join("registration", 
                                                 "RawT1-%s_default_acquisition_TO_Talairach-ACPC.trm" 
                                                 % self.subject)
         
@@ -125,12 +125,12 @@ class TestIntraAnalysisSteps(unittest.TestCase):
 
         spatial_normalization.commissure_coordinates = os.path.join(self.output_directory,
                                                                     self.commissure_coordinates)
-        spatial_normalization.talairach_transform = os.path.join(self.output_directory,
-                                                                 self.talairach_transform)
+        spatial_normalization.talairach_transformation = os.path.join(self.output_directory,
+                                                                 self.talairach_transformation)
 
         self.assert_(spatial_normalization.run() == 0)
         
-        self.compare_results([self.commissure_coordinates, self.talairach_transform])
+        self.compare_results([self.commissure_coordinates, self.talairach_transformation])
 
 
     def test_bias_correction(self):
