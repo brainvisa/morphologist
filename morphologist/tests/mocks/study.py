@@ -8,9 +8,19 @@ class MockIntraAnalysisStudy(Study):
     def _create_analysis():
         return MockIntraAnalysis()
 
+    @staticmethod
+    def _analysis_cls():
+        return MockIntraAnalysis
+
 
 class MockStudy(Study):
 
     @staticmethod
     def _create_analysis():
         return MockAnalysis()
+   
+    @staticmethod
+    def _analysis_cls():
+        return MockAnalysis
+
+

@@ -120,7 +120,10 @@ class Study(object):
     @staticmethod
     def _create_analysis():
         return IntraAnalysis() 
-
+  
+    @staticmethod
+    def _analysis_cls():
+        return IntraAnalysis
 
     def set_analysis_parameters(self, parameter_template):
         for subjectname, subject in self.subjects.iteritems():
@@ -130,13 +133,12 @@ class Study(object):
                                                       self.outputdir)
 
     def import_data(self, parameter_template):
-        import_step = ImageImportation()
         for subjectname, subject in self.subjects.iteritems():
-            import_step.input = subject.imgname
-            import_step.output = IntraAnalysis.get_mri_path(parameter_template, subjectname, self.outputdir)
-            IntraAnalysis.create_outputdirs(parameter_template, subjectname, self.outputdir)
-            import_step.run()
-            subject.imgname = import_step.output
+            new_imgname = self._analysis_cls().import_data(parameter_template, 
+                                                                 subject.imgname,
+                                                                 subjectname,
+                                                                 self.outputdir)
+            subject.imgname = new_imgname 
 
     def has_subjects(self):
         return len(self.subjects) != 0

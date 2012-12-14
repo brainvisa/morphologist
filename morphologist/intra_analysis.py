@@ -2,6 +2,7 @@ import os
 
 from morphologist.analysis import Analysis, InputParameters, OutputParameters
 from morphologist.analysis import UnknownParameterTemplate
+from morphologist.image_importation import ImageImportation
 from morphologist.intra_analysis_steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
 
 class IntraAnalysis(Analysis):
@@ -51,6 +52,19 @@ class IntraAnalysis(Analysis):
                        self._split_brain] 
 
 
+    @classmethod
+    def import_data(cls, parameter_template, filename, subjectname, outputdir):
+
+        import_step = ImageImportation()
+        import_step.input = filename
+        import_step.output = cls.get_mri_path(parameter_template, 
+                                                        subjectname,
+                                                        outputdir)
+        cls.create_outputdirs(parameter_template, subjectname, outputdir)
+        import_step.run()
+        return import_step.output
+
+
     def propagate_parameters(self):
         self._bias_correction.mri = self.input_params[IntraAnalysis.MRI]
         self._bias_correction.commissure_coordinates = self.input_params[IntraAnalysis.COMMISSURE_COORDINATES]
@@ -91,15 +105,15 @@ class IntraAnalysis(Analysis):
 
 
     @classmethod
-    def get_mri_path(cls, param_template_id, subjectname, directory):
-        param_template = cls.param_template_map[param_template_id]
-        return param_template.get_mri_path(subjectname, directory)
+    def get_mri_path(cls, parameter_template, subjectname, directory):
+        param_template_instance = cls.param_template_map[parameter_template]
+        return param_template_instance.get_mri_path(subjectname, directory)
     
 
     @classmethod
-    def create_outputdirs(cls, param_template_id, subjectname, directory):
-        param_template = cls.param_template_map[param_template_id]
-        param_template.create_outputdirs(subjectname, directory)
+    def create_outputdirs(cls, parameter_template, subjectname, directory):
+        param_template_instance = cls.param_template_map[parameter_template]
+        param_template_instance.create_outputdirs(subjectname, directory)
 
 
 

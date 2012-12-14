@@ -4,7 +4,7 @@ import os
 
 class Analysis(object):
 
-    PARAMETER_TEMPLATES = []
+    PARAMETER_TEMPLATE = []
     param_template_map = {}
 
 
@@ -14,13 +14,17 @@ class Analysis(object):
         self.output_params = OutputParameters(file_param_names=[])
 
 
-    def set_parameters(self, param_template_id, name, image, outputdir):
-        if param_template_id not in self.PARAMETER_TEMPLATES:
-            raise UnknownParameterTemplate(param_template_id)
+    @classmethod
+    def import_data(cls, parameter_template, filename, subjectname, outputdir):
+        return filename
 
-        param_template = self.param_template_map[param_template_id]
-        self.input_params = param_template.get_input_params(name, image)
-        self.output_params = param_template.get_output_params(name, outputdir)
+    def set_parameters(self, parameter_template, name, image, outputdir):
+        if parameter_template not in self.PARAMETER_TEMPLATES:
+            raise UnknownParameterTemplate(parameter_template)
+
+        param_template_instance = self.param_template_map[parameter_template]
+        self.input_params = param_template_instance.get_input_params(name, image)
+        self.output_params = param_template_instance.get_output_params(name, outputdir)
 
 
     def get_command_list(self):
