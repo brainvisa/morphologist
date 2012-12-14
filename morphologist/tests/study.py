@@ -1,3 +1,4 @@
+import os
 
 from morphologist.tests.mocks.study import MockStudy
 
@@ -29,6 +30,14 @@ class AbstractStudyTestCase(object):
     def set_parameters(self):
         self.study.set_analysis_parameters(parameter_template=self.parameter_template())
 
+    def delete_some_input_files(self):
+        raise Exception("AbstractStudyTestCase is an abstract class")
+
+    def create_some_output_files(self):
+        raise Exception("AbstractStudyTestCase is an abstract class")
+
+    def restore_input_files(self):
+        raise Exception("AbstractStudyTestCase is an abstract class")
 
 
 class MockStudyTestCase(AbstractStudyTestCase):
@@ -54,5 +63,27 @@ class MockStudyTestCase(AbstractStudyTestCase):
 
     def parameter_template(self):
         return 'foo'
+
+    def delete_some_input_files(self):
+        parameter_names = ['input_2', 'input_5']
+        for name in parameter_names:
+            file_name = self.study.analyses.values()[1].input_params.get_value(name)
+            remove_file(file_name)
+
+    def create_some_output_files(self):
+        parameter_names = ['output_1', 'output_4']
+        for name in parameter_names:
+            file_name = self.study.analyses.values()[0].output_params.get_value(name)
+            f = open(file_name, "w")
+            f.write("something\n")
+            f.close()
+
+    def restore_input_files(self):
+        # useless because the input files are created in set_analysis_parameters
+        pass
+
+def remove_file(file_name):
+    if os.path.isfile(file_name):
+        os.remove(file_name)
 
 

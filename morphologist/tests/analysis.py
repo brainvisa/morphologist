@@ -20,16 +20,10 @@ class AnalysisTestCase(object):
     def delete_some_parameter_values(self):
         raise Exception("AnalysisTestCase is an abstract class")
 
-    def delete_some_input_files(self):
-        raise Exception("AnalysisTestCase is an abstract class")
-
     def create_some_output_files(self):
         raise Exception("AnalysisTestCase is an abstract class")
 
     def get_wrong_parameter_name(self):
-        raise Exception("AnalysisTestCase is an abstract class")
-
-    def restore_input_files(self):
         raise Exception("AnalysisTestCase is an abstract class")
 
 
@@ -50,16 +44,10 @@ class MockAnalysisTestCase(AnalysisTestCase):
                                      name='foo',
                                      image='foo',
                                      outputdir='/tmp')
- 
+
     def delete_some_parameter_values(self):
         self.analysis.output_params.output_3 = None
         self.analysis.input_params.input_4 = None
-
-    def delete_some_input_files(self):
-        parameter_names = ['input_2', 'input_5']
-        for name in parameter_names:
-            file_name = self.analysis.input_params.get_value(name)
-            remove_file(file_name)
 
     def create_some_output_files(self):
         parameter_names = ['output_1', 'output_4']
@@ -71,10 +59,6 @@ class MockAnalysisTestCase(AnalysisTestCase):
 
     def get_wrong_parameter_name(self):
         return "toto"
-
-    def restore_input_files(self):
-        # useless because the input files are created in set_analysis_parameters
-        pass
 
 
 def remove_file(file_name):
