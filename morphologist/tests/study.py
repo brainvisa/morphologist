@@ -23,9 +23,6 @@ class AbstractStudyTestCase(object):
                                 self.subjectnames, self.groupnames):
             self.study.add_subject_from_file(filename, subjectname, groupname)
 
-    def set_parameters(self):
-        raise Exception('AbstractStudyTestCase is an abstract class')
-
     def parameter_template(self):
         raise Exception('AbstractStudyTestCase is an abstract class')
 
