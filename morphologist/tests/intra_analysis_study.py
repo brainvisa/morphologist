@@ -5,6 +5,7 @@ import shutil
 from morphologist.study import Study
 from morphologist.tests.study import AbstractStudyTestCase
 from morphologist.intra_analysis import IntraAnalysis
+from morphologist.tests.mocks.study import MockIntraAnalysisStudy
 
 class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
 

@@ -3,7 +3,6 @@ import json
 
 from .analysis import InputParameters, OutputParameters
 from .intra_analysis import IntraAnalysis
-from .image_importation import ImageImportation
 
 
 class Subject(object):
