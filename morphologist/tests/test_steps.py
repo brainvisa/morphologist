@@ -3,8 +3,9 @@ import unittest
 import shutil
 import filecmp 
 
-from morphologist.intra_analysis_steps import SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
+from morphologist.intra_analysis_steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
 from morphologist.image_importation import ImageImportation
+from morphologist.intra_analysis_normalization import SpatialNormalization
 
 import brainvisa.axon
 from brainvisa.processes import defaultContext
@@ -17,23 +18,20 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         os.makedirs(self.bv_db_directory)
         brainvisa.axon.initializeProcesses()
         database_settings = neuroConfig.DatabaseSettings(self.bv_db_directory)
-        database = neuroHierarchy.SQLDatabase(os.path.join(self.bv_db_directory, "database.sqlite"), 
+        database = neuroHierarchy.SQLDatabase(os.path.join(self.bv_db_directory, "database-2.1.sqlite"), 
                                                self.bv_db_directory, 
                                                'brainvisa-3.1.0', 
                                                context=defaultContext(), 
                                                settings=database_settings )
         neuroHierarchy.databases.add(database)
-        neuroConfig.dataPath.append(database_settings)
         raw_mri = os.path.join(self.raw_mri_directory, self.mri)
         t1mri = {"_database" : database.name, '_format' : 'NIFTI-1 image', 
                      "protocol" : "test", "subject" : self.subject}
         defaultContext().runProcess('ImportT1MRI', raw_mri, t1mri)
 
         pipeline=brainvisa.processes.getProcessInstance("morphologist")
+        pipeline.perform_normalization = True
         nodes=pipeline.executionNode()
-        ac = [124.010253906, 110.013366699, 74.0999832153]
-        pc = [124.383506775, 136.140884399, 75.3999862671]
-        ip = [123.263755798, 102.175109863, 26.0]
         # select steps until split brain and fix the random seed
         nodes.child('TalairachTransformation').setSelected(0)
         nodes.child('GreyWhiteClassification').setSelected(0)
@@ -51,8 +49,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         nodes.child('HistoAnalysis').setSelected(0)
         nodes.child('BrainSegmentation').setSelected(0)
         nodes.child('SplitBrain').setSelected(0)
-        defaultContext().runProcess(pipeline, t1mri, Anterior_Commissure=ac, 
-                              Posterior_Commissure=pc, Interhemispheric_Point=ip)
+        defaultContext().runProcess(pipeline, t1mri)
         # Save the white ridge in another file because it will be re-written
         shutil.copy(os.path.join(self.base_directory, self.white_ridges), 
                     os.path.join(self.base_directory, self.white_ridges_bc))
@@ -88,7 +85,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
             os.mkdir(os.path.join(self.output_directory, "registration"))
 
         self.talairach_transform = os.path.join("registration", 
-                                                "RawT1-%s_default_acquisition_TO_Talairach-MNI.trm" 
+                                                "RawT1-%s_default_acquisition_TO_Talairach-ACPC.trm" 
                                                 % self.subject)
         
         if not os.path.exists(os.path.join(self.output_directory, "default_analysis")):
@@ -132,6 +129,8 @@ class TestIntraAnalysisSteps(unittest.TestCase):
                                                                  self.talairach_transform)
 
         self.assert_(spatial_normalization.run() == 0)
+        
+        self.compare_results([self.commissure_coordinates, self.talairach_transform])
 
 
     def test_bias_correction(self):
@@ -243,7 +242,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
 Some attributes are not the same: %s." % (os.path.basename(f_minf_ref), str(difference)) )
             for att in attributes_ref:
                 self.assert_(minf_test.get(att) == minf_ref[att], 
-                             "The content of %s in test is different from the reference results\
+                             "The content of %s in test is different from the reference results \
 for the attribute %s. The reference value is %s, whereas the test value is %s."
 % (os.path.basename(f_minf_ref), att, str(minf_ref.get(att)), str(minf_test.get(att)) ) )
 
