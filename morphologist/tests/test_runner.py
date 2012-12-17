@@ -10,9 +10,9 @@ class TestRunner(unittest.TestCase):
         self.test_case = self.create_test_case()
         self.test_case.create_study()
         self.test_case.add_subjects()
-        self.test_case.set_parameters() 
         self.study = self.test_case.study
         self.study.import_data(self.test_case.parameter_template())
+        self.test_case.set_parameters() 
         self.runner = self.create_runner(self.study)
     
     def create_runner(self, study):
