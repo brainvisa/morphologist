@@ -1,5 +1,6 @@
 from optparse import OptionParser
 import os
+import uuid
 
 import brainvisa.axon
 from brainvisa.processes import defaultContext
@@ -30,7 +31,11 @@ class SpatialNormalization(Step):
     @staticmethod
     def get_referential_uuid(image):
         vol = aims.read(image)
-        return vol.header()["referential"]
+        if vol.header().has_key("referential"):
+            ref = vol.header()["referential"]
+        else:
+            ref = uuid.uuid4()
+        return ref
         
     def run(self):
         print "Run spatial normalization on ", self.mri    

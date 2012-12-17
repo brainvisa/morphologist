@@ -1,9 +1,9 @@
 import os
 
 from morphologist.analysis import Analysis, InputParameters, OutputParameters
-from morphologist.analysis import UnknownParameterTemplate
 from morphologist.image_importation import ImageImportation
 from morphologist.intra_analysis_steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
+from morphologist.intra_analysis_normalization import SpatialNormalization
 
 class IntraAnalysis(Analysis):
     # TODO: change string by a number
@@ -14,6 +14,7 @@ class IntraAnalysis(Analysis):
 
     MRI = 'mri'
     COMMISSURE_COORDINATES = 'commissure_coordinates'
+    TALAIRACH_TRANSFORMATION = 'talairach_transformation'
     EROSION_SIZE = 'erosion_size' 
     BARY_FACTOR = 'bary_factor'
     HFILTERED = 'hfiltered'
@@ -42,11 +43,13 @@ class IntraAnalysis(Analysis):
 
 
     def _init_steps(self):
+        self._normalization = SpatialNormalization()
         self._bias_correction = BiasCorrection()
         self._histogram_analysis = HistogramAnalysis()
         self._brain_segmentation = BrainSegmentation()
         self._split_brain = SplitBrain()  
-        self._steps = [self._bias_correction, 
+        self._steps = [self._normalization, 
+                       self._bias_correction, 
                        self._histogram_analysis, 
                        self._brain_segmentation, 
                        self._split_brain] 
@@ -66,8 +69,12 @@ class IntraAnalysis(Analysis):
 
 
     def propagate_parameters(self):
+        self._normalization.mri = self.input_params[IntraAnalysis.MRI]
+        self._normalization.commissure_coordinates = self.output_params[IntraAnalysis.COMMISSURE_COORDINATES]
+        self._normalization.talairach_transformation = self.output_params[IntraAnalysis.TALAIRACH_TRANSFORMATION]
+        
         self._bias_correction.mri = self.input_params[IntraAnalysis.MRI]
-        self._bias_correction.commissure_coordinates = self.input_params[IntraAnalysis.COMMISSURE_COORDINATES]
+        self._bias_correction.commissure_coordinates = self._normalization.commissure_coordinates
 
         self._bias_correction.hfiltered = self.output_params[IntraAnalysis.HFILTERED]
         self._bias_correction.white_ridges = self.output_params[IntraAnalysis.WHITE_RIDGES]
@@ -84,7 +91,7 @@ class IntraAnalysis(Analysis):
 
 
         self._brain_segmentation.corrected_mri = self._bias_correction.corrected_mri
-        self._brain_segmentation.commissure_coordinates = self.input_params[IntraAnalysis.COMMISSURE_COORDINATES]
+        self._brain_segmentation.commissure_coordinates = self._normalization.commissure_coordinates
         self._brain_segmentation.white_ridges = self._bias_correction.white_ridges
         self._brain_segmentation.edges = self._bias_correction.edges
         self._brain_segmentation.variance = self._bias_correction.variance
@@ -98,7 +105,7 @@ class IntraAnalysis(Analysis):
         self._split_brain.brain_mask = self._brain_segmentation.brain_mask
         self._split_brain.white_ridges = self._bias_correction.white_ridges
         self._split_brain.histo_analysis = self._histogram_analysis.histo_analysis
-        self._split_brain.commissure_coordinates = self.input_params[IntraAnalysis.COMMISSURE_COORDINATES]
+        self._split_brain.commissure_coordinates = self._normalization.commissure_coordinates
         self._split_brain.bary_factor = self.input_params[IntraAnalysis.BARY_FACTOR]
 
         self._split_brain.split_mask = self.output_params[IntraAnalysis.SPLIT_MASK]
@@ -118,9 +125,11 @@ class IntraAnalysis(Analysis):
 
 
 class IntraAnalysisParameterTemplate(object):
-    input_file_param_names = [IntraAnalysis.MRI, IntraAnalysis.COMMISSURE_COORDINATES]
+    input_file_param_names = [IntraAnalysis.MRI]
     input_other_param_names = [IntraAnalysis.EROSION_SIZE, IntraAnalysis.BARY_FACTOR]
-    output_file_param_names = [IntraAnalysis.HFILTERED,
+    output_file_param_names = [IntraAnalysis.COMMISSURE_COORDINATES,
+                               IntraAnalysis.TALAIRACH_TRANSFORMATION,
+                               IntraAnalysis.HFILTERED,
                                IntraAnalysis.WHITE_RIDGES,
                                IntraAnalysis.EDGES,
                                IntraAnalysis.VARIANCE,
@@ -149,25 +158,26 @@ class IntraAnalysisParameterTemplate(object):
 
 class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
 
+    ACQUISITION = "default_acquisition"
+    ANALYSIS = "default_analysis"
+    REGISTRATION = "registration"
+    MODALITY = "t1mri"
+    SEGMENTATION = "segmentation"
+    
     @classmethod
     def get_mri_path(cls, subjectname, directory):
-        return os.path.join(directory, subjectname, "t1mri", 
-                            "default_acquisition", subjectname + ".nii")
+        return os.path.join(directory, subjectname, cls.MODALITY, 
+                            cls.ACQUISITION, subjectname + ".nii")
 
     @classmethod
     def get_input_params(cls, subjectname, img_filename):
         #img_filename should be in path/subjectname/t1mri/default_acquisition
         # TODO raise an exception if it not the case ?
-        default_acquisition_path = os.path.dirname(img_filename)
-        t1mri_path = os.path.dirname(default_acquisition_path)
-        subject = os.path.basename(os.path.dirname(t1mri_path))
-
         parameters = InputParameters(cls.input_file_param_names,
                                      cls.input_other_param_names)
 
         parameters[IntraAnalysis.MRI] = img_filename
-        parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(default_acquisition_path, 
-                                                   "%s.APC" % subject)
+
         parameters[IntraAnalysis.EROSION_SIZE] = 1.8
         parameters[IntraAnalysis.BARY_FACTOR] = 0.6
 
@@ -177,12 +187,19 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
     def get_output_params(cls, subjectname, outputdir):
         # the directory hierarchy in the outputdir will be 
         # subjectname/t1mri/default_acquisition/default_analysis/segmentation
-        default_analysis_path = os.path.join(outputdir, subjectname, "t1mri", 
-                                             "default_acquisition", "default_analysis") 
+        default_acquisition_path = os.path.join(outputdir, subjectname, 
+                                                   cls.MODALITY, cls.ACQUISITION)
+        registration_path = os.path.join(default_acquisition_path, cls.REGISTRATION)
+        default_analysis_path = os.path.join(default_acquisition_path, cls.ANALYSIS) 
           
-        segmentation_path = os.path.join(default_analysis_path, "segmentation")
+        segmentation_path = os.path.join(default_analysis_path, cls.SEGMENTATION)
  
         parameters = OutputParameters(cls.output_file_param_names)
+        parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(default_acquisition_path, 
+                                                   "%s.APC" % subjectname)
+        parameters[IntraAnalysis.TALAIRACH_TRANSFORMATION] = os.path.join(registration_path, 
+                                                         "RawT1-%s_%s_TO_Talairach-ACPC.trm" 
+                                                         % (subjectname, cls.ACQUISITION))
         parameters[IntraAnalysis.HFILTERED] = os.path.join(default_analysis_path, 
                                             "hfiltered_%s.nii" % subjectname)
         parameters[IntraAnalysis.WHITE_RIDGES] = os.path.join(default_analysis_path, 
@@ -206,16 +223,19 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         subject_path = os.path.join(outputdir, subjectname)
         create_directory_if_missing(subject_path)
         
-        t1mri_path = os.path.join(subject_path, "t1mri")
+        t1mri_path = os.path.join(subject_path, cls.MODALITY)
         create_directory_if_missing(t1mri_path)
         
-        default_acquisition_path = os.path.join(t1mri_path, "default_acquisition")
+        default_acquisition_path = os.path.join(t1mri_path, cls.ACQUISITION)
         create_directory_if_missing(default_acquisition_path)
         
-        default_analysis_path = os.path.join(default_acquisition_path, "default_analysis") 
+        registration_path = os.path.join(default_acquisition_path, cls.REGISTRATION)
+        create_directory_if_missing(registration_path)
+        
+        default_analysis_path = os.path.join(default_acquisition_path, cls.ANALYSIS) 
         create_directory_if_missing(default_analysis_path)
         
-        segmentation_path = os.path.join(default_analysis_path, "segmentation")
+        segmentation_path = os.path.join(default_analysis_path, cls.SEGMENTATION)
         create_directory_if_missing(segmentation_path)
 
            
@@ -231,9 +251,6 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                                      cls.input_other_param_names)
 
         parameters[IntraAnalysis.MRI] = img_filename
-        mri_dirname = os.path.dirname(img_filename)
-        parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(mri_dirname, 
-                                                         "%s.APC" %subjectname)
       
         parameters[IntraAnalysis.EROSION_SIZE] = 1.8
         parameters[IntraAnalysis.BARY_FACTOR] = 0.6
@@ -245,7 +262,11 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         parameters = OutputParameters(cls.output_file_param_names)
 
         subject_dirname = os.path.join(outputdir, subjectname)
-
+        parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(subject_dirname, 
+                                                         "%s.APC" %subjectname)
+        parameters[IntraAnalysis.TALAIRACH_TRANSFORMATION] = os.path.join(subject_dirname,
+                                                            "RawT1-%s_TO_Talairach-ACPC.trm" 
+                                                            % subjectname)
         parameters[IntraAnalysis.HFILTERED] = os.path.join(subject_dirname, 
                                             "hfiltered_%s.nii" % subjectname)
         parameters[IntraAnalysis.WHITE_RIDGES] = os.path.join(subject_dirname, 
