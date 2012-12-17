@@ -1,4 +1,5 @@
 import shutil
+import os.path
 
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate
@@ -30,7 +31,18 @@ class MockIntraAnalysis(IntraAnalysis):
                                   subjectname,
                                   outputdir)
         cls.create_outputdirs(parameter_template, subjectname, outputdir)
-        shutil.copy(filename, target_filename)
+        source_filename = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/raw_irm/hyperion.nii"
+        shutil.copy(source_filename, target_filename)
+        # TODO remove after normalization step done
+        apcfile, ext = os.path.splitext(target_filename)
+        while (ext != ""):
+            apcfile, ext = os.path.splitext(apcfile)
+        apcfile = apcfile + ".APC"
+        APC_source_filename = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/raw_irm/hyperion.APC"
+        APC_target_filename = os.path.join(os.path.dirname(target_filename),
+                                            os.path.basename(apcfile))
+        shutil.copy(APC_source_filename, APC_target_filename)
+        ####################
         return target_filename
 
 
