@@ -10,6 +10,8 @@ class MockStep(Step):
     def __init__(self):
         super(MockStep, self).__init__()
 
+        self.time_to_sleep = 0
+
         self.input_1 = None
         self.input_2 = None
         self.input_3 = None
@@ -25,7 +27,7 @@ class MockStep(Step):
                                                        self.input_3, 
                                                        self.output_1, 
                                                        self.output_2)
-        command = ["sleep", "1"]
+        command = ["sleep", str(self.time_to_sleep)]
         out_file_1 = open(self.output_1, "w")
         out_file_1.close()
         out_file_2 = open(self.output_2, "w")

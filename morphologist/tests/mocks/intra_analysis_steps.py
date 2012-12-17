@@ -65,7 +65,7 @@ def main():
 
     stepname = sys.argv[1]
     args = sys.argv[2:]
-    time_to_sleep = 2
+    time_to_sleep = 0
 
     if stepname == 'bias_correction':
         out_files_hfiltered, hfiltered, \
