@@ -2,7 +2,7 @@ import os, sys
 import unittest
 
 from morphologist.gui.qt_backend import QtGui, QtCore, QtTest
-from morphologist.gui import ManageStudyWindow
+from morphologist.gui.study_editor_widget import StudyEditorDialog
 from morphologist.study import Study
 from morphologist.tests.gui import TestGui
 from morphologist.tests.study import FlatFilesStudyTestCase
@@ -20,10 +20,11 @@ class TestStudyGui(TestGui):
     def test_defining_new_content_for_an_empty_study(self):
         study = Study()
 
-        manage_subjects_window = ManageStudyWindow(study)
+        manage_subjects_window = StudyEditorDialog(study)
         self.keep_widget_alive(manage_subjects_window)
         manage_subjects_window.ui.show()
-        self.action_define_new_study_content(manage_subjects_window,
+        #FIXME: replace manage_subjects_window.ui by manage_subjects_window
+        self.action_define_new_study_content(manage_subjects_window.ui,
             self.test_case.studyname, self.test_case.outputdir,
             self.test_case.filenames)
         manage_subjects_window.ui.close()
@@ -34,16 +35,17 @@ class TestStudyGui(TestGui):
     def test_loading_study_for_modification(self):
         study = self.test_case.create_study()
 
-        manage_subjects_window = ManageStudyWindow(study)
+        manage_subjects_window = StudyEditorDialog(study)
         self.keep_widget_alive(manage_subjects_window)
         manage_subjects_window.ui.show()
         manage_subjects_window.ui.close()
 
         self._assert_study_is_conformed_to_test_case(study)
 
-    def action_define_new_study_content(self, manage_subjects_window,
+    @staticmethod
+    def action_define_new_study_content(manage_subjects_window_ui,
                                         studyname, outputdir, filenames):
-        ui = manage_subjects_window.ui
+        ui = manage_subjects_window_ui
 
         # set studyname and output dir
         ui.studyname_lineEdit.setText(studyname)

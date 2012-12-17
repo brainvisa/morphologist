@@ -1,9 +1,9 @@
 import os
 import json
 
-from morphologist.analysis import InputParameters, OutputParameters
-from morphologist.analysis import MockAnalysis
-from morphologist.intra_analysis import IntraAnalysis
+from .analysis import InputParameters, OutputParameters
+from .intra_analysis import IntraAnalysis
+from .image_importation import ImageImportation
 
 
 class Subject(object):
@@ -37,7 +37,7 @@ class Study(object):
         self.name = name
         self.outputdir = outputdir
         self.subjects = {}
-        self.analysis = {}
+        self.analyses = {}
 
     @classmethod
     def from_file(cls, file_path):
@@ -76,7 +76,7 @@ class Study(object):
             analysis.input_params = input_params
             analysis.output_params = output_params
             # TO DO => check if the parameters are compatibles with the analysis ?
-            study.analysis[subject_name] = analysis
+            study.analyses[subject_name] = analysis
         return study
 
     def save_to_file(self, filename):
@@ -98,7 +98,7 @@ class Study(object):
             serialized['subjects'][subjectname] = subject.serialize()
         serialized['input_params'] = {}
         serialized['output_params'] = {}
-        for subjectname, analysis in self.analysis.iteritems():
+        for subjectname, analysis in self.analyses.iteritems():
             serialized['input_params'][subjectname] = analysis.input_params.serialize()
             serialized['output_params'][subjectname] = analysis.output_params.serialize()
         return serialized 
@@ -106,16 +106,16 @@ class Study(object):
 
     @staticmethod
     def define_subjectname_from_filename(filename):
-        return os.path.splitext(os.path.basename(filename))[0]
+        return remove_all_extensions(filename)
 
     def add_subject_from_file(self, filename, subjectname=None, groupname=None):
         if subjectname is None:
-            subjectname = self.define_subjectname_from_filename(subjectname)
+            subjectname = self.define_subjectname_from_filename(filename)
         if subjectname in self.subjects:
             raise SubjectNameExistsError(subjectname)
         subject = Subject(filename, groupname)
         self.subjects[subjectname] = subject
-        self.analysis[subjectname] = self._create_analysis()
+        self.analyses[subjectname] = self._create_analysis()
 
     @staticmethod
     def _create_analysis():
@@ -124,36 +124,42 @@ class Study(object):
 
     def set_analysis_parameters(self, parameter_template):
         for subjectname, subject in self.subjects.iteritems():
-            self.analysis[subjectname].set_parameters(parameter_template, 
+            self.analyses[subjectname].set_parameters(parameter_template, 
                                                       subjectname,
                                                       subject.imgname,
                                                       self.outputdir)
-        
+
+    def import_data(self, parameter_template):
+        import_step = ImageImportation()
+        for subjectname, subject in self.subjects.iteritems():
+            import_step.input = subject.imgname
+            import_step.output = IntraAnalysis.get_mri_path(parameter_template, subjectname, self.outputdir)
+            IntraAnalysis.create_outputdirs(parameter_template, subjectname, self.outputdir)
+            import_step.run()
+            subject.imgname = import_step.output
+
+    def has_subjects(self):
+        return len(self.subjects) != 0
+                        
     def list_subject_names(self):
         return self.subjects.keys()
 
-    def run_analyses(self):
-        for analysis in self.analysis.itervalues():
-            analysis.run()     
-
-    def wait_analyses_end(self):
-        for analysis in self.analysis.itervalues():
-            analysis.wait()
-
-    def stop_analyses(self):
-        for analysis in self.analysis.itervalues():
-            analysis.stop()
-
-    def analyses_ended_with_success(self):
-        success = True
-        for analysis in self.analysis.itervalues():
-            if analysis.last_run_failed():
-                success = False
-                break
-        return success
+    def list_subjects_with_some_results(self):
+        subjects = []
+        for subjectname, analysis in self.analyses.iteritems():
+            if analysis.list_existing_output_files():
+                subjects.append(subjectname)
+        return subjects
+    
+    def list_subjects_with_missing_results(self):
+        subjects = []
+        for subjectname, analysis in self.analyses.iteritems():
+            if analysis.list_missing_output_files():
+                subjects.append(subjectname)
+        return subjects
 
     def clear_results(self):
-        for analysis in self.analysis.itervalues():
+        for analysis in self.analyses.itervalues():
             analysis.clear_output_files()
 
     def __repr__(self):
@@ -162,12 +168,12 @@ class Study(object):
         s += 'subjects :' + repr(self.subjects) + '\n'
         return s
 
+def remove_all_extensions(filename):
+    name, ext = os.path.splitext(os.path.basename(filename))
+    while (ext != ""):
+        name, ext = os.path.splitext(name)
+    return name
 
-class MockStudy(Study):
-
-    @staticmethod
-    def _create_analysis():
-        return MockAnalysis()
 
 class StudySerializationError(Exception):
     pass

@@ -2,6 +2,8 @@ import unittest
 import os
 
 from morphologist.intra_analysis import IntraAnalysis
+from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate 
+from morphologist.tests.mocks.intra_analysis import MockIntraAnalysis
 from test_analysis import TestAnalysis, AnalysisTestCase
 
 
@@ -12,6 +14,13 @@ class TestIntraAnalysis(TestAnalysis):
         return test_case
 
 
+class TestMockIntraAnalysis(TestAnalysis):
+
+    def create_test_case(self):
+        test_case = MockIntraAnalysisTestCase()
+        return test_case
+
+  
 class IntraAnalysisTestCase(AnalysisTestCase):
 
     def __init__(self):
@@ -69,15 +78,42 @@ class IntraAnalysisTestCase(AnalysisTestCase):
             if file_name != None and os.path.isfile(file_name + "hide_for_test"):
                 os.rename(file_name + "hide_for_test", file_name) 
 
-       
+
+class MockIntraAnalysisTestCase(IntraAnalysisTestCase):
+
+    def __init__(self):
+        super(MockIntraAnalysisTestCase, self).__init__()
+
+    def create_analysis(self):
+        self.analysis = MockIntraAnalysis()
+        return self.analysis
+
+    def set_analysis_parameters(self):
+        subject = "icbm100T"
+        outputdir = "/volatile/laguitton/data/icbm/icbm/"
+        image_path = os.path.join(outputdir, 
+                             subject, 
+                             "t1mri", 
+                             "default_acquisition",
+                             "%s.ima" % subject) 
+
+        input_params =  BrainvisaIntraAnalysisParameterTemplate.get_input_params(subject, 
+                                                                                 image_path)
+        output_params = BrainvisaIntraAnalysisParameterTemplate.get_output_params(subject, 
+                                                                         "/tmp/output_study")
+        self.analysis.input_params = input_params 
+        self.analysis.output_params = output_params
+        self.analysis.clear_output_files() 
+
+    
 
 
 if __name__ == '__main__':
 
     #tests = []
     ##tests.append('test_run_analysis')
-    ##tests.append('test_analysis_has_run')
-    #tests.append('test_stop_analysis')
+    #tests.append('test_analysis_has_run')
+    ##tests.append('test_stop_analysis')
     ##tests.append('test_clear_state_after_interruption')
     ##tests.append('test_missing_parameter_value_error') 
     ##tests.append('test_missing_input_file_error')
@@ -85,7 +121,9 @@ if __name__ == '__main__':
     ##tests.append('test_unknown_parameter_error')
 
     #suite = unittest.TestSuite(map(TestIntraAnalysis, tests))
+    #suite = unittest.TestSuite(map(TestMockIntraAnalysis, tests))
 
 
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestIntraAnalysis)
+    #suite = unittest.TestLoader().loadTestsFromTestCase(TestIntraAnalysis)
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestMockIntraAnalysis)
     unittest.TextTestRunner(verbosity=2).run(suite)
