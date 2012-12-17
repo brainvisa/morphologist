@@ -60,35 +60,4 @@ class IntraAnalysisTestCase(AnalysisTestCase):
         return "toto"
 
 
-class MockIntraAnalysisTestCase(IntraAnalysisTestCase):
 
-    def __init__(self):
-        super(MockIntraAnalysisTestCase, self).__init__()
-
-    def create_analysis(self):
-        self.analysis = MockIntraAnalysis()
-        return self.analysis
-
-    def analysis_cls(self):
-        return MockIntraAnalysis
-
-    def set_analysis_parameters(self):
-        subject = "icbm100T"
-        outputdir = "/volatile/laguitton/data/icbm/icbm/"
-        image_path = os.path.join(outputdir, 
-                             subject, 
-                             "t1mri", 
-                             "default_acquisition",
-                             "%s.ima" % subject) 
-
-        input_params =  BrainvisaIntraAnalysisParameterTemplate.get_input_params(subject, 
-                                                                                 image_path)
-        output_params = BrainvisaIntraAnalysisParameterTemplate.get_output_params(subject, 
-                                                                         "/tmp/output_study")
-        self.analysis.input_params = input_params 
-        self.analysis.output_params = output_params
-        IntraAnalysis.create_outputdirs(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE,
-                                        subject,
-                                        outputdir)
-        self.analysis.clear_output_files() 
- 

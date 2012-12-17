@@ -5,7 +5,7 @@ from morphologist.gui.qt_backend import QtGui, QtCore, QtTest
 from morphologist.gui.study_editor_widget import StudyEditorDialog
 from morphologist.study import Study
 from morphologist.tests.gui import TestGui
-from morphologist.tests.study import FlatFilesStudyTestCase
+from morphologist.tests.intra_analysis_study import IntraAnalysisStudyTestCase
 
 
 class TestStudyGui(TestGui):
@@ -73,17 +73,17 @@ class TestStudyGui(TestGui):
         self.assertEqual(study.outputdir, self.test_case.outputdir)
 
 
-class TestFlatFilesStudyGui(TestStudyGui):
+class TestIntraAnalysisStudyGui(TestStudyGui):
 
     def __init__(self, *args, **kwargs):
-        super(TestFlatFilesStudyGui, self).__init__(*args, **kwargs)
+        super(TestIntraAnalysisStudyGui, self).__init__(*args, **kwargs)
 
     def _create_test_case(self):
-        test_case = FlatFilesStudyTestCase()
+        test_case = IntraAnalysisStudyTestCase()
         return test_case
 
 
 if __name__ == '__main__':
     qApp = QtGui.QApplication(sys.argv)
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestFlatFilesStudyGui)
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestIntraAnalysisStudyGui)
     unittest.TextTestRunner(verbosity=2).run(suite)

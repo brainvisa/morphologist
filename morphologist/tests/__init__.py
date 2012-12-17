@@ -6,7 +6,7 @@ def ipythonize_test(cls):
     settings['start_qt_event_loop_for_tests'] = False
     from morphologist.tests import ipythonize_test
 
-    T = ipythonize_test(test_main_window.TestFlatFilesStudyWidget)
+    T = ipythonize_test(test_main_window.TestStudyWidgetIntraAnalysis)
     t = T()
     t.setUp()
     t.test_start_main_window()
