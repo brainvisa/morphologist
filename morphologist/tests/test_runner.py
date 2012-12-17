@@ -70,8 +70,8 @@ class TestRunner(unittest.TestCase):
         self.runner.run()
         time.sleep(1)
         self.runner.stop()
-        
-        self.assert_output_files_cleared()
+       
+        self.assert_output_files_cleared_or_all_exists()
         
     def test_missing_input_file_error(self):
         self.study.clear_results()
@@ -88,11 +88,9 @@ class TestRunner(unittest.TestCase):
     def assert_output_files_exist(self):
         self.assertEqual(len(self.study.list_subjects_with_missing_results()), 0)
        
-        
-    def assert_output_files_cleared(self):
-        print self.study.list_subjects_with_some_results()
-        self.assertEqual(len(self.study.list_subjects_with_some_results()), 0)
-        
+    def assert_output_files_cleared_or_all_exists(self):
+        self.assert_(len(self.study.list_subjects_with_some_results()) == 0 or 
+                         len(self.study.list_subjects_with_missing_results()) == 0)
         
     def tearDown(self):
         if self.runner.is_running():
