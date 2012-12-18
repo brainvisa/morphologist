@@ -1,3 +1,6 @@
+import os.path
+import shutil
+
 def ipythonize_test(cls):
     '''
     example to directly use GUI tests within ipython:
@@ -20,3 +23,15 @@ def ipythonize_test(cls):
             pass
     T.__name__ = cls.__name__ + '_ipythonized'
     return T 
+
+
+def reset_directory(dir_path):
+    if os.path.isdir(dir_path):
+        shutil.rmtree(dir_path)
+    os.makedirs(dir_path)
+
+def remove_file(file_name):
+    if os.path.isfile(file_name):
+        os.remove(file_name)
+
+

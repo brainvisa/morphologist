@@ -1,7 +1,7 @@
 import os
 
 from morphologist.tests.mocks.analysis import MockAnalysis
-
+from morphologist.tests import remove_file, reset_directory
 
 class AnalysisTestCase(object):
     ''' abstract class '''
@@ -31,6 +31,8 @@ class MockAnalysisTestCase(AnalysisTestCase):
 
     def __init__(self):
         super(MockAnalysisTestCase, self).__init__()
+        self.outputdir = os.path.join('/tmp', 'mock_analysis_test_case_outputdir')
+        reset_directory(self.outputdir)
 
     def analysis_cls(self):
         return MockAnalysis
@@ -43,7 +45,7 @@ class MockAnalysisTestCase(AnalysisTestCase):
         self.analysis.set_parameters(parameter_template='foo', 
                                      name='foo',
                                      image='foo',
-                                     outputdir='/tmp')
+                                     outputdir=self.outputdir)
 
     def delete_some_parameter_values(self):
         self.analysis.output_params.output_3 = None
@@ -61,25 +63,4 @@ class MockAnalysisTestCase(AnalysisTestCase):
         return "toto"
 
 
-def remove_file(file_name):
-    if os.path.isfile(file_name):
-        os.remove(file_name)
-
-
-def generate_in_file_path(file_name):
-    file_path = generate_file_path(file_name)
-    f = open(file_path, "w")
-    f.close()
-    return file_path
-
-def generate_out_file_path(file_name):
-    file_path = generate_file_path(file_name)
-    if os.path.isfile(file_path):
-        os.remove(file_path)
-    return file_path
-
-def generate_file_path(file_name):
-    base_directory = "/tmp/"
-    return os.path.join(base_directory, "analysis_test_" + file_name)
- 
  

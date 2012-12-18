@@ -6,6 +6,7 @@ from morphologist.study import Study
 from morphologist.tests.study import AbstractStudyTestCase
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.tests.mocks.study import MockIntraAnalysisStudy
+from morphologist.tests import reset_directory
 
 class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
 
@@ -21,11 +22,6 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
                                       'cati-dev-prod', 'morphologist', 
                                       'output_dirs', getpass.getuser(), 
                                       self.parameter_template())
-        print self.outputdir
-        if os.path.isdir(self.outputdir):
-            shutil.rmtree(self.outputdir)
-        os.makedirs(self.outputdir) # always starts with a clean state
-
         inputdir = os.path.join('/neurospin', 'lnao', 'Panabase', 
                                 'cati-dev-prod', 'morphologist', 'raw_irm')
         basenames = ['caca.ima', 'chaos.nii.gz',
@@ -33,6 +29,8 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
         self.filenames = [os.path.join(inputdir, filename) for filename in basenames]
         self.subjectnames = ['caca', 'chaos', 'dionysos2', 'hyperion']
         self.groupnames = ['group 1', 'group 2', 'group 3', 'group 4']
+        
+        reset_directory(self.outputdir)
 
     def study_cls(self):
         return Study

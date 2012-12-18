@@ -1,6 +1,7 @@
 import os
 
 from morphologist.tests.mocks.study import MockStudy
+from morphologist.tests import reset_directory, remove_file
 
 class AbstractStudyTestCase(object):
 
@@ -49,10 +50,11 @@ class MockStudyTestCase(AbstractStudyTestCase):
     def __init__(self):
         super(MockStudyTestCase, self).__init__()
         self.studyname = 'mock_study'
-        self.outputdir = '/tmp'
+        self.outputdir = '/tmp/morphologist_output_mock_study_test_case'
         self.subjectnames = ['bla', 'blabla', 'blablabla'] 
         self.filenames = ['foo'] * len(self.subjectnames)
         self.groupnames = ['group1'] * len(self.subjectnames)
+        reset_directory(self.outputdir)
 
     def study_cls(self):
         return MockStudy
@@ -82,8 +84,5 @@ class MockStudyTestCase(AbstractStudyTestCase):
         # useless because the input files are created in set_analysis_parameters
         pass
 
-def remove_file(file_name):
-    if os.path.isfile(file_name):
-        os.remove(file_name)
 
 

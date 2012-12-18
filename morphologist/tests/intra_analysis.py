@@ -6,12 +6,17 @@ from morphologist.tests.mocks.intra_analysis import MockIntraAnalysis
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate 
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.tests.analysis import AnalysisTestCase
-
+from morphologist.tests import reset_directory
 
 class IntraAnalysisTestCase(AnalysisTestCase):
 
     def __init__(self):
         super(IntraAnalysisTestCase, self).__init__()
+        self.outputdir = os.path.join('/neurospin', 'lnao', 'Panabase', 
+                                      'cati-dev-prod', 'morphologist', 
+                                      'output_dirs', getpass.getuser(), 
+                                      IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
+        reset_directory(self.outputdir)
 
     def create_analysis(self):
         self.analysis = IntraAnalysis()
@@ -22,15 +27,7 @@ class IntraAnalysisTestCase(AnalysisTestCase):
 
     def set_analysis_parameters(self):
         subject = "hyperion"
-        outputdir = os.path.join('/neurospin', 'lnao', 'Panabase', 
-                                      'cati-dev-prod', 'morphologist', 
-                                      'output_dirs', getpass.getuser(), 
-                                      IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
-        print outputdir
-        if os.path.isdir(outputdir):
-            shutil.rmtree(outputdir)
-        os.makedirs(outputdir) # always starts with a clean state
-
+        
         image_path = os.path.join('/neurospin', 'lnao', 'Panabase', 
                                 'cati-dev-prod', 'morphologist', 'raw_irm', subject + ".nii")
          
@@ -38,10 +35,10 @@ class IntraAnalysisTestCase(AnalysisTestCase):
         self.analysis.set_parameters(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE,
                                      name="hyperion",
                                      image=image_path,
-                                     outputdir=outputdir) 
+                                     outputdir=self.outputdir) 
         IntraAnalysis.create_outputdirs(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE,
                                         subject,
-                                        outputdir)
+                                        self.outputdir)
         self.analysis.clear_output_files() 
 
     def delete_some_parameter_values(self):
