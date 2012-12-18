@@ -5,8 +5,8 @@ import anatomist.direct.api as ana
 from morphologist.gui.qt_backend import QtCore
 from morphologist.backends import Backend, \
             DisplayManagerMixin, ObjectsManagerMixin, \
-            LoadObjectError, Object3DMixin
-            
+            LoadObjectError, Object3DMixin, ObjectAPCMixin
+
 
 class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
 
@@ -77,11 +77,37 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
 ### objects loader backend
     @classmethod
     def load_object(cls, filename):
-        aobject = cls.anatomist.loadObject(filename)
-        if aobject.getInternalRep() == None:
-            raise LoadObjectError(str(filename))
-        object = PyanatomistObject3D(filename, aobject)
+        if filename.endswith(".APC"):
+            object = cls.load_apc_object(filename)
+        else:
+            aobject = cls.anatomist.loadObject(filename)
+            if aobject.getInternalRep() == None:
+                raise LoadObjectError(str(filename))
+            object = PyanatomistObject3D(filename, aobject)
         return object
+
+    @classmethod
+    def load_apc_object(cls, filename):
+        apc_object = PyanatomistObjectAPC(filename)
+        
+        apc_object.ac_object = cls.create_point_object(apc_object.ac_coordinates)
+        apc_object.pc_object = cls.create_point_object(apc_object.pc_coordinates)
+        apc_object.ih_object = cls.create_point_object(apc_object.ih_coordinates)
+        return apc_object
+
+    @classmethod
+    def create_point_object(cls, coordinates):
+        cross_mesh = os.path.join(cls.anatomist.anatomistSharedPath(), 
+                                  "cursors", "cross.mesh")
+        point_object = cls.anatomist.loadObject(cross_mesh, forceReload=True)
+        referential = cls.anatomist.createReferential()
+        point_object.assignReferential(referential)
+        cls.anatomist.createTransformation(coordinates + [ 1, 0, 0,
+                                                            0, 1, 0,
+                                                            0, 0, 1 ], 
+                                            referential, 
+                                            cls.anatomist.centralRef)
+        return PyanatomistObject3D(cross_mesh, point_object)
     
 
 class PyanatomistObject3D(Object3DMixin):
@@ -99,4 +125,13 @@ class PyanatomistObject3D(Object3DMixin):
     
     def set_color(self, rgba_color):
         self.aobject.setMaterial(diffuse = rgba_color)
+
+            
+class PyanatomistObjectAPC(ObjectAPCMixin):
+
+    def reload(self):
+        self._init_coordinates()
+        self.ac_object = PyanatomistBackend.create_point_object(self.ac_coordinates)
+        self.pc_object = PyanatomistBackend.create_point_object(self.pc_coordinates)
+        self.ih_object = PyanatomistBackend.create_point_object(self.ih_coordinates)
         

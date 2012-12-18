@@ -55,11 +55,13 @@ class AnalysisViewportModel(QtCore.QObject):
 class IntraAnalysisViewportModel(AnalysisViewportModel):
     changed = QtCore.pyqtSignal()
     raw_mri_changed = QtCore.pyqtSignal()
+    commissure_coordinates_changed = QtCore.pyqtSignal()
     corrected_mri_changed = QtCore.pyqtSignal()
     brain_mask_changed = QtCore.pyqtSignal()
     split_mask_changed = QtCore.pyqtSignal()
     signal_map = { \
         IntraAnalysis.MRI : 'raw_mri_changed',
+        IntraAnalysis.COMMISSURE_COORDINATES : 'commissure_coordinates_changed',
         IntraAnalysis.CORRECTED_MRI : 'corrected_mri_changed',
         IntraAnalysis.BRAIN_MASK : 'brain_mask_changed',
         IntraAnalysis.SPLIT_MASK : 'split_mask_changed'
@@ -71,6 +73,7 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
     def _init_3d_objects(self):
         self.observed_objects = { \
             IntraAnalysis.MRI : None,
+            IntraAnalysis.COMMISSURE_COORDINATES : None, 
             IntraAnalysis.CORRECTED_MRI : None,
             IntraAnalysis.BRAIN_MASK : None,
             IntraAnalysis.SPLIT_MASK : None
@@ -105,6 +108,8 @@ class IntraAnalysisViewportView(QtGui.QWidget):
             self._viewport_model.changed.disconnect(self.on_model_changed)
             self._viewport_model.raw_mri_changed.disconnect(\
                                     self.on_raw_mri_changed)
+            self._viewport_model.commissure_coordinates_changed.disconnect(\
+                                        self.on_commissure_coordinates_changed)
             self._viewport_model.corrected_mri_changed.disconnect(\
                                     self.on_corrected_mri_changed)
             self._viewport_model.brain_mask_changed.disconnect(\
@@ -114,6 +119,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         self._viewport_model = model
         self._viewport_model.changed.connect(self.on_model_changed)
         self._viewport_model.raw_mri_changed.connect(self.on_raw_mri_changed)
+        self._viewport_model.commissure_coordinates_changed.connect(self.on_commissure_coordinates_changed)
         self._viewport_model.corrected_mri_changed.connect(self.on_corrected_mri_changed)
         self._viewport_model.brain_mask_changed.connect(self.on_brain_mask_changed)
         self._viewport_model.split_mask_changed.connect(self.on_split_mask_changed)
@@ -138,6 +144,19 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         if object is not None:
             self._display_lib._backend.add_object_to_window(object, self.view1)
             self._display_lib._backend.center_window_on_object(self.view1, object)
+
+    @QtCore.Slot()
+    def on_commissure_coordinates_changed(self):
+        apc_object = self._viewport_model.observed_objects[IntraAnalysis.COMMISSURE_COORDINATES]
+        if apc_object is not None:
+            ac, pc, ih = apc_object.get_points_objects()
+            ac.set_color(( 0, 0, 1, 1 ))
+            pc.set_color(( 1, 1, 0, 1 ))
+            ih.set_color(( 0, 1, 0, 1 ))
+            self._display_lib._backend.add_object_to_window(ac, self.view1)
+            self._display_lib._backend.add_object_to_window(pc, self.view1)
+            self._display_lib._backend.add_object_to_window(ih, self.view1)
+            self._display_lib._backend.move_cursor(self.view1, apc_object.ac_coordinates)
 
     @QtCore.Slot()
     def on_corrected_mri_changed(self):

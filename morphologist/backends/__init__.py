@@ -104,3 +104,40 @@ class Object3DMixin(object):
     
     def set_color(self, rgba_color):
         raise Exception("Object3DMixin is an abstract class")
+
+        
+class ObjectAPCMixin(Object3DMixin):
+    
+    def __init__(self, filename):
+        super(ObjectAPCMixin, self).__init__(filename)
+        self.ac_coordinates = None
+        self.pc_coordinates = None
+        self.ih_coordinates = None
+        self.ac_object = None
+        self.pc_object = None
+        self.ih_object = None
+        self._init_coordinates()
+        
+    def _init_coordinates(self):
+        apcfile = open(self.filename, "r")
+        lines = apcfile.readlines()
+        for l in lines:
+            if l[:5] == 'ACmm:':
+                self.ac_coordinates = map( lambda x: float(x), l.split()[1:4] )
+            elif l[:5] == 'PCmm:':
+                self.pc_coordinates = map( lambda x: float(x), l.split()[1:4] )
+            elif l[:5] == 'IHmm:':
+                self.ih_coordinates = map( lambda x: float(x), l.split()[1:4] )
+
+    def get_points_objects(self):
+        return (self.ac_object, self.pc_object, self.ih_object)
+    
+    def set_color(self, rgba_color):
+        for object in (self.ac_object, self.pc_object, self.ih_object):
+            if object is not None:
+                object.set_color(rgba_color)
+                
+    def set_color_map(self, color_map_name):
+        for object in (self.ac_object, self.pc_object, self.ih_object):
+            if object is not None:
+                object.set_color_map(color_map_name)
