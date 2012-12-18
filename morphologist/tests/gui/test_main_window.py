@@ -87,6 +87,6 @@ class TestMockStudyWidget(TestStudyWidget):
 if __name__ == '__main__':
     qApp = QtGui.QApplication(sys.argv)
     suite = unittest.TestLoader().loadTestsFromTestCase(TestStudyWidgetIntraAnalysis)
-    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMockStudyWidget))
+    #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMockStudyWidget))
     unittest.TextTestRunner(verbosity=2).run(suite)
 
