@@ -1,6 +1,22 @@
-from morphologist.intra_analysis_steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
+from morphologist.intra_analysis_steps import BiasCorrection, HistogramAnalysis, \
+        BrainSegmentation, SplitBrain
+from morphologist.intra_analysis_normalization import SpatialNormalization
 from morphologist.intra_analysis import IntraAnalysis
-#TODO MockSpatialNormalization
+
+class MockSpatialNormalization(SpatialNormalization):
+    
+    def __init__(self, mock_out_files):
+        super(MockSpatialNormalization, self).__init__()
+        self.out_files = mock_out_files
+        
+    def get_command(self):
+        command = ['python', '-m',
+            'morphologist.tests.mocks.intra_analysis_steps',
+            'normalization',
+            self.out_files[IntraAnalysis.COMMISSURE_COORDINATES], self.commissure_coordinates,
+            self.out_files[IntraAnalysis.TALAIRACH_TRANSFORMATION], self.talairach_transformation]
+        return command
+
 
 class MockBiasCorrection(BiasCorrection):
 
@@ -67,7 +83,13 @@ def main():
     args = sys.argv[2:]
     time_to_sleep = 0
 
-    if stepname == 'bias_correction':
+    if stepname == 'normalization':
+        out_files_commissure_coordinates, commissure_coordinates, \
+        out_files_talairach_transformation, talairach_transformation = args
+        time.sleep(time_to_sleep)
+        shutil.copy(out_files_commissure_coordinates, commissure_coordinates)
+        shutil.copy(out_files_talairach_transformation, talairach_transformation)
+    elif stepname == 'bias_correction':
         out_files_hfiltered, hfiltered, \
         out_files_white_ridges, white_ridges, \
         out_files_edges, edges, \

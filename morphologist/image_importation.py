@@ -86,15 +86,6 @@ class ImageImportation(Step):
                 shutil.copy(self.input, self.output)
                 if os.path.exists(self.input+".minf"):
                     shutil.copy(self.input+".minf", self.output+".minf")
-            # FIXME:
-            # Copy APC file for the moment because the normaliZation step is not done
-            apcfile, ext = os.path.splitext(self.input)
-            while (ext != ""):
-                apcfile, ext = os.path.splitext(apcfile)
-            apcfile = apcfile + ".APC"
-            if os.path.exists(apcfile):
-                shutil.copy(apcfile, os.path.join(os.path.dirname(self.output), 
-                                                  os.path.basename(apcfile)) )
         except Exception, e:
             raise ImportationError(e.message)
         finally:
