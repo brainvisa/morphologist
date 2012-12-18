@@ -2,7 +2,7 @@ import os
 
 from .qt_backend import QtCore, QtGui, loadUi 
 from morphologist.gui import ui_directory 
-from morphologist.study import Study
+from morphologist.intra_analysis_study import IntraAnalysisStudy
 from morphologist.study import StudySerializationError
 from .study_editor_widget import StudyEditorDialog
 from morphologist.intra_analysis import IntraAnalysis
@@ -62,10 +62,10 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
 
     def _create_study(self, study_file=None):
         if study_file:
-            study = Study.from_file(study_file)
+            study = IntraAnalysisStudy.from_file(study_file)
             return study
         else:
-            return Study()
+            return IntraAnalysisStudy()
         
     def _create_runner(self, study):
         return SomaWorkflowRunner(study)

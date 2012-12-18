@@ -3,7 +3,7 @@ import unittest
 
 from morphologist.gui.qt_backend import QtGui, QtCore, QtTest
 from morphologist.gui.study_editor_widget import StudyEditorDialog
-from morphologist.study import Study
+from morphologist.intra_analysis_study import IntraAnalysisStudy
 from morphologist.tests.gui import TestGui
 from morphologist.tests.intra_analysis_study import IntraAnalysisStudyTestCase
 
@@ -18,7 +18,7 @@ class TestStudyGui(TestGui):
 
     @TestGui.start_qt_and_test
     def test_defining_new_content_for_an_empty_study(self):
-        study = Study()
+        study = IntraAnalysisStudy()
 
         manage_subjects_window = StudyEditorDialog(study)
         self.keep_widget_alive(manage_subjects_window)

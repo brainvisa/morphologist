@@ -2,7 +2,7 @@ import os
 import getpass
 import shutil
 
-from morphologist.study import Study
+from morphologist.intra_analysis_study import IntraAnalysisStudy
 from morphologist.tests.study import AbstractStudyTestCase
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.tests.mocks.study import MockIntraAnalysisStudy
@@ -33,13 +33,13 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
         reset_directory(self.outputdir)
 
     def study_cls(self):
-        return Study
+        return IntraAnalysisStudy
 
     def parameter_template(self):
         return IntraAnalysis.DEFAULT_PARAM_TEMPLATE 
 
     def create_study(self):
-        self.study = Study(self.studyname, self.outputdir)
+        self.study = IntraAnalysisStudy(self.studyname, self.outputdir)
         return self.study
 
     def delete_some_input_files(self):

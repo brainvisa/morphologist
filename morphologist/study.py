@@ -1,8 +1,7 @@
 import os
 import json
 
-from .analysis import InputParameters, OutputParameters
-from .intra_analysis import IntraAnalysis
+from morphologist.analysis import InputParameters, OutputParameters
 
 
 class Subject(object):
@@ -118,11 +117,11 @@ class Study(object):
 
     @staticmethod
     def _create_analysis():
-        return IntraAnalysis() 
+        raise Exception("Study is an abstract class.")
   
     @staticmethod
     def _analysis_cls():
-        return IntraAnalysis
+        raise Exception("Study is an abstract class")
 
     def set_analysis_parameters(self, parameter_template):
         for subjectname, subject in self.subjects.iteritems():

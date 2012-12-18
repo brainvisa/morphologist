@@ -2,7 +2,7 @@ import os
 
 from .qt_backend import QtGui, QtCore, loadUi
 from morphologist.gui import ui_directory
-from morphologist.study import Study
+from morphologist.intra_analysis_study import IntraAnalysisStudy
 from morphologist.formats import FormatsManager
 
 
@@ -183,7 +183,7 @@ class StudyEditorDialog(QtGui.QDialog):
         
         
     def _add_subject(self, filename, groupname):
-        subjectname = Study.define_subjectname_from_filename(filename)
+        subjectname = IntraAnalysisStudy.define_subjectname_from_filename(filename)
         new_row = self.ui.subjects_tablewidget.rowCount()
         self.ui.subjects_tablewidget.insertRow(new_row)
         if groupname is not None:
