@@ -1,6 +1,6 @@
 import os
 
-from morphologist.backends import Backend
+from morphologist.backends import Backend, LoadObjectError
 from .qt_backend import QtCore, QtGui, loadUi 
 from morphologist.gui import ui_directory 
 from morphologist.intra_analysis import IntraAnalysis
@@ -43,11 +43,8 @@ class AnalysisViewportModel(QtCore.QObject):
             else:
                 try:
                     object = self._objects_loader_backend.load_object(filename)
-                except Exception, e:
-                    # XXX: should be propagated to the GUI ?
-                    print "error: parameter '%s':" % parameter_name, \
-                            "can't load '%s'" % filename, e 
-                    continue
+                except LoadObjectError, e:
+                    object = None
             self.observed_objects[parameter_name] = object
             signal = self.signal_map.get(parameter_name)
             if signal is not None:

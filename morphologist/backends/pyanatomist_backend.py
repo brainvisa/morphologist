@@ -4,8 +4,8 @@ import anatomist.direct.api as ana
 
 from morphologist.gui.qt_backend import QtCore
 from morphologist.backends import Backend, \
-            DisplayManagerMixin, ObjectsManagerMixin
-
+            DisplayManagerMixin, ObjectsManagerMixin, \
+            LoadObjectError
 
 class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
 
@@ -62,6 +62,8 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
 ### objects loader backend
     def load_object(self, filename):
         object = self.anatomist.loadObject(filename)
+        if object.getInternalRep() == None:
+            raise LoadObjectError(str(filename))
         return object
 
     def reload_object_if_needed(self, object):
@@ -74,3 +76,4 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
     def set_palette(self, object, palette_name):
         object.setPalette(palette_name)
         
+

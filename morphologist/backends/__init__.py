@@ -92,4 +92,7 @@ class ObjectsManagerMixin(object):
 
     def set_palette(self, palette_name):
         raise Exception("ObjectsLoaderMixin is an abstract class")
+
+class LoadObjectError(Exception):
+    pass
     
