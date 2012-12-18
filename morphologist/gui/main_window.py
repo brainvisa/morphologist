@@ -100,17 +100,18 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
                 
             study.set_analysis_parameters(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
         self.set_study(study)
+        self._try_save_to_backup_file()
         self.study_editor_widget_window = None
-
 
     # this slot is automagically connected
     @QtCore.Slot()
     def on_action_open_study_triggered(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self.ui, caption = "Open a study", directory="", 
-                                                     options=QtGui.QFileDialog.DontUseNativeDialog)
-        if filename:
+        backup_filename = QtGui.QFileDialog.getOpenFileName(self.ui,
+                                caption="Open a study", directory="", 
+                                options=QtGui.QFileDialog.DontUseNativeDialog)
+        if backup_filename:
             try:
-                study = self._create_study(filename)
+                study = self._create_study(backup_filename)
             except StudySerializationError, e:
                 QtGui.QMessageBox.critical(self, 
                                           "Cannot load the study", "%s" %(e))
@@ -120,16 +121,24 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
     # this slot is automagically connected
     @QtCore.Slot()
     def on_action_save_study_triggered(self):
-        filename = QtGui.QFileDialog.getSaveFileName(self.ui, caption="Save a study", directory="", 
-                                                     options=QtGui.QFileDialog.DontUseNativeDialog)
-        if filename:
-            try:
-                self.study.save_to_file(filename)
-            except StudySerializationError, e:
-                QtGui.QMessageBox.critical(self, 
-                                          "Cannot save the study", "%s" %(e))
+        self._try_save_to_backup_file()
 
-    # FIXME : move code elsewhere
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_action_save_as_study_triggered(self):
+        backup_filename = QtGui.QFileDialog.getSaveFileName(self.ui,
+                                caption="Save a study", directory="", 
+                                options=QtGui.QFileDialog.DontUseNativeDialog)
+        if backup_filename:
+            self.study.backup_filename = backup_filename
+            self._try_save_to_backup_file()
+
+    def _try_save_to_backup_file(self):
+        try:
+            self.study.save_to_backup_file()
+        except StudySerializationError, e:
+            QtGui.QMessageBox.critical(self, "Cannot save the study", "%s" %(e))
+
     @QtCore.Slot("const QModelIndex &", "const QModelIndex &")
     def on_selection_changed(self, current, previous):
         subjectname = self.study_tablemodel.subjectname_from_row_index(current.row())

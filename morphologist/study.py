@@ -32,27 +32,39 @@ class Subject(object):
 class Study(object):
     default_outputdir = os.path.join(os.getcwd(), '.config/morphologist/studies/study')
 
-    def __init__(self, name="undefined study", outputdir=default_outputdir):
+    def __init__(self, name="undefined study",
+        outputdir=default_outputdir, backup_filename=None):
         self.name = name
         self.outputdir = outputdir
         self.subjects = {}
         self.analyses = {}
+        if backup_filename is None:
+            backup_filename = self.default_backup_filename_from_outputdir(outputdir)
+        self.backup_filename = backup_filename
+
+    @staticmethod
+    def default_backup_filename_from_outputdir(outputdir):
+        return os.path.join(outputdir, 'study.json')
+
+    @staticmethod
+    def default_outputdir_from_backup_filename(backup_filename):
+        return os.path.dirname(backup_filename)
 
     @classmethod
-    def from_file(cls, file_path):
+    def from_file(cls, backup_filename):
         try:
-            with open(file_path, "r") as fd:
+            with open(backup_filename, "r") as fd:
                     serialized_study = json.load(fd)
         except Exception, e:
             raise StudySerializationError("%s" %(e))
 
         try:
             study = cls.unserialize(serialized_study)
+            study.backup_filename = backup_filename
         except KeyError, e:
             raise StudySerializationError("The information does not "
                                           "match with a study.")
         return study
-
 
     @classmethod
     def unserialize(cls, serialized):
@@ -74,20 +86,18 @@ class Study(object):
             analysis = cls._create_analysis()
             analysis.input_params = input_params
             analysis.output_params = output_params
-            # TO DO => check if the parameters are compatibles with the analysis ?
+            # TODO => check if the parameters are compatibles with the analysis ?
             study.analyses[subject_name] = analysis
         return study
 
-    def save_to_file(self, filename):
+    def save_to_backup_file(self):
         serialized_study = self.serialize()
         try:
-            with open(filename, "w") as fd:
+            with open(self.backup_filename, "w") as fd:
                 json.dump(serialized_study, fd, indent=4, sort_keys=True)
         except Exception, e:
             raise StudySerializationError("%s" %(e))
   
-
-
     def serialize(self):
         serialized = {}
         serialized['name'] = self.name
@@ -101,7 +111,6 @@ class Study(object):
             serialized['input_params'][subjectname] = analysis.input_params.serialize()
             serialized['output_params'][subjectname] = analysis.output_params.serialize()
         return serialized 
-
 
     @staticmethod
     def define_subjectname_from_filename(filename):
