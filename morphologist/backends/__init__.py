@@ -59,10 +59,10 @@ class DisplayManagerMixin(object):
     def create_axial_view(self, parent=None):
         raise Exception("DisplayManagerMixin is an abstract class")
 
-    def add_objects_to_window(self, objects, window):
+    def add_object_to_window(self, object, window):
         raise Exception("DisplayManagerMixin is an abstract class")
 
-    def remove_objects_from_window(self, objects, window):
+    def remove_object_from_window(self, object, window):
         raise Exception("DisplayManagerMixin is an abstract class")
    
     def clear_window(self, window):
@@ -77,6 +77,9 @@ class DisplayManagerMixin(object):
 
     def set_bgcolor_views(self, views, rgba_color):
         raise Exception("DisplayManagerMixin is an abstract class")
+    
+    def move_cursor(self, window, position):
+        raise Exception("DisplayManagerMixin is an abstract class")
 
 
 class ObjectsManagerMixin(object):
@@ -84,15 +87,20 @@ class ObjectsManagerMixin(object):
     def load_object(self, filename):
         raise Exception("ObjectsLoaderMixin is an abstract class")
 
-    def reload_object_if_needed(self, object):
-        raise Exception("ObjectsLoaderMixin is an abstract class")
-
-    def delete_objects(self, objects):
-        raise Exception("ObjectsLoaderMixin is an abstract class")
-
-    def set_palette(self, palette_name):
-        raise Exception("ObjectsLoaderMixin is an abstract class")
 
 class LoadObjectError(Exception):
     pass
+
+class Object3DMixin(object):
     
+    def __init__(self, filename):
+        self.filename = filename
+
+    def reload(self):
+        raise Exception("Object3DMixin is an abstract class")
+    
+    def set_color_map(self, color_map_name):
+        raise Exception("Object3DMixin is an abstract class")
+    
+    def set_color(self, rgba_color):
+        raise Exception("Object3DMixin is an abstract class")

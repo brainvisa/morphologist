@@ -5,6 +5,7 @@ from .qt_backend import QtCore, QtGui, loadUi
 from morphologist.gui import ui_directory 
 from morphologist.intra_analysis import IntraAnalysis
 
+
 class AnalysisViewportModel(QtCore.QObject):
     changed = QtCore.pyqtSignal()
 
@@ -37,7 +38,7 @@ class AnalysisViewportModel(QtCore.QObject):
             object = self.observed_objects[parameter_name]
             if object is not None:
                 if os.path.exists(filename):
-                    object = self._objects_loader_backend.reload_object_if_needed(object)
+                    object.reload()
                 else:
                     object = None
             else:
@@ -135,29 +136,29 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     def on_raw_mri_changed(self):
         object = self._viewport_model.observed_objects[IntraAnalysis.MRI]
         if object is not None:
-            self._display_lib._backend.add_objects_to_window(object, self.view1)
+            self._display_lib._backend.add_object_to_window(object, self.view1)
             self._display_lib._backend.center_window_on_object(self.view1, object)
 
     @QtCore.Slot()
     def on_corrected_mri_changed(self):
         object = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
         if object is not None:
-            self._display_lib._backend.set_palette(object, "Rainbow2")
-            self._display_lib._backend.add_objects_to_window(object, self.view2)
+            object.set_color_map("Rainbow2")
+            self._display_lib._backend.add_object_to_window(object, self.view2)
 
     @QtCore.Slot()
     def on_brain_mask_changed(self):
         object = self._viewport_model.observed_objects[IntraAnalysis.BRAIN_MASK]
         if object is not None:
-            self._display_lib._backend.set_palette(object, "GREEN-lfusion")
-            self._display_lib._backend.add_objects_to_window(object, self.view3)
+            object.set_color_map("GREEN-lfusion")
+            self._display_lib._backend.add_object_to_window(object, self.view3)
 
     @QtCore.Slot()
     def on_split_mask_changed(self):
         object = self._viewport_model.observed_objects[IntraAnalysis.SPLIT_MASK]
         if object is not None:
-            self._display_lib._backend.set_palette(object, "RAINBOW")
-            self._display_lib._backend.add_objects_to_window(object, self.view4)
+            object.set_color_map("RAINBOW")
+            self._display_lib._backend.add_object_to_window(object, self.view4)
 
 
 class DisplayLibrary(object):
