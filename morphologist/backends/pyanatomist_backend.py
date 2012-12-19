@@ -70,7 +70,7 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
                 light={'background' : rgba_color})
 
     @classmethod
-    def move_cursor(cls, window, position):
+    def set_position(cls, window, position):
         awindow = cls.anatomist.AWindow(cls.anatomist, window)
         awindow.moveLinkedCursor(position)
         

@@ -78,7 +78,7 @@ class DisplayManagerMixin(object):
     def set_bgcolor_views(self, views, rgba_color):
         raise Exception("DisplayManagerMixin is an abstract class")
     
-    def move_cursor(self, window, position):
+    def set_position(self, window, position):
         raise Exception("DisplayManagerMixin is an abstract class")
 
 

@@ -156,7 +156,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
             self._display_lib._backend.add_object_to_window(ac, self.view1)
             self._display_lib._backend.add_object_to_window(pc, self.view1)
             self._display_lib._backend.add_object_to_window(ih, self.view1)
-            self._display_lib._backend.move_cursor(self.view1, apc_object.ac_coordinates)
+            self._display_lib._backend.set_position(self.view1, apc_object.ac_coordinates)
 
     @QtCore.Slot()
     def on_corrected_mri_changed(self):
