@@ -4,7 +4,7 @@ import os
 
 class Analysis(object):
 
-    PARAMETER_TEMPLATE = []
+    PARAMETER_TEMPLATES = []
     param_template_map = {}
 
 
