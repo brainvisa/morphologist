@@ -140,8 +140,7 @@ class Study(object):
                                                                  subjectname,
                                                                  self.outputdir)
                 subject.imgname = new_imgname
-            except ImportationError, e:
-                print e
+            except ImportationError:
                 subjects_failed.append(subjectname) 
         if len(subjects_failed) > 0:
             for subjectname in subjects_failed:
