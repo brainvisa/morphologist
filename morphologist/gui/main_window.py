@@ -89,7 +89,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
                 QtGui.QApplication.restoreOverrideCursor()
                 QtGui.QMessageBox.critical(self, 
                                           "Cannot import some images", "%s" %(e)) 
-            finally:
+            else:
                 QtGui.QApplication.restoreOverrideCursor()
             if study.has_subjects():
                 msg = "The images have been imported in %s directory." % study.outputdir
