@@ -194,11 +194,13 @@ class StudyEditorDialog(QtGui.QDialog):
 
     def _check_study_consistency(self, outputdir,
                 subjects_data, backup_filename):
-        consistency = True
-        consistency &= self._check_valid_outputdir(outputdir)
-        consistency &= self._check_valid_backup_filename(backup_filename)
-        consistency &= self._check_duplicated_subjects(subjects_data)
-        return consistency
+        consistency = self._check_valid_outputdir(outputdir)
+        if not consistency: return False
+        consistency = self._check_valid_backup_filename(backup_filename)
+        if not consistency: return False
+        consistency = self._check_duplicated_subjects(subjects_data)
+        if not consistency: return False
+        return True
         
     def _check_valid_outputdir(self, outputdir):
         consistency = True
