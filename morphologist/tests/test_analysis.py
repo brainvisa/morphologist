@@ -4,6 +4,7 @@ from morphologist.analysis import InputParameters
 from morphologist.analysis import MissingParameterValueError, UnknownParameterName
 from morphologist.tests.analysis import MockAnalysisTestCase
 
+
 class TestAnalysis(unittest.TestCase):
 
     def setUp(self):
@@ -36,7 +37,6 @@ class TestAnalysis(unittest.TestCase):
         self.assertNotEqual(len(self.analysis.list_existing_output_files()), 0)
         self.analysis.clear_output_files()
         self.assertEqual(len(self.analysis.list_existing_output_files()), 0)
-        
         
     def tearDown(self):
         pass

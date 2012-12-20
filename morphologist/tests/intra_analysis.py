@@ -1,12 +1,10 @@
 import os
 import getpass
-import shutil
 
-from morphologist.tests.mocks.intra_analysis import MockIntraAnalysis
-from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate 
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.tests.analysis import AnalysisTestCase
 from morphologist.tests import reset_directory
+
 
 class IntraAnalysisTestCase(AnalysisTestCase):
 

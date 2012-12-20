@@ -20,26 +20,6 @@ class TestRunner(unittest.TestCase):
     
     def create_test_case(self):
         return MockStudyTestCase()
-
-#        ######
-#        self.study.clear_results()
-#        exporter = MyExporter(study)
-#        exporter.export(file_name, subject_list, step_interval)
-#        
-#        ###########
-#        runner = MyRunner(study) # thread, SW ...
-#        runner.run(subject_list, step_interval)
-#        runner.wait()
-#        #runner.stop()
-#        #runner.is_running()
-#        runner.is_running(subject, step)
-#        runner.ended_with_sucess(subject, step)
-#        log = runner.execution_log()
-#        log_subject = runner.execution_log(subject)
-#        log_subject_step = runner.execution_log(subject, step)
-#        
-#        self.assert_(runner.ended_with_success())
-
     
     def test_run(self):
         self.study.clear_results()
@@ -101,8 +81,8 @@ class TestRunner(unittest.TestCase):
 
 class TestRunnerSomaWorkflow(TestRunner):
 
-  def create_runner(self, study):
-      return SomaWorkflowRunner(study)
+    def create_runner(self, study):
+        return SomaWorkflowRunner(study)
 
 
 class TestRunnerThread(TestRunner):

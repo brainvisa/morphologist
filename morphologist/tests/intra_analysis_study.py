@@ -1,6 +1,5 @@
 import os
 import getpass
-import shutil
 
 from morphologist.intra_analysis_study import IntraAnalysisStudy
 from morphologist.tests.study import AbstractStudyTestCase
@@ -8,8 +7,8 @@ from morphologist.intra_analysis import IntraAnalysis
 from morphologist.tests.mocks.study import MockIntraAnalysisStudy
 from morphologist.tests import reset_directory
 
-class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
 
+class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
     '''    
     -> Intra analysis    
     -> Default parameter template
@@ -48,7 +47,6 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
             file_name = self.study.analyses.values()[1].input_params.get_value(name)
             os.rename(file_name, file_name + "hide_for_test") 
 
-
     def create_some_output_files(self):
         parameter_names = [IntraAnalysis.SPLIT_MASK, IntraAnalysis.VARIANCE]
         for name in parameter_names:
@@ -65,9 +63,7 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
                 os.rename(file_name + "hide_for_test", file_name) 
 
 
-    
 class MockIntraAnalysisStudyTestCase(IntraAnalysisStudyTestCase):
-
     '''
     -> Mock intra analysis
     -> Default parameter template
@@ -78,12 +74,10 @@ class MockIntraAnalysisStudyTestCase(IntraAnalysisStudyTestCase):
 
     def create_study(self):
         self.study = MockIntraAnalysisStudy(self.studyname, self.outputdir)
-        print "create mock intra analysis"
         return self.study
 
 
 class IntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
-
     '''
     -> Intra analysis
     -> Brainvisa parameter template
@@ -94,7 +88,6 @@ class IntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
 
 
 class MockIntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
-
     '''
     -> Brainvisa parameter template
     -> Mock intra analysis
