@@ -1,6 +1,6 @@
 import os
 
-from morphologist.backends import Backend, LoadObjectError
+from morphologist.backends import Backend, LoadObjectError, Object3D, APCObject, View
 from .qt_backend import QtCore, QtGui, loadUi 
 from morphologist.gui import ui_directory 
 from morphologist.intra_analysis import IntraAnalysis
@@ -11,7 +11,6 @@ class AnalysisViewportModel(QtCore.QObject):
 
     def __init__(self, model):
         super(AnalysisViewportModel, self).__init__()
-        self._objects_loader_backend = Backend.objects_loader_backend()
         self._init_model(model)
         self._init_3d_objects()
 
@@ -43,14 +42,18 @@ class AnalysisViewportModel(QtCore.QObject):
                     object = None
             else:
                 try:
-                    object = self._objects_loader_backend.load_object(filename)
+                    object = self.load_object(parameter_name, filename)
                 except LoadObjectError, e:
                     object = None
             self.observed_objects[parameter_name] = object
             signal = self.signal_map.get(parameter_name)
             if signal is not None:
                 self.__getattribute__(signal).emit()
- 
+
+    @classmethod
+    def load_object(cls, parameter_name, filename):
+        return Object3D(filename)
+
 
 class IntraAnalysisViewportModel(AnalysisViewportModel):
     changed = QtCore.pyqtSignal()
@@ -79,6 +82,15 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
             IntraAnalysis.SPLIT_MASK : None
         }
 
+    @classmethod
+    def load_object(cls, parameter_name, filename):
+        obj = None
+        if (parameter_name == IntraAnalysis.COMMISSURE_COORDINATES):
+            obj = APCObject(filename)
+        else:
+            obj = Object3D(filename) 
+        return obj
+
 
 class IntraAnalysisViewportView(QtGui.QWidget):
     uifile = os.path.join(ui_directory, 'viewport_widget.ui')
@@ -98,9 +110,8 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         super(IntraAnalysisViewportView, self).__init__(parent)
         self.ui = loadUi(self.uifile, parent)
         self._views = []
-        self._display_lib = IntraAnalysisDisplayLibrary()
         self._viewport_model = None
-
+        Backend.display_backend().initialize_display()
         self._init_widget()
 
     def set_model(self, model):
@@ -129,69 +140,52 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         for view_hook in [self.ui.view1_hook, self.ui.view2_hook, 
                           self.ui.view3_hook, self.ui.view4_hook]:
             QtGui.QVBoxLayout(view_hook)
-            view = self._display_lib._backend.create_axial_view(view_hook)
+            view = View(view_hook)
+            view.set_bgcolor([0., 0., 0., 1.])
             self._views.append(view)
         self.view1, self.view2, self.view3, self.view4 = self._views
-        self._display_lib.initialize_views(self._views)
         
     @QtCore.Slot()
     def on_model_changed(self):
-        self._display_lib._backend.clear_windows(self._views)
+        for view in self._views:
+            view.clear()
 
     @QtCore.Slot()
     def on_raw_mri_changed(self):
         object = self._viewport_model.observed_objects[IntraAnalysis.MRI]
         if object is not None:
-            self._display_lib._backend.add_object_to_window(object, self.view1)
-            self._display_lib._backend.center_window_on_object(self.view1, object)
+            self.view1.add_object(object)
+            self.view1.center_on_object(object)
 
     @QtCore.Slot()
     def on_commissure_coordinates_changed(self):
         apc_object = self._viewport_model.observed_objects[IntraAnalysis.COMMISSURE_COORDINATES]
         if apc_object is not None:
-            ac, pc, ih = apc_object.get_points_objects()
-            ac.set_color(( 0, 0, 1, 1 ))
-            pc.set_color(( 1, 1, 0, 1 ))
-            ih.set_color(( 0, 1, 0, 1 ))
-            self._display_lib._backend.add_object_to_window(ac, self.view1)
-            self._display_lib._backend.add_object_to_window(pc, self.view1)
-            self._display_lib._backend.add_object_to_window(ih, self.view1)
-            self._display_lib._backend.set_position(self.view1, apc_object.ac_coordinates)
+            apc_object.set_ac_color(( 0, 0, 1, 1 )) 
+            apc_object.set_pc_color(( 1, 1, 0, 1 )) 
+            apc_object.set_ih_color(( 0, 1, 0, 1 ))
+            self.view1.add_object(apc_object)
+            self.view1.center_on_object(apc_object)
 
     @QtCore.Slot()
     def on_corrected_mri_changed(self):
         object = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
         if object is not None:
             object.set_color_map("Rainbow2")
-            self._display_lib._backend.add_object_to_window(object, self.view2)
+            self.view2.add_object(object)
 
     @QtCore.Slot()
     def on_brain_mask_changed(self):
         object = self._viewport_model.observed_objects[IntraAnalysis.BRAIN_MASK]
         if object is not None:
             object.set_color_map("GREEN-lfusion")
-            self._display_lib._backend.add_object_to_window(object, self.view3)
+            self.view3.add_object(object)
 
     @QtCore.Slot()
     def on_split_mask_changed(self):
         object = self._viewport_model.observed_objects[IntraAnalysis.SPLIT_MASK]
         if object is not None:
             object.set_color_map("RAINBOW")
-            self._display_lib._backend.add_object_to_window(object, self.view4)
+            self.view4.add_object(object)
 
-
-class DisplayLibrary(object):
-    
-    def __init__(self, backend):
-        self._backend = backend
-        self._backend.initialize_display()
-
-
-class IntraAnalysisDisplayLibrary(DisplayLibrary):
-
-    def __init__(self, backend=Backend.display_backend()):
-        super(IntraAnalysisDisplayLibrary, self).__init__(backend)
-
-    def initialize_views(self, views):
-        self._backend.set_bgcolor_views(views, [0., 0., 0., 1.])
      

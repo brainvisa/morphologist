@@ -5,7 +5,7 @@ import anatomist.direct.api as ana
 from morphologist.gui.qt_backend import QtCore
 from morphologist.backends import Backend, \
             DisplayManagerMixin, ObjectsManagerMixin, \
-            LoadObjectError, Object3DMixin, ObjectAPCMixin
+            LoadObjectError
 
 
 class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
@@ -21,8 +21,9 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         # must be call after the Qt eventloop has been started
         cls.anatomist = ana.Anatomist("-b")
 
+    # this method should be used only by the View object ("friend" method)
     @classmethod
-    def create_axial_view(cls, parent=None):
+    def create_backend_view(cls, parent=None):
         wintype = 'Axial'
         cmd = ana.cpp.CreateWindowCommand(wintype, -1, None,
                 [], 1, parent, 2, 0,
@@ -32,71 +33,40 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         window.setWindowFlags(QtCore.Qt.Widget)
         awindow = cls.anatomist.AWindow(cls.anatomist, window)
         parent.layout().addWidget(awindow.getInternalRep())
-        return window
+        return awindow
 
     @classmethod
-    def add_object_to_window(cls, object, window):
-        awindow = cls.anatomist.AWindow(cls.anatomist, window)
-        awindow.addObjects(object.aobject)
-
+    def add_object_in_view(cls, object, view):
+        awindow = view.backend_view
+        awindow.addObjects(object.backend_object)
+   
     @classmethod
-    def remove_object_from_window(cls, object, window):
-        awindow = cls.anatomist.AWindow(cls.anatomist, window)
-        awindow.removeObjects(object.aobject)
-
-    @classmethod
-    def clear_window(cls, window):
-        awindow = cls.anatomist.AWindow(cls.anatomist, window)
+    def clear_view(cls, view):
+        awindow = view.backend_view
         awindow.removeObjects(awindow.objects)
-        
-    @classmethod
-    def clear_windows(cls, windows):
-        for window in windows:
-            cls.clear_window(window)
-        
-    @classmethod
-    def center_window_on_object(cls, window, object):
-        aobject = object.aobject
-        bb = aobject.boundingbox()
-        position = (bb[1] - bb[0]) / 2
-        awindow = cls.anatomist.AWindow(cls.anatomist, window)
-        awindow.moveLinkedCursor(position)
 
     @classmethod
-    def set_bgcolor_views(cls, views, rgba_color):
+    def set_bgcolor_view(cls, view, rgba_color):
         # rgba_color must a list of 4 floats between 0 and 1
         cls.anatomist.execute('WindowConfig',
-                windows=views, cursor_visibility=0,
+                windows=[view.backend_view], cursor_visibility=0,
                 light={'background' : rgba_color})
-
+    
     @classmethod
-    def set_position(cls, window, position):
-        awindow = cls.anatomist.AWindow(cls.anatomist, window)
+    def set_position(cls, view, position):
+        awindow = view.backend_view
         awindow.moveLinkedCursor(position)
         
 ### objects loader backend
     @classmethod
-    def load_object(cls, filename):
-        if filename.endswith(".APC"):
-            object = cls.load_apc_object(filename)
-        else:
-            aobject = cls.anatomist.loadObject(filename)
-            if aobject.getInternalRep() == None:
-                raise LoadObjectError(str(filename))
-            object = PyanatomistObject3D(filename, aobject)
-        return object
-
+    def load_backend_object(cls, filename):
+        aobject = cls.anatomist.loadObject(filename)
+        if aobject.getInternalRep() == None:
+            raise LoadObjectError(str(filename))
+        return aobject
+    
     @classmethod
-    def load_apc_object(cls, filename):
-        apc_object = PyanatomistObjectAPC(filename)
-        
-        apc_object.ac_object = cls.create_point_object(apc_object.ac_coordinates)
-        apc_object.pc_object = cls.create_point_object(apc_object.pc_coordinates)
-        apc_object.ih_object = cls.create_point_object(apc_object.ih_coordinates)
-        return apc_object
-
-    @classmethod
-    def create_point_object(cls, coordinates):
+    def create_backend_point_object(cls, coordinates):
         cross_mesh = os.path.join(cls.anatomist.anatomistSharedPath(), 
                                   "cursors", "cross.mesh")
         point_object = cls.anatomist.loadObject(cross_mesh, forceReload=True)
@@ -107,31 +77,24 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
                                                             0, 0, 1 ], 
                                             referential, 
                                             cls.anatomist.centralRef)
-        return PyanatomistObject3D(cross_mesh, point_object)
+        return point_object
     
-
-class PyanatomistObject3D(Object3DMixin):
+    @classmethod
+    def reload_object(cls, object):
+        object.backend_object.reload()
     
-    def __init__(self, filename, aobject):
-        super(PyanatomistObject3D, self).__init__(filename)
-        self.aobject = aobject
-
-    def reload(self):
-        self.aobject.reload()
-        return self
+    @classmethod
+    def get_object_center_position(cls, object):
+        aobject = object.backend_object
+        bb = aobject.boundingbox()
+        position = (bb[1] - bb[0]) / 2
+        return position
     
-    def set_color_map(self, color_map_name):
-        self.aobject.setPalette(color_map_name)
+    @classmethod
+    def set_object_color_map(cls, object, color_map_name):
+        object.backend_object.setPalette(color_map_name)
     
-    def set_color(self, rgba_color):
-        self.aobject.setMaterial(diffuse = rgba_color)
+    @classmethod
+    def set_object_color(cls, object, rgba_color):
+        object.backend_object.setMaterial(diffuse = rgba_color)
 
-            
-class PyanatomistObjectAPC(ObjectAPCMixin):
-
-    def reload(self):
-        self._init_coordinates()
-        self.ac_object = PyanatomistBackend.create_point_object(self.ac_coordinates)
-        self.pc_object = PyanatomistBackend.create_point_object(self.pc_coordinates)
-        self.ih_object = PyanatomistBackend.create_point_object(self.ih_coordinates)
-        
