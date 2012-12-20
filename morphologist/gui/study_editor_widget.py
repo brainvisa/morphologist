@@ -222,6 +222,9 @@ class StudyEditorDialog(QtGui.QDialog):
             consistency = False
             msg = "The backup filename directory '%s' does not exist." % \
                                                 backup_filename_directory 
+        elif os.path.exists(backup_filename):
+            consistency = False
+            msg = "The backup filename already '%s' exists." % backup_filename
         if not consistency:
             QtGui.QMessageBox.critical(self, "Study consistency error", msg)
         return consistency
