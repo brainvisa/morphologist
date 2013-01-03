@@ -3,9 +3,9 @@ import os
 import anatomist.direct.api as ana
 
 from morphologist.gui.qt_backend import QtCore
-from morphologist.backends import Backend, \
-            DisplayManagerMixin, ObjectsManagerMixin, \
-            LoadObjectError
+from morphologist.backends import Backend
+from morphologist.backends.mixins import DisplayManagerMixin, \
+                                         ObjectsManagerMixin, LoadObjectError
 
 
 class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):

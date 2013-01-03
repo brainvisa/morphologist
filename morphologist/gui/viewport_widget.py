@@ -1,7 +1,9 @@
 import os
 
-from morphologist.backends import Backend, LoadObjectError, Object3D, APCObject, View
-from .qt_backend import QtCore, QtGui, loadUi 
+from morphologist.backends import Backend
+from morphologist.backends.mixins import LoadObjectError
+from morphologist.gui.object3d import Object3D, APCObject, View
+from morphologist.gui.qt_backend import QtCore, QtGui, loadUi 
 from morphologist.gui import ui_directory 
 from morphologist.intra_analysis import IntraAnalysis
 
