@@ -1,6 +1,5 @@
 import os
 
-from morphologist.backends import Backend
 from morphologist.backends.mixins import LoadObjectError
 from morphologist.gui.object3d import Object3D, APCObject, View
 from morphologist.gui.qt_backend import QtCore, QtGui, loadUi 
@@ -113,7 +112,6 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         self.ui = loadUi(self.uifile, parent)
         self._views = []
         self._viewport_model = None
-        Backend.display_backend().initialize_display()
         self._init_widget()
 
     def set_model(self, model):

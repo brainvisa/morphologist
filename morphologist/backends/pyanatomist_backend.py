@@ -9,7 +9,13 @@ from morphologist.backends.mixins import DisplayManagerMixin, \
 
 
 class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
-
+    anatomist = None
+    
+    def __new__(cls):
+        if cls.anatomist is None:
+            cls._init_anatomist()
+        return super(PyanatomistBackend, cls).__new__(cls)
+        
     def __init__(self):
         super(PyanatomistBackend, self).__init__()
         super(DisplayManagerMixin, self).__init__()
@@ -17,8 +23,7 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
 
 ### display backend
     @classmethod
-    def initialize_display(cls):
-        # must be call after the Qt eventloop has been started
+    def _init_anatomist(cls):
         cls.anatomist = ana.Anatomist("-b")
 
     @classmethod
