@@ -4,10 +4,6 @@ class DisplayManagerMixin(object):
 
     def initialize_display(self):
         raise Exception("DisplayManagerMixin is an abstract class")
-
-    # this method should be used only by the View object ("friend" method)
-    def create_backend_view(self, parent=None):
-        raise Exception("DisplayManagerMixin is an abstract class")
         
     def create_view(self, parent=None):
         return View(parent)
@@ -27,19 +23,16 @@ class DisplayManagerMixin(object):
     
     def set_position(self, view, position):
         raise Exception("DisplayManagerMixin is an abstract class")
+
+    def _friend_create_backend_view(self, parent=None):
+        raise Exception("DisplayManagerMixin is an abstract class")
         
 
 class ObjectsManagerMixin(object):
 
     def load_object3d(self, filename):
         return Object3D(filename)
-    
-    def load_backend_object(self, filename):
-        raise Exception("ObjectsLoaderMixin is an abstract class")
-    
-    def create_backend_point_object(self, coordinates):
-        raise Exception("ObjectsLoaderMixin is an abstract class")
-    
+        
     def reload_object(self, object):
         raise Exception("ObjectsLoaderMixin is an abstract class")
     
@@ -52,7 +45,13 @@ class ObjectsManagerMixin(object):
     def set_object_color(self, object, rgba_color):
         raise Exception("ObjectsLoaderMixin is an abstract class")
     
+    def _friend_load_backend_object(self, filename):
+        raise Exception("ObjectsLoaderMixin is an abstract class")
     
+    def _friend_create_backend_point_object(self, coordinates):
+        raise Exception("ObjectsLoaderMixin is an abstract class")
+
+
 class LoadObjectError(Exception):
     pass
 

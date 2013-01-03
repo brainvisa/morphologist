@@ -8,10 +8,7 @@ class AbstractObject3D(object):
         
     def reload(self):
         raise Exception("AbstractObject3D is an abstract class")
-    
-    def add_in_view(self, view):
-        view.add_object3d(self)
-        
+            
     def get_center_position(self):
         raise Exception("AbstractObject3D is an abstract class")
 
@@ -20,6 +17,9 @@ class AbstractObject3D(object):
     
     def set_color(self, rgba_color):
         self._backend.set_object_color(self, rgba_color)
+
+    def _friend_accept_visitor(self, visitor):
+        visitor._friend_visit(self)
         
     
 class Object3D(AbstractObject3D):
@@ -27,7 +27,7 @@ class Object3D(AbstractObject3D):
     def __init__(self, filename):
         super(Object3D, self).__init__()
         self._filename = filename
-        self.backend_object = self._backend.load_backend_object(filename)
+        self._friend_backend_object = self._backend._friend_load_backend_object(filename)
      
     def reload(self):
         self._backend.reload_object(self)
@@ -41,10 +41,10 @@ class PointObject(AbstractObject3D):
     def __init__(self, coordinates):
         super(PointObject, self).__init__()
         self._coordinates = coordinates
-        self.backend_object = self._backend.create_backend_point_object(coordinates)
+        self._friend_backend_object = self._backend._friend_create_backend_point_object(coordinates)
     
     def reload(self):
-        self.backend_object = self._backend.create_backend_point_object(self._coordinates)
+        self._friend_backend_object = self._backend._friend_create_backend_point_object(self._coordinates)
         
     def get_center_position(self):
         return self._coordinates
@@ -59,11 +59,7 @@ class GroupObject(AbstractObject3D):
     def reload(self):
         for object in self._objects:
             object.reload()
-    
-    def add_in_view(self, view):
-        for object in self._objects:
-            view.add_object(object)
-        
+            
     def get_center_position(self):
         if len(self._objects) > 0:
             position = self._objects[0].get_center_position()
@@ -79,6 +75,10 @@ class GroupObject(AbstractObject3D):
         for object in self._objects:
             object.set_color(rgba_color)
            
+    def _friend_accept_visitor(self, visitor):
+        for object in self._objects:
+            visitor._friend_visit(object)
+
            
 class APCObject(GroupObject):
     
@@ -125,15 +125,11 @@ class View(object):
       
     def __init__(self, parent=None):
         self._backend = Backend.display_backend()
-        # this object should be used only by the backend. It is a "friend" member
-        self.backend_view = self._backend.create_backend_view(parent)
+        self._friend_backend_view = self._backend._friend_create_backend_view(parent)
         
     def add_object(self, object):
-        object.add_in_view(self)
-        
-    def add_object3d(self, object3d):
-        self._backend.add_object_in_view(object3d, self)
-        
+        object._friend_accept_visitor(self)
+                
     def clear(self):
         self._backend.clear_view(self)
     
@@ -146,3 +142,6 @@ class View(object):
     
     def set_bgcolor(self, color):
         self._backend.set_bgcolor_view(self, color)
+        
+    def _friend_visit(self, object3d):
+        self._backend.add_object_in_view(object3d, self)
