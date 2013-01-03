@@ -24,17 +24,36 @@ class AbstractObject3D(object):
     
 class Object3D(AbstractObject3D):
     
-    def __init__(self, filename):
+    def __init__(self, _enable_init=False):
         super(Object3D, self).__init__()
-        self._filename = filename
-        self._friend_backend_object = self._backend._friend_load_backend_object(filename)
+        if not _enable_init:
+            raise Exception("Default constructor not allowed, use from_* static methods instead.")
      
+    @staticmethod
+    def from_filename(filename):
+        object3d = Object3D(_enable_init=True)
+        object3d._friend_backend_object = object3d._backend._friend_load_backend_object(filename)
+        return object3d
+    
+    @staticmethod    
+    def from_fusion(object1, object2, mode, rate):
+        object3d = Object3D(_enable_init=True)
+        object3d._friend_backend_object = object3d._backend._friend_create_backend_fusion_object(object1._friend_backend_object, 
+                                                                                                 object2._friend_backend_object, 
+                                                                                                 mode, rate)
+        return object3d
+        
     def reload(self):
         self._backend.reload_object(self)
     
+    def shallow_copy(self):
+        object_copy = Object3D(_enable_init=True)
+        object_copy._friend_backend_object = self._backend._friend_shallow_copy_backend_object(self._friend_backend_object)
+        return object_copy
+        
     def get_center_position(self):
         self._backend.get_object_center_position(self)
-        
+
 
 class PointObject(AbstractObject3D):
     
@@ -49,7 +68,7 @@ class PointObject(AbstractObject3D):
     def get_center_position(self):
         return self._coordinates
    
-    
+
 class GroupObject(AbstractObject3D):
     
     def __init__(self, objects):

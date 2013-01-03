@@ -67,6 +67,10 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         object._friend_backend_object.reload()
     
     @classmethod
+    def _friend_shallow_copy_backend_object(cls, object):
+        return cls.anatomist.duplicateObject(object)
+        
+    @classmethod
     def get_object_center_position(cls, object):
         aobject = object._friend_backend_object
         bb = aobject.boundingbox()
@@ -80,6 +84,13 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
     @classmethod
     def set_object_color(cls, object, rgba_color):
         object._friend_backend_object.setMaterial(diffuse = rgba_color)
+
+    @classmethod
+    def _friend_create_backend_fusion_object(cls, avol1, avol2, mode, rate):
+        fusion = cls.anatomist.fusionObjects( [avol1, avol2], method='Fusion2DMethod' )
+        cls.anatomist.execute("Fusion2DParams", object=fusion, mode=mode, rate=rate,
+                              reorder_objects = [ avol1, avol2 ] )
+        return fusion
 
     @classmethod
     def _friend_load_backend_object(cls, filename):

@@ -35,7 +35,7 @@ class ObjectsManagerMixin(object):
         
     def reload_object(self, object):
         raise Exception("ObjectsLoaderMixin is an abstract class")
-    
+            
     def get_object_center_position(self, object):
         raise Exception("ObjectsLoaderMixin is an abstract class")
     
@@ -45,10 +45,16 @@ class ObjectsManagerMixin(object):
     def set_object_color(self, object, rgba_color):
         raise Exception("ObjectsLoaderMixin is an abstract class")
     
+    def _friend_create_backend_fusion_object(self, object1, object2, mode, rate):
+        raise Exception("ObjectsLoaderMixin is an abstract class")
+
     def _friend_load_backend_object(self, filename):
         raise Exception("ObjectsLoaderMixin is an abstract class")
     
     def _friend_create_backend_point_object(self, coordinates):
+        raise Exception("ObjectsLoaderMixin is an abstract class")
+
+    def _friend_shallow_copy_backend_object(self, object):
         raise Exception("ObjectsLoaderMixin is an abstract class")
 
 

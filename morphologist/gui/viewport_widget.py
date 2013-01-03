@@ -53,7 +53,7 @@ class AnalysisViewportModel(QtCore.QObject):
 
     @classmethod
     def load_object(cls, parameter_name, filename):
-        return Object3D(filename)
+        return Object3D.from_filename(filename)
 
 
 class IntraAnalysisViewportModel(AnalysisViewportModel):
@@ -89,7 +89,7 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
         if (parameter_name == IntraAnalysis.COMMISSURE_COORDINATES):
             obj = APCObject(filename)
         else:
-            obj = Object3D(filename) 
+            obj = Object3D.from_filename(filename) 
         return obj
 
 
@@ -106,11 +106,16 @@ class IntraAnalysisViewportView(QtGui.QWidget):
             color: white;
         }
     '''
-
+    RAW_MRI_ACPC="raw_mri_acpc"
+    BIAS_CORRECTED="bias_corrected"
+    BRAIN_MASK="brain_mask"
+    SPLIT_MASK="split_mask"
+    
     def __init__(self, parent=None):
         super(IntraAnalysisViewportView, self).__init__(parent)
         self.ui = loadUi(self.uifile, parent)
-        self._views = []
+        self._views = {}
+        self._objects = {}
         self._viewport_model = None
         self._init_widget()
 
@@ -118,74 +123,92 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         if self._viewport_model is not None:
             self._viewport_model.changed.disconnect(self.on_model_changed)
             self._viewport_model.raw_mri_changed.disconnect(\
-                                    self.on_raw_mri_changed)
+                                    self.update_raw_mri_acpc_view)
             self._viewport_model.commissure_coordinates_changed.disconnect(\
-                                        self.on_commissure_coordinates_changed)
+                                        self.update_raw_mri_acpc_view)
             self._viewport_model.corrected_mri_changed.disconnect(\
-                                    self.on_corrected_mri_changed)
+                                    self.update_corrected_mri_view)
             self._viewport_model.brain_mask_changed.disconnect(\
-                                    self.on_brain_mask_changed)
+                                    self.update_brain_mask_view)
             self._viewport_model.split_mask_changed.disconnect(\
-                                    self.on_split_mask_changed)
+                                    self.update_split_mask_view)
         self._viewport_model = model
         self._viewport_model.changed.connect(self.on_model_changed)
-        self._viewport_model.raw_mri_changed.connect(self.on_raw_mri_changed)
-        self._viewport_model.commissure_coordinates_changed.connect(self.on_commissure_coordinates_changed)
-        self._viewport_model.corrected_mri_changed.connect(self.on_corrected_mri_changed)
-        self._viewport_model.brain_mask_changed.connect(self.on_brain_mask_changed)
-        self._viewport_model.split_mask_changed.connect(self.on_split_mask_changed)
+        self._viewport_model.raw_mri_changed.connect(self.update_raw_mri_acpc_view)
+        self._viewport_model.commissure_coordinates_changed.connect(self.update_raw_mri_acpc_view)
+        self._viewport_model.corrected_mri_changed.connect(self.update_corrected_mri_view)
+        self._viewport_model.brain_mask_changed.connect(self.update_brain_mask_view)
+        self._viewport_model.split_mask_changed.connect(self.update_split_mask_view)
 
     def _init_widget(self):
         self.ui.setStyleSheet(self.main_frame_style_sheet)
-        for view_hook in [self.ui.view1_hook, self.ui.view2_hook, 
-                          self.ui.view3_hook, self.ui.view4_hook]:
+        for view_name, view_hook in [(self.RAW_MRI_ACPC, self.ui.view1_hook), 
+                                     (self.BIAS_CORRECTED, self.ui.view2_hook),
+                                     (self.BRAIN_MASK, self.ui.view3_hook), 
+                                     (self.SPLIT_MASK, self.ui.view4_hook)]:
             QtGui.QVBoxLayout(view_hook)
             view = View(view_hook)
             view.set_bgcolor([0., 0., 0., 1.])
-            self._views.append(view)
-        self.view1, self.view2, self.view3, self.view4 = self._views
+            self._views[view_name] = view
         
     @QtCore.Slot()
     def on_model_changed(self):
-        for view in self._views:
+        for view in self._views.values():
             view.clear()
 
     @QtCore.Slot()
-    def on_raw_mri_changed(self):
-        object = self._viewport_model.observed_objects[IntraAnalysis.MRI]
-        if object is not None:
-            self.view1.add_object(object)
-            self.view1.center_on_object(object)
-
-    @QtCore.Slot()
-    def on_commissure_coordinates_changed(self):
+    def update_raw_mri_acpc_view(self):
+        view = self._views[self.RAW_MRI_ACPC]
+        view.clear()
+        mri = self._viewport_model.observed_objects[IntraAnalysis.MRI]
+        if mri is not None:
+            view.add_object(mri)
+            view.center_on_object(mri)
         apc_object = self._viewport_model.observed_objects[IntraAnalysis.COMMISSURE_COORDINATES]
         if apc_object is not None:
             apc_object.set_ac_color(( 0, 0, 1, 1 )) 
             apc_object.set_pc_color(( 1, 1, 0, 1 )) 
             apc_object.set_ih_color(( 0, 1, 0, 1 ))
-            self.view1.add_object(apc_object)
-            self.view1.center_on_object(apc_object)
+            view.add_object(apc_object)
+            view.center_on_object(apc_object)
 
     @QtCore.Slot()
-    def on_corrected_mri_changed(self):
-        object = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
-        if object is not None:
-            object.set_color_map("Rainbow2")
-            self.view2.add_object(object)
+    def update_corrected_mri_view(self):
+        view = self._views[self.BIAS_CORRECTED]
+        view.clear()
+        corrected_mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
+        if corrected_mri is not None:
+            mri_copy = corrected_mri.shallow_copy()
+            self._objects[self.BIAS_CORRECTED] = mri_copy
+            mri_copy.set_color_map("Rainbow2")
+            view.add_object(mri_copy)
 
     @QtCore.Slot()
-    def on_brain_mask_changed(self):
-        object = self._viewport_model.observed_objects[IntraAnalysis.BRAIN_MASK]
-        if object is not None:
-            object.set_color_map("GREEN-lfusion")
-            self.view3.add_object(object)
+    def update_brain_mask_view(self):
+        view = self._views[self.BRAIN_MASK]
+        view.clear()
+        mask = self._viewport_model.observed_objects[IntraAnalysis.BRAIN_MASK]
+        if mask is not None:
+            mask.set_color_map("GREEN-lfusion")
+            mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
+            if mri is not None:
+                fusion = Object3D.from_fusion(mri, mask, mode='linear', rate=0.7)
+                self._objects[self.BRAIN_MASK] = fusion
+                view.add_object(fusion)
+            else:
+                view.add_object(mask) 
 
     @QtCore.Slot()
-    def on_split_mask_changed(self):
-        object = self._viewport_model.observed_objects[IntraAnalysis.SPLIT_MASK]
-        if object is not None:
-            object.set_color_map("RAINBOW")
-            self.view4.add_object(object)
-
-     
+    def update_split_mask_view(self):
+        view = self._views[self.SPLIT_MASK]
+        view.clear()
+        mask = self._viewport_model.observed_objects[IntraAnalysis.SPLIT_MASK]
+        if mask is not None:
+            mask.set_color_map("RAINBOW")
+            mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
+            if mri is not None:
+                fusion = Object3D.from_fusion(mri, mask, mode='linear', rate=0.7)
+                self._objects[self.SPLIT_MASK] = fusion
+                view.add_object(fusion)
+            else:
+                view.add_object(mask) 
