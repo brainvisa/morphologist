@@ -1,6 +1,9 @@
-from morphologist.intra_analysis_steps import BiasCorrection, HistogramAnalysis, \
-        BrainSegmentation, SplitBrain, SpatialNormalization
+from morphologist.intra_analysis_steps import BiasCorrection, \
+        HistogramAnalysis, BrainSegmentation, SplitBrain, \
+        LeftGreyWhiteClassification, RightGreyWhiteClassification, \
+        SpatialNormalization
 from morphologist.intra_analysis import IntraAnalysis
+
 
 class MockSpatialNormalization(SpatialNormalization):
     
@@ -32,6 +35,7 @@ class MockBiasCorrection(BiasCorrection):
             self.out_files[IntraAnalysis.CORRECTED_MRI], self.corrected_mri, 
             self.out_files[IntraAnalysis.VARIANCE], self.variance]
         return command
+
 
 class MockHistogramAnalysis(HistogramAnalysis):
     
@@ -75,6 +79,36 @@ class MockSplitBrain(SplitBrain):
         return command
 
 
+class MockLeftGreyWhiteClassification(LeftGreyWhiteClassification):
+    
+    def __init__(self, mock_out_files):
+        super(MockLeftGreyWhiteClassification, self).__init__()
+        self.out_files = mock_out_files
+ 
+    def get_command(self):
+        command = ['python', '-m',
+            'morphologist.tests.mocks.intra_analysis_steps',
+            'grey_white_classification',
+            self.out_files[IntraAnalysis.LEFT_GREY_WHITE],
+            self.left_grey_white]
+        return command
+
+
+class MockRightGreyWhiteClassification(RightGreyWhiteClassification):
+    
+    def __init__(self, mock_out_files):
+        super(MockRightGreyWhiteClassification, self).__init__()
+        self.out_files = mock_out_files
+ 
+    def get_command(self):
+        command = ['python', '-m',
+            'morphologist.tests.mocks.intra_analysis_steps',
+            'grey_white_classification',
+            self.out_files[IntraAnalysis.RIGHT_GREY_WHITE],
+            self.right_grey_white]
+        return command
+
+
 def main():
     import time, sys, shutil
 
@@ -114,6 +148,11 @@ def main():
         out_files_split_mask, split_mask = args
         time.sleep(time_to_sleep)
         shutil.copy(out_files_split_mask, split_mask)
+    elif stepname == 'grey_white_classification':
+        out_files_grey_white_classification, grey_white_classification = args
+        time.sleep(time_to_sleep)
+        shutil.copy(out_files_grey_white_classification, \
+                    grey_white_classification)
     
 
 if __name__ == '__main__' : main()
