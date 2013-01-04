@@ -26,15 +26,16 @@ class TestStudy(unittest.TestCase):
    
 
     def test_save_load_study(self):
-        studyfilepath = os.path.join(self.study.outputdir, "test_study_file")
+        studyfilepath = self.study.backup_filename
         studyfilepath2 = studyfilepath + "_2"
         if os.path.isfile(studyfilepath): os.remove(studyfilepath)
         if os.path.isfile(studyfilepath2): os.remove(studyfilepath2)
         print "save to " + repr(studyfilepath)
 
-        self.study.save_to_file(studyfilepath)
+        self.study.save_to_backup_file()
         loaded_study = self.test_case.study_cls().from_file(studyfilepath)
-        loaded_study.save_to_file(studyfilepath2)
+        loaded_study.backup_filename = studyfilepath2
+        loaded_study.save_to_backup_file()
 
         self.assert_(filecmp.cmp(studyfilepath, studyfilepath2))
 
