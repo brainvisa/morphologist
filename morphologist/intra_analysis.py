@@ -1,7 +1,8 @@
 import os
 
+from corist.image_importation import ImportationError
+
 from morphologist.analysis import Analysis, InputParameters, OutputParameters
-from morphologist.image_importation import ImportationError
 from morphologist.intra_analysis_steps import ImageImportation, BiasCorrection, \
                                 HistogramAnalysis, BrainSegmentation, SplitBrain, \
                                 SpatialNormalization 

@@ -11,7 +11,7 @@ class ImageImportation(Step):
         self.output = None
         
     def get_command(self):
-        command = ["python", "-m", "morphologist.image_importation", 
+        command = ["python", "-m", "corist.image_importation", 
                    self.input, 
                    self.output]
         return command

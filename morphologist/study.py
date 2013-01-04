@@ -1,8 +1,9 @@
 import os
 import json
 
+from corist.image_importation import ImportationError
+
 from morphologist.analysis import InputParameters, OutputParameters
-from morphologist.image_importation import ImportationError
 
 
 class Subject(object):
