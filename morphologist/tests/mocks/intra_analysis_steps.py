@@ -1,6 +1,5 @@
 from morphologist.intra_analysis_steps import BiasCorrection, HistogramAnalysis, \
-        BrainSegmentation, SplitBrain
-from morphologist.intra_analysis_normalization import SpatialNormalization
+        BrainSegmentation, SplitBrain, SpatialNormalization
 from morphologist.intra_analysis import IntraAnalysis
 
 class MockSpatialNormalization(SpatialNormalization):

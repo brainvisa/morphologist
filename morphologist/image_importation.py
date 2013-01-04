@@ -5,48 +5,33 @@ from optparse import OptionParser
 
 from soma import aims
 
-from .steps import Step
 
-
-class ImageImportation(Step):
+class Importer:
     
-    def __init__(self):
-        super(ImageImportation, self).__init__()
-        
-        self.input = None
-        
-        self.output = None
-        
-    def get_command(self):
-        command = ["python", "-m", "morphologist.image_importation", 
-                   self.input, 
-                   self.output]
-        return command
-    
-    def run(self): 
+    @classmethod
+    def import_t1mri(cls, input_filename, output_filename): 
         temp_input = None
-        input_filename = self.input
         return_value = 0
         
         try:
-            input_vol = aims.read(self.input)
+            input_vol = aims.read(input_filename)
         except (aims.aimssip.IOError, IOError) as e:
             raise ImportationError(e.message)
-
-        if self._conversion_needed(input_filename, input_vol):
+    
+        if cls._conversion_needed(input_filename, input_vol):
             try:
-                if self._remove_nan_needed(input_vol):
+                if cls._remove_nan_needed(input_vol):
                     (temp_file, temp_input) = tempfile.mkstemp()
                     temp_file.close()
-                    command = "AimsRemoveNaN -i '%s' -o '%s'" % (self.input, temp_input)
+                    command = "AimsRemoveNaN -i '%s' -o '%s'" % (input_filename, temp_input)
                     return_value = os.system(command)
                     if return_value != 0:
                         raise ImportationError("The following command failed : %s" % command)
                     input_filename = temp_input
-
-                command_list = ['AimsFileConvert', '-i', input_filename, '-o', self.output, 
+    
+                command_list = ['AimsFileConvert', '-i', input_filename, '-o', output_filename, 
                            '-t', 'S16']
-                if self._resampling_needed(input_vol):
+                if cls._resampling_needed(input_vol):
                     command_list.extend([ '-r', '--omin', 0, '--omax', 4095 ])
                 command = " ".join(command_list)
                 return_value = os.system(command)
@@ -55,17 +40,16 @@ class ImageImportation(Step):
             finally:
                 if temp_input is not None:
                     os.remove(temp_input)                
-
+    
         else:
             try:
-                shutil.copy(self.input, self.output)
-                if os.path.exists(self.input+".minf"):
-                    shutil.copy(self.input+".minf", self.output+".minf")
+                shutil.copy(input_filename, output_filename)
+                if os.path.exists(input_filename+".minf"):
+                    shutil.copy(input_filename+".minf", output_filename+".minf")
             except IOError as e:
                 raise ImportationError(e.message)
-        
         return return_value
-
+    
     @staticmethod
     def _conversion_needed(input_filename, input_vol):
         convert = False
@@ -97,10 +81,11 @@ class ImageImportation(Step):
         header = input_vol.header()
         data_type=header["data_type"]
         return data_type in ('FLOAT', 'DOUBLE')
-             
+                 
      
 class ImportationError(Exception):
     pass   
+        
         
 if __name__ == '__main__':
     
@@ -108,7 +93,5 @@ if __name__ == '__main__':
     options, args = parser.parse_args()
     if len(args) != 2:
         parser.error('Invalid arguments : input_file and output_file are mandatory.')
-    importation = ImageImportation()
-    importation.input = args[0]
-    importation.output = args[1]
-    importation.run()
+    Importer.import_t1mri(args[0], args[1])
+

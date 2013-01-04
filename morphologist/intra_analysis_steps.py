@@ -1,6 +1,41 @@
 from morphologist.steps import Step
 
 
+class ImageImportation(Step):
+    
+    def __init__(self):
+        super(ImageImportation, self).__init__()
+        
+        self.input = None
+        
+        self.output = None
+        
+    def get_command(self):
+        command = ["python", "-m", "morphologist.image_importation", 
+                   self.input, 
+                   self.output]
+        return command
+    
+    
+class SpatialNormalization(Step):
+
+    def __init__(self):
+        super(SpatialNormalization, self).__init__()
+        
+        self.mri = None
+        
+        #outputs
+        self.commissure_coordinates = None
+        self.talairach_transformation = None
+
+    def get_command(self):
+        command = ['python', '-m', 'morphologist.intra_analysis_normalization', 
+                   self.mri, 
+                   self.commissure_coordinates, 
+                   self.talairach_transformation]
+        return command
+    
+        
 class BiasCorrection(Step):
 
     def __init__(self):

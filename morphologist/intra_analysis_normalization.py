@@ -8,38 +8,21 @@ from brainvisa.configuration import neuroConfig
 from soma.wip.application.api import Application
 from soma import aims
 
-from morphologist.steps import Step
 
-class SpatialNormalization(Step):
-
-    def __init__(self):
-        super(SpatialNormalization, self).__init__()
-        
-        self.mri = None
-        
-        #outputs
-        self.commissure_coordinates = None
-        self.talairach_transformation = None
-
-    def get_command(self):
-        # TODO 
-        command = ['python', '-m', 'morphologist.intra_analysis_normalization', 
-                   self.mri, 
-                   self.commissure_coordinates, 
-                   self.talairach_transformation]
-        return command
+class SPMNormalization:
          
-    def run(self):
+    @classmethod
+    def run(cls, mri, commissure_coordinates, talairach_transformation):
         # run brainvisa with databases and logging disabled because these features
         # do not support parallel execution. 
         neuroConfig.fastStart = True
         neuroConfig.logFileName = ''
         brainvisa.axon.initializeProcesses()
         
-        transformations_directory = os.path.dirname(self.talairach_transformation)
-        mri_name = os.path.basename(self.mri)
+        transformations_directory = os.path.dirname(talairach_transformation)
+        mri_name = os.path.basename(mri)
         mri_name = mri_name.split(".")[0]
-        mri_path = os.path.dirname(self.mri)
+        mri_path = os.path.dirname(mri)
         try:
             talairach_mni_transform = os.path.join(transformations_directory, 
                                                    "RawT1_%s_TO_Talairach-MNI.trm" % mri_name)
@@ -55,7 +38,7 @@ class SpatialNormalization(Step):
             spm_t1_template = os.path.join(spm_path, 
                                            "templates", "T1.nii")
             
-            defaultContext().runProcess("SPMnormalizationPipeline", self.mri, 
+            defaultContext().runProcess("SPMnormalizationPipeline", mri, 
                                         talairach_mni_transform, 
                                         spm_transformation, normalized_mri, 
                                         spm_t1_template)
@@ -64,7 +47,7 @@ class SpatialNormalization(Step):
                                            "RawT1-%s.referential" % mri_name)
             mri_referential_file = open(mri_referential, "w")
             mri_referential_file.write("attributes = {'uuid' : '%s'}" 
-                                       % self._get_referential_uuid(self.mri))
+                                       % cls._get_referential_uuid(mri))
             mri_referential_file.close()
             brainvisa_share_directory = neuroConfig.dataPath[0].directory
             normalized_referential = os.path.join(brainvisa_share_directory,
@@ -79,9 +62,9 @@ class SpatialNormalization(Step):
             
             defaultContext().runProcess("TalairachTransformationFromNormalization", 
                                         talairach_mni_transform, 
-                                        self.talairach_transformation, 
-                                        self.commissure_coordinates, 
-                                        self.mri, mri_referential, 
+                                        talairach_transformation, 
+                                        commissure_coordinates, 
+                                        mri, mri_referential, 
                                         normalized_referential,
                                         tr_acpc_to_normalized, 
                                         acpc_referential)
@@ -112,8 +95,8 @@ if __name__ == '__main__':
     if len(args) != 3:
         parser.error('Invalid arguments : mri_file, commissure_coordinates_file'
                      ' and talairach_transformation_file are mandatory.')
-    normalization = SpatialNormalization()
-    normalization.mri = args[0]
-    normalization.commissure_coordinates = args[1]
-    normalization.talairach_transformation = args[2]
-    normalization.run()
+    normalization = SPMNormalization()
+    mri = args[0]
+    commissure_coordinates = args[1]
+    talairach_transformation = args[2]
+    normalization.run(mri, commissure_coordinates, talairach_transformation)

@@ -3,14 +3,15 @@ import unittest
 import shutil
 import filecmp 
 
-from morphologist.intra_analysis_steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
-from morphologist.image_importation import ImageImportation
-from morphologist.intra_analysis_normalization import SpatialNormalization
-
 import brainvisa.axon
 from brainvisa.processes import defaultContext
 from brainvisa.configuration import neuroConfig
 from brainvisa.data import neuroHierarchy
+
+from morphologist.intra_analysis_steps import ImageImportation, BiasCorrection, \
+                                HistogramAnalysis, BrainSegmentation, SplitBrain, \
+                                SpatialNormalization 
+
 
 class TestIntraAnalysisSteps(unittest.TestCase):
     
@@ -66,7 +67,6 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         
         brainvisa.axon.cleanup()
 
-        
     def setUp(self):
         self.subject = "hyperion"
         self.bv_db_directory = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/bv_database"
@@ -107,6 +107,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         if not os.path.exists(self.bv_db_directory):
             self.create_ref_database()
 
+
     def test_image_importation(self):
         image_importation = ImageImportation()
         
@@ -132,7 +133,6 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         
         self.compare_results([self.commissure_coordinates, self.talairach_transformation])
 
-
     def test_bias_correction(self):
         bias_correction = BiasCorrection()
 
@@ -152,8 +152,6 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         self.compare_results([self.hfiltered, self.white_ridges_bc, self.edges, 
                               self.variance, self.corrected_mri])
         
-            
-
     def test_histogram_analysis(self):
         histo_analysis = HistogramAnalysis()
         
@@ -168,7 +166,6 @@ class TestIntraAnalysisSteps(unittest.TestCase):
     
         self.compare_results([self.histo_analysis, self.histo_analysis.replace(".han", ".his")])
         
-    
     def test_brain_segmentation(self):
         brain_segmentation = BrainSegmentation()
     
@@ -193,7 +190,6 @@ class TestIntraAnalysisSteps(unittest.TestCase):
 
         self.compare_results([self.brain_mask, self.white_ridges])
         
-
     def test_split_brain(self):
         split_brain = SplitBrain()
 
@@ -211,7 +207,6 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         
         self.compare_results([self.split_mask])
      
-        
     def compare_results(self, results):
         for f in results:
             f_ref = os.path.join(self.base_directory, f)
@@ -220,8 +215,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
                          "The content of %s in test is different from the reference results." 
                          % os.path.basename(f))
             self.compare_minf(f_ref+".minf", f_test+".minf")
-          
-          
+              
     def compare_minf(self, f_minf_ref, f_minf_test):
         # The minf files are not always written the same way 
         # but the value of the common attributes should be the same
@@ -247,17 +241,6 @@ for the attribute %s. The reference value is %s, whereas the test value is %s."
 % (os.path.basename(f_minf_ref), att, str(minf_ref.get(att)), str(minf_test.get(att)) ) )
 
 
-
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestIntraAnalysisSteps)
     unittest.TextTestRunner(verbosity=2).run(suite)
-
-    #tests = []
-    #tests.append('test_spatial_normalization')
-    ##tests.append('test_bias_correction')
-    ##tests.append('test_histogram_analysis')
-    ##tests.append('test_brain_segmentation')
-    ##tests.append('test_split_brain')
-
-    #test_suite = unittest.TestSuite(map(TestIntraAnalysisSteps, tests))
-    #unittest.TextTestRunner(verbosity=2).run(test_suite)

@@ -1,9 +1,10 @@
 import os
 
 from morphologist.analysis import Analysis, InputParameters, OutputParameters
-from morphologist.image_importation import ImageImportation
-from morphologist.intra_analysis_steps import BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain
-from morphologist.intra_analysis_normalization import SpatialNormalization
+from morphologist.image_importation import ImportationError
+from morphologist.intra_analysis_steps import ImageImportation, BiasCorrection, \
+                                HistogramAnalysis, BrainSegmentation, SplitBrain, \
+                                SpatialNormalization 
 
 class IntraAnalysis(Analysis):
     # TODO: change string by a number
@@ -64,7 +65,8 @@ class IntraAnalysis(Analysis):
                                                         subjectname,
                                                         outputdir)
         cls.create_outputdirs(parameter_template, subjectname, outputdir)
-        import_step.run()
+        if import_step.run() != 0:
+            raise ImportationError()
         return import_step.output
 
 
