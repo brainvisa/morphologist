@@ -1,9 +1,11 @@
 import os
 
 from morphologist.analysis import Analysis, InputParameters, OutputParameters, ImportationError
-from morphologist.intra_analysis_steps import ImageImportation, BiasCorrection, \
-                                HistogramAnalysis, BrainSegmentation, SplitBrain, \
-                                SpatialNormalization 
+from morphologist.intra_analysis_steps import ImageImportation, \
+    BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
+    LeftGreyWhiteClassification, RightGreyWhiteClassification, \
+    SpatialNormalization
+
 
 class IntraAnalysis(Analysis):
     # TODO: change string by a number
@@ -25,6 +27,8 @@ class IntraAnalysis(Analysis):
     HISTO_ANALYSIS = 'histo_analysis'
     BRAIN_MASK = 'brain_mask'
     SPLIT_MASK = 'split_mask'
+    LEFT_GREY_WHITE = 'left_grey_white'
+    RIGHT_GREY_WHITE = 'right_grey_white'
 
     # TODO: reimplement a standard python method ?
     @classmethod
@@ -47,12 +51,16 @@ class IntraAnalysis(Analysis):
         self._bias_correction = BiasCorrection()
         self._histogram_analysis = HistogramAnalysis()
         self._brain_segmentation = BrainSegmentation()
-        self._split_brain = SplitBrain()  
+        self._split_brain = SplitBrain()
+        self._left_grey_white_classification = LeftGreyWhiteClassification()
+        self._right_grey_white_classification = RightGreyWhiteClassification()
         self._steps = [self._normalization, 
                        self._bias_correction, 
                        self._histogram_analysis, 
                        self._brain_segmentation, 
-                       self._split_brain] 
+                       self._split_brain,
+                       self._left_grey_white_classification,
+                       self._right_grey_white_classification]
 
 
     @classmethod
@@ -113,6 +121,22 @@ class IntraAnalysis(Analysis):
         self._split_brain.split_mask = self.output_params[IntraAnalysis.SPLIT_MASK]
 
 
+        self._left_grey_white_classification.corrected_mri = self._bias_correction.corrected_mri
+        self._left_grey_white_classification.commissure_coordinates = self._normalization.commissure_coordinates
+        self._left_grey_white_classification.histo_analysis = self._histogram_analysis.histo_analysis
+        self._left_grey_white_classification.split_mask = self._split_brain.split_mask
+        self._left_grey_white_classification.edges = self._bias_correction.edges
+        self._left_grey_white_classification.left_grey_white = self.output_params[IntraAnalysis.LEFT_GREY_WHITE]
+
+
+        self._right_grey_white_classification.corrected_mri = self._bias_correction.corrected_mri
+        self._right_grey_white_classification.commissure_coordinates = self._normalization.commissure_coordinates
+        self._right_grey_white_classification.histo_analysis = self._histogram_analysis.histo_analysis
+        self._right_grey_white_classification.split_mask = self._split_brain.split_mask
+        self._right_grey_white_classification.edges = self._bias_correction.edges
+        self._right_grey_white_classification.right_grey_white = self.output_params[IntraAnalysis.RIGHT_GREY_WHITE]
+
+
     @classmethod
     def get_mri_path(cls, parameter_template, subjectname, directory):
         param_template_instance = cls.param_template_map[parameter_template]
@@ -138,7 +162,9 @@ class IntraAnalysisParameterTemplate(object):
                                IntraAnalysis.CORRECTED_MRI,
                                IntraAnalysis.HISTO_ANALYSIS,
                                IntraAnalysis.BRAIN_MASK,
-                               IntraAnalysis.SPLIT_MASK]
+                               IntraAnalysis.SPLIT_MASK,
+                               IntraAnalysis.LEFT_GREY_WHITE,
+                               IntraAnalysis.RIGHT_GREY_WHITE]
 
     @classmethod
     def get_empty_input_params(cls):
@@ -218,6 +244,10 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                                             "brain_%s.nii" % subjectname)
         parameters[IntraAnalysis.SPLIT_MASK] = os.path.join(segmentation_path, 
                                             "voronoi_%s.nii" % subjectname)
+        parameters[IntraAnalysis.LEFT_GREY_WHITE] = os.path.join(\
+                        segmentation_path, "Lgrey_white_%s.nii" % subjectname)
+        parameters[IntraAnalysis.RIGHT_GREY_WHITE] = os.path.join(\
+                        segmentation_path, "Rgrey_white_%s.nii" % subjectname)
         return parameters
 
     @classmethod
@@ -285,6 +315,10 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                                             "brain_%s.nii" % subjectname)
         parameters[IntraAnalysis.SPLIT_MASK] = os.path.join(subject_dirname, 
                                             "voronoi_%s.nii" % subjectname)
+        parameters[IntraAnalysis.LEFT_GREY_WHITE] = os.path.join(\
+                subject_dirname, "left_grey_white_%s.nii" % subjectname)
+        parameters[IntraAnalysis.RIGHT_GREY_WHITE] = os.path.join(\
+                subject_dirname, "right_grey_white_%s.nii" % subjectname)
         return parameters
 
     @classmethod

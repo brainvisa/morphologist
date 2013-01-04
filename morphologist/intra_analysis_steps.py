@@ -76,7 +76,7 @@ class BiasCorrection(Step):
         if self.fix_random_seed:
             command.extend(['-srand', '10'])                
 
-        # TODO referentials
+        # TODO referentials ?
         return command
 
      
@@ -141,7 +141,7 @@ class BrainSegmentation(Step):
                    ]
         if self.fix_random_seed:
             command.extend(['-srand', '10'])  
-        # TODO referentials
+        # TODO referentials ?
         return command
 
 
@@ -151,10 +151,10 @@ class SplitBrain(Step):
         super(SplitBrain, self).__init__()
 
         self.corrected_mri = None
+        self.commissure_coordinates = None
         self.brain_mask = None
         self.white_ridges = None
         self.histo_analysis = None
-        self.commissure_coordinates = None
         self.bary_factor = 0.6
         self.fix_random_seed = False
         # output
@@ -182,9 +182,66 @@ class SplitBrain(Step):
         # "-template", "share/brainvisa-share-4.4/hemitemplate/closedvoronoi.ima"
         # "-TemplateUse", "y" 
 
-        # TODO referencials
+        # TODO referentials ?
 
         return command
     
 
+class AbstractGreyWhiteClassification(Step):
+
+    def __init__(self):
+        super(AbstractGreyWhiteClassification, self).__init__()
+
+        self.corrected_mri = None
+        self.commissure_coordinates = None
+        self.histo_analysis = None
+        self.split_mask = None
+        self.edges = None
+        self.fix_random_seed = False
+
+    def get_command(self):
+        raise Exception("AbstractGreyWhiteClassification is an abstract class.")
+
+    def _get_base_command(self):
+        command  = ['VipGreyWhiteClassif',
+                    '-input', self.corrected_mri,
+                    '-Points', self.commissure_coordinates,
+                    '-hana', self.histo_analysis,
+                    '-mask', self.split_mask,
+                    '-edges', self.edges,
+                    '-writeformat', 't',
+                    '-algo', 'N']
+        if self.fix_random_seed:
+            command.extend(['-srand', '10'])  
+        return command
+
+
+class LeftGreyWhiteClassification(AbstractGreyWhiteClassification):
+
+    def __init__(self):
+        super(LeftGreyWhiteClassification, self).__init__()
+        #outputs
+        self.left_grey_white = None
+
+    def get_command(self):
+        command = self._get_base_command()
+        command.extend(['-label', '2', '-output', self.left_grey_white])
+
+        # TODO referentials ?
+        return command
+
+
+class RightGreyWhiteClassification(AbstractGreyWhiteClassification):
+
+    def __init__(self):
+        super(RightGreyWhiteClassification, self).__init__()
+        #outputs
+        self.right_grey_white = None
+
+    def get_command(self):
+        command = self._get_base_command()
+        command.extend(['-label', '1', '-output', self.right_grey_white])
+
+        # TODO referentials ?
+        return command
 
