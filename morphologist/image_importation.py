@@ -18,7 +18,7 @@ class Importer:
         except (aims.aimssip.IOError, IOError) as e:
             raise ImportationError(e.message)
     
-        if cls._conversion_needed(input_filename, input_vol):
+        if cls._conversion_needed(input_filename, input_vol, output_filename):
             try:
                 if cls._remove_nan_needed(input_vol):
                     (temp_file, temp_input) = tempfile.mkstemp()
@@ -50,18 +50,29 @@ class Importer:
                 raise ImportationError(e.message)
         return return_value
     
-    @staticmethod
-    def _conversion_needed(input_filename, input_vol):
+    @classmethod
+    def _conversion_needed(cls, input_filename, input_vol, output_filename):
         convert = False
-        if not input_filename.endswith(".nii"):
+        
+        if (cls._file_extension(input_filename) != cls._file_extension(output_filename)):
             convert = True
         else:
             header = input_vol.header()
             data_type = header["data_type"]
             file_format = header["file_type"] 
-            convert = (file_format != "NIFTI1") or (data_type != "S16")
+            convert = ((file_format != "NIFTI1") and (file_format != 'GIS')) \
+                        or (data_type != "S16")
         return convert
       
+    @staticmethod
+    def _file_extension(filename):
+        extension = ""
+        name, ext = os.path.splitext(filename)
+        while ext:
+            extension = ext + extension
+            name, ext = os.path.splitext(name)
+        return extension
+        
     @staticmethod  
     def _resampling_needed(input_vol):
         header = input_vol.header()
