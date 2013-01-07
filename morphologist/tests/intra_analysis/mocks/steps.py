@@ -46,7 +46,8 @@ class MockHistogramAnalysis(HistogramAnalysis):
         command = ['python', '-m',
             'morphologist.tests.intra_analysis.mocks.steps',
             'histogram_analysis',
-            self.out_files[IntraAnalysis.HISTO_ANALYSIS], self.histo_analysis]
+            self.out_files[IntraAnalysis.HISTO_ANALYSIS], self.histo_analysis,
+            self.out_files[IntraAnalysis.HISTOGRAM], self.histogram]
         return command
 
 
@@ -162,9 +163,11 @@ def main():
         shutil.copy(out_files_corrected_mri, corrected_mri)
         shutil.copy(out_files_variance, variance)
     elif stepname == 'histogram_analysis':
-        out_files_histo_analysis, histo_analysis = args
+        out_files_histo_analysis, histo_analysis, \
+        out_files_histogram, histogram = args
         time.sleep(time_to_sleep)
         shutil.copy(out_files_histo_analysis, histo_analysis)
+        shutil.copy(out_files_histogram, histogram)
     elif stepname == 'brain_segmentation':
         out_files_brain_mask, brain_mask, \
             out_files_white_ridges, white_ridges = args
