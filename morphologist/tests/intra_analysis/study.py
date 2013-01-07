@@ -17,7 +17,7 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
     def __init__(self):
         super(IntraAnalysisStudyTestCase, self).__init__()
         self.studyname = "study with param template: " + self.parameter_template() 
-        self.outputdir = os.path.join('/neurospin', 'lnao', 'Panabase', 
+        self.outputdir = os.path.join('/neurospin', 'tmp',  
                                       'cati-dev-prod', 'morphologist', 
                                       'output_dirs', getpass.getuser(), 
                                       self.parameter_template())

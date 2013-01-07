@@ -10,7 +10,7 @@ class IntraAnalysisTestCase(AnalysisTestCase):
 
     def __init__(self):
         super(IntraAnalysisTestCase, self).__init__()
-        self.outputdir = os.path.join('/neurospin', 'lnao', 'Panabase', 
+        self.outputdir = os.path.join('/neurospin', 'tmp', 
                                       'cati-dev-prod', 'morphologist', 
                                       'output_dirs', getpass.getuser(), 
                                       IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
