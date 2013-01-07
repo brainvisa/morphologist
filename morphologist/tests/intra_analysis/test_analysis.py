@@ -1,7 +1,7 @@
 import unittest
 
 from morphologist.tests.test_analysis import TestAnalysis
-from morphologist.tests.intra_analysis import IntraAnalysisTestCase
+from morphologist.tests.intra_analysis.analysis import IntraAnalysisTestCase
 
 
 class TestIntraAnalysis(TestAnalysis):

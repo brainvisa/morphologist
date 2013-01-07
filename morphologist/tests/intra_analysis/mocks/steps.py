@@ -13,7 +13,7 @@ class MockSpatialNormalization(SpatialNormalization):
         
     def get_command(self):
         command = ['python', '-m',
-            'morphologist.tests.mocks.intra_analysis_steps',
+            'morphologist.tests.intra_analysis.mocks.steps',
             'normalization',
             self.out_files[IntraAnalysis.COMMISSURE_COORDINATES], self.commissure_coordinates,
             self.out_files[IntraAnalysis.TALAIRACH_TRANSFORMATION], self.talairach_transformation]
@@ -28,7 +28,7 @@ class MockBiasCorrection(BiasCorrection):
  
     def get_command(self):
         command = ['python', '-m',
-            'morphologist.tests.mocks.intra_analysis_steps', 'bias_correction',
+            'morphologist.tests.intra_analysis.mocks.steps', 'bias_correction',
             self.out_files[IntraAnalysis.HFILTERED], self.hfiltered,
             self.out_files[IntraAnalysis.WHITE_RIDGES], self.white_ridges, 
             self.out_files[IntraAnalysis.EDGES], self.edges, 
@@ -45,7 +45,7 @@ class MockHistogramAnalysis(HistogramAnalysis):
  
     def get_command(self):
         command = ['python', '-m',
-            'morphologist.tests.mocks.intra_analysis_steps',
+            'morphologist.tests.intra_analysis.mocks.steps',
             'histogram_analysis',
             self.out_files[IntraAnalysis.HISTO_ANALYSIS], self.histo_analysis]
         return command
@@ -59,7 +59,7 @@ class MockBrainSegmentation(BrainSegmentation):
  
     def get_command(self):
         command = ['python', '-m',
-            'morphologist.tests.mocks.intra_analysis_steps',
+            'morphologist.tests.intra_analysis.mocks.steps',
             'brain_segmentation',
             self.out_files[IntraAnalysis.BRAIN_MASK], self.brain_mask,
             self.out_files[IntraAnalysis.WHITE_RIDGES], self.white_ridges]
@@ -74,7 +74,7 @@ class MockSplitBrain(SplitBrain):
  
     def get_command(self):
         command = ['python', '-m',
-            'morphologist.tests.mocks.intra_analysis_steps', 'split_brain',
+            'morphologist.tests.intra_analysis.mocks.steps', 'split_brain',
             self.out_files[IntraAnalysis.SPLIT_MASK], self.split_mask]
         return command
 
@@ -87,7 +87,7 @@ class MockLeftGreyWhite(LeftGreyWhite):
  
     def get_command(self):
         command = ['python', '-m',
-            'morphologist.tests.mocks.intra_analysis_steps',
+            'morphologist.tests.intra_analysis.mocks.steps',
             'grey_white',
             self.out_files[IntraAnalysis.LEFT_GREY_WHITE],
             self.left_grey_white]
@@ -102,7 +102,7 @@ class MockRightGreyWhite(RightGreyWhite):
  
     def get_command(self):
         command = ['python', '-m',
-            'morphologist.tests.mocks.intra_analysis_steps',
+            'morphologist.tests.intra_analysis.mocks.steps',
             'grey_white',
             self.out_files[IntraAnalysis.RIGHT_GREY_WHITE],
             self.right_grey_white]

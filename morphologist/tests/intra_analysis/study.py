@@ -4,7 +4,7 @@ import getpass
 from morphologist.intra_analysis_study import IntraAnalysisStudy
 from morphologist.tests.study import AbstractStudyTestCase
 from morphologist.intra_analysis import IntraAnalysis
-from morphologist.tests.mocks.study import MockIntraAnalysisStudy
+from morphologist.tests.intra_analysis.mocks.study import MockIntraAnalysisStudy
 from morphologist.tests import reset_directory
 
 

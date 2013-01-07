@@ -1,7 +1,7 @@
 import unittest
 
 from morphologist.tests.test_runner import TestRunnerSomaWorkflow
-from morphologist.tests.intra_analysis_study import MockIntraAnalysisStudyTestCase, MockIntraAnalysisStudyTestCaseBvParamTemplate
+from morphologist.tests.intra_analysis.study import MockIntraAnalysisStudyTestCase, MockIntraAnalysisStudyTestCaseBvParamTemplate
 
 
 class TestRunnerMockIntraAnalysisSomaWorkflow(TestRunnerSomaWorkflow):

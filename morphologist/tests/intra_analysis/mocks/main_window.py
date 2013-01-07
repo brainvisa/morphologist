@@ -1,5 +1,5 @@
 from morphologist.gui.main_window import IntraAnalysisWindow
-from morphologist.tests.mocks.study import MockIntraAnalysisStudy 
+from morphologist.tests.intra_analysis.mocks.study import MockIntraAnalysisStudy 
 
 class MockIntraAnalysisWindow(IntraAnalysisWindow):
 

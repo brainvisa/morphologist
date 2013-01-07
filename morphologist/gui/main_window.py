@@ -158,5 +158,5 @@ def create_main_window(study_file=None, mock=False):
     if not mock:
         return IntraAnalysisWindow(study_file)
     else:
-        from morphologist.tests.mocks.main_window import MockIntraAnalysisWindow
+        from morphologist.tests.intra_analysis.mocks.main_window import MockIntraAnalysisWindow
         return MockIntraAnalysisWindow(study_file) 

@@ -1,7 +1,7 @@
 import unittest
 
-from morphologist.tests.test_intra_analysis_steps import TestIntraAnalysisSteps
-from morphologist.tests.test_runner_intra_analysis import TestRunnerIntraAnalysisSomaWorkflow
+from morphologist.tests.intra_analysis.test_steps import TestIntraAnalysisSteps
+from morphologist.tests.intra_analysis.test_runner import TestRunnerIntraAnalysisSomaWorkflow
 
 if __name__=='__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestIntraAnalysisSteps)

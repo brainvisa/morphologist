@@ -1,6 +1,6 @@
 import unittest
 
-from morphologist.tests.test_runner_mock_intra_analysis import TestRunnerMockIntraAnalysisSomaWorkflow
+from morphologist.tests.intra_analysis.test_runner_mock_analysis import TestRunnerMockIntraAnalysisSomaWorkflow
 
 if __name__=='__main__':
 

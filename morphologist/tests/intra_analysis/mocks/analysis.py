@@ -2,7 +2,7 @@ import shutil
 
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate
-from morphologist.tests.mocks.intra_analysis_steps import MockBiasCorrection, \
+from morphologist.tests.intra_analysis.mocks.steps import MockBiasCorrection, \
     MockHistogramAnalysis, MockBrainSegmentation, MockSplitBrain, \
     MockSpatialNormalization, MockLeftGreyWhite, \
     MockRightGreyWhite
