@@ -9,7 +9,7 @@ from soma.wip.application.api import Application
 from soma import aims
 
 
-class SPMNormalization:
+class SPMNormalization(object):
          
     @classmethod
     def run(cls, mri, commissure_coordinates, talairach_transformation):
