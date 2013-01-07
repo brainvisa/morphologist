@@ -68,7 +68,12 @@ class Analysis(object):
 class UnknownParameterTemplate(Exception):
     pass
 
+
 class MissingParameterValueError(Exception):
+    pass
+
+
+class ImportationError(Exception):
     pass
 
 

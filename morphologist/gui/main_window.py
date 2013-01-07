@@ -13,7 +13,7 @@ from .viewport_widget import IntraAnalysisViewportModel,\
                              IntraAnalysisViewportView
 from .subjects_widget import SubjectsTableModel, SubjectsTableView
 from .runner_widget import RunnerView
-from morphologist.image_importation import ImportationError
+from morphologist.analysis import ImportationError
 
 
 class IntraAnalysisWindow(QtGui.QMainWindow):

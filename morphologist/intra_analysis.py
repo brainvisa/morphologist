@@ -1,8 +1,6 @@
 import os
 
-from corist.image_importation import ImportationError
-
-from morphologist.analysis import Analysis, InputParameters, OutputParameters
+from morphologist.analysis import Analysis, InputParameters, OutputParameters, ImportationError
 from morphologist.intra_analysis_steps import ImageImportation, BiasCorrection, \
                                 HistogramAnalysis, BrainSegmentation, SplitBrain, \
                                 SpatialNormalization 
@@ -67,7 +65,8 @@ class IntraAnalysis(Analysis):
                                                         outputdir)
         cls.create_outputdirs(parameter_template, subjectname, outputdir)
         if import_step.run() != 0:
-            raise ImportationError()
+            raise ImportationError("The importation failed for the subject %s."
+                                   % subjectname)
         return import_step.output
 
 
