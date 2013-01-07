@@ -1,6 +1,6 @@
 import unittest
 
-from morphologist.tests.test_steps import TestIntraAnalysisSteps
+from morphologist.tests.test_intra_analysis_steps import TestIntraAnalysisSteps
 from morphologist.tests.test_runner_intra_analysis import TestRunnerIntraAnalysisSomaWorkflow
 
 if __name__=='__main__':
