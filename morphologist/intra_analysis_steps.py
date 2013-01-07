@@ -90,6 +90,7 @@ class HistogramAnalysis(Step):
         self.fix_random_seed = False
         # output
         self.histo_analysis = None 
+        self.histogram = None 
 
     def get_command(self):
         command = ['VipHistoAnalysis', 

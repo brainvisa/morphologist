@@ -7,6 +7,7 @@ from morphologist.intra_analysis_steps import ImageImportation, \
     LeftGreyWhite, RightGreyWhite, SpatialNormalization, Grey, WhiteSurface
 
 
+
 class IntraAnalysis(Analysis):
     # TODO: change string by a number
     BRAINVISA_PARAM_TEMPLATE = 'brainvisa'
@@ -25,6 +26,7 @@ class IntraAnalysis(Analysis):
     VARIANCE = 'variance'
     CORRECTED_MRI = 'corrected_mri'
     HISTO_ANALYSIS = 'histo_analysis'
+    HISTOGRAM = 'histogram'
     BRAIN_MASK = 'brain_mask'
     SPLIT_MASK = 'split_mask'
     LEFT_GREY_WHITE = 'left_grey_white'
@@ -107,6 +109,7 @@ class IntraAnalysis(Analysis):
         self._histogram_analysis.white_ridges = self._bias_correction.white_ridges
         
         self._histogram_analysis.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
+        self._histogram_analysis.histogram = self.outputs[IntraAnalysis.HISTOGRAM]
 
 
         self._brain_segmentation.corrected_mri = self._bias_correction.corrected_mri
@@ -183,6 +186,7 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
                                IntraAnalysis.VARIANCE,
                                IntraAnalysis.CORRECTED_MRI,
                                IntraAnalysis.HISTO_ANALYSIS,
+                               IntraAnalysis.HISTOGRAM,
                                IntraAnalysis.BRAIN_MASK,
                                IntraAnalysis.SPLIT_MASK,
                                IntraAnalysis.LEFT_GREY_WHITE,
@@ -260,6 +264,8 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                                             "variance_%s.nii" % subjectname)
         parameters[IntraAnalysis.HISTO_ANALYSIS] = os.path.join(default_analysis_path, 
                                             "nobias_%s.han" % subjectname)
+        parameters[IntraAnalysis.HISTOGRAM] = os.path.join(default_analysis_path, 
+                                            "nobias_%s.his" % subjectname)
         parameters[IntraAnalysis.BRAIN_MASK] = os.path.join(segmentation_path, 
                                             "brain_%s.nii" % subjectname)
         parameters[IntraAnalysis.SPLIT_MASK] = os.path.join(segmentation_path, 
@@ -334,6 +340,8 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                                             "variance_%s.nii" % subjectname)
         parameters[IntraAnalysis.HISTO_ANALYSIS] = os.path.join(subject_path, 
                                             "nobias_%s.han" % subjectname)
+        parameters[IntraAnalysis.HISTOGRAM] = os.path.join(subject_path, 
+                                            "nobias_%s.his" % subjectname)
         parameters[IntraAnalysis.BRAIN_MASK] = os.path.join(subject_path, 
                                             "brain_%s.nii" % subjectname)
         parameters[IntraAnalysis.SPLIT_MASK] = os.path.join(subject_path, 
