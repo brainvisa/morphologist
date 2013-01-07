@@ -5,14 +5,14 @@ from morphologist.analysis import InputParameters, OutputParameters, Importation
 
 
 class Subject(object):
-
+    
     def __init__(self, imgname, groupname=None):
         self.imgname = imgname
         self.groupname = groupname
 
     def __repr__(self):
-        s = '\t<imgname: ' + str(self.imgname) + ',\n'
-        s += '\tgroupname: ' + str(self.groupname) + ',\n'
+        s = '\timgname: ' + str(self.imgname) + ',\n'
+        s += '\tgroupname: ' + str(self.groupname) + '\n'
         return s
 
     def serialize(self):
@@ -29,9 +29,10 @@ class Subject(object):
 
 
 class Study(object):
+    DEFAULT_GROUP = "group1"
     default_outputdir = os.path.join(os.path.expanduser("~"),
                                 'morphologist/studies/study')
-
+    
     def __init__(self, name="undefined study",
         outputdir=default_outputdir, backup_filename=None):
         self.name = name
@@ -119,6 +120,8 @@ class Study(object):
     def add_subject_from_file(self, filename, subjectname=None, groupname=None):
         if subjectname is None:
             subjectname = self.define_subjectname_from_filename(filename)
+        if groupname is None:
+            groupname = self.DEFAULT_GROUP
         if subjectname in self.subjects:
             raise SubjectNameExistsError(subjectname)
         subject = Subject(filename, groupname)
@@ -135,7 +138,8 @@ class Study(object):
 
     def set_analysis_parameters(self, parameter_template):
         for subjectname, subject in self.subjects.iteritems():
-            self.analyses[subjectname].set_parameters(parameter_template, 
+            self.analyses[subjectname].set_parameters(parameter_template,
+                                                      subject.groupname, 
                                                       subjectname,
                                                       subject.imgname,
                                                       self.outputdir)
@@ -146,6 +150,7 @@ class Study(object):
             try:
                 new_imgname = self._analysis_cls().import_data(parameter_template, 
                                                                  subject.imgname,
+                                                                 subject.groupname,
                                                                  subjectname,
                                                                  self.outputdir)
                 subject.imgname = new_imgname

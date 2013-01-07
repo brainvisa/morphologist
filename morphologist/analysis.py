@@ -15,16 +15,16 @@ class Analysis(object):
 
 
     @classmethod
-    def import_data(cls, parameter_template, filename, subjectname, outputdir):
+    def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
         return filename
 
-    def set_parameters(self, parameter_template, name, image, outputdir):
+    def set_parameters(self, parameter_template, groupname, subjectname, image, outputdir):
         if parameter_template not in self.PARAMETER_TEMPLATES:
             raise UnknownParameterTemplate(parameter_template)
 
         param_template_instance = self.param_template_map[parameter_template]
-        self.input_params = param_template_instance.get_input_params(name, image)
-        self.output_params = param_template_instance.get_output_params(name, outputdir)
+        self.input_params = param_template_instance.get_input_params(image)
+        self.output_params = param_template_instance.get_output_params(groupname, subjectname, outputdir)
 
 
     def get_command_list(self):

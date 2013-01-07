@@ -39,7 +39,7 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
 
 class StudyEditorDialog(QtGui.QDialog):
     on_apply_cancel_buttons_clicked_map = {}
-    default_group = 'group 1'
+    default_group = IntraAnalysisStudy.DEFAULT_GROUP
     group_column_width = 100
     GROUPNAME_COL = 0
     SUBJECTNAME_COL = 1

@@ -42,8 +42,9 @@ class MockAnalysisTestCase(AnalysisTestCase):
         return self.analysis
 
     def set_analysis_parameters(self):
-        self.analysis.set_parameters(parameter_template='foo', 
-                                     name='foo',
+        self.analysis.set_parameters(parameter_template='foo',
+                                     groupname='foo',
+                                     subjectname='foo',
                                      image='foo',
                                      outputdir=self.outputdir)
 

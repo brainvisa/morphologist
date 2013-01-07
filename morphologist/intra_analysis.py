@@ -63,14 +63,15 @@ class IntraAnalysis(Analysis):
 
 
     @classmethod
-    def import_data(cls, parameter_template, filename, subjectname, outputdir):
+    def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
 
         import_step = ImageImportation()
         import_step.input = filename
-        import_step.output = cls.get_mri_path(parameter_template, 
-                                                        subjectname,
-                                                        outputdir)
-        cls.create_outputdirs(parameter_template, subjectname, outputdir)
+        import_step.output = cls.get_mri_path(parameter_template,
+                                              groupname, 
+                                              subjectname,
+                                              outputdir)
+        cls.create_outputdirs(parameter_template, groupname, subjectname, outputdir)
         if import_step.run() != 0:
             raise ImportationError("The importation failed for the subject %s."
                                    % subjectname)
@@ -137,15 +138,15 @@ class IntraAnalysis(Analysis):
 
 
     @classmethod
-    def get_mri_path(cls, parameter_template, subjectname, directory):
+    def get_mri_path(cls, parameter_template, groupname, subjectname, directory):
         param_template_instance = cls.param_template_map[parameter_template]
-        return param_template_instance.get_mri_path(subjectname, directory)
+        return param_template_instance.get_mri_path(groupname, subjectname, directory)
     
 
     @classmethod
-    def create_outputdirs(cls, parameter_template, subjectname, directory):
+    def create_outputdirs(cls, parameter_template, groupname, subjectname, directory):
         param_template_instance = cls.param_template_map[parameter_template]
-        param_template_instance.create_outputdirs(subjectname, directory)
+        param_template_instance.create_outputdirs(groupname, subjectname, directory)
 
 
 
@@ -175,11 +176,11 @@ class IntraAnalysisParameterTemplate(object):
         return OutputParameters(cls.output_file_param_names)
 
     @classmethod
-    def get_input_params(cls, subjectname, img_filename):
+    def get_input_params(cls, img_filename):
         raise Exception("IntraAnalysisParameterTemplate is an abstract class")
 
     @classmethod
-    def get_output_params(cls, subjectname, outputdir):
+    def get_output_params(cls, groupname, subjectname, outputdir):
         raise Exception("IntraAnalysisParameterTemplate is an abstract class")
 
 
@@ -192,12 +193,12 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
     SEGMENTATION = "segmentation"
     
     @classmethod
-    def get_mri_path(cls, subjectname, directory):
-        return os.path.join(directory, subjectname, cls.MODALITY, 
+    def get_mri_path(cls, groupname, subjectname, directory):
+        return os.path.join(directory, groupname, subjectname, cls.MODALITY, 
                             cls.ACQUISITION, subjectname + ".nii")
 
     @classmethod
-    def get_input_params(cls, subjectname, img_filename):
+    def get_input_params(cls, img_filename):
         #img_filename should be in path/subjectname/t1mri/default_acquisition
         # TODO raise an exception if it not the case ?
         parameters = InputParameters(cls.input_file_param_names,
@@ -211,10 +212,10 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         return parameters
 
     @classmethod
-    def get_output_params(cls, subjectname, outputdir):
+    def get_output_params(cls, groupname, subjectname, outputdir):
         # the directory hierarchy in the outputdir will be 
         # subjectname/t1mri/default_acquisition/default_analysis/segmentation
-        default_acquisition_path = os.path.join(outputdir, subjectname, 
+        default_acquisition_path = os.path.join(outputdir, groupname, subjectname, 
                                                    cls.MODALITY, cls.ACQUISITION)
         registration_path = os.path.join(default_acquisition_path, cls.REGISTRATION)
         default_analysis_path = os.path.join(default_acquisition_path, cls.ANALYSIS) 
@@ -250,8 +251,11 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         return parameters
 
     @classmethod
-    def create_outputdirs(cls, subjectname, outputdir):
-        subject_path = os.path.join(outputdir, subjectname)
+    def create_outputdirs(cls, groupname, subjectname, outputdir):
+        group_path = os.path.join(outputdir, groupname)
+        create_directory_if_missing(group_path)
+        
+        subject_path = os.path.join(group_path, subjectname)
         create_directory_if_missing(subject_path)
         
         t1mri_path = os.path.join(subject_path, cls.MODALITY)
@@ -273,11 +277,11 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
 class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
 
     @classmethod
-    def get_mri_path(cls, subjectname, directory):
-        return os.path.join(directory, subjectname, subjectname + ".nii")
+    def get_mri_path(cls, groupname, subjectname, directory):
+        return os.path.join(directory, groupname, subjectname, subjectname + ".nii")
 
     @classmethod
-    def get_input_params(cls, subjectname, img_filename):
+    def get_input_params(cls, img_filename):
         parameters = InputParameters(cls.input_file_param_names,
                                      cls.input_other_param_names)
 
@@ -289,41 +293,43 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         return parameters
 
     @classmethod
-    def get_output_params(cls, subjectname, outputdir):
+    def get_output_params(cls, groupname, subjectname, outputdir):
         parameters = OutputParameters(cls.output_file_param_names)
 
-        subject_dirname = os.path.join(outputdir, subjectname)
-        parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(subject_dirname, 
+        subject_path = os.path.join(outputdir, groupname, subjectname)
+        parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(subject_path, 
                                                          "%s.APC" %subjectname)
-        parameters[IntraAnalysis.TALAIRACH_TRANSFORMATION] = os.path.join(subject_dirname,
+        parameters[IntraAnalysis.TALAIRACH_TRANSFORMATION] = os.path.join(subject_path,
                                                             "RawT1-%s_TO_Talairach-ACPC.trm" 
                                                             % subjectname)
-        parameters[IntraAnalysis.HFILTERED] = os.path.join(subject_dirname, 
+        parameters[IntraAnalysis.HFILTERED] = os.path.join(subject_path, 
                                             "hfiltered_%s.nii" % subjectname)
-        parameters[IntraAnalysis.WHITE_RIDGES] = os.path.join(subject_dirname, 
+        parameters[IntraAnalysis.WHITE_RIDGES] = os.path.join(subject_path, 
                                             "whiteridge_%s.nii" % subjectname)
-        parameters[IntraAnalysis.EDGES] = os.path.join(subject_dirname, 
+        parameters[IntraAnalysis.EDGES] = os.path.join(subject_path, 
                                             "edges_%s.nii" % subjectname)
-        parameters[IntraAnalysis.CORRECTED_MRI] = os.path.join(subject_dirname, 
+        parameters[IntraAnalysis.CORRECTED_MRI] = os.path.join(subject_path, 
                                             "nobias_%s.nii" % subjectname)
-        parameters[IntraAnalysis.VARIANCE] = os.path.join(subject_dirname, 
+        parameters[IntraAnalysis.VARIANCE] = os.path.join(subject_path, 
                                             "variance_%s.nii" % subjectname)
-        parameters[IntraAnalysis.HISTO_ANALYSIS] = os.path.join(subject_dirname, 
+        parameters[IntraAnalysis.HISTO_ANALYSIS] = os.path.join(subject_path, 
                                             "nobias_%s.han" % subjectname)
-        parameters[IntraAnalysis.BRAIN_MASK] = os.path.join(subject_dirname, 
+        parameters[IntraAnalysis.BRAIN_MASK] = os.path.join(subject_path, 
                                             "brain_%s.nii" % subjectname)
-        parameters[IntraAnalysis.SPLIT_MASK] = os.path.join(subject_dirname, 
+        parameters[IntraAnalysis.SPLIT_MASK] = os.path.join(subject_path, 
                                             "voronoi_%s.nii" % subjectname)
         parameters[IntraAnalysis.LEFT_GREY_WHITE] = os.path.join(\
-                subject_dirname, "left_grey_white_%s.nii" % subjectname)
+                subject_path, "left_grey_white_%s.nii" % subjectname)
         parameters[IntraAnalysis.RIGHT_GREY_WHITE] = os.path.join(\
-                subject_dirname, "right_grey_white_%s.nii" % subjectname)
+                subject_path, "right_grey_white_%s.nii" % subjectname)
         return parameters
 
     @classmethod
-    def create_outputdirs(cls, subjectname, outputdir):
-        subject_dirname = os.path.join(outputdir, subjectname)
-        create_directory_if_missing(subject_dirname)    
+    def create_outputdirs(cls, groupname, subjectname, outputdir):
+        group_path = os.path.join(outputdir, groupname)
+        create_directory_if_missing(group_path)
+        subject_path = os.path.join(group_path, subjectname)
+        create_directory_if_missing(subject_path)    
 
 
 def create_directory_if_missing(dir_path):

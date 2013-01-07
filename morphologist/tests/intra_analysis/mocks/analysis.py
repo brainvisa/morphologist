@@ -16,8 +16,8 @@ class MockIntraAnalysis(IntraAnalysis):
 
 
     def _init_steps(self):
-        mock_out_files = BrainvisaIntraAnalysisParameterTemplate.get_output_params("hyperion",
-                        "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/bv_database/test")
+        mock_out_files = BrainvisaIntraAnalysisParameterTemplate.get_output_params("test", "hyperion",
+                        "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/bv_database")
         self._normalization = MockSpatialNormalization(mock_out_files)
         self._bias_correction = MockBiasCorrection(mock_out_files)
         self._histogram_analysis = MockHistogramAnalysis(mock_out_files)
@@ -34,11 +34,12 @@ class MockIntraAnalysis(IntraAnalysis):
                        self._right_grey_white]
 
     @classmethod
-    def import_data(cls, parameter_template, filename, subjectname, outputdir):
+    def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
         target_filename = cls.get_mri_path(parameter_template, 
-                                  subjectname,
-                                  outputdir)
-        cls.create_outputdirs(parameter_template, subjectname, outputdir)
+                                           groupname,
+                                           subjectname,
+                                           outputdir)
+        cls.create_outputdirs(parameter_template, groupname, subjectname, outputdir)
         source_filename = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/raw_irm/hyperion.nii"
         shutil.copy(source_filename, target_filename)
         return target_filename

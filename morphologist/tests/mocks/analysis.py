@@ -82,20 +82,20 @@ class MockAnalysis(Analysis):
         self._steps[2].output_2 = self.output_params.output_6
     
  
-    def set_parameters(self, parameter_template, name, image, outputdir):
-        self.input_params.input_1 = self._generate_in_file_path(name, "in1", outputdir)
-        self.input_params.input_2 = self._generate_in_file_path(name, "in2", outputdir)
+    def set_parameters(self, parameter_template, groupname, subjectname, image, outputdir):
+        self.input_params.input_1 = self._generate_in_file_path(subjectname, "in1", outputdir)
+        self.input_params.input_2 = self._generate_in_file_path(subjectname, "in2", outputdir)
         self.input_params.input_3 = 1.2 
         self.input_params.input_4 = 2.3 
-        self.input_params.input_5 = self._generate_in_file_path(name, "in5", outputdir)
+        self.input_params.input_5 = self._generate_in_file_path(subjectname, "in5", outputdir)
         self.input_params.input_6 = 4.6 
 
-        self.output_params.output_1 = self._generate_out_file_path(name, "out1", outputdir)
-        self.output_params.output_2 = self._generate_out_file_path(name, "out2", outputdir)
-        self.output_params.output_3 = self._generate_out_file_path(name, "out3", outputdir)
-        self.output_params.output_4 = self._generate_out_file_path(name, "out4", outputdir)
-        self.output_params.output_5 = self._generate_out_file_path(name, "out5", outputdir)
-        self.output_params.output_6 = self._generate_out_file_path(name, "out6", outputdir)
+        self.output_params.output_1 = self._generate_out_file_path(subjectname, "out1", outputdir)
+        self.output_params.output_2 = self._generate_out_file_path(subjectname, "out2", outputdir)
+        self.output_params.output_3 = self._generate_out_file_path(subjectname, "out3", outputdir)
+        self.output_params.output_4 = self._generate_out_file_path(subjectname, "out4", outputdir)
+        self.output_params.output_5 = self._generate_out_file_path(subjectname, "out5", outputdir)
+        self.output_params.output_6 = self._generate_out_file_path(subjectname, "out6", outputdir)
 
         
     def _generate_in_file_path(self, prefix, filename, outputdir):
