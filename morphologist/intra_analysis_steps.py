@@ -187,10 +187,10 @@ class SplitBrain(Step):
         return command
     
 
-class AbstractGreyWhiteClassification(Step):
+class AbstractGreyWhite(Step):
 
     def __init__(self):
-        super(AbstractGreyWhiteClassification, self).__init__()
+        super(AbstractGreyWhite, self).__init__()
 
         self.corrected_mri = None
         self.commissure_coordinates = None
@@ -200,7 +200,7 @@ class AbstractGreyWhiteClassification(Step):
         self.fix_random_seed = False
 
     def get_command(self):
-        raise Exception("AbstractGreyWhiteClassification is an abstract class.")
+        raise Exception("AbstractGreyWhite is an abstract class.")
 
     def _get_base_command(self):
         command  = ['VipGreyWhiteClassif',
@@ -216,10 +216,10 @@ class AbstractGreyWhiteClassification(Step):
         return command
 
 
-class LeftGreyWhiteClassification(AbstractGreyWhiteClassification):
+class LeftGreyWhite(AbstractGreyWhite):
 
     def __init__(self):
-        super(LeftGreyWhiteClassification, self).__init__()
+        super(LeftGreyWhite, self).__init__()
         #outputs
         self.left_grey_white = None
 
@@ -231,10 +231,10 @@ class LeftGreyWhiteClassification(AbstractGreyWhiteClassification):
         return command
 
 
-class RightGreyWhiteClassification(AbstractGreyWhiteClassification):
+class RightGreyWhite(AbstractGreyWhite):
 
     def __init__(self):
-        super(RightGreyWhiteClassification, self).__init__()
+        super(RightGreyWhite, self).__init__()
         #outputs
         self.right_grey_white = None
 

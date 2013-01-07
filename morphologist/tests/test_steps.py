@@ -10,7 +10,7 @@ from brainvisa.data import neuroHierarchy
 
 from morphologist.intra_analysis_steps import BiasCorrection, \
     ImageImportation, HistogramAnalysis, BrainSegmentation, SplitBrain, \
-    LeftGreyWhiteClassification, RightGreyWhiteClassification, \
+    LeftGreyWhite, RightGreyWhite, \
     SpatialNormalization
 
 
@@ -190,21 +190,21 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         self.assert_(split_brain.run() == 0)
         self.compare_results([self.split_mask])
 
-    def test_grey_white_classification(self):
-        left_grey_white_classification = LeftGreyWhiteClassification()
-        right_grey_white_classification = RightGreyWhiteClassification()
-        self._init_test_grey_white_classification(left_grey_white_classification)
-        self._init_test_grey_white_classification(right_grey_white_classification)
+    def test_grey_white(self):
+        left_grey_white = LeftGreyWhite()
+        right_grey_white = RightGreyWhite()
+        self._init_test_grey_white(left_grey_white)
+        self._init_test_grey_white(right_grey_white)
 
-        left_grey_white_classification.left_grey_white = os.path.join(self.output_directory, self.left_grey_white)
-        right_grey_white_classification.right_grey_white = os.path.join(self.output_directory, self.right_grey_white)
+        left_grey_white.left_grey_white = os.path.join(self.output_directory, self.left_grey_white)
+        right_grey_white.right_grey_white = os.path.join(self.output_directory, self.right_grey_white)
                 
-        self.assert_(left_grey_white_classification.run() == 0)
-        self.assert_(right_grey_white_classification.run() == 0)
+        self.assert_(left_grey_white.run() == 0)
+        self.assert_(right_grey_white.run() == 0)
         
         self.compare_results([self.left_grey_white, self.right_grey_white])
 
-    def _init_test_grey_white_classification(self, step):
+    def _init_test_grey_white(self, step):
         step.corrected_mri = os.path.join(self.base_directory, self.corrected_mri)
         step.commissure_coordinates = os.path.join(self.base_directory, self.commissure_coordinates)
         step.histo_analysis = os.path.join(self.base_directory, self.histo_analysis)

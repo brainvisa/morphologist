@@ -4,8 +4,8 @@ from morphologist.intra_analysis import IntraAnalysis
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate
 from morphologist.tests.mocks.intra_analysis_steps import MockBiasCorrection, \
     MockHistogramAnalysis, MockBrainSegmentation, MockSplitBrain, \
-    MockSpatialNormalization, MockLeftGreyWhiteClassification, \
-    MockRightGreyWhiteClassification
+    MockSpatialNormalization, MockLeftGreyWhite, \
+    MockRightGreyWhite
 
 
 class MockIntraAnalysis(IntraAnalysis):
@@ -23,15 +23,15 @@ class MockIntraAnalysis(IntraAnalysis):
         self._histogram_analysis = MockHistogramAnalysis(mock_out_files)
         self._brain_segmentation = MockBrainSegmentation(mock_out_files)
         self._split_brain = MockSplitBrain(mock_out_files)  
-        self._left_grey_white_classification = MockLeftGreyWhiteClassification(mock_out_files)  
-        self._right_grey_white_classification = MockRightGreyWhiteClassification(mock_out_files)  
+        self._left_grey_white = MockLeftGreyWhite(mock_out_files)  
+        self._right_grey_white = MockRightGreyWhite(mock_out_files)  
         self._steps = [self._normalization, 
                        self._bias_correction, 
                        self._histogram_analysis, 
                        self._brain_segmentation, 
                        self._split_brain,
-                       self._left_grey_white_classification,
-                       self._right_grey_white_classification]
+                       self._left_grey_white,
+                       self._right_grey_white]
 
     @classmethod
     def import_data(cls, parameter_template, filename, subjectname, outputdir):

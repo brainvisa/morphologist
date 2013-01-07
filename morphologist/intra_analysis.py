@@ -3,8 +3,7 @@ import os
 from morphologist.analysis import Analysis, InputParameters, OutputParameters, ImportationError
 from morphologist.intra_analysis_steps import ImageImportation, \
     BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
-    LeftGreyWhiteClassification, RightGreyWhiteClassification, \
-    SpatialNormalization
+    LeftGreyWhite, RightGreyWhite, SpatialNormalization
 
 
 class IntraAnalysis(Analysis):
@@ -52,15 +51,15 @@ class IntraAnalysis(Analysis):
         self._histogram_analysis = HistogramAnalysis()
         self._brain_segmentation = BrainSegmentation()
         self._split_brain = SplitBrain()
-        self._left_grey_white_classification = LeftGreyWhiteClassification()
-        self._right_grey_white_classification = RightGreyWhiteClassification()
+        self._left_grey_white = LeftGreyWhite()
+        self._right_grey_white = RightGreyWhite()
         self._steps = [self._normalization, 
                        self._bias_correction, 
                        self._histogram_analysis, 
                        self._brain_segmentation, 
                        self._split_brain,
-                       self._left_grey_white_classification,
-                       self._right_grey_white_classification]
+                       self._left_grey_white,
+                       self._right_grey_white]
 
 
     @classmethod
@@ -121,20 +120,20 @@ class IntraAnalysis(Analysis):
         self._split_brain.split_mask = self.output_params[IntraAnalysis.SPLIT_MASK]
 
 
-        self._left_grey_white_classification.corrected_mri = self._bias_correction.corrected_mri
-        self._left_grey_white_classification.commissure_coordinates = self._normalization.commissure_coordinates
-        self._left_grey_white_classification.histo_analysis = self._histogram_analysis.histo_analysis
-        self._left_grey_white_classification.split_mask = self._split_brain.split_mask
-        self._left_grey_white_classification.edges = self._bias_correction.edges
-        self._left_grey_white_classification.left_grey_white = self.output_params[IntraAnalysis.LEFT_GREY_WHITE]
+        self._left_grey_white.corrected_mri = self._bias_correction.corrected_mri
+        self._left_grey_white.commissure_coordinates = self._normalization.commissure_coordinates
+        self._left_grey_white.histo_analysis = self._histogram_analysis.histo_analysis
+        self._left_grey_white.split_mask = self._split_brain.split_mask
+        self._left_grey_white.edges = self._bias_correction.edges
+        self._left_grey_white.left_grey_white = self.output_params[IntraAnalysis.LEFT_GREY_WHITE]
 
 
-        self._right_grey_white_classification.corrected_mri = self._bias_correction.corrected_mri
-        self._right_grey_white_classification.commissure_coordinates = self._normalization.commissure_coordinates
-        self._right_grey_white_classification.histo_analysis = self._histogram_analysis.histo_analysis
-        self._right_grey_white_classification.split_mask = self._split_brain.split_mask
-        self._right_grey_white_classification.edges = self._bias_correction.edges
-        self._right_grey_white_classification.right_grey_white = self.output_params[IntraAnalysis.RIGHT_GREY_WHITE]
+        self._right_grey_white.corrected_mri = self._bias_correction.corrected_mri
+        self._right_grey_white.commissure_coordinates = self._normalization.commissure_coordinates
+        self._right_grey_white.histo_analysis = self._histogram_analysis.histo_analysis
+        self._right_grey_white.split_mask = self._split_brain.split_mask
+        self._right_grey_white.edges = self._bias_correction.edges
+        self._right_grey_white.right_grey_white = self.output_params[IntraAnalysis.RIGHT_GREY_WHITE]
 
 
     @classmethod
