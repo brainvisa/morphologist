@@ -87,9 +87,9 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
 
     @classmethod
     def _friend_create_backend_fusion_object(cls, avol1, avol2, mode, rate):
-        fusion = cls.anatomist.fusionObjects( [avol1, avol2], method='Fusion2DMethod' )
+        fusion = cls.anatomist.fusionObjects([avol1, avol2], method='Fusion2DMethod')
         cls.anatomist.execute("Fusion2DParams", object=fusion, mode=mode, rate=rate,
-                              reorder_objects = [ avol1, avol2 ] )
+                              reorder_objects=[avol1, avol2])
         return fusion
 
     @classmethod

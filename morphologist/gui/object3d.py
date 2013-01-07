@@ -29,15 +29,15 @@ class Object3D(AbstractObject3D):
         if not _enable_init:
             raise Exception("Default constructor not allowed, use from_* static methods instead.")
      
-    @staticmethod
-    def from_filename(filename):
-        object3d = Object3D(_enable_init=True)
+    @classmethod
+    def from_filename(cls, filename):
+        object3d = cls(_enable_init=True)
         object3d._friend_backend_object = object3d._backend._friend_load_backend_object(filename)
         return object3d
     
-    @staticmethod    
-    def from_fusion(object1, object2, mode, rate):
-        object3d = Object3D(_enable_init=True)
+    @classmethod    
+    def from_fusion(cls, object1, object2, mode, rate):
+        object3d = cls(_enable_init=True)
         object3d._friend_backend_object = object3d._backend._friend_create_backend_fusion_object(object1._friend_backend_object, 
                                                                                                  object2._friend_backend_object, 
                                                                                                  mode, rate)
