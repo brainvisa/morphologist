@@ -27,29 +27,27 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         cls.anatomist = ana.Anatomist("-b")
 
     @classmethod
-    def add_object_in_view(cls, object, view):
-        awindow = view._friend_backend_view
-        awindow.addObjects(object._friend_backend_object)
-   
-    @classmethod
-    def clear_view(cls, view):
-        awindow = view._friend_backend_view
-        awindow.removeObjects(awindow.objects)
+    def add_object_in_view(cls, backend_object, backend_view):
+        backend_view.addObjects(backend_object)
 
     @classmethod
-    def set_bgcolor_view(cls, view, rgba_color):
-        # rgba_color must a list of 4 floats between 0 and 1
+    def clear_view(cls, backend_view):
+        backend_view.removeObjects(backend_view.objects)
+        
+
+    @classmethod
+    def set_bgcolor_view(cls, backend_view, rgba_color):
         cls.anatomist.execute('WindowConfig',
-                windows=[view._friend_backend_view], cursor_visibility=0,
+                windows=[backend_view], cursor_visibility=0,
                 light={'background' : rgba_color})
     
+
     @classmethod
-    def set_position(cls, view, position):
-        awindow = view._friend_backend_view
-        awindow.moveLinkedCursor(position)
+    def set_position(cls, backend_view, position):
+        backend_view.moveLinkedCursor(position)
         
     @classmethod
-    def _friend_create_backend_view(cls, parent=None):
+    def create_backend_view(cls, parent=None):
         wintype = 'Axial'
         cmd = ana.cpp.CreateWindowCommand(wintype, -1, None,
                 [], 1, parent, 2, 0,
@@ -63,44 +61,44 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
 
 ### objects loader backend    
     @classmethod
-    def reload_object(cls, object):
-        object._friend_backend_object.reload()
+    def reload_object(cls, backend_object):
+        backend_object.reload()
     
     @classmethod
-    def _friend_shallow_copy_backend_object(cls, object):
-        return cls.anatomist.duplicateObject(object)
+    def shallow_copy_backend_object(cls, backend_object):
+        return cls.anatomist.duplicateObject(backend_object)
         
     @classmethod
-    def get_object_center_position(cls, object):
-        aobject = object._friend_backend_object
-        bb = aobject.boundingbox()
+    def get_object_center_position(cls, backend_object):
+        bb = backend_object.boundingbox()
         position = (bb[1] - bb[0]) / 2
         return position
+
     
     @classmethod
-    def set_object_color_map(cls, object, color_map_name):
-        object._friend_backend_object.setPalette(color_map_name)
+    def set_object_color_map(cls, backend_object, color_map_name):
+        backend_object.setPalette(color_map_name)
     
     @classmethod
-    def set_object_color(cls, object, rgba_color):
-        object._friend_backend_object.setMaterial(diffuse = rgba_color)
+    def set_object_color(cls, backend_object, rgba_color):
+        backend_object.setMaterial(diffuse=rgba_color)
 
     @classmethod
-    def _friend_create_backend_fusion_object(cls, avol1, avol2, mode, rate):
+    def create_backend_fusion_object(cls, avol1, avol2, mode, rate):
         fusion = cls.anatomist.fusionObjects([avol1, avol2], method='Fusion2DMethod')
         cls.anatomist.execute("Fusion2DParams", object=fusion, mode=mode, rate=rate,
                               reorder_objects=[avol1, avol2])
         return fusion
 
     @classmethod
-    def _friend_load_backend_object(cls, filename):
+    def load_backend_object(cls, filename):
         aobject = cls.anatomist.loadObject(filename)
         if aobject.getInternalRep() == None:
             raise LoadObjectError(str(filename))
         return aobject
     
     @classmethod
-    def _friend_create_backend_point_object(cls, coordinates):
+    def create_backend_point_object(cls, coordinates):
         cross_mesh = os.path.join(cls.anatomist.anatomistSharedPath(), 
                                   "cursors", "cross.mesh")
         point_object = cls.anatomist.loadObject(cross_mesh, forceReload=True)
