@@ -4,6 +4,7 @@ import unittest
 from morphologist.gui.qt_backend import QtGui, QtCore, QtTest
 from morphologist.gui.study_editor_widget import StudyEditorDialog
 from morphologist.intra_analysis_study import IntraAnalysisStudy
+from morphologist.intra_analysis import IntraAnalysis
 from morphologist.tests.gui import TestGui
 from morphologist.tests.intra_analysis.study import IntraAnalysisStudyTestCase
 
@@ -41,7 +42,25 @@ class TestStudyGui(TestGui):
         manage_subjects_window.ui.close()
 
         self._assert_study_is_conformed_to_test_case(study)
-
+    
+    @TestGui.start_qt_and_test
+    def test_default_parameter_template(self):
+        study = self.test_case.create_study()
+        parameter_template = IntraAnalysis.DEFAULT_PARAM_TEMPLATE
+        study_editor_widget = StudyEditorDialog(study, parameter_template)
+        study_editor_widget.close()
+        
+        self.assertEqual(study_editor_widget.parameter_template, parameter_template)
+    
+    @TestGui.start_qt_and_test        
+    def test_changing_parameter_template(self):
+        study = self.test_case.create_study()
+        parameter_template = IntraAnalysis.BRAINVISA_PARAM_TEMPLATE
+        study_editor_widget = StudyEditorDialog(study)
+        self._action_change_parameter_template(study_editor_widget, parameter_template)
+        
+        self.assertEqual(study_editor_widget.parameter_template, parameter_template)
+                
     @staticmethod
     def action_define_new_study_content(manage_subjects_window_ui,
                                         studyname, outputdir, filenames):
@@ -66,6 +85,13 @@ class TestStudyGui(TestGui):
             QtGui.qApp.sendPostedEvents(dialog, QtCore.QEvent.DeferredDelete)
 
         # apply
+        QtTest.QTest.mouseClick(ui.apply_button, QtCore.Qt.LeftButton)
+
+    @staticmethod
+    def _action_change_parameter_template(study_editor_widget, parameter_template):
+        ui = study_editor_widget.ui
+        item_index = ui.parameter_template_combobox.findText(parameter_template)
+        ui.parameter_template_combobox.setCurrentIndex(item_index)
         QtTest.QTest.mouseClick(ui.apply_button, QtCore.Qt.LeftButton)
 
     def _assert_study_is_conformed_to_test_case(self, study):

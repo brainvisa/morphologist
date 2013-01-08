@@ -4,6 +4,7 @@ from .qt_backend import QtGui, QtCore, loadUi
 from morphologist.gui import ui_directory
 from morphologist.study import Study
 from morphologist.formats import FormatsManager
+from morphologist.intra_analysis import IntraAnalysis
 
 
 class SelectSubjectsDialog(QtGui.QFileDialog):
@@ -73,9 +74,12 @@ class StudyEditorDialog(QtGui.QDialog):
         map[apply_role] = cls.on_apply_button_clicked
         map[reject_role] = cls.on_cancel_button_clicked
 
-    def __init__(self, study, parent=None):
+    def __init__(self, study, 
+                 parameter_template=IntraAnalysis.BRAINVISA_PARAM_TEMPLATE, 
+                 parent=None):
         super(StudyEditorDialog, self).__init__(parent)
         self.study = study
+        self.parameter_template = parameter_template
         self._lineEdit_lock = False
         uifile = os.path.join(ui_directory, 'study_editor_widget.ui')
         self.ui = loadUi(uifile, self)
@@ -88,7 +92,10 @@ class StudyEditorDialog(QtGui.QDialog):
         self.ui.studyname_lineEdit.setText(self.study.name)
         self.ui.outputdir_lineEdit.setText(self.study.outputdir)
         self.ui.backup_filename_lineEdit.setText(self.study.backup_filename)
-
+        for param_template_name in IntraAnalysis.PARAMETER_TEMPLATES:
+            self.ui.parameter_template_combobox.addItem(param_template_name)
+            if param_template_name == self.parameter_template:
+                self.ui.parameter_template_combobox.setCurrentIndex(self.ui.parameter_template_combobox.count()-1)
         self._init_ui()
 
     def _init_ui(self):
@@ -183,6 +190,7 @@ class StudyEditorDialog(QtGui.QDialog):
             self.study.backup_filename = backup_filename 
             for groupname, subjectname, filename in subjects_data:
                 self.study.add_subject_from_file(filename, subjectname, groupname)
+            self.parameter_template = self.ui.parameter_template_combobox.currentText()
             self.ui.accept()
 
     def on_cancel_button_clicked(self):

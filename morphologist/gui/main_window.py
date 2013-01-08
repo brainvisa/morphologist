@@ -74,17 +74,18 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
     @QtCore.Slot()
     def on_action_new_study_triggered(self):
         study = self._create_study()
-        self.study_editor_widget_window = StudyEditorDialog(study, self)
+        self.study_editor_widget_window = StudyEditorDialog(study, parent=self)
         self.study_editor_widget_window.ui.accepted.connect(self.on_study_dialog_accepted)
         self.study_editor_widget_window.ui.show()
         
     @QtCore.Slot()
     def on_study_dialog_accepted(self):
         study = self.study_editor_widget_window.study
+        parameter_template = self.study_editor_widget_window.parameter_template
         if study.has_subjects():
             QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
             try:
-                study.import_data(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
+                study.import_data(parameter_template)
             except ImportationError, e:
                 QtGui.QApplication.restoreOverrideCursor()
                 QtGui.QMessageBox.critical(self, 
@@ -98,7 +99,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
                                    QtGui.QMessageBox.Ok, self)
                 msgbox.show()
                 
-            study.set_analysis_parameters(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
+            study.set_analysis_parameters(parameter_template)
         self.set_study(study)
         self._try_save_to_backup_file()
         self.study_editor_widget_window = None
