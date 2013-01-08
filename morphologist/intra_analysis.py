@@ -4,7 +4,7 @@ from morphologist.analysis import Analysis, InputParameters, OutputParameters, \
                                   ImportationError, ParameterTemplate
 from morphologist.intra_analysis_steps import ImageImportation, \
     BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
-    LeftGreyWhite, RightGreyWhite, SpatialNormalization
+    LeftGreyWhite, RightGreyWhite, SpatialNormalization, Grey, WhiteSurface
 
 
 class IntraAnalysis(Analysis):
@@ -29,6 +29,10 @@ class IntraAnalysis(Analysis):
     SPLIT_MASK = 'split_mask'
     LEFT_GREY_WHITE = 'left_grey_white'
     RIGHT_GREY_WHITE = 'right_grey_white'
+    LEFT_GREY = 'left_grey'
+    RIGHT_GREY = 'right_grey'
+    LEFT_WHITE_SURFACE = 'left_white_surface'
+    RIGHT_WHITE_SURFACE = 'right_white_surface'
 
     # TODO: reimplement a standard python method ?
     @classmethod
@@ -54,13 +58,21 @@ class IntraAnalysis(Analysis):
         self._split_brain = SplitBrain()
         self._left_grey_white = LeftGreyWhite()
         self._right_grey_white = RightGreyWhite()
+        self._left_grey = Grey()
+        self._right_grey = Grey()
+        self._left_white_surface = WhiteSurface()
+        self._right_white_surface = WhiteSurface()
         self._steps = [self._normalization, 
                        self._bias_correction, 
                        self._histogram_analysis, 
                        self._brain_segmentation, 
                        self._split_brain,
                        self._left_grey_white,
-                       self._right_grey_white]
+                       self._right_grey_white,
+                       self._left_grey,
+                       self._right_grey,
+                       self._left_white_surface,
+                       self._right_white_surface]
 
 
     @classmethod
@@ -129,7 +141,6 @@ class IntraAnalysis(Analysis):
         self._left_grey_white.edges = self._bias_correction.edges
         self._left_grey_white.left_grey_white = self.output_params[IntraAnalysis.LEFT_GREY_WHITE]
 
-
         self._right_grey_white.corrected_mri = self._bias_correction.corrected_mri
         self._right_grey_white.commissure_coordinates = self._normalization.commissure_coordinates
         self._right_grey_white.histo_analysis = self._histogram_analysis.histo_analysis
@@ -137,6 +148,22 @@ class IntraAnalysis(Analysis):
         self._right_grey_white.edges = self._bias_correction.edges
         self._right_grey_white.right_grey_white = self.output_params[IntraAnalysis.RIGHT_GREY_WHITE]
 
+
+        self._left_grey.corrected_mri = self._bias_correction.corrected_mri
+        self._left_grey.histo_analysis = self._histogram_analysis.histo_analysis
+        self._left_grey.grey_white = self._left_grey_white.left_grey_white
+        self._left_grey.grey = self.output_params[IntraAnalysis.LEFT_GREY]
+
+        self._right_grey.corrected_mri = self._bias_correction.corrected_mri
+        self._right_grey.histo_analysis = self._histogram_analysis.histo_analysis
+        self._right_grey.grey_white = self._right_grey_white.right_grey_white
+        self._right_grey.grey = self.output_params[IntraAnalysis.RIGHT_GREY]
+
+        self._left_white_surface.grey = self._left_grey.grey
+        self._left_white_surface.white_surface = self.output_params[IntraAnalysis.LEFT_WHITE_SURFACE]
+
+        self._right_white_surface.grey = self._right_grey.grey
+        self._right_white_surface.white_surface = self.output_params[IntraAnalysis.RIGHT_WHITE_SURFACE]
 
     @classmethod
     def get_mri_path(cls, parameter_template, groupname, subjectname, directory):
@@ -165,7 +192,11 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
                                IntraAnalysis.BRAIN_MASK,
                                IntraAnalysis.SPLIT_MASK,
                                IntraAnalysis.LEFT_GREY_WHITE,
-                               IntraAnalysis.RIGHT_GREY_WHITE]
+                               IntraAnalysis.RIGHT_GREY_WHITE,
+                               IntraAnalysis.LEFT_GREY,
+                               IntraAnalysis.RIGHT_GREY,
+                               IntraAnalysis.LEFT_WHITE_SURFACE,
+                               IntraAnalysis.RIGHT_WHITE_SURFACE]
 
     @classmethod
     def get_empty_input_params(cls):
@@ -202,6 +233,7 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
     REGISTRATION = "registration"
     MODALITY = "t1mri"
     SEGMENTATION = "segmentation"
+    SURFACE = "mesh"
     
     @classmethod
     def get_mri_path(cls, groupname, subjectname, directory):
@@ -218,6 +250,7 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         default_analysis_path = os.path.join(default_acquisition_path, cls.ANALYSIS) 
           
         segmentation_path = os.path.join(default_analysis_path, cls.SEGMENTATION)
+        surface_path = os.path.join(segmentation_path, cls.SURFACE)
  
         parameters = OutputParameters(cls.output_file_param_names)
         parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(default_acquisition_path, 
@@ -245,6 +278,15 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                         segmentation_path, "Lgrey_white_%s.nii" % subjectname)
         parameters[IntraAnalysis.RIGHT_GREY_WHITE] = os.path.join(\
                         segmentation_path, "Rgrey_white_%s.nii" % subjectname)
+        parameters[IntraAnalysis.LEFT_GREY] = os.path.join(\
+                        segmentation_path, "Lcortex_%s.nii" % subjectname)
+        parameters[IntraAnalysis.RIGHT_GREY] = os.path.join(\
+                        segmentation_path, "Rcortex_%s.nii" % subjectname)
+        parameters[IntraAnalysis.LEFT_WHITE_SURFACE] = os.path.join(\
+                        surface_path, "%s_Lwhite.gii" % subjectname)
+        parameters[IntraAnalysis.RIGHT_WHITE_SURFACE] = os.path.join(\
+                        surface_path, "%s_Rwhite.gii" % subjectname)
+
         return parameters
 
     @classmethod
@@ -269,6 +311,9 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         
         segmentation_path = os.path.join(default_analysis_path, cls.SEGMENTATION)
         create_directory_if_missing(segmentation_path)
+        
+        surface_path = os.path.join(segmentation_path, cls.SURFACE)
+        create_directory_if_missing(surface_path)
 
            
 class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
@@ -307,6 +352,15 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                 subject_path, "left_grey_white_%s.nii" % subjectname)
         parameters[IntraAnalysis.RIGHT_GREY_WHITE] = os.path.join(\
                 subject_path, "right_grey_white_%s.nii" % subjectname)
+        parameters[IntraAnalysis.LEFT_GREY] = os.path.join(\
+                subject_path, "left_grey_%s.nii" % subjectname)
+        parameters[IntraAnalysis.RIGHT_GREY] = os.path.join(\
+                subject_path, "right_grey_%s.nii" % subjectname)
+        parameters[IntraAnalysis.LEFT_WHITE_SURFACE] = os.path.join(\
+                subject_path, "left_white_surface_%s.gii" % subjectname)
+        parameters[IntraAnalysis.RIGHT_WHITE_SURFACE] = os.path.join(\
+                subject_path, "right_white_surface_%s.gii" % subjectname)
+
         return parameters
 
     @classmethod

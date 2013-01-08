@@ -245,3 +245,44 @@ class RightGreyWhite(AbstractGreyWhite):
         # TODO referentials ?
         return command
 
+
+class Grey(Step):
+    def __init__(self):
+        super(Grey, self).__init__()
+        self.corrected_mri = None
+        self.histo_analysis = None
+        self.grey_white = None
+        self.fix_random_seed = False
+        #outputs
+        self.grey = None
+
+    def get_command(self):
+        command = ['VipHomotopic',
+                   '-input', self.corrected_mri,
+                   '-classif', self.grey_white,
+                   '-hana', self.histo_analysis,
+                   '-output', self.grey,
+                   '-mode', 'C', '-writeformat', 't']
+
+        if self.fix_random_seed:
+            command.extend(['-srand', '10'])  
+
+        # TODO referentials ?
+        return command
+
+
+class WhiteSurface(Step):
+
+    def __init__(self):
+        super(WhiteSurface, self).__init__()
+        self.grey = None
+        #outputs
+        self.white_surface = None
+        #self.fix_random_seed = False
+
+    def get_command(self):
+        command = ['python', '-m', 'morphologist.intra_analysis_white_surface', 
+                   self.grey, self.white_surface]
+        #if self.fix_random_seed:
+        #    command.extend(['-srand', '10'])  
+        return command
