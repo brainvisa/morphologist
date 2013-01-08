@@ -63,12 +63,15 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
     corrected_mri_changed = QtCore.pyqtSignal()
     brain_mask_changed = QtCore.pyqtSignal()
     split_mask_changed = QtCore.pyqtSignal()
+    grey_white_changed = QtCore.pyqtSignal()
     signal_map = { \
         IntraAnalysis.MRI : 'raw_mri_changed',
         IntraAnalysis.COMMISSURE_COORDINATES : 'commissure_coordinates_changed',
         IntraAnalysis.CORRECTED_MRI : 'corrected_mri_changed',
         IntraAnalysis.BRAIN_MASK : 'brain_mask_changed',
-        IntraAnalysis.SPLIT_MASK : 'split_mask_changed'
+        IntraAnalysis.SPLIT_MASK : 'split_mask_changed',
+        IntraAnalysis.LEFT_GREY_WHITE : 'grey_white_changed',
+        IntraAnalysis.RIGHT_GREY_WHITE : 'grey_white_changed'
     }
 
     def __init__(self, model):
@@ -80,7 +83,9 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
             IntraAnalysis.COMMISSURE_COORDINATES : None, 
             IntraAnalysis.CORRECTED_MRI : None,
             IntraAnalysis.BRAIN_MASK : None,
-            IntraAnalysis.SPLIT_MASK : None
+            IntraAnalysis.SPLIT_MASK : None,
+            IntraAnalysis.LEFT_GREY_WHITE : None,
+            IntraAnalysis.RIGHT_GREY_WHITE : None
         }
 
     @classmethod
@@ -97,12 +102,12 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     uifile = os.path.join(ui_directory, 'viewport_widget.ui')
     main_frame_style_sheet = '''
         #viewport_frame { background-color: white }
-        #view1_frame, #view2_frame, #view3_frame, #view4_frame {
+        #view1_frame, #view2_frame, #view3_frame, #view4_frame, #view5_frame {
             border: 3px solid black;
             border-radius: 20px;
             background: black;
-        }
-        #view1_label, #view2_label, #view3_label, #view4_label {
+       }
+        #view1_label, #view2_label, #view3_label, #view4_label, #view5_label {
             color: white;
         }
     '''
@@ -110,6 +115,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     BIAS_CORRECTED="bias_corrected"
     BRAIN_MASK="brain_mask"
     SPLIT_MASK="split_mask"
+    GREY_WHITE="grey_white"
     
     def __init__(self, parent=None):
         super(IntraAnalysisViewportView, self).__init__(parent)
@@ -132,6 +138,8 @@ class IntraAnalysisViewportView(QtGui.QWidget):
                                     self.update_brain_mask_view)
             self._viewport_model.split_mask_changed.disconnect(\
                                     self.update_split_mask_view)
+            self._viewport_model.grey_white_changed.disconnect(\
+                                    self.update_grey_white_view)
         self._viewport_model = model
         self._viewport_model.changed.connect(self.on_model_changed)
         self._viewport_model.raw_mri_changed.connect(self.update_raw_mri_acpc_view)
@@ -139,13 +147,15 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         self._viewport_model.corrected_mri_changed.connect(self.update_corrected_mri_view)
         self._viewport_model.brain_mask_changed.connect(self.update_brain_mask_view)
         self._viewport_model.split_mask_changed.connect(self.update_split_mask_view)
+        self._viewport_model.grey_white_changed.connect(self.update_grey_white_view)
 
     def _init_widget(self):
         self.ui.setStyleSheet(self.main_frame_style_sheet)
         for view_name, view_hook in [(self.RAW_MRI_ACPC, self.ui.view1_hook), 
                                      (self.BIAS_CORRECTED, self.ui.view2_hook),
                                      (self.BRAIN_MASK, self.ui.view3_hook), 
-                                     (self.SPLIT_MASK, self.ui.view4_hook)]:
+                                     (self.SPLIT_MASK, self.ui.view4_hook),
+                                     (self.GREY_WHITE, self.ui.view5_hook)]:
             QtGui.QVBoxLayout(view_hook)
             view = View(view_hook)
             view.set_bgcolor([0., 0., 0., 1.])
@@ -212,3 +222,27 @@ class IntraAnalysisViewportView(QtGui.QWidget):
                 view.add_object(fusion)
             else:
                 view.add_object(mask) 
+
+
+    @QtCore.Slot()
+    def update_grey_white_view(self):
+        view = self._views[self.GREY_WHITE]
+        view.clear()
+        left_mask = self._viewport_model.observed_objects[IntraAnalysis.LEFT_GREY_WHITE]
+        right_mask = self._viewport_model.observed_objects[IntraAnalysis.RIGHT_GREY_WHITE]
+        if left_mask is not None and right_mask is not None:
+            if left_mask is not None:
+                left_mask.set_color_map("RAINBOW")
+            if right_mask is not None:
+                right_mask.set_color_map("RAINBOW")
+            mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
+            if mri is not None:
+                mask_fusion = Object3D.from_fusion(left_mask, right_mask, mode='linear', rate=0.5)
+                fusion = Object3D.from_fusion(mri, mask_fusion, mode='linear', rate=0.7)
+                self._objects[self.GREY_WHITE] = fusion
+                view.add_object(fusion)
+            else:
+                # FIXME is it really usefull to display something in this weird case ? 
+                pass
+
+
