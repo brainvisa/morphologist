@@ -10,7 +10,10 @@ def option_parser():
     parser.add_option('-s', '--study', 
                       dest="study_file", metavar="STUDY_FILE", default=None, 
                       help="Opens the interface with the study loaded.")
-    parser.add_option('--mock', action="store_true", 
+    
+    group_debug = optparse.OptionGroup(parser, "Debug options")
+    parser.add_option_group(group_debug)
+    group_debug.add_option('--mock', action="store_true", 
                       dest='mock', default=False,
                       help="Test mode, runs mock intra analysis") 
    
