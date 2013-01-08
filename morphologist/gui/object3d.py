@@ -52,7 +52,7 @@ class Object3D(AbstractObject3D):
         return object_copy
         
     def get_center_position(self):
-        self._backend.get_object_center_position(self)
+        return self._backend.get_object_center_position(self)
 
 
 class PointObject(AbstractObject3D):
