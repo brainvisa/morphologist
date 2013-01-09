@@ -117,34 +117,23 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     SPLIT_MASK="split_mask"
     GREY_WHITE="grey_white"
     
-    def __init__(self, parent=None):
+    def __init__(self, model, parent=None):
         super(IntraAnalysisViewportView, self).__init__(parent)
         self.ui = loadUi(self.uifile, parent)
         self._views = {}
         self._objects = {}
-        self._viewport_model = None
         self._init_widget()
+        self._init_model(model)
 
-    def set_model(self, model):
-        if self._viewport_model is not None:
-            self._viewport_model.changed.disconnect(self.on_model_changed)
-            self._viewport_model.raw_mri_changed.disconnect(\
-                                    self.update_raw_mri_acpc_view)
-            self._viewport_model.commissure_coordinates_changed.disconnect(\
-                                        self.update_raw_mri_acpc_view)
-            self._viewport_model.corrected_mri_changed.disconnect(\
-                                    self.update_corrected_mri_view)
-            self._viewport_model.brain_mask_changed.disconnect(\
-                                    self.update_brain_mask_view)
-            self._viewport_model.split_mask_changed.disconnect(\
-                                    self.update_split_mask_view)
-            self._viewport_model.grey_white_changed.disconnect(\
-                                    self.update_grey_white_view)
+    def _init_model(self, model):
         self._viewport_model = model
         self._viewport_model.changed.connect(self.on_model_changed)
         self._viewport_model.raw_mri_changed.connect(self.update_raw_mri_acpc_view)
         self._viewport_model.commissure_coordinates_changed.connect(self.update_raw_mri_acpc_view)
-        self._viewport_model.corrected_mri_changed.connect(self.update_corrected_mri_view)
+        self._viewport_model.corrected_mri_changed.connect(self.update_corrected_mri_view) 
+        self._viewport_model.corrected_mri_changed.connect(self.update_brain_mask_view) 
+        self._viewport_model.corrected_mri_changed.connect(self.update_split_mask_view) 
+        self._viewport_model.corrected_mri_changed.connect(self.update_grey_white_view) 
         self._viewport_model.brain_mask_changed.connect(self.update_brain_mask_view)
         self._viewport_model.split_mask_changed.connect(self.update_split_mask_view)
         self._viewport_model.grey_white_changed.connect(self.update_grey_white_view)
@@ -231,18 +220,15 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         left_mask = self._viewport_model.observed_objects[IntraAnalysis.LEFT_GREY_WHITE]
         right_mask = self._viewport_model.observed_objects[IntraAnalysis.RIGHT_GREY_WHITE]
         if left_mask is not None and right_mask is not None:
-            if left_mask is not None:
-                left_mask.set_color_map("RAINBOW")
-            if right_mask is not None:
-                right_mask.set_color_map("RAINBOW")
+            left_mask.set_color_map("RAINBOW")
+            right_mask.set_color_map("RAINBOW")
+            mask_fusion = Object3D.from_fusion(left_mask, right_mask, mode='linear', rate=0.5)
             mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
             if mri is not None:
-                mask_fusion = Object3D.from_fusion(left_mask, right_mask, mode='linear', rate=0.5)
                 fusion = Object3D.from_fusion(mri, mask_fusion, mode='linear', rate=0.7)
                 self._objects[self.GREY_WHITE] = fusion
                 view.add_object(fusion)
             else:
-                # FIXME is it really usefull to display something in this weird case ? 
-                pass
-
+                self._objects[self.GREY_WHITE] = mask_fusion
+                view.add_object(mask_fusion)
 

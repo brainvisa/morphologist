@@ -28,19 +28,15 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self.study_model = LazyStudyModel()
         self.analysis_model = LazyAnalysisModel()
         self.study_tablemodel = SubjectsTableModel(self.study_model)
-        self.study_selection_model = QtGui.QItemSelectionModel(\
-                                            self.study_tablemodel)
-        self.viewport_model = IntraAnalysisViewportModel(
-                                                    self.analysis_model)
-
+        self.study_selection_model = QtGui.QItemSelectionModel(self.study_tablemodel)
         self.study_view = SubjectsTableView(self.ui.study_widget_dock)
         self.study_view.set_model(self.study_tablemodel)
         self.study_view.set_selection_model(self.study_selection_model)
         self.ui.study_widget_dock.setWidget(self.study_view)
 
-        self.viewport_view = IntraAnalysisViewportView(\
-                                        self.ui.viewport_frame)
-        self.viewport_view.set_model(self.viewport_model)
+        self.viewport_model = IntraAnalysisViewportModel(self.analysis_model)
+        self.viewport_view = IntraAnalysisViewportView(self.viewport_model,
+                                                       self.ui.viewport_frame)
 
         self.runner_view = RunnerView(self.ui.runner_frame)
         layout = QtGui.QVBoxLayout()
