@@ -2,7 +2,7 @@ import os
 
 from .qt_backend import QtGui, QtCore, loadUi
 from morphologist.gui import ui_directory
-from morphologist.intra_analysis_study import IntraAnalysisStudy
+from morphologist.study import Study
 from morphologist.formats import FormatsManager
 
 
@@ -39,7 +39,7 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
 
 class StudyEditorDialog(QtGui.QDialog):
     on_apply_cancel_buttons_clicked_map = {}
-    default_group = IntraAnalysisStudy.DEFAULT_GROUP
+    default_group = Study.DEFAULT_GROUP
     group_column_width = 100
     GROUPNAME_COL = 0
     SUBJECTNAME_COL = 1
@@ -110,7 +110,7 @@ class StudyEditorDialog(QtGui.QDialog):
         if self._lineEdit_lock is True: return
         if not self.ui.link_button.isChecked():
             outputdir = self.ui.outputdir_lineEdit.text()
-            backup_filename = IntraAnalysisStudy.default_backup_filename_from_outputdir(outputdir)
+            backup_filename = Study.default_backup_filename_from_outputdir(outputdir)
             self._lineEdit_lock = True
             self.ui.backup_filename_lineEdit.setText(backup_filename)
             self._lineEdit_lock = False 
@@ -122,7 +122,7 @@ class StudyEditorDialog(QtGui.QDialog):
         if self._lineEdit_lock is True: return
         if not self.ui.link_button.isChecked():
             backup_filename = self.ui.backup_filename_lineEdit.text()
-            outputdir = IntraAnalysisStudy.default_outputdir_from_backup_filename(backup_filename)
+            outputdir = Study.default_outputdir_from_backup_filename(backup_filename)
             self._lineEdit_lock = True
             self.ui.outputdir_lineEdit.setText(outputdir)
             self._lineEdit_lock = False 
@@ -251,7 +251,7 @@ class StudyEditorDialog(QtGui.QDialog):
         
         
     def _add_subject(self, filename, groupname):
-        subjectname = IntraAnalysisStudy.define_subjectname_from_filename(filename)
+        subjectname = Study.define_subjectname_from_filename(filename)
         new_row = self.ui.subjects_tablewidget.rowCount()
         self.ui.subjects_tablewidget.insertRow(new_row)
         if groupname is not None:
