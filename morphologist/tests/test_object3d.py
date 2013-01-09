@@ -6,7 +6,7 @@ from morphologist.gui.object3d import Object3D
 from morphologist.backends.mixins import LoadObjectError
  
 
-class TestDisplayBackend(unittest.TestCase):
+class TestObject3D(unittest.TestCase):
 
     def setUp(self):
         pass
