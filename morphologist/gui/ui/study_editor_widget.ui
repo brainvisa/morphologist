@@ -157,7 +157,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Files organization:</string>
+           <string>Output directory organization:</string>
           </property>
          </widget>
         </item>
