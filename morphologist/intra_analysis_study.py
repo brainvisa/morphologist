@@ -8,6 +8,6 @@ class IntraAnalysisStudy(Study):
         return IntraAnalysis()
 
     @staticmethod
-    def _analysis_cls():
+    def analysis_cls():
         return IntraAnalysis
 

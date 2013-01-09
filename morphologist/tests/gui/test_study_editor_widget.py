@@ -43,19 +43,10 @@ class TestStudyGui(TestGui):
 
         self._assert_study_is_conformed_to_test_case(study)
     
-    @TestGui.start_qt_and_test
-    def test_default_parameter_template(self):
-        study = self.test_case.create_study()
-        parameter_template = IntraAnalysis.DEFAULT_PARAM_TEMPLATE
-        study_editor_widget = StudyEditorDialog(study, parameter_template)
-        study_editor_widget.close()
-        
-        self.assertEqual(study_editor_widget.parameter_template, parameter_template)
-    
     @TestGui.start_qt_and_test        
     def test_changing_parameter_template(self):
         study = self.test_case.create_study()
-        parameter_template = IntraAnalysis.BRAINVISA_PARAM_TEMPLATE
+        parameter_template = IntraAnalysis.DEFAULT_PARAM_TEMPLATE
         study_editor_widget = StudyEditorDialog(study)
         self._action_change_parameter_template(study_editor_widget, parameter_template)
         

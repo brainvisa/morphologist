@@ -133,7 +133,7 @@ class Study(object):
         raise Exception("Study is an abstract class.")
   
     @staticmethod
-    def _analysis_cls():
+    def analysis_cls():
         raise Exception("Study is an abstract class")
 
     def set_analysis_parameters(self, parameter_template):
@@ -148,7 +148,7 @@ class Study(object):
         subjects_failed = []
         for subjectname, subject in self.subjects.iteritems():
             try:
-                new_imgname = self._analysis_cls().import_data(parameter_template, 
+                new_imgname = self.analysis_cls().import_data(parameter_template, 
                                                                  subject.imgname,
                                                                  subject.groupname,
                                                                  subjectname,

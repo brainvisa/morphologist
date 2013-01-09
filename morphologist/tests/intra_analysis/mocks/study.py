@@ -9,7 +9,7 @@ class MockIntraAnalysisStudy(Study):
         return MockIntraAnalysis()
 
     @staticmethod
-    def _analysis_cls():
+    def analysis_cls():
         return MockIntraAnalysis
 
 

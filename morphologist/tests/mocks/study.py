@@ -8,7 +8,7 @@ class MockStudy(Study):
         return MockAnalysis()
    
     @staticmethod
-    def _analysis_cls():
+    def analysis_cls():
         return MockAnalysis
 
 
