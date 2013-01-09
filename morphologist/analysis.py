@@ -18,12 +18,12 @@ class Analysis(object):
     def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
         return filename
 
-    def set_parameters(self, parameter_template, groupname, subjectname, image, outputdir):
+    def set_parameters(self, parameter_template, groupname, subjectname, input_filename, outputdir):
         if parameter_template not in self.PARAMETER_TEMPLATES:
             raise UnknownParameterTemplate(parameter_template)
 
         param_template_instance = self.param_template_map[parameter_template]
-        self.input_params = param_template_instance.get_input_params(image)
+        self.input_params = param_template_instance.get_input_params(input_filename)
         self.output_params = param_template_instance.get_output_params(groupname, subjectname, outputdir)
 
 
@@ -64,6 +64,29 @@ class Analysis(object):
             if os.path.isfile(out_file_path):
                 os.remove(out_file_path)
 
+
+class ParameterTemplate(object):
+    
+    @classmethod
+    def get_empty_input_params(cls):
+        raise Exception("ParameterTemplate is an abstract class")
+
+    @classmethod
+    def get_empty_output_params(cls):
+        raise Exception("ParameterTemplate is an abstract class")
+
+    @classmethod
+    def get_input_params(cls, input_filename):
+        raise Exception("ParameterTemplate is an abstract class")
+
+    @classmethod
+    def get_output_params(cls, groupname, subjectname, outputdir):
+        raise Exception("ParameterTemplate is an abstract class")
+    
+    @classmethod
+    def create_outputdirs(cls, groupname, subjectname, outputdir):
+        raise Exception("ParameterTemplate is an abstract class")
+    
 
 class UnknownParameterTemplate(Exception):
     pass

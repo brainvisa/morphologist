@@ -45,7 +45,7 @@ class MockAnalysisTestCase(AnalysisTestCase):
         self.analysis.set_parameters(parameter_template='foo',
                                      groupname='foo',
                                      subjectname='foo',
-                                     image='foo',
+                                     input_filename='foo',
                                      outputdir=self.outputdir)
 
     def delete_some_parameter_values(self):

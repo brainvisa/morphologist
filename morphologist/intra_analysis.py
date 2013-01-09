@@ -1,6 +1,7 @@
 import os
 
-from morphologist.analysis import Analysis, InputParameters, OutputParameters, ImportationError
+from morphologist.analysis import Analysis, InputParameters, OutputParameters, \
+                                  ImportationError, ParameterTemplate
 from morphologist.intra_analysis_steps import ImageImportation, \
     BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
     LeftGreyWhite, RightGreyWhite, SpatialNormalization
@@ -150,7 +151,7 @@ class IntraAnalysis(Analysis):
 
 
 
-class IntraAnalysisParameterTemplate(object):
+class IntraAnalysisParameterTemplate(ParameterTemplate):
     input_file_param_names = [IntraAnalysis.MRI]
     input_other_param_names = [IntraAnalysis.EROSION_SIZE, IntraAnalysis.BARY_FACTOR]
     output_file_param_names = [IntraAnalysis.COMMISSURE_COORDINATES,
@@ -174,14 +175,24 @@ class IntraAnalysisParameterTemplate(object):
     @classmethod
     def get_empty_output_params(cls):
         return OutputParameters(cls.output_file_param_names)
-
+    
     @classmethod
-    def get_input_params(cls, img_filename):
-        raise Exception("IntraAnalysisParameterTemplate is an abstract class")
-
+    def get_mri_path(cls, groupname, subjectname, directory):
+        raise Exception("IntraAnalysisParameterTemplate is an Abstract class.")
+    
     @classmethod
-    def get_output_params(cls, groupname, subjectname, outputdir):
-        raise Exception("IntraAnalysisParameterTemplate is an abstract class")
+    def get_input_params(cls, input_filename):
+        # input_filename should be in cls.get_mri_path()
+        # TODO raise an exception if it not the case ?
+        parameters = InputParameters(cls.input_file_param_names,
+                                     cls.input_other_param_names)
+
+        parameters[IntraAnalysis.MRI] = input_filename
+
+        parameters[IntraAnalysis.EROSION_SIZE] = 1.8
+        parameters[IntraAnalysis.BARY_FACTOR] = 0.6
+
+        return parameters
 
 
 class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
@@ -196,20 +207,6 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
     def get_mri_path(cls, groupname, subjectname, directory):
         return os.path.join(directory, groupname, subjectname, cls.MODALITY, 
                             cls.ACQUISITION, subjectname + ".nii")
-
-    @classmethod
-    def get_input_params(cls, img_filename):
-        #img_filename should be in path/subjectname/t1mri/default_acquisition
-        # TODO raise an exception if it not the case ?
-        parameters = InputParameters(cls.input_file_param_names,
-                                     cls.input_other_param_names)
-
-        parameters[IntraAnalysis.MRI] = img_filename
-
-        parameters[IntraAnalysis.EROSION_SIZE] = 1.8
-        parameters[IntraAnalysis.BARY_FACTOR] = 0.6
-
-        return parameters
 
     @classmethod
     def get_output_params(cls, groupname, subjectname, outputdir):
@@ -279,18 +276,6 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
     @classmethod
     def get_mri_path(cls, groupname, subjectname, directory):
         return os.path.join(directory, groupname, subjectname, subjectname + ".nii")
-
-    @classmethod
-    def get_input_params(cls, img_filename):
-        parameters = InputParameters(cls.input_file_param_names,
-                                     cls.input_other_param_names)
-
-        parameters[IntraAnalysis.MRI] = img_filename
-      
-        parameters[IntraAnalysis.EROSION_SIZE] = 1.8
-        parameters[IntraAnalysis.BARY_FACTOR] = 0.6
-
-        return parameters
 
     @classmethod
     def get_output_params(cls, groupname, subjectname, outputdir):

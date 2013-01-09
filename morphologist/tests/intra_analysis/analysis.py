@@ -34,7 +34,7 @@ class IntraAnalysisTestCase(AnalysisTestCase):
         self.analysis.set_parameters(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE,
                                      groupname=group,
                                      subjectname=subject,
-                                     image=image_path,
+                                     input_filename=image_path,
                                      outputdir=self.outputdir) 
         IntraAnalysis.create_outputdirs(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE,
                                         group,
