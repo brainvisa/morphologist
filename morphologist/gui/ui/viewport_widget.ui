@@ -34,6 +34,9 @@
         <property name="text">
          <string>1 ) Raw MRI + Anterior/posterior commissures</string>
         </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>
@@ -68,6 +71,9 @@
         </property>
         <property name="text">
          <string>2 ) Bias corrected MRI</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -104,6 +110,9 @@
         <property name="text">
          <string>3 ) Brain mask</string>
         </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>
@@ -139,6 +148,9 @@
         <property name="text">
          <string>4 ) Cerebellum and hemispheres </string>
         </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>
@@ -166,7 +178,10 @@
       <item>
        <widget class="QLabel" name="view5_label">
         <property name="text">
-         <string>5) Grey/White classification</string>
+         <string>5 ) Grey/White classification</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
