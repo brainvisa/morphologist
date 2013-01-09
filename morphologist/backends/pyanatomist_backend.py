@@ -84,10 +84,11 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         backend_object.setMaterial(diffuse=rgba_color)
 
     @classmethod
-    def create_backend_fusion_object(cls, avol1, avol2, mode, rate):
-        fusion = cls.anatomist.fusionObjects([avol1, avol2], method='Fusion2DMethod')
+    def create_backend_fusion_object(cls, backend_object1, backend_object2, mode, rate):
+        fusion = cls.anatomist.fusionObjects([backend_object1, backend_object2], 
+                                             method='Fusion2DMethod')
         cls.anatomist.execute("Fusion2DParams", object=fusion, mode=mode, rate=rate,
-                              reorder_objects=[avol1, avol2])
+                              reorder_objects=[backend_object1, backend_object2])
         return fusion
 
     @classmethod
