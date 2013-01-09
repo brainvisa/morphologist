@@ -1,7 +1,6 @@
-import os
 import hashlib
 
-from .qt_backend import QtCore, QtGui, loadUi 
+from .qt_backend import QtCore
 
 
 class LazyAnalysisModel(QtCore.QObject):
@@ -13,22 +12,21 @@ class LazyAnalysisModel(QtCore.QObject):
         self._analysis = None 
         self._output_parameters_file_sha = {}
 
-        self._update_interval = 2 # in seconds
+        self._update_interval = 4 # in seconds
         self._timer = QtCore.QTimer(self)
         self._timer.setInterval(self._update_interval * 1000)
         if analysis is not None:
             self.set_analysis(analysis)
-        self._timer.start()
+        self._timer.timeout.connect(self._check_output_files_changed)
 
     def set_analysis(self, analysis):
-        if self._analysis is None:
-            self._analysis = analysis 
-            self._timer.timeout.connect(self._check_output_files_changed)
-        else:
-            self._analysis = analysis 
-        self._output_parameters_file_modification_time = {}
+        self._timer.stop()
+        self._analysis = analysis
+        self._output_parameters_file_sha = {} 
         self.changed.emit()
         self._emit_input_files_changed()
+        self._timer.start()
+        QtCore.QTimer.singleShot(100, self._timer.timeout.emit) 
 
     def remove_analysis(self):
         if self._analysis is not None:
