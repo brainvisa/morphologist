@@ -148,7 +148,10 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self.study_model.set_study_and_runner(self.study, self.runner)
         if not self.study.has_subjects():
             self.analysis_model.remove_analysis()
-        self.setWindowTitle("Morphologist - %s" % self.study.name)
+        self.setWindowTitle(self._window_title())
+
+    def _window_title(self):
+        return "Morphologist - %s" % self.study.name
 
 
 def create_main_window(study_file=None, mock=False):
