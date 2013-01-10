@@ -241,7 +241,8 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         self.assert_(filecmp.cmp(file_ref, file_test), 
                      "The content of %s in test is different from the reference results." 
                      % os.path.basename(file_ref))
-        self._assert_same_minf_files(file_ref+".minf", file_test+".minf")
+        # the check of minf files is disabled for the moment because we do not use these files
+        #self._assert_same_minf_files(file_ref+".minf", file_test+".minf")
         
     def _assert_same_results(self, results):
         for parameter_name in results:
