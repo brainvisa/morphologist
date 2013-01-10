@@ -2,16 +2,18 @@ import os
 import unittest
 import shutil
 import filecmp 
+import optparse
+import sys
 
 import brainvisa.axon
 from brainvisa.processes import defaultContext
 from brainvisa.configuration import neuroConfig
 from brainvisa.data import neuroHierarchy
 
-from morphologist.intra_analysis_steps import BiasCorrection, \
-    ImageImportation, HistogramAnalysis, BrainSegmentation, SplitBrain, \
-    LeftGreyWhite, RightGreyWhite, \
-    SpatialNormalization
+from morphologist.intra_analysis_steps import ImageImportation, \
+    SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation,\
+    SplitBrain, LeftGreyWhite, RightGreyWhite, Grey, WhiteSurface
+    
 
 
 class TestIntraAnalysisSteps(unittest.TestCase):
@@ -52,8 +54,21 @@ class TestIntraAnalysisSteps(unittest.TestCase):
             os.mkdir(os.path.join(self.output_directory, "default_analysis", "segmentation"))
         self.brain_mask = os.path.join("default_analysis", "segmentation", "brain_%s.nii" % self.subject)
         self.split_mask = os.path.join("default_analysis", "segmentation", "voronoi_%s.nii" % self.subject)
-        self.left_grey_white = os.path.join("default_analysis", "segmentation", "Lgrey_white_%s.nii" % self.subject)
-        self.right_grey_white = os.path.join("default_analysis", "segmentation", "Rgrey_white_%s.nii" % self.subject)
+        self.left_grey_white = os.path.join("default_analysis", "segmentation", 
+                                            "Lgrey_white_%s.nii" % self.subject)
+        self.right_grey_white = os.path.join("default_analysis", "segmentation", 
+                                             "Rgrey_white_%s.nii" % self.subject)
+        self.left_grey = os.path.join("default_analysis", "segmentation", "Lcortex_%s.nii" % self.subject)
+        self.right_grey = os.path.join("default_analysis", "segmentation", "Rcortex_%s.nii" % self.subject)
+        
+        if not os.path.exists(os.path.join(self.output_directory, "default_analysis", 
+                                           "segmentation", "mesh")):
+            os.mkdir(os.path.join(self.output_directory, "default_analysis", 
+                                  "segmentation", "mesh"))
+        self.left_white_surface = os.path.join("default_analysis", "segmentation", 
+                                               "mesh", "%s_Lwhite.gii" % self.subject)
+        self.right_white_surface = os.path.join("default_analysis", "segmentation", 
+                                                "mesh", "%s_Rwhite.gii" % self.subject)
         
         if not os.path.exists(self.bv_db_directory):
             self._create_ref_database()
@@ -76,24 +91,26 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         pipeline=brainvisa.processes.getProcessInstance("morphologist")
         pipeline.perform_normalization = True
         nodes=pipeline.executionNode()
-        # select steps until Grey/White classification and fix the random seed
+        # select steps until Grey/White surface and fix the random seed
         nodes.child('TalairachTransformation').setSelected(0)
-        nodes.child('GreyWhiteClassification').setSelected(0)
-        nodes.child('GreyWhiteSurface').setSelected(0)
         nodes.child('HemispheresMesh').setSelected(0)
         nodes.child('HeadMesh').setSelected(0)
         nodes.child('CorticalFoldsGraph').setSelected(0)
+        
         nodes.child('BiasCorrection').fix_random_seed = True
         nodes.child('HistoAnalysis').fix_random_seed = True
         nodes.child('BrainSegmentation').fix_random_seed = True
         nodes.child('SplitBrain').fix_random_seed = True
         nodes.child('GreyWhiteClassification').fix_random_seed = True
-
+        nodes.child('GreyWhiteSurface').fix_random_seed = True
+        
         print "* Run Axon Morphologist to get reference results"
         print "* First until the bias correction to save the first white ridge result"
         nodes.child('HistoAnalysis').setSelected(0)
         nodes.child('BrainSegmentation').setSelected(0)
         nodes.child('SplitBrain').setSelected(0)
+        nodes.child('GreyWhiteClassification').setSelected(0)
+        nodes.child('GreyWhiteSurface').setSelected(0)
         defaultContext().runProcess(pipeline, t1mri)
         # Save the white ridge in another file because it will be re-written
         shutil.copy(os.path.join(self.base_directory, self.white_ridges), 
@@ -101,13 +118,14 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         shutil.copy(os.path.join(self.base_directory, self.white_ridges+".minf"), 
                     os.path.join(self.base_directory, self.white_ridges_bc+".minf"))
         
-        print "* Then until Grey/White classification"
+        print "* Then until Grey/White surface"
         nodes.child('PrepareSubject').setSelected(0)
         nodes.child('BiasCorrection').setSelected(0)
         nodes.child('HistoAnalysis').setSelected(1)
         nodes.child('BrainSegmentation').setSelected(1)
         nodes.child('SplitBrain').setSelected(1)
         nodes.child('GreyWhiteClassification').setSelected(1)
+        nodes.child('GreyWhiteSurface').setSelected(1)
         defaultContext().runProcess(pipeline, t1mri)
         
         brainvisa.axon.cleanup()
@@ -211,7 +229,42 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         step.split_mask = os.path.join(self.base_directory, self.split_mask)
         step.edges = os.path.join(self.base_directory, self.edges)
         step.fix_random_seed = True
+       
+    def test_grey(self):
+        left_grey = Grey()
+        right_grey = Grey()
+        self._init_test_grey(left_grey)
+        self._init_test_grey(right_grey)
+
+        left_grey.grey_white = os.path.join(self.base_directory, self.left_grey_white)
+        left_grey.grey = os.path.join(self.output_directory, self.left_grey)
+        right_grey.grey_white = os.path.join(self.base_directory, self.right_grey_white)
+        right_grey.grey = os.path.join(self.output_directory, self.right_grey)
+                
+        self.assert_(left_grey.run() == 0)
+        self.assert_(right_grey.run() == 0)
         
+        self.compare_results([self.left_grey, self.right_grey])
+       
+    def _init_test_grey(self, step):
+        step.corrected_mri = os.path.join(self.base_directory, self.corrected_mri)
+        step.histo_analysis = os.path.join(self.base_directory, self.histo_analysis)
+        step.fix_random_seed = True
+        
+    def test_white_surface(self):
+        left_white_surface = WhiteSurface()
+        right_white_surface = WhiteSurface()
+        
+        left_white_surface.grey = os.path.join(self.base_directory, self.left_grey)
+        right_white_surface.grey = os.path.join(self.base_directory, self.right_grey)
+        left_white_surface.white_mesh = os.path.join(self.output_directory, self.left_white_surface)
+        right_white_surface.white_mesh = os.path.join(self.output_directory, self.right_white_surface)
+        
+        self.assert_(left_white_surface.run() == 0)
+        self.assert_(right_white_surface.run() == 0)
+        
+        self.compare_results([self.left_white_surface, self.right_white_surface])
+  
     def compare_results(self, results):
         for f in results:
             f_ref = os.path.join(self.base_directory, f)
@@ -247,5 +300,14 @@ for the attribute %s. The reference value is %s, whereas the test value is %s."
 
 
 if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestIntraAnalysisSteps)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    parser = optparse.OptionParser()
+    parser.add_option('-t', '--test', 
+                      dest="test", default=None, 
+                      help="Execute only this test function.")
+    options, _ = parser.parse_args(sys.argv)
+    if options.test is None:
+        suite = unittest.TestLoader().loadTestsFromTestCase(TestIntraAnalysisSteps)
+        unittest.TextTestRunner(verbosity=2).run(suite)
+    else:
+        test_suite = unittest.TestSuite([TestIntraAnalysisSteps(options.test)])
+        unittest.TextTestRunner(verbosity=2).run(test_suite)
