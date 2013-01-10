@@ -282,6 +282,13 @@
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="add_subjects_from_database">
+             <property name="text">
+              <string>from a database</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="add_subjects_from_a_directory_button">
              <property name="enabled">
               <bool>false</bool>
