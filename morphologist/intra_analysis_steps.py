@@ -278,11 +278,8 @@ class WhiteSurface(Step):
         self.grey = None
         #outputs
         self.white_surface = None
-        #self.fix_random_seed = False
 
     def get_command(self):
         command = ['python', '-m', 'morphologist.intra_analysis_white_surface', 
                    self.grey, self.white_surface]
-        #if self.fix_random_seed:
-        #    command.extend(['-srand', '10'])  
         return command
