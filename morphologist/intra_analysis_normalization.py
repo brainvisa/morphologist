@@ -23,12 +23,14 @@ class SPMNormalization(object):
         mri_name = os.path.basename(mri)
         mri_name = mri_name.split(".")[0]
         mri_path = os.path.dirname(mri)
+        talairach_mni_transform = os.path.join(transformations_directory, 
+                                               "RawT1_%s_TO_Talairach-MNI.trm" % mri_name)
+        spm_transformation = os.path.join(mri_path, "%s_sn.mat" % mri_name)
+        normalized_mri =  os.path.join(mri_path, "normalized_SPM_%s.nii" 
+                                       % mri_name)
+        mri_referential = os.path.join(transformations_directory, 
+                                           "RawT1-%s.referential" % mri_name)
         try:
-            talairach_mni_transform = os.path.join(transformations_directory, 
-                                                   "RawT1_%s_TO_Talairach-MNI.trm" % mri_name)
-            spm_transformation = os.path.join(mri_path, "%s_sn.mat" % mri_name)
-            normalized_mri =  os.path.join(mri_path, "normalized_SPM_%s.nii" 
-                                           % mri_name)
             configuration = Application().configuration
             spm_path = configuration.SPM.spm8_standalone_path
             if not spm_path:
@@ -43,8 +45,6 @@ class SPMNormalization(object):
                                         spm_transformation, normalized_mri, 
                                         spm_t1_template)
             
-            mri_referential = os.path.join(transformations_directory, 
-                                           "RawT1-%s.referential" % mri_name)
             mri_referential_file = open(mri_referential, "w")
             mri_referential_file.write("attributes = {'uuid' : '%s'}" 
                                        % cls._get_referential_uuid(mri))
