@@ -12,17 +12,18 @@ class WhiteSurface(object):
     def run(grey, white_surface):
         ext = os.path.splitext(grey)[1]
         white = tempfile.NamedTemporaryFile(suffix=ext)
-        command_list = ['VipSingleThreshold', '-i', grey, '-o', white.name,
+        command_list = ['VipSingleThreshold', '-i', "'%s'" % grey, 
+                        '-o', "'%s'" % white.name,
                         '-t', '0', '-c', 'b', '-m', 'ne', '-w', 't']
         WhiteSurface._run_command_list(command_list)
 
-        command_list = ['AimsMeshBrain', '-i', white.name,
-                        '-o', white_surface, '--internalinterface']
+        command_list = ['AimsMeshBrain', '-i', "'%s'" % white.name,
+                        '-o', "'%s'" % white_surface, '--internalinterface']
         WhiteSurface._run_command_list(command_list)
         white.close()
 
-        command_list = ['meshCleaner', '-i', white_surface,
-                       '-o', white_surface, '-maxCurv', '0.5']
+        command_list = ['meshCleaner', '-i', "'%s'" % white_surface,
+                       '-o', "'%s'" % white_surface, '-maxCurv', '0.5']
         WhiteSurface._run_command_list(command_list)
 
     @staticmethod
