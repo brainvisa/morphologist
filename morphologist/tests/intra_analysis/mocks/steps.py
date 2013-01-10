@@ -1,7 +1,6 @@
-from morphologist.intra_analysis_steps import BiasCorrection, \
-        HistogramAnalysis, BrainSegmentation, SplitBrain, \
-        LeftGreyWhite, RightGreyWhite, \
-        SpatialNormalization
+from morphologist.intra_analysis_steps import SpatialNormalization, \
+        BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
+        LeftGreyWhite, RightGreyWhite, Grey, WhiteSurface
 from morphologist.intra_analysis import IntraAnalysis
 
 
@@ -108,7 +107,35 @@ class MockRightGreyWhite(RightGreyWhite):
             self.right_grey_white]
         return command
 
+class MockGrey(Grey):
+    
+    def __init__(self, ref_grey):
+        super(MockGrey, self).__init__()
+        self.ref_grey = ref_grey
+        
+    def get_command(self):
+        command = ['python', '-m', 
+                   'morphologist.tests.intra_analysis.mocks.steps',
+                   'grey',
+                   self.ref_grey,
+                   self.grey]
+        return command
+    
+class MockWhiteSurface(WhiteSurface):
+    
+    def __init__(self, ref_white_surface):
+        super(MockWhiteSurface, self).__init__()
+        self.ref_white_surface = ref_white_surface
+        
+    def get_command(self):
+        command = ['python', '-m', 
+                   'morphologist.tests.intra_analysis.mocks.steps',
+                   'white_surface',
+                   self.ref_white_surface,
+                   self.white_surface]
+        return command
 
+   
 def main():
     import time, sys, shutil
 
@@ -151,8 +178,15 @@ def main():
     elif stepname == 'grey_white':
         out_files_grey_white, grey_white = args
         time.sleep(time_to_sleep)
-        shutil.copy(out_files_grey_white, \
-                    grey_white)
+        shutil.copy(out_files_grey_white, grey_white)
+    elif stepname == 'grey':
+        out_files_grey, grey = args
+        time.sleep(time_to_sleep)
+        shutil.copy(out_files_grey, grey)
+    elif stepname == 'white_surface':
+        out_files_white_surface, white_surface = args
+        time.sleep(time_to_sleep)
+        shutil.copy(out_files_white_surface, white_surface)
     
 
 if __name__ == '__main__' : main()

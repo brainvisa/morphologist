@@ -2,10 +2,9 @@ import shutil
 
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate
-from morphologist.tests.intra_analysis.mocks.steps import MockBiasCorrection, \
-    MockHistogramAnalysis, MockBrainSegmentation, MockSplitBrain, \
-    MockSpatialNormalization, MockLeftGreyWhite, \
-    MockRightGreyWhite
+from morphologist.tests.intra_analysis.mocks.steps import MockSpatialNormalization, \
+    MockBiasCorrection, MockHistogramAnalysis, MockBrainSegmentation, MockSplitBrain, \
+    MockLeftGreyWhite, MockRightGreyWhite, MockGrey, MockWhiteSurface
 
 
 class MockIntraAnalysis(IntraAnalysis):
@@ -24,14 +23,22 @@ class MockIntraAnalysis(IntraAnalysis):
         self._brain_segmentation = MockBrainSegmentation(mock_out_files)
         self._split_brain = MockSplitBrain(mock_out_files)  
         self._left_grey_white = MockLeftGreyWhite(mock_out_files)  
-        self._right_grey_white = MockRightGreyWhite(mock_out_files)  
+        self._right_grey_white = MockRightGreyWhite(mock_out_files)
+        self._left_grey = MockGrey(mock_out_files[IntraAnalysis.LEFT_GREY])
+        self._right_grey = MockGrey(mock_out_files[IntraAnalysis.RIGHT_GREY])
+        self._left_white_surface = MockWhiteSurface(mock_out_files[IntraAnalysis.LEFT_WHITE_SURFACE])
+        self._right_white_surface = MockWhiteSurface(mock_out_files[IntraAnalysis.RIGHT_WHITE_SURFACE])
         self._steps = [self._normalization, 
                        self._bias_correction, 
                        self._histogram_analysis, 
                        self._brain_segmentation, 
                        self._split_brain,
                        self._left_grey_white,
-                       self._right_grey_white]
+                       self._right_grey_white, 
+                       self._left_grey, 
+                       self._right_grey,
+                       self._left_white_surface, 
+                       self._right_white_surface]
 
     @classmethod
     def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
