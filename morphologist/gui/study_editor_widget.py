@@ -1,40 +1,12 @@
 import os
+import urllib
+import zipfile
+import shutil
 
 from .qt_backend import QtGui, QtCore, loadUi
 from morphologist.gui import ui_directory
 from morphologist.study import Study, Subject
 from morphologist.formats import FormatsManager
-
-
-class SelectSubjectsDialog(QtGui.QFileDialog):
-    
-    def __init__(self, parent):
-        caption = "Select one or more subjects to be include into your study"
-        files_filter = self._define_selectable_files_regexp()
-        default_directory = ""
-        super(SelectSubjectsDialog, self).__init__(parent, caption,
-                                    default_directory, files_filter)
-        self.setObjectName("SelectSubjectsDialog")
-        self.setWindowModality(QtCore.Qt.ApplicationModal)
-        self.setFileMode(QtGui.QFileDialog.ExistingFiles)
-
-    def _define_selectable_files_regexp(self):
-        formats_manager = FormatsManager.formats_manager()
-        formats = formats_manager.formats()
-
-        volume_filters = []
-        all_volumes_regexp = []
-        for format in formats:
-            extensions = format.extensions
-            extensions_regexp = (' '.join([('*.' + ext) for ext in extensions]))
-            if extensions_regexp == '': continue
-            filter = '%s (%s)' % (format.name, extensions_regexp)
-            volume_filters.append(filter)
-            all_volumes_regexp.append(extensions_regexp)
-        all_volumes_filter = '3D Volumes (%s)' % (' '.join(all_volumes_regexp))
-        all_filters = [all_volumes_filter] + volume_filters +['All files (*.*)']
-        final_filter = ';;'.join(all_filters)
-        return final_filter
 
 
 class StudyEditorDialog(QtGui.QDialog):
@@ -94,6 +66,8 @@ class StudyEditorDialog(QtGui.QDialog):
             if param_template_name == self.parameter_template:
                 self.ui.parameter_template_combobox.setCurrentIndex(self.ui.parameter_template_combobox.count()-1)
         self._init_ui()
+
+        self._subject_from_db_dialog = SubjectsFromDatabaseDialog(self.ui)
 
     def _init_ui(self):
         tablewidget = self.ui.subjects_tablewidget
@@ -198,6 +172,20 @@ class StudyEditorDialog(QtGui.QDialog):
         for row in rows_to_remove:
             self.ui.subjects_tablewidget.removeRow(row)
     
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_add_subjects_from_database_button_clicked(self):
+        self._subject_from_db_dialog.set_group(self.default_group)
+        self._subject_from_db_dialog.set_server_url("http://neurospin-cubicweb.intra.cea.fr:8080")
+        self._subject_from_db_dialog.set_rql_request('''Any X WHERE X is Scan, X type "raw T1", X concerns A, A age 25''')
+        self._subject_from_db_dialog.exec_()
+        filenames = self._subject_from_db_dialog.get_filenames()
+        group = self._subject_from_db_dialog.get_group() 
+        print "filenames " + repr(filenames)
+        print "group " + repr(group)
+        self.add_subjects(self._subject_from_db_dialog.get_filenames(), 
+                          self._subject_from_db_dialog.get_group())
+
     # this slot is automagically connected
     @QtCore.Slot("QAbstractButton *")
     def on_apply_cancel_buttons_clicked(self, button):
@@ -313,5 +301,99 @@ class StudyEditorDialog(QtGui.QDialog):
         subjectname = tablewidget.item(subject_index, self.SUBJECTNAME_COL).text()
         filename = tablewidget.item(subject_index, self.FILENAME_COL).text()
         return Subject(groupname, subjectname, filename)
+
+
+class SelectSubjectsDialog(QtGui.QFileDialog):
+    
+    def __init__(self, parent):
+        caption = "Select one or more subjects to be include into your study"
+        files_filter = self._define_selectable_files_regexp()
+        default_directory = ""
+        super(SelectSubjectsDialog, self).__init__(parent, caption,
+                                    default_directory, files_filter)
+        self.setObjectName("SelectSubjectsDialog")
+        self.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.setFileMode(QtGui.QFileDialog.ExistingFiles)
+
+    def _define_selectable_files_regexp(self):
+        formats_manager = FormatsManager.formats_manager()
+        formats = formats_manager.formats()
+
+        volume_filters = []
+        all_volumes_regexp = []
+        for format in formats:
+            extensions = format.extensions
+            extensions_regexp = (' '.join([('*.' + ext) for ext in extensions]))
+            if extensions_regexp == '': continue
+            filter = '%s (%s)' % (format.name, extensions_regexp)
+            volume_filters.append(filter)
+            all_volumes_regexp.append(extensions_regexp)
+        all_volumes_filter = '3D Volumes (%s)' % (' '.join(all_volumes_regexp))
+        all_filters = [all_volumes_filter] + volume_filters +['All files (*.*)']
+        final_filter = ';;'.join(all_filters)
+        return final_filter
+
+
+class SubjectsFromDatabaseDialog(QtGui.QDialog):
+
+    def __init__(self, parent):
+        super(SubjectsFromDatabaseDialog, self).__init__(parent)
+
+        uifile = os.path.join(ui_directory, 'rql_subjects_widget.ui')
+        self.ui = loadUi(uifile, self)
+       
+        self._filenames = []
+        self._groupname = None
+   
+        tmp_directory = "/tmp/"
+        self._zip_filename = os.path.join(tmp_directory, "cubic_web_tmp_data.zip")
+        self._unzipped_dirname = os.path.join(tmp_directory, "cubic_web_unzipped_dir")
+        self._files_directory = os.path.join(tmp_directory, "morphologist_tmp_files")
+        if os.path.isdir(self._files_directory):
+            shutil.rmtree(self._files_directory)
+        os.mkdir(self._files_directory)
+
+    # this slot is automagically connected 
+    @QtCore.Slot()
+    def on_load_button_clicked(self):
+        self.load(self.ui.server_url_LineEdit.text(),
+                  self.ui.rql_request_LineEdit.text())
+        self._group = self.ui.group_LineEdit.text()
+        self.accept()
+
+    def set_server_url(self, server_url):
+        self.ui.server_url_LineEdit.setText(server_url)
+
+    def set_rql_request(self, rql_request):
+        self.ui.rql_request_LineEdit.setText(rql_request)
+
+    def set_group(self, groupname):
+        self.ui.group_LineEdit.setText(groupname)
+
+    def get_filenames(self):
+        return self._filenames
+    
+    def get_group(self):
+        return self._group
+
+    def load(self, server_url, rql_request):
+        url = server_url + '''/view?rql=''' + rql_request + '''&vid=data-zip'''
+        print "url : " + repr(url)
+        urllib.urlretrieve(url, self._zip_filename)
+        zip_file = zipfile.ZipFile(self._zip_filename)
+        print "extract all" + self._zip_filename + " to " + self._unzipped_dirname
+        zip_file.extractall(self._unzipped_dirname)
+
+        self._filenames = []
+        dirname = os.path.join(self._unzipped_dirname, "brainomics_data")
+        for subject_name in os.listdir(dirname):
+            filename = os.path.join(self._files_directory, subject_name + ".nii.gz")
+            shutil.move(os.path.join(dirname, subject_name, "raw_T1_raw_anat.nii.gz"), filename)
+            self._filenames.append(filename) 
+    
+        if os.path.isdir(self._unzipped_dirname):
+            shutil.rmtree(self._unzipped_dirname)
+
+
 
 StudyEditorDialog._init_class()

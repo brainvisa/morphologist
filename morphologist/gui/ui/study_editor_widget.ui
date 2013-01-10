@@ -282,7 +282,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="add_subjects_from_database">
+            <widget class="QPushButton" name="add_subjects_from_database_button">
              <property name="text">
               <string>from a database</string>
              </property>
