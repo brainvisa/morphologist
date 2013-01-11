@@ -5,7 +5,7 @@ from datetime import timedelta, datetime
 
 import soma.workflow as sw
 from soma.workflow.client import WorkflowController, Helper, Workflow, Job, Group
-import soma.workflow.constants
+
 
 class Runner(object):
     ''' Abstract class '''

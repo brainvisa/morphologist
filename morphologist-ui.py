@@ -4,6 +4,7 @@ import optparse
 from morphologist.gui.qt_backend import QtGui
 from morphologist.gui.main_window import create_main_window
 
+
 def option_parser():
     parser = optparse.OptionParser()
 
@@ -18,7 +19,6 @@ def option_parser():
                       help="Test mode, runs mock intra analysis") 
    
     return parser
-
 
 def main():
     parser = option_parser()

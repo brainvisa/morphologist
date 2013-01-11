@@ -1,7 +1,7 @@
 import os
 
 from morphologist.tests.mocks.analysis import MockAnalysis
-from morphologist.tests import remove_file, reset_directory
+from morphologist.tests import reset_directory
 
 class AnalysisTestCase(object):
     ''' abstract class '''

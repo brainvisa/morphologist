@@ -1,4 +1,3 @@
-
 import os
 
 from morphologist.steps import Step
