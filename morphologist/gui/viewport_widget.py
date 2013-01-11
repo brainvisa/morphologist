@@ -22,7 +22,7 @@ class AnalysisViewportModel(QtCore.QObject):
                 self.on_analysis_model_files_changed)
 
     def _init_3d_objects(self):
-        raise Exception("SubjectwiseViewportModel is an abstract class")
+        raise NotImplementedError("SubjectwiseViewportModel is an abstract class")
 
     @QtCore.Slot()
     def on_analysis_model_changed(self):

@@ -200,7 +200,7 @@ class AbstractGreyWhite(Step):
         self.fix_random_seed = False
 
     def get_command(self):
-        raise Exception("AbstractGreyWhite is an abstract class.")
+        raise NotImplementedError("AbstractGreyWhite is an abstract class.")
 
     def _get_base_command(self):
         command  = ['VipGreyWhiteClassif',

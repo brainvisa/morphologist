@@ -18,7 +18,7 @@ class AbstractStudyTestCase(object):
         return self.study
 
     def study_cls(self):
-        raise Exception('AbstractStudyTestCase is an abstract class')
+        raise NotImplementedError('AbstractStudyTestCase is an abstract class')
 
     def add_subjects(self):
         for filename, subjectname, groupname in zip(self.filenames,
@@ -26,19 +26,19 @@ class AbstractStudyTestCase(object):
             self.study.add_subject_from_file(filename, subjectname, groupname)
 
     def parameter_template(self):
-        raise Exception('AbstractStudyTestCase is an abstract class')
+        raise NotImplementedError('AbstractStudyTestCase is an abstract class')
 
     def set_parameters(self):
         self.study.set_analysis_parameters(parameter_template=self.parameter_template())
 
     def delete_some_input_files(self):
-        raise Exception("AbstractStudyTestCase is an abstract class")
+        raise NotImplementedError("AbstractStudyTestCase is an abstract class")
 
     def create_some_output_files(self):
-        raise Exception("AbstractStudyTestCase is an abstract class")
+        raise NotImplementedError("AbstractStudyTestCase is an abstract class")
 
     def restore_input_files(self):
-        raise Exception("AbstractStudyTestCase is an abstract class")
+        raise NotImplementedError("AbstractStudyTestCase is an abstract class")
 
 
 class MockStudyTestCase(AbstractStudyTestCase):

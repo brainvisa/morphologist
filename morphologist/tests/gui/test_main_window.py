@@ -22,7 +22,7 @@ class TestStudyWidget(TestGui):
 
 
     def _create_test_case(self):
-        raise Exception('TestStudyWidget is an abstract class')
+        raise NotImplementedError('TestStudyWidget is an abstract class')
 
     @TestGui.start_qt_and_test
     def test_start_main_window(self):

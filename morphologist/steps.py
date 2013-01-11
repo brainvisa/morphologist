@@ -15,5 +15,5 @@ class Step(object):
         return os.system(to_execute)
 
     def get_command(self):
-        raise Exception("Step is an abstract class.")
+        raise NotImplementedError("Step is an abstract class.")
 

@@ -130,11 +130,11 @@ class Study(object):
 
     @staticmethod
     def _create_analysis():
-        raise Exception("Study is an abstract class.")
+        raise NotImplementedError("Study is an abstract class.")
   
     @staticmethod
     def analysis_cls():
-        raise Exception("Study is an abstract class")
+        raise NotImplementedError("Study is an abstract class")
 
     def set_analysis_parameters(self, parameter_template):
         for subjectname, subject in self.subjects.iteritems():

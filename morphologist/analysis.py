@@ -37,7 +37,7 @@ class Analysis(object):
 
 
     def propagate_parameters(self):
-        raise Exception("Analysis is an Abstract class. propagate_parameter must be redifined.") 
+        raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redifined.") 
  
 
     def _check_parameter_values_filled(self):
@@ -69,23 +69,23 @@ class ParameterTemplate(object):
     
     @classmethod
     def get_empty_input_params(cls):
-        raise Exception("ParameterTemplate is an abstract class")
+        raise NotImplementedError("ParameterTemplate is an abstract class")
 
     @classmethod
     def get_empty_output_params(cls):
-        raise Exception("ParameterTemplate is an abstract class")
+        raise NotImplementedError("ParameterTemplate is an abstract class")
 
     @classmethod
     def get_input_params(cls, input_filename):
-        raise Exception("ParameterTemplate is an abstract class")
+        raise NotImplementedError("ParameterTemplate is an abstract class")
 
     @classmethod
     def get_output_params(cls, groupname, subjectname, outputdir):
-        raise Exception("ParameterTemplate is an abstract class")
+        raise NotImplementedError("ParameterTemplate is an abstract class")
     
     @classmethod
     def create_outputdirs(cls, groupname, subjectname, outputdir):
-        raise Exception("ParameterTemplate is an abstract class")
+        raise NotImplementedError("ParameterTemplate is an abstract class")
     
 
 class UnknownParameterTemplate(Exception):

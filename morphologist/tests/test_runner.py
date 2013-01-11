@@ -16,7 +16,7 @@ class TestRunner(unittest.TestCase):
         self.runner = self.create_runner(self.study)
     
     def create_runner(self, study):
-        raise Exception("TestRunner is an abstract class.")
+        raise NotImplementedError("TestRunner is an abstract class.")
     
     def create_test_case(self):
         return MockStudyTestCase()

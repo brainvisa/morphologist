@@ -9,22 +9,22 @@ class AnalysisTestCase(object):
         self.analysis = None
 
     def analysis_cls(self):
-        raise Exception("AnalysisTestCase is an abstract class")
+        raise NotImplementedError("AnalysisTestCase is an abstract class")
 
     def create_analysis(self):
-        raise Exception("AnalysisTestCase is an abstract class")
+        raise NotImplementedError("AnalysisTestCase is an abstract class")
 
     def set_analysis_parameters(self):
-        raise Exception("AnalysisTestCase is an abstract class")
+        raise NotImplementedError("AnalysisTestCase is an abstract class")
 
     def delete_some_parameter_values(self):
-        raise Exception("AnalysisTestCase is an abstract class")
+        raise NotImplementedError("AnalysisTestCase is an abstract class")
 
     def create_some_output_files(self):
-        raise Exception("AnalysisTestCase is an abstract class")
+        raise NotImplementedError("AnalysisTestCase is an abstract class")
 
     def get_wrong_parameter_name(self):
-        raise Exception("AnalysisTestCase is an abstract class")
+        raise NotImplementedError("AnalysisTestCase is an abstract class")
 
 
 class MockAnalysisTestCase(AnalysisTestCase):

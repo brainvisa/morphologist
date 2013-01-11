@@ -7,10 +7,10 @@ class AbstractObject3D(object):
         self._backend = Backend.objects_loader_backend()
         
     def reload(self):
-        raise Exception("AbstractObject3D is an abstract class")
+        raise NotImplementedError("AbstractObject3D is an abstract class")
             
     def get_center_position(self):
-        raise Exception("AbstractObject3D is an abstract class")
+        raise NotImplementedError("AbstractObject3D is an abstract class")
 
     def set_color_map(self, color_map_name):
         self._backend.set_object_color_map(self._friend_backend_object, color_map_name)
