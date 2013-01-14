@@ -1,5 +1,7 @@
 <RCC>
   <qresource>
     <file>icons/open.png</file>
+    <file>icons/link.png</file>
+    <file>icons/unlink.png</file>
   </qresource>
 </RCC>

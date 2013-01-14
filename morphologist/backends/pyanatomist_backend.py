@@ -3,74 +3,111 @@ import os
 import anatomist.direct.api as ana
 
 from morphologist.gui.qt_backend import QtCore
-from morphologist.backends import Backend, \
-            DisplayManagerMixin, ObjectsManagerMixin
+from morphologist.backends import Backend
+from morphologist.backends.mixins import DisplayManagerMixin, \
+                                         ObjectsManagerMixin, LoadObjectError
 
 
 class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
-
+    anatomist = None
+    
+    def __new__(cls):
+        if cls.anatomist is None:
+            cls._init_anatomist()
+        return super(PyanatomistBackend, cls).__new__(cls)
+        
     def __init__(self):
         super(PyanatomistBackend, self).__init__()
         super(DisplayManagerMixin, self).__init__()
         super(ObjectsManagerMixin, self).__init__()
 
 ### display backend
-    def initialize_display(self):
-        # must be call after the Qt eventloop has been started
-        self.__class__.anatomist = ana.Anatomist('-b')
+    @classmethod
+    def _init_anatomist(cls):
+        cls.anatomist = ana.Anatomist("-b")
 
-    def create_axial_view(self, parent=None):
+    @classmethod
+    def add_object_in_view(cls, backend_object, backend_view):
+        backend_view.addObjects(backend_object)
+
+    @classmethod
+    def clear_view(cls, backend_view):
+        backend_view.removeObjects(backend_view.objects)
+        
+
+    @classmethod
+    def set_bgcolor_view(cls, backend_view, rgba_color):
+        cls.anatomist.execute('WindowConfig',
+                windows=[backend_view], cursor_visibility=0,
+                light={'background' : rgba_color})
+    
+
+    @classmethod
+    def set_position(cls, backend_view, position):
+        backend_view.moveLinkedCursor(position)
+        
+    @classmethod
+    def create_backend_view(cls, parent=None):
         wintype = 'Axial'
         cmd = ana.cpp.CreateWindowCommand(wintype, -1, None,
                 [], 1, parent, 2, 0,
                 { '__syntax__' : 'dictionary',  'no_decoration' : 1})
-        self.anatomist.execute(cmd)
+        cls.anatomist.execute(cmd)
         window = cmd.createdWindow()
         window.setWindowFlags(QtCore.Qt.Widget)
-        awindow = self.anatomist.AWindow(self.anatomist, window)
+        awindow = cls.anatomist.AWindow(cls.anatomist, window)
         parent.layout().addWidget(awindow.getInternalRep())
-        return window
+        return awindow
 
-    def add_objects_to_window(self, objects, window):
-        awindow = self.anatomist.AWindow(self.anatomist, window)
-        awindow.addObjects(objects)
-
-    def remove_objects_from_window(self, objects, window):
-        awindow = self.anatomist.AWindow(self.anatomist, window)
-        awindow.removeObjects(objects)
-
-    def clear_window(self, window):
-        awindow = self.anatomist.AWindow(self.anatomist, window)
-        awindow.removeObjects(awindow.objects)
+### objects loader backend    
+    @classmethod
+    def reload_object(cls, backend_object):
+        backend_object.reload()
+    
+    @classmethod
+    def shallow_copy_backend_object(cls, backend_object):
+        return cls.anatomist.duplicateObject(backend_object)
         
-    def clear_windows(self, windows):
-        for window in windows:
-            self.clear_window(window)
-        
-    def center_window_on_object(self, window, object):
-        bb = object.boundingbox()
+    @classmethod
+    def get_object_center_position(cls, backend_object):
+        bb = backend_object.boundingbox()
         position = (bb[1] - bb[0]) / 2
-        awindow = self.anatomist.AWindow(self.anatomist, window)
-        awindow.moveLinkedCursor(position)
+        return position
 
-    def set_bgcolor_views(self, views, rgba_color):
-        # rgba_color must a list of 4 floats between 0 and 1
-        self.anatomist.execute('WindowConfig',
-                windows=views, cursor_visibility=0,
-                light={'background' : rgba_color})
+    
+    @classmethod
+    def set_object_color_map(cls, backend_object, color_map_name):
+        backend_object.setPalette(color_map_name)
+    
+    @classmethod
+    def set_object_color(cls, backend_object, rgba_color):
+        backend_object.setMaterial(diffuse=rgba_color)
 
-### objects loader backend
-    def load_object(self, filename):
-        object = self.anatomist.loadObject(filename)
-        return object
+    @classmethod
+    def create_backend_fusion_object(cls, backend_object1, backend_object2, mode, rate):
+        fusion = cls.anatomist.fusionObjects([backend_object1, backend_object2], 
+                                             method='Fusion2DMethod')
+        cls.anatomist.execute("Fusion2DParams", object=fusion, mode=mode, rate=rate,
+                              reorder_objects=[backend_object1, backend_object2])
+        return fusion
 
-    def reload_object_if_needed(self, object):
-        object.reload()
-        return object
-        
-    def delete_objects(self, objects):
-        return self.anatomist.deleteObjects(objects)
-
-    def set_palette(self, object, palette_name):
-        object.setPalette(palette_name)
-        
+    @classmethod
+    def load_backend_object(cls, filename):
+        aobject = cls.anatomist.loadObject(filename)
+        if aobject.getInternalRep() == None:
+            raise LoadObjectError(str(filename))
+        return aobject
+    
+    @classmethod
+    def create_backend_point_object(cls, coordinates):
+        cross_mesh = os.path.join(cls.anatomist.anatomistSharedPath(), 
+                                  "cursors", "cross.mesh")
+        point_object = cls.anatomist.loadObject(cross_mesh, forceReload=True)
+        referential = cls.anatomist.createReferential()
+        point_object.assignReferential(referential)
+        cls.anatomist.createTransformation(coordinates + [ 1, 0, 0,
+                                                            0, 1, 0,
+                                                            0, 0, 1 ], 
+                                            referential, 
+                                            cls.anatomist.centralRef)
+        return point_object

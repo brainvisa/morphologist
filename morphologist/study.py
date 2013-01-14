@@ -1,20 +1,18 @@
 import os
 import json
 
-from .analysis import InputParameters, OutputParameters
-from .intra_analysis import IntraAnalysis
-from .image_importation import ImageImportation
+from morphologist.analysis import InputParameters, OutputParameters, ImportationError
 
 
 class Subject(object):
-
+    
     def __init__(self, imgname, groupname=None):
         self.imgname = imgname
         self.groupname = groupname
 
     def __repr__(self):
-        s = '\t<imgname: ' + str(self.imgname) + ',\n'
-        s += '\tgroupname: ' + str(self.groupname) + ',\n'
+        s = '\timgname: ' + str(self.imgname) + ',\n'
+        s += '\tgroupname: ' + str(self.groupname) + '\n'
         return s
 
     def serialize(self):
@@ -31,29 +29,43 @@ class Subject(object):
 
 
 class Study(object):
-    default_outputdir = os.path.join(os.getcwd(), '.config/morphologist/studies/study')
-
-    def __init__(self, name="undefined study", outputdir=default_outputdir):
+    DEFAULT_GROUP = "group1"
+    default_outputdir = os.path.join(os.path.expanduser("~"),
+                                'morphologist/studies/study')
+    
+    def __init__(self, name="undefined study",
+        outputdir=default_outputdir, backup_filename=None):
         self.name = name
         self.outputdir = outputdir
         self.subjects = {}
         self.analyses = {}
+        if backup_filename is None:
+            backup_filename = self.default_backup_filename_from_outputdir(outputdir)
+        self.backup_filename = backup_filename
+
+    @staticmethod
+    def default_backup_filename_from_outputdir(outputdir):
+        return os.path.join(outputdir, 'study.json')
+
+    @staticmethod
+    def default_outputdir_from_backup_filename(backup_filename):
+        return os.path.dirname(backup_filename)
 
     @classmethod
-    def from_file(cls, file_path):
+    def from_file(cls, backup_filename):
         try:
-            with open(file_path, "r") as fd:
+            with open(backup_filename, "r") as fd:
                     serialized_study = json.load(fd)
         except Exception, e:
             raise StudySerializationError("%s" %(e))
 
         try:
             study = cls.unserialize(serialized_study)
+            study.backup_filename = backup_filename
         except KeyError, e:
             raise StudySerializationError("The information does not "
                                           "match with a study.")
         return study
-
 
     @classmethod
     def unserialize(cls, serialized):
@@ -75,20 +87,18 @@ class Study(object):
             analysis = cls._create_analysis()
             analysis.input_params = input_params
             analysis.output_params = output_params
-            # TO DO => check if the parameters are compatibles with the analysis ?
+            # TODO => check if the parameters are compatibles with the analysis ?
             study.analyses[subject_name] = analysis
         return study
 
-    def save_to_file(self, filename):
+    def save_to_backup_file(self):
         serialized_study = self.serialize()
         try:
-            with open(filename, "w") as fd:
+            with open(self.backup_filename, "w") as fd:
                 json.dump(serialized_study, fd, indent=4, sort_keys=True)
         except Exception, e:
             raise StudySerializationError("%s" %(e))
   
-
-
     def serialize(self):
         serialized = {}
         serialized['name'] = self.name
@@ -103,7 +113,6 @@ class Study(object):
             serialized['output_params'][subjectname] = analysis.output_params.serialize()
         return serialized 
 
-
     @staticmethod
     def define_subjectname_from_filename(filename):
         return remove_all_extensions(filename)
@@ -111,6 +120,8 @@ class Study(object):
     def add_subject_from_file(self, filename, subjectname=None, groupname=None):
         if subjectname is None:
             subjectname = self.define_subjectname_from_filename(filename)
+        if groupname is None:
+            groupname = self.DEFAULT_GROUP
         if subjectname in self.subjects:
             raise SubjectNameExistsError(subjectname)
         subject = Subject(filename, groupname)
@@ -119,24 +130,38 @@ class Study(object):
 
     @staticmethod
     def _create_analysis():
-        return IntraAnalysis() 
-
+        raise NotImplementedError("Study is an abstract class.")
+  
+    @staticmethod
+    def analysis_cls():
+        raise NotImplementedError("Study is an abstract class")
 
     def set_analysis_parameters(self, parameter_template):
         for subjectname, subject in self.subjects.iteritems():
-            self.analyses[subjectname].set_parameters(parameter_template, 
+            self.analyses[subjectname].set_parameters(parameter_template,
+                                                      subject.groupname, 
                                                       subjectname,
                                                       subject.imgname,
                                                       self.outputdir)
 
     def import_data(self, parameter_template):
-        import_step = ImageImportation()
+        subjects_failed = []
         for subjectname, subject in self.subjects.iteritems():
-            import_step.input = subject.imgname
-            import_step.output = IntraAnalysis.get_mri_path(parameter_template, subjectname, self.outputdir)
-            IntraAnalysis.create_outputdirs(parameter_template, subjectname, self.outputdir)
-            import_step.run()
-            subject.imgname = import_step.output
+            try:
+                new_imgname = self.analysis_cls().import_data(parameter_template, 
+                                                                 subject.imgname,
+                                                                 subject.groupname,
+                                                                 subjectname,
+                                                                 self.outputdir)
+                subject.imgname = new_imgname
+            except ImportationError:
+                subjects_failed.append(subjectname) 
+        if len(subjects_failed) > 0:
+            for subjectname in subjects_failed:
+                del self.subjects[subjectname]
+                del self.analyses[subjectname]
+            raise ImportationError("The importation failed for the following subjects:\n%s."
+                                   % ", ".join(subjects_failed))
 
     def has_subjects(self):
         return len(self.subjects) != 0

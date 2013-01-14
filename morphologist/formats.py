@@ -22,7 +22,7 @@ class FormatsManager(object):
 
     @classmethod
     def _fill_formats_and_extensions(cls):
-        raise Exception("FormatsManager is an abstract class")
+        raise NotImplementedError("FormatsManager is an abstract class")
 
     @classmethod
     def formats_manager(cls):

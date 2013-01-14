@@ -1,5 +1,22 @@
 from morphologist.steps import Step
 
+
+class ImageImportation(Step):
+    
+    def __init__(self):
+        super(ImageImportation, self).__init__()
+        
+        self.input = None
+        
+        self.output = None
+        
+    def get_command(self):
+        command = ["python", "-m", "corist.image_importation", 
+                   self.input, 
+                   self.output]
+        return command
+    
+    
 class SpatialNormalization(Step):
 
     def __init__(self):
@@ -9,14 +26,16 @@ class SpatialNormalization(Step):
         
         #outputs
         self.commissure_coordinates = None
-        self.talairach_transform = None
+        self.talairach_transformation = None
 
     def get_command(self):
-        # TODO 
-        command = ['echo', "TO DO : Spatial Normalization !!!"]
+        command = ['python', '-m', 'morphologist.intra_analysis_normalization', 
+                   self.mri, 
+                   self.commissure_coordinates, 
+                   self.talairach_transformation]
         return command
- 
-
+    
+        
 class BiasCorrection(Step):
 
     def __init__(self):
@@ -57,7 +76,7 @@ class BiasCorrection(Step):
         if self.fix_random_seed:
             command.extend(['-srand', '10'])                
 
-        # TODO referentials
+        # TODO referentials ?
         return command
 
      
@@ -122,7 +141,7 @@ class BrainSegmentation(Step):
                    ]
         if self.fix_random_seed:
             command.extend(['-srand', '10'])  
-        # TODO referentials
+        # TODO referentials ?
         return command
 
 
@@ -132,10 +151,10 @@ class SplitBrain(Step):
         super(SplitBrain, self).__init__()
 
         self.corrected_mri = None
+        self.commissure_coordinates = None
         self.brain_mask = None
         self.white_ridges = None
         self.histo_analysis = None
-        self.commissure_coordinates = None
         self.bary_factor = 0.6
         self.fix_random_seed = False
         # output
@@ -163,9 +182,104 @@ class SplitBrain(Step):
         # "-template", "share/brainvisa-share-4.4/hemitemplate/closedvoronoi.ima"
         # "-TemplateUse", "y" 
 
-        # TODO referencials
+        # TODO referentials ?
 
         return command
     
 
+class AbstractGreyWhite(Step):
 
+    def __init__(self):
+        super(AbstractGreyWhite, self).__init__()
+
+        self.corrected_mri = None
+        self.commissure_coordinates = None
+        self.histo_analysis = None
+        self.split_mask = None
+        self.edges = None
+        self.fix_random_seed = False
+
+    def get_command(self):
+        raise NotImplementedError("AbstractGreyWhite is an abstract class.")
+
+    def _get_base_command(self):
+        command  = ['VipGreyWhiteClassif',
+                    '-input', self.corrected_mri,
+                    '-Points', self.commissure_coordinates,
+                    '-hana', self.histo_analysis,
+                    '-mask', self.split_mask,
+                    '-edges', self.edges,
+                    '-writeformat', 't',
+                    '-algo', 'N']
+        if self.fix_random_seed:
+            command.extend(['-srand', '10'])  
+        return command
+
+
+class LeftGreyWhite(AbstractGreyWhite):
+
+    def __init__(self):
+        super(LeftGreyWhite, self).__init__()
+        #outputs
+        self.left_grey_white = None
+
+    def get_command(self):
+        command = self._get_base_command()
+        command.extend(['-label', '2', '-output', self.left_grey_white])
+
+        # TODO referentials ?
+        return command
+
+
+class RightGreyWhite(AbstractGreyWhite):
+
+    def __init__(self):
+        super(RightGreyWhite, self).__init__()
+        #outputs
+        self.right_grey_white = None
+
+    def get_command(self):
+        command = self._get_base_command()
+        command.extend(['-label', '1', '-output', self.right_grey_white])
+
+        # TODO referentials ?
+        return command
+
+
+class Grey(Step):
+    def __init__(self):
+        super(Grey, self).__init__()
+        self.corrected_mri = None
+        self.histo_analysis = None
+        self.grey_white = None
+        self.fix_random_seed = False
+        #outputs
+        self.grey = None
+
+    def get_command(self):
+        command = ['VipHomotopic',
+                   '-input', self.corrected_mri,
+                   '-classif', self.grey_white,
+                   '-hana', self.histo_analysis,
+                   '-output', self.grey,
+                   '-mode', 'C', '-writeformat', 't']
+
+        if self.fix_random_seed:
+            command.extend(['-srand', '10'])  
+
+        # TODO referentials ?
+        return command
+
+
+class WhiteSurface(Step):
+
+    def __init__(self):
+        super(WhiteSurface, self).__init__()
+        self.grey = None
+        #outputs
+        self.white_surface = None
+
+    def get_command(self):
+        command = ['python', '-m', 'morphologist.intra_analysis_white_surface', 
+                   self.grey, self.white_surface]
+        return command

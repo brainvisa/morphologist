@@ -1,5 +1,5 @@
 from morphologist.gui.main_window import IntraAnalysisWindow
-from morphologist.tests.mocks.study import MockIntraAnalysisStudy 
+from morphologist.tests.intra_analysis.mocks.study import MockIntraAnalysisStudy 
 
 class MockIntraAnalysisWindow(IntraAnalysisWindow):
 
@@ -11,4 +11,6 @@ class MockIntraAnalysisWindow(IntraAnalysisWindow):
             return MockIntraAnalysisStudy()
 
 
+    def _window_title(self):
+        return "Morphologist - %s --- MOCK MODE ---" % self.study.name
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>465</width>
-    <height>606</height>
+    <height>527</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,13 +16,13 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_4">
+  <layout class="QVBoxLayout" name="verticalLayout_7">
    <item>
     <widget class="QGroupBox" name="study_properties_groupBox">
      <property name="title">
       <string>Study Properties</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
+     <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
@@ -38,27 +38,131 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
-         <widget class="QLabel" name="outputdir_label">
-          <property name="text">
-           <string>Output directory:</string>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QLabel" name="outputdir_label">
+              <property name="text">
+               <string>Output directory:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="outputdir_lineEdit"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="outputdir_button">
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="../../../resources/morphologist.qrc">
+                <normaloff>:/icons/open.png</normaloff>:/icons/open.png</iconset>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QLabel" name="backup_filename_label">
+              <property name="text">
+               <string>Backup file:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="backup_filename_lineEdit"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="backup_filename_button">
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="../../../resources/morphologist.qrc">
+                <normaloff>:/icons/open.png</normaloff>:/icons/open.png</iconset>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QPushButton" name="link_button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
           </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="outputdir_lineEdit"/>
-        </item>
-        <item>
-         <widget class="QPushButton" name="outputdir_button">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>21</width>
+            <height>39</height>
+           </size>
+          </property>
           <property name="text">
            <string/>
           </property>
           <property name="icon">
            <iconset resource="../../../resources/morphologist.qrc">
-            <normaloff>:/icons/open.png</normaloff>:/icons/open.png</iconset>
+            <normaloff>:/icons/link.png</normaloff>
+            <normalon>:/icons/unlink.png</normalon>:/icons/link.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>7</width>
+            <height>24</height>
+           </size>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+          <property name="autoDefault">
+           <bool>true</bool>
+          </property>
+          <property name="default">
+           <bool>false</bool>
+          </property>
+          <property name="flat">
+           <bool>true</bool>
           </property>
          </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QLabel" name="parameter_template_label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Output directory organization:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="parameter_template_combobox"/>
         </item>
        </layout>
       </item>

@@ -5,7 +5,7 @@ from datetime import timedelta, datetime
 
 import soma.workflow as sw
 from soma.workflow.client import WorkflowController, Helper, Workflow, Job, Group
-import soma.workflow.constants
+
 
 class Runner(object):
     ''' Abstract class '''
@@ -15,19 +15,19 @@ class Runner(object):
         self._study = study
 
     def run(self):
-        raise Exception("Runner is an abstract class.")
+        raise NotImplementedError("Runner is an abstract class.")
     
     def is_runnning(self, subject_name=None):
-        raise Exception("Runner is an abstract class.")
+        raise NotImplementedError("Runner is an abstract class.")
     
     def wait(self):
-        raise Exception("Runner is an abstract class.")
+        raise NotImplementedError("Runner is an abstract class.")
         
     def last_run_failed(self):
-        raise Exception("Runner is an abstract class.")
+        raise NotImplementedError("Runner is an abstract class.")
         
     def stop(self):
-        raise Exception("Runner is an abstract class.")
+        raise NotImplementedError("Runner is an abstract class.")
 
     def _check_input_output_files(self):
         self._check_input_files()

@@ -39,11 +39,31 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
 
 class StudyEditorDialog(QtGui.QDialog):
     on_apply_cancel_buttons_clicked_map = {}
-    default_group = 'group 1'
+    default_group = Study.DEFAULT_GROUP
     group_column_width = 100
     GROUPNAME_COL = 0
     SUBJECTNAME_COL = 1
     FILENAME_COL = 2
+    lineEdit_style_sheet = '''
+        QLineEdit {
+            background-color: %s;
+            border: 1px solid %s;
+            border-radius: 4px;
+            padding: 2px;
+            margin: 1px;
+        }
+        QLineEdit:focus {
+            background-color: %s;
+            border: 1px solid %s;
+            border-radius: 4px;
+            padding: 2px;
+            margin: 1px;
+        }
+    '''
+    default_style_sheet = lineEdit_style_sheet % ('white', 'grey',
+                                                  'white', '#ff7777')
+    error_style_sheet = lineEdit_style_sheet % ('#ffaaaa', 'grey',
+                                                '#ffaaaa', '#ff7777')
 
     @classmethod
     def _init_class(cls):
@@ -56,6 +76,8 @@ class StudyEditorDialog(QtGui.QDialog):
     def __init__(self, study, parent=None):
         super(StudyEditorDialog, self).__init__(parent)
         self.study = study
+        self.parameter_template = study.analysis_cls().PARAMETER_TEMPLATES[0]
+        self._lineEdit_lock = False
         uifile = os.path.join(ui_directory, 'study_editor_widget.ui')
         self.ui = loadUi(uifile, self)
         apply_id = QtGui.QDialogButtonBox.Apply
@@ -66,7 +88,11 @@ class StudyEditorDialog(QtGui.QDialog):
         # TODO : fill tablewidget model with the study content
         self.ui.studyname_lineEdit.setText(self.study.name)
         self.ui.outputdir_lineEdit.setText(self.study.outputdir)
-
+        self.ui.backup_filename_lineEdit.setText(self.study.backup_filename)
+        for param_template_name in self.study.analysis_cls().PARAMETER_TEMPLATES:
+            self.ui.parameter_template_combobox.addItem(param_template_name)
+            if param_template_name == self.parameter_template:
+                self.ui.parameter_template_combobox.setCurrentIndex(self.ui.parameter_template_combobox.count()-1)
         self._init_ui()
 
     def _init_ui(self):
@@ -80,17 +106,43 @@ class StudyEditorDialog(QtGui.QDialog):
     # this slot is automagically connected
     @QtCore.Slot("const QString &")
     def on_studyname_lineEdit_textChanged(self, text):
-        self.on_lineEdit_textChanged(text)
+        self.enable_apply_button_according_to_lineEdit()
 
     # this slot is automagically connected
     @QtCore.Slot("const QString &")
     def on_outputdir_lineEdit_textChanged(self, text):
-        self.on_lineEdit_textChanged(text)
+        if self._lineEdit_lock is True: return
+        if not self.ui.link_button.isChecked():
+            outputdir = self.ui.outputdir_lineEdit.text()
+            backup_filename = Study.default_backup_filename_from_outputdir(outputdir)
+            self._lineEdit_lock = True
+            self.ui.backup_filename_lineEdit.setText(backup_filename)
+            self._lineEdit_lock = False 
+        self.enable_apply_button_according_to_lineEdit()
 
-    def on_lineEdit_textChanged(self, text):
-        outputdir = self.ui.outputdir_lineEdit.text()
-        studyname = self.ui.studyname_lineEdit.text()
-        status = (outputdir != '' and studyname != '')
+    # this slot is automagically connected
+    @QtCore.Slot("const QString &")
+    def on_backup_filename_lineEdit_textChanged(self, text):
+        if self._lineEdit_lock is True: return
+        if not self.ui.link_button.isChecked():
+            backup_filename = self.ui.backup_filename_lineEdit.text()
+            outputdir = Study.default_outputdir_from_backup_filename(backup_filename)
+            self._lineEdit_lock = True
+            self.ui.outputdir_lineEdit.setText(outputdir)
+            self._lineEdit_lock = False 
+        self.enable_apply_button_according_to_lineEdit()
+
+    def enable_apply_button_according_to_lineEdit(self):
+        status = True
+        for lineEdit in [self.ui.outputdir_lineEdit,
+                         self.ui.studyname_lineEdit,
+                         self.ui.backup_filename_lineEdit]:
+            item = lineEdit.text()
+            if item == '':
+                lineEdit.setStyleSheet(self.error_style_sheet)
+                status &= False
+            else:
+                lineEdit.setStyleSheet(self.default_style_sheet)
         self.ui.apply_button.setEnabled(status)
 
     # this slot is automagically connected
@@ -123,15 +175,19 @@ class StudyEditorDialog(QtGui.QDialog):
     def on_apply_button_clicked(self):
         studyname = self.ui.studyname_lineEdit.text()
         outputdir = self.ui.outputdir_lineEdit.text()
+        backup_filename = self.ui.backup_filename_lineEdit.text()
         subjects_data = []
         for i in range(self.ui.subjects_tablewidget.rowCount()):
             subjects_data.append(self._get_subject_data(i))
             
-        if self._check_study_consistency(outputdir, subjects_data): 
+        if self._check_study_consistency(outputdir,
+                    subjects_data, backup_filename): 
             self.study.name = studyname
             self.study.outputdir = outputdir
+            self.study.backup_filename = backup_filename 
             for groupname, subjectname, filename in subjects_data:
                 self.study.add_subject_from_file(filename, subjectname, groupname)
+            self.parameter_template = self.ui.parameter_template_combobox.currentText()
             self.ui.accept()
 
     def on_cancel_button_clicked(self):
@@ -141,25 +197,42 @@ class StudyEditorDialog(QtGui.QDialog):
     def onSelectSubjectsDialogfilesSelected(self, filenames):
         self.add_subjects(filenames)
 
-    def _check_study_consistency(self, outputdir, subjects_data):
-        consistency = True
-        consistency &= self._check_valid_outputdir(outputdir)
-        consistency &= self._check_duplicated_subjects(subjects_data)
-        return consistency
+    def _check_study_consistency(self, outputdir,
+                subjects_data, backup_filename):
+        consistency = self._check_valid_outputdir(outputdir)
+        if not consistency: return False
+        consistency = self._check_valid_backup_filename(backup_filename)
+        if not consistency: return False
+        consistency = self._check_duplicated_subjects(subjects_data)
+        if not consistency: return False
+        return True
         
     def _check_valid_outputdir(self, outputdir):
-        consistency=True
+        consistency = True
         msg = ""
         if not os.path.exists(outputdir):
             consistency = False
-            msg = "The output directory %s does not exist." % outputdir
+            msg = "The output directory '%s' does not exist." % outputdir
         elif len(os.listdir(outputdir)) != 0:
             consistency = False
-            msg = "The output directory %s is not empty." % outputdir
+            msg = "The output directory '%s' is not empty." % outputdir
         if not consistency:
             QtGui.QMessageBox.critical(self, "Study consistency error", msg)
         return consistency
             
+    def _check_valid_backup_filename(self, backup_filename):
+        consistency = True
+        backup_filename_directory = os.path.dirname(backup_filename)
+        if not os.path.exists(backup_filename_directory):
+            consistency = False
+            msg = "The backup filename directory '%s' does not exist." % \
+                                                backup_filename_directory 
+        elif os.path.exists(backup_filename):
+            consistency = False
+            msg = "The backup filename already '%s' exists." % backup_filename
+        if not consistency:
+            QtGui.QMessageBox.critical(self, "Study consistency error", msg)
+        return consistency
         
     def _check_duplicated_subjects(self, subjects_data):
         study_keys = [] #subjectname is the subject uid for now 

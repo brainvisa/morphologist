@@ -14,13 +14,17 @@ class Analysis(object):
         self.output_params = OutputParameters(file_param_names=[])
 
 
-    def set_parameters(self, param_template_id, name, image, outputdir):
-        if param_template_id not in self.PARAMETER_TEMPLATES:
-            raise UnknownParameterTemplate(param_template_id)
+    @classmethod
+    def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
+        return filename
 
-        param_template = self.param_template_map[param_template_id]
-        self.input_params = param_template.get_input_params(name, image)
-        self.output_params = param_template.get_output_params(name, outputdir)
+    def set_parameters(self, parameter_template, groupname, subjectname, input_filename, outputdir):
+        if parameter_template not in self.PARAMETER_TEMPLATES:
+            raise UnknownParameterTemplate(parameter_template)
+
+        param_template_instance = self.param_template_map[parameter_template]
+        self.input_params = param_template_instance.get_input_params(input_filename)
+        self.output_params = param_template_instance.get_output_params(groupname, subjectname, outputdir)
 
 
     def get_command_list(self):
@@ -33,7 +37,7 @@ class Analysis(object):
 
 
     def propagate_parameters(self):
-        raise Exception("Analysis is an Abstract class. propagate_parameter must be redifined.") 
+        raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redifined.") 
  
 
     def _check_parameter_values_filled(self):
@@ -61,10 +65,38 @@ class Analysis(object):
                 os.remove(out_file_path)
 
 
+class ParameterTemplate(object):
+    
+    @classmethod
+    def get_empty_input_params(cls):
+        raise NotImplementedError("ParameterTemplate is an abstract class")
+
+    @classmethod
+    def get_empty_output_params(cls):
+        raise NotImplementedError("ParameterTemplate is an abstract class")
+
+    @classmethod
+    def get_input_params(cls, input_filename):
+        raise NotImplementedError("ParameterTemplate is an abstract class")
+
+    @classmethod
+    def get_output_params(cls, groupname, subjectname, outputdir):
+        raise NotImplementedError("ParameterTemplate is an abstract class")
+    
+    @classmethod
+    def create_outputdirs(cls, groupname, subjectname, outputdir):
+        raise NotImplementedError("ParameterTemplate is an abstract class")
+    
+
 class UnknownParameterTemplate(Exception):
     pass
 
+
 class MissingParameterValueError(Exception):
+    pass
+
+
+class ImportationError(Exception):
     pass
 
 

@@ -1,15 +1,11 @@
-import os
-
-from morphologist.study import Study
-from morphologist.intra_analysis import IntraAnalysis
-from morphologist.tests.mocks.study import MockStudy, MockIntraAnalysisStudy
+from morphologist.tests.mocks.study import MockStudy
+from morphologist.tests import reset_directory, remove_file
 
 
 class AbstractStudyTestCase(object):
 
     def __init__(self):
         self.study = None
-        self.study_cls = None
         self.studyname = None
         self.outputdir = None
         self.filenames = None
@@ -20,74 +16,72 @@ class AbstractStudyTestCase(object):
         self.study = self.study_cls(self.studyname, self.outputdir)
         return self.study
 
+    def study_cls(self):
+        raise NotImplementedError('AbstractStudyTestCase is an abstract class')
+
     def add_subjects(self):
         for filename, subjectname, groupname in zip(self.filenames,
                                 self.subjectnames, self.groupnames):
             self.study.add_subject_from_file(filename, subjectname, groupname)
 
+    def parameter_template(self):
+        raise NotImplementedError('AbstractStudyTestCase is an abstract class')
+
     def set_parameters(self):
-        raise Exception('AbstractStudyTestCase is an abstract class')
+        self.study.set_analysis_parameters(parameter_template=self.parameter_template())
+
+    def delete_some_input_files(self):
+        raise NotImplementedError("AbstractStudyTestCase is an abstract class")
+
+    def create_some_output_files(self):
+        raise NotImplementedError("AbstractStudyTestCase is an abstract class")
+
+    def restore_input_files(self):
+        raise NotImplementedError("AbstractStudyTestCase is an abstract class")
 
 
 class MockStudyTestCase(AbstractStudyTestCase):
 
+    '''
+    -> Mock analysis
+    '''
+
     def __init__(self):
         super(MockStudyTestCase, self).__init__()
-        self.study_cls = MockStudy
         self.studyname = 'mock_study'
-        self.outputdir = '/tmp'
+        self.outputdir = '/tmp/morphologist_output_mock_study_test_case'
         self.subjectnames = ['bla', 'blabla', 'blablabla'] 
         self.filenames = ['foo'] * len(self.subjectnames)
         self.groupnames = ['group1'] * len(self.subjectnames)
- 
-    def set_parameters(self):
-        self.study.set_analysis_parameters(parameter_template='foo')
- 
+        reset_directory(self.outputdir)
 
-class FlatFilesStudyTestCase(AbstractStudyTestCase):
-    prefix = '/neurospin/lnao/Panabase/cati-dev-prod/morphologist/raw_irm'
+    def study_cls(self):
+        return MockStudy
 
-    def __init__(self):
-        super(FlatFilesStudyTestCase, self).__init__()
-        self.study_cls = Study
-        self.studyname = 'my_study'
-        self.outputdir = '/tmp/morphologist_tests/studies/my_study'
-        basenames = ['caca.ima', 'chaos.nii.gz',
-                     'dionysos2.ima', 'hyperion.nii']
-        self.filenames = [os.path.join(FlatFilesStudyTestCase.prefix,
-                                  filename) for filename in basenames]
-        self.subjectnames = ['caca', 'chaos', 'dionysos2', 'hyperion']
-        self.groupnames = ['group 1', 'group 2', 'group 3', 'group 4']
+    def create_study(self):
+        self.study = MockStudy(self.studyname, self.outputdir)
+        return self.study
 
-    def set_parameters(self):
-        self.study.set_analysis_parameters(parameter_template=IntraAnalysis.DEFAULT_PARAM_TEMPLATE)
+    def parameter_template(self):
+        return 'foo'
 
+    def delete_some_input_files(self):
+        parameter_names = ['input_2', 'input_5']
+        for name in parameter_names:
+            file_name = self.study.analyses.values()[1].input_params.get_value(name)
+            remove_file(file_name)
 
-class BrainvisaStudyTestCase(AbstractStudyTestCase):
+    def create_some_output_files(self):
+        parameter_names = ['output_1', 'output_4']
+        for name in parameter_names:
+            file_name = self.study.analyses.values()[0].output_params.get_value(name)
+            f = open(file_name, "w")
+            f.write("something\n")
+            f.close()
 
-    def __init__(self):
-        super(BrainvisaStudyTestCase, self).__init__()
-        self.study_cls = Study
-        self.studyname = 'test'
-        self.outputdir = '/volatile/laguitton/data/icbm/icbm'
-        self.subjectnames = ['icbm100T', 'icbm101T']
-        self.groupnames = ['group1'] * len(self.subjectnames)
-        self.filenames = [os.path.join(self.outputdir, subject,
-                          't1mri', 'default_acquisition',
-                          '%s.ima' % subject) for subject in self.subjectnames]
-
-    def set_parameters(self):
-        self.study.set_analysis_parameters(parameter_template=IntraAnalysis.BRAINVISA_PARAM_TEMPLATE)
+    def restore_input_files(self):
+        # useless because the input files are created in set_analysis_parameters
+        pass
 
 
-class FlatFilesMockIntraAnalysisStudyTestCase(FlatFilesStudyTestCase):
-    
-    def __init__(self):
-        super(FlatFilesMockIntraAnalysisStudyTestCase, self).__init__()
-        self.study_cls = MockIntraAnalysisStudy
 
-class BrainvisaMockIntraAnalysisStudyTestCase(BrainvisaStudyTestCase):
-
-    def __init__(self):
-        super(BrainvisaMockIntraAnalysisStudyTestCase, self).__init__()
-        self.study_cls = MockIntraAnalysisStudy
