@@ -108,21 +108,23 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     uifile = os.path.join(ui_directory, 'viewport_widget.ui')
     main_frame_style_sheet = '''
         #viewport_frame { background-color: white }
-        #view1_frame, #view2_frame, #view3_frame, #view4_frame, #view5_frame, #view6_frame {
+        #view1_frame, #view2_frame, #view3_frame, #view4_frame, #view5_frame, 
+        #view6_frame, #view7_frame, #view8_frame {
             border: 3px solid black;
             border-radius: 20px;
             background: black;
        }
-        #view1_label, #view2_label, #view3_label, #view4_label, #view5_label, #view6_label {
+        #view1_label, #view2_label, #view3_label, #view4_label, #view5_label, 
+        #view6_label, #view7_label, #view8_label {
             color: white;
         }
     '''
-    RAW_MRI_ACPC="raw_mri_acpc"
-    BIAS_CORRECTED="bias_corrected"
-    BRAIN_MASK="brain_mask"
-    SPLIT_MASK="split_mask"
-    GREY_WHITE="grey_white"
-    WHITE_SURFACE="white_surface"
+    RAW_MRI_ACPC = "raw_mri_acpc"
+    BIAS_CORRECTED = "bias_corrected"
+    BRAIN_MASK = "brain_mask"
+    SPLIT_MASK = "split_mask"
+    GREY_WHITE = "grey_white"
+    WHITE_SURFACE_SULCI = "white_surface_sulci"
     
     def __init__(self, model, parent=None):
         super(IntraAnalysisViewportView, self).__init__(parent)
@@ -141,20 +143,29 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         self._viewport_model.corrected_mri_changed.connect(self.update_brain_mask_view) 
         self._viewport_model.corrected_mri_changed.connect(self.update_split_mask_view) 
         self._viewport_model.corrected_mri_changed.connect(self.update_grey_white_view) 
-        self._viewport_model.corrected_mri_changed.connect(self.update_white_surface_view) 
+        self._viewport_model.corrected_mri_changed.connect(self.update_white_surface_sulci_view) 
         self._viewport_model.brain_mask_changed.connect(self.update_brain_mask_view)
         self._viewport_model.split_mask_changed.connect(self.update_split_mask_view)
         self._viewport_model.grey_white_changed.connect(self.update_grey_white_view)
-        self._viewport_model.white_surface_changed.connect(self.update_white_surface_view)
+        self._viewport_model.white_surface_changed.connect(self.update_white_surface_sulci_view)
 
     def _init_widget(self):
         self.ui.setStyleSheet(self.main_frame_style_sheet)
+        self.ui.view1_label.setText("1 ) Raw MRI + Anterior/posterior commissures")
+        self.ui.view2_label.setText("2 ) Bias corrected MRI")
+        self.ui.view3_label.setText("3 ) Histogram analysis")
+        self.ui.view4_label.setText("4 ) Brain mask")
+        self.ui.view5_label.setText("5 ) Cerebellum and hemispheres ")
+        self.ui.view6_label.setText("6 ) Grey/White classification")
+        self.ui.view7_label.setText("7 ) Grey surface")
+        self.ui.view8_label.setText("8 ) White surface + Sulci")
+
         for view_name, view_hook in [(self.RAW_MRI_ACPC, self.ui.view1_hook), 
                                      (self.BIAS_CORRECTED, self.ui.view2_hook),
-                                     (self.BRAIN_MASK, self.ui.view3_hook), 
-                                     (self.SPLIT_MASK, self.ui.view4_hook),
-                                     (self.GREY_WHITE, self.ui.view5_hook),
-                                     (self.WHITE_SURFACE, self.ui.view6_hook)]:
+                                     (self.BRAIN_MASK, self.ui.view4_hook), 
+                                     (self.SPLIT_MASK, self.ui.view5_hook),
+                                     (self.GREY_WHITE, self.ui.view6_hook),
+                                     (self.WHITE_SURFACE_SULCI, self.ui.view8_hook)]:
             QtGui.QVBoxLayout(view_hook)
             view = View(view_hook)
             view.set_bgcolor([0., 0., 0., 1.])
@@ -243,8 +254,8 @@ class IntraAnalysisViewportView(QtGui.QWidget):
                 view.add_object(mask_fusion)
 
     @QtCore.Slot()
-    def update_white_surface_view(self):
-        view = self._views[self.WHITE_SURFACE]
+    def update_white_surface_sulci_view(self):
+        view = self._views[self.WHITE_SURFACE_SULCI]
         view.clear()
         left_mesh = self._viewport_model.observed_objects[IntraAnalysis.LEFT_WHITE_SURFACE]
         right_mesh = self._viewport_model.observed_objects[IntraAnalysis.RIGHT_WHITE_SURFACE]
