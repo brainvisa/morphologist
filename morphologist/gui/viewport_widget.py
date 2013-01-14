@@ -67,6 +67,7 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
     brain_mask_changed = QtCore.pyqtSignal()
     split_mask_changed = QtCore.pyqtSignal()
     grey_white_changed = QtCore.pyqtSignal()
+    grey_surface_changed = QtCore.pyqtSignal()
     white_surface_changed = QtCore.pyqtSignal()
 
     signal_map = { \
@@ -78,6 +79,8 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
         IntraAnalysis.SPLIT_MASK : 'split_mask_changed',
         IntraAnalysis.LEFT_GREY_WHITE : 'grey_white_changed',
         IntraAnalysis.RIGHT_GREY_WHITE : 'grey_white_changed',
+        IntraAnalysis.LEFT_GREY_SURFACE : 'grey_surface_changed', 
+        IntraAnalysis.RIGHT_GREY_SURFACE : 'grey_surface_changed', 
         IntraAnalysis.LEFT_WHITE_SURFACE : 'white_surface_changed',
         IntraAnalysis.RIGHT_WHITE_SURFACE : 'white_surface_changed'
     }
@@ -95,6 +98,8 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
             IntraAnalysis.SPLIT_MASK : None,
             IntraAnalysis.LEFT_GREY_WHITE : None,
             IntraAnalysis.RIGHT_GREY_WHITE : None,
+            IntraAnalysis.LEFT_GREY_SURFACE : None,
+            IntraAnalysis.RIGHT_GREY_SURFACE : None,
             IntraAnalysis.LEFT_WHITE_SURFACE : None,
             IntraAnalysis.RIGHT_WHITE_SURFACE : None
         }
@@ -132,6 +137,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     BRAIN_MASK = "brain_mask"
     SPLIT_MASK = "split_mask"
     GREY_WHITE = "grey_white"
+    GREY_SURFACE = "grey_surface"
     WHITE_SURFACE_SULCI = "white_surface_sulci"
     
     def __init__(self, model, parent=None):
@@ -156,6 +162,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         self._viewport_model.brain_mask_changed.connect(self.update_brain_mask_view)
         self._viewport_model.split_mask_changed.connect(self.update_split_mask_view)
         self._viewport_model.grey_white_changed.connect(self.update_grey_white_view)
+        self._viewport_model.white_surface_changed.connect(self.update_grey_surface_view)
         self._viewport_model.white_surface_changed.connect(self.update_white_surface_sulci_view)
 
     def _init_widget(self):
@@ -174,6 +181,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
                                      (self.BRAIN_MASK, self.ui.view4_hook), 
                                      (self.SPLIT_MASK, self.ui.view5_hook),
                                      (self.GREY_WHITE, self.ui.view6_hook),
+                                     (self.GREY_SURFACE, self.ui.view7_hook),
                                      (self.WHITE_SURFACE_SULCI, self.ui.view8_hook)]:
             QtGui.QVBoxLayout(view_hook)
             view = View(view_hook)
@@ -274,16 +282,35 @@ class IntraAnalysisViewportView(QtGui.QWidget):
                 view.add_object(mask_fusion)
 
     @QtCore.Slot()
+    def update_grey_surface_view(self):
+        view = self._views[self.GREY_SURFACE]
+        view.clear()
+        left_mesh = self._viewport_model.observed_objects[IntraAnalysis.LEFT_GREY_SURFACE]
+        right_mesh = self._viewport_model.observed_objects[IntraAnalysis.RIGHT_GREY_SURFACE]
+        yellow_color = [0.9, 0.7, 0.0, 1]
+        if left_mesh is not None:
+            left_mesh.set_color(yellow_color) 
+            view.add_object(left_mesh)
+        if right_mesh is not None:
+            right_mesh.set_color(yellow_color)
+            view.add_object(right_mesh)
+        if left_mesh is not None or right_mesh is not None:
+            mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
+            if mri is not None:
+                view.add_object(mri)
+
+    @QtCore.Slot()
     def update_white_surface_sulci_view(self):
         view = self._views[self.WHITE_SURFACE_SULCI]
         view.clear()
         left_mesh = self._viewport_model.observed_objects[IntraAnalysis.LEFT_WHITE_SURFACE]
         right_mesh = self._viewport_model.observed_objects[IntraAnalysis.RIGHT_WHITE_SURFACE]
+        green_color = [0.3, 1, 0.6, 1]
         if left_mesh is not None:
-            left_mesh.set_color([0.3, 1, 0.6, 1]) 
+            left_mesh.set_color(green_color) 
             view.add_object(left_mesh)
         if right_mesh is not None:
-            right_mesh.set_color([0.3, 1, 0.6, 1])
+            right_mesh.set_color(green_color)
             view.add_object(right_mesh)
         if left_mesh is not None or right_mesh is not None:
             mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
