@@ -89,7 +89,8 @@ class SubjectsTableView(QtGui.QWidget):
     @QtCore.Slot()
     def on_modelReset(self):
         self._tableview.selectRow(0)
-
+        self._tableview.resizeColumnsToContents()
+        
     def set_model(self, model):
         if self._tablemodel is not None:
             self._tablemodel.modelReset.disconnect(self.on_modelReset)
