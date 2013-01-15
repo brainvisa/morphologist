@@ -3,16 +3,13 @@ import os
 
 
 class Analysis(object):
-
     PARAMETER_TEMPLATES = []
     param_template_map = {}
-
 
     def __init__(self):
         self._steps = []
         self.input_params = InputParameters(file_param_names=[])
         self.output_params = OutputParameters(file_param_names=[])
-
 
     @classmethod
     def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
@@ -26,7 +23,6 @@ class Analysis(object):
         self.input_params = param_template_instance.get_input_params(input_filename)
         self.output_params = param_template_instance.get_output_params(groupname, subjectname, outputdir)
 
-
     def get_command_list(self):
         self._check_parameter_values_filled()
         self.propagate_parameters()
@@ -35,11 +31,9 @@ class Analysis(object):
             command_list.append(step.get_command())
         return command_list
 
-
     def propagate_parameters(self):
         raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redifined.") 
  
-
     def _check_parameter_values_filled(self):
         missing_parameters = []
         missing_parameters.extend(self.input_params.list_missing_parameter_values())  
@@ -49,14 +43,11 @@ class Analysis(object):
             message = separator.join(missing_parameters)
             raise MissingParameterValueError(message)
 
-
     def list_existing_output_files(self):
         return self.output_params.list_existing_files()
 
-
     def list_missing_output_files(self):
         return self.output_params.list_missing_files()
-
 
     def clear_output_files(self):
         for param_name in self.output_params.list_file_parameter_names():
@@ -127,7 +118,6 @@ class Parameters(object):
         if not name in self._parameter_names:
             raise UnknownParameterName(name)
         return setattr(self, name, value)
-
 
     def list_missing_parameter_values(self):
         missing_values = []

@@ -13,7 +13,6 @@ class RunnerView(QtGui.QWidget):
         self.ui = loadUi(self.uifile, self)
         self._runner_model = None
 
-        
     def set_model(self, model):
         if self._runner_model is not None:
             self._runner_model.runner_status_changed.disconnect(\
@@ -74,4 +73,3 @@ class RunnerView(QtGui.QWidget):
             self.ui.stop_button.setEnabled(False)
             self._runner_model.runner.stop()
             self.ui.run_button.setEnabled(True)
-            

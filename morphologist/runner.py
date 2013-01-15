@@ -69,7 +69,6 @@ class ThreadRunner(Runner):
         self._interruption = False
         self._last_run_failed = False
 
- 
     def _sync_run(self):
         self._last_run_failed = False
         command_list = []
@@ -89,26 +88,21 @@ class ThreadRunner(Runner):
                 self._last_run_failed = True
                 break
 
-   
     def run(self):
         self._check_input_output_files()
         if not self._execution_thread.is_alive():
             self._execution_thread.setDaemon(True)
             self._execution_thread.start()
     
-    
     def is_running(self, subject_name=None):
         return self._execution_thread.is_alive() 
     
-             
     def wait(self):
         self._execution_thread.join()
         
-            
     def last_run_failed(self):
         return self._last_run_failed
 
-        
     def stop(self):
         with self._lock:
             self._interruption = True
@@ -122,7 +116,6 @@ class ThreadRunner(Runner):
             
               
 class  SomaWorkflowRunner(Runner):
-    
     WORKFLOW_NAME_SUFFIX = "Morphologist user friendly analysis"
     
     def __init__(self, study):
@@ -173,7 +166,7 @@ class  SomaWorkflowRunner(Runner):
             previous_job=None
             
             for command in analysis.get_command_list():
-                job = Job(command = command)
+                job = Job(command=command)
                 subject_jobs.append(job)
                 if previous_job is not None:
                     dependencies.append((previous_job, job))
@@ -199,7 +192,6 @@ class  SomaWorkflowRunner(Runner):
                 job_ids.append(engine_job.job_id)
             self._subjects_jobs[subject_name] = job_ids
             
-    
     def is_running(self, subject_name=None):
         running = False
         if self._workflow_id is not None:

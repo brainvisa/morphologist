@@ -5,9 +5,9 @@ class ImageImportation(Step):
     
     def __init__(self):
         super(ImageImportation, self).__init__()
-        
+        #inputs
         self.input = None
-        
+        #outputs
         self.output = None
         
     def get_command(self):
@@ -21,9 +21,8 @@ class SpatialNormalization(Step):
 
     def __init__(self):
         super(SpatialNormalization, self).__init__()
-        
+        #inputs
         self.mri = None
-        
         #outputs
         self.commissure_coordinates = None
         self.talairach_transformation = None
@@ -40,7 +39,7 @@ class BiasCorrection(Step):
 
     def __init__(self):
         super(BiasCorrection, self).__init__()
-
+        #inputs
         self.mri = None
         self.commissure_coordinates = None 
         self.fix_random_seed = False
@@ -84,7 +83,7 @@ class HistogramAnalysis(Step):
 
     def __init__(self):
         super(HistogramAnalysis, self).__init__()
-
+        #inputs
         self.corrected_mri = None
         self.hfiltered = None
         self.white_ridges = None
@@ -92,7 +91,6 @@ class HistogramAnalysis(Step):
         # output
         self.histo_analysis = None 
 
-   
     def get_command(self):
         command = ['VipHistoAnalysis', 
                    '-i', self.corrected_mri, 
@@ -110,7 +108,7 @@ class BrainSegmentation(Step):
 
     def __init__(self):
         super(BrainSegmentation, self).__init__()
-
+        #inputs
         self.corrected_mri = None
         self.commissure_coordinates = None
         self.edges = None
@@ -121,7 +119,6 @@ class BrainSegmentation(Step):
         # output
         self.brain_mask = None
         self.white_ridges = None #input/output
-         
 
     def get_command(self):
         command = ['VipGetBrain',
@@ -149,7 +146,7 @@ class SplitBrain(Step):
 
     def __init__(self):
         super(SplitBrain, self).__init__()
-
+        #inputs
         self.corrected_mri = None
         self.commissure_coordinates = None
         self.brain_mask = None
@@ -191,7 +188,7 @@ class AbstractGreyWhite(Step):
 
     def __init__(self):
         super(AbstractGreyWhite, self).__init__()
-
+        #inputs
         self.corrected_mri = None
         self.commissure_coordinates = None
         self.histo_analysis = None
@@ -247,8 +244,10 @@ class RightGreyWhite(AbstractGreyWhite):
 
 
 class Grey(Step):
+
     def __init__(self):
         super(Grey, self).__init__()
+        #inputs
         self.corrected_mri = None
         self.histo_analysis = None
         self.grey_white = None
@@ -275,6 +274,7 @@ class WhiteSurface(Step):
 
     def __init__(self):
         super(WhiteSurface, self).__init__()
+        #inputs
         self.grey = None
         #outputs
         self.white_surface = None

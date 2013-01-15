@@ -42,13 +42,11 @@ class IntraAnalysis(Analysis):
         cls.param_template_map[cls.DEFAULT_PARAM_TEMPLATE] = \
                         DefaultIntraAnalysisParameterTemplate
   
-
     def __init__(self):
         super(IntraAnalysis, self).__init__() 
         self._init_steps()
         self.input_params = IntraAnalysisParameterTemplate.get_empty_input_params()
         self.output_params = IntraAnalysisParameterTemplate.get_empty_output_params()
-
 
     def _init_steps(self):
         self._normalization = SpatialNormalization()
@@ -74,7 +72,6 @@ class IntraAnalysis(Analysis):
                        self._left_white_surface,
                        self._right_white_surface]
 
-
     @classmethod
     def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
 
@@ -89,7 +86,6 @@ class IntraAnalysis(Analysis):
             raise ImportationError("The importation failed for the subject %s."
                                    % subjectname)
         return import_step.output
-
 
     def propagate_parameters(self):
         self._normalization.mri = self.input_params[IntraAnalysis.MRI]
@@ -170,12 +166,10 @@ class IntraAnalysis(Analysis):
         param_template_instance = cls.param_template_map[parameter_template]
         return param_template_instance.get_mri_path(groupname, subjectname, directory)
     
-
     @classmethod
     def create_outputdirs(cls, parameter_template, groupname, subjectname, directory):
         param_template_instance = cls.param_template_map[parameter_template]
         param_template_instance.create_outputdirs(groupname, subjectname, directory)
-
 
 
 class IntraAnalysisParameterTemplate(ParameterTemplate):
@@ -217,17 +211,13 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
         # TODO raise an exception if it not the case ?
         parameters = InputParameters(cls.input_file_param_names,
                                      cls.input_other_param_names)
-
         parameters[IntraAnalysis.MRI] = input_filename
-
         parameters[IntraAnalysis.EROSION_SIZE] = 1.8
         parameters[IntraAnalysis.BARY_FACTOR] = 0.6
-
         return parameters
 
 
 class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
-
     ACQUISITION = "default_acquisition"
     ANALYSIS = "default_analysis"
     REGISTRATION = "registration"

@@ -6,7 +6,6 @@ class LazyStudyModel(QtCore.QObject):
     status_changed = QtCore.pyqtSignal()
     runner_status_changed = QtCore.pyqtSignal(bool) 
 
-
     def __init__(self, study=None, runner=None, parent=None):
         super(LazyStudyModel, self).__init__(parent)
         self.study = None
@@ -20,7 +19,6 @@ class LazyStudyModel(QtCore.QObject):
         if study is not None and runner is not None:
             self.set_study(study, runner)
         self._timer.start()
-
 
     def set_study_and_runner(self, study, runner):
         if self.runner is None:
@@ -84,4 +82,3 @@ class LazyStudyModel(QtCore.QObject):
             self._status[subjectname] = status
             has_changed = True
         return has_changed
-
