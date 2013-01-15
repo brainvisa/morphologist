@@ -97,7 +97,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         #view1_frame, #view2_frame, #view3_frame, #view4_frame, #view5_frame, 
         #view6_frame, #view7_frame, #view8_frame {
             border: 3px solid black;
-            border-radius: 20px;
+            border-radius: 10px;
             background: black;
        }
         #view1_label, #view2_label, #view3_label, #view4_label, #view5_label, 

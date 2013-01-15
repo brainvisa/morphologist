@@ -69,8 +69,7 @@ class SubjectsTableView(QtGui.QWidget):
                                                stop:0 gray, stop:1 black);
             color:white;
             border: 0px
-        }'''
-    subjectname_column_width = 100    
+        }''' 
 
     def __init__(self, parent=None):
         super(SubjectsTableView, self).__init__(parent)
@@ -84,12 +83,11 @@ class SubjectsTableView(QtGui.QWidget):
         # FIXME : stylesheet has been disable and should stay disable until
         # subject list sorting has not been implementing
         #header.setStyleSheet(self.header_style_sheet)
-        header.resizeSection(0, self.subjectname_column_width)
-
+        header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        
     @QtCore.Slot()
     def on_modelReset(self):
         self._tableview.selectRow(0)
-        self._tableview.resizeColumnsToContents()
         
     def set_model(self, model):
         if self._tablemodel is not None:
