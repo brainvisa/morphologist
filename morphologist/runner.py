@@ -135,10 +135,7 @@ class  SomaWorkflowRunner(Runner):
         for (workflow_id, (name, _)) in self._workflow_controller.workflows().iteritems():
             if name is not None and name.endswith(self.WORKFLOW_NAME_SUFFIX):
                 self._workflow_controller.delete_workflow(workflow_id)
-       
-    def _define_workflow_name(self): 
-        return self._study.name + " " + self.WORKFLOW_NAME_SUFFIX
-    
+          
     def run(self):
         self._check_input_output_files()
         workflow = self._create_workflow()
@@ -179,7 +176,7 @@ class  SomaWorkflowRunner(Runner):
         workflow = Workflow(jobs=jobs, dependencies=dependencies, 
                             name=self._define_workflow_name(), root_group=groups)
         return workflow
- 
+
     def _update_subjects_jobs(self):
         self._subjects_jobs = {}
         engine_workflow = self._workflow_controller.workflow(self._workflow_id)
@@ -191,6 +188,9 @@ class  SomaWorkflowRunner(Runner):
                 engine_job = engine_workflow.job_mapping[job]
                 job_ids.append(engine_job.job_id)
             self._subjects_jobs[subject_name] = job_ids
+
+    def _define_workflow_name(self): 
+        return self._study.name + " " + self.WORKFLOW_NAME_SUFFIX
             
     def is_running(self, subject_name=None):
         running = False
