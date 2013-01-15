@@ -11,6 +11,7 @@ from morphologist.intra_analysis import IntraAnalysis
 
 class AnalysisViewportModel(QtCore.QObject):
     changed = QtCore.pyqtSignal()
+    parameter_changed = QtCore.pyqtSignal(str)
 
     def __init__(self, model):
         super(AnalysisViewportModel, self).__init__()
@@ -49,9 +50,7 @@ class AnalysisViewportModel(QtCore.QObject):
                 except LoadObjectError, e:
                     object = None
             self.observed_objects[parameter_name] = object
-            signal = self.signal_map.get(parameter_name)
-            if signal is not None:
-                self.__getattribute__(signal).emit()
+            self.parameter_changed.emit(parameter_name)
 
     @classmethod
     def load_object(cls, parameter_name, filename):
@@ -59,31 +58,6 @@ class AnalysisViewportModel(QtCore.QObject):
 
 
 class IntraAnalysisViewportModel(AnalysisViewportModel):
-    changed = QtCore.pyqtSignal()
-    raw_mri_changed = QtCore.pyqtSignal()
-    commissure_coordinates_changed = QtCore.pyqtSignal()
-    corrected_mri_changed = QtCore.pyqtSignal()
-    histo_analysis_changed = QtCore.pyqtSignal()
-    brain_mask_changed = QtCore.pyqtSignal()
-    split_mask_changed = QtCore.pyqtSignal()
-    grey_white_changed = QtCore.pyqtSignal()
-    grey_surface_changed = QtCore.pyqtSignal()
-    white_surface_changed = QtCore.pyqtSignal()
-
-    signal_map = { \
-        IntraAnalysis.MRI : 'raw_mri_changed',
-        IntraAnalysis.COMMISSURE_COORDINATES : 'commissure_coordinates_changed',
-        IntraAnalysis.CORRECTED_MRI : 'corrected_mri_changed',
-        IntraAnalysis.HISTO_ANALYSIS : 'histo_analysis_changed',
-        IntraAnalysis.BRAIN_MASK : 'brain_mask_changed',
-        IntraAnalysis.SPLIT_MASK : 'split_mask_changed',
-        IntraAnalysis.LEFT_GREY_WHITE : 'grey_white_changed',
-        IntraAnalysis.RIGHT_GREY_WHITE : 'grey_white_changed',
-        IntraAnalysis.LEFT_GREY_SURFACE : 'grey_surface_changed', 
-        IntraAnalysis.RIGHT_GREY_SURFACE : 'grey_surface_changed', 
-        IntraAnalysis.LEFT_WHITE_SURFACE : 'white_surface_changed',
-        IntraAnalysis.RIGHT_WHITE_SURFACE : 'white_surface_changed'
-    }
 
     def __init__(self, model):
         super(IntraAnalysisViewportModel, self).__init__(model)
@@ -151,19 +125,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     def _init_model(self, model):
         self._viewport_model = model
         self._viewport_model.changed.connect(self.on_model_changed)
-        self._viewport_model.raw_mri_changed.connect(self.update_raw_mri_acpc_view)
-        self._viewport_model.commissure_coordinates_changed.connect(self.update_raw_mri_acpc_view)
-        self._viewport_model.corrected_mri_changed.connect(self.update_corrected_mri_view) 
-        self._viewport_model.corrected_mri_changed.connect(self.update_brain_mask_view) 
-        self._viewport_model.corrected_mri_changed.connect(self.update_split_mask_view) 
-        self._viewport_model.corrected_mri_changed.connect(self.update_grey_white_view) 
-        self._viewport_model.corrected_mri_changed.connect(self.update_white_surface_sulci_view) 
-        self._viewport_model.histo_analysis_changed.connect(self.update_histo_analysis_view)
-        self._viewport_model.brain_mask_changed.connect(self.update_brain_mask_view)
-        self._viewport_model.split_mask_changed.connect(self.update_split_mask_view)
-        self._viewport_model.grey_white_changed.connect(self.update_grey_white_view)
-        self._viewport_model.white_surface_changed.connect(self.update_grey_surface_view)
-        self._viewport_model.white_surface_changed.connect(self.update_white_surface_sulci_view)
+        self._viewport_model.parameter_changed.connect(self.on_parameter_changed)
 
     def _init_widget(self):
         self.ui.setStyleSheet(self.main_frame_style_sheet)
@@ -195,8 +157,35 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     def on_model_changed(self):
         for view in self._views.values():
             view.clear()
-
-    @QtCore.Slot()
+    
+    @QtCore.Slot(str)
+    def on_parameter_changed(self, parameter_name):
+        if ((parameter_name == IntraAnalysis.MRI) or 
+            (parameter_name == IntraAnalysis.COMMISSURE_COORDINATES)):
+            self.update_raw_mri_acpc_view()
+        elif parameter_name == IntraAnalysis.CORRECTED_MRI:
+            self.update_corrected_mri_view()
+            self.update_brain_mask_view()
+            self.update_split_mask_view()
+            self.update_grey_white_view()
+            self.update_grey_surface_view()
+            self.update_white_surface_sulci_view()
+        elif parameter_name == IntraAnalysis.HISTO_ANALYSIS:
+            self.update_histo_analysis_view()
+        elif parameter_name == IntraAnalysis.BRAIN_MASK:
+            self.update_brain_mask_view()
+        elif parameter_name == IntraAnalysis.SPLIT_MASK:
+            self.update_split_mask_view()
+        elif ((parameter_name == IntraAnalysis.LEFT_GREY_WHITE) or
+              (parameter_name == IntraAnalysis.RIGHT_GREY_WHITE)):
+            self.update_grey_white_view()
+        elif ((parameter_name == IntraAnalysis.LEFT_GREY_SURFACE) or
+              (parameter_name == IntraAnalysis.RIGHT_GREY_SURFACE)):
+            self.update_grey_surface_view()
+        elif ((parameter_name == IntraAnalysis.LEFT_WHITE_SURFACE) or
+              (parameter_name == IntraAnalysis.RIGHT_WHITE_SURFACE)):
+            self.update_white_surface_sulci_view()
+        
     def update_raw_mri_acpc_view(self):
         view = self._views[self.RAW_MRI_ACPC]
         view.clear()
@@ -212,7 +201,6 @@ class IntraAnalysisViewportView(QtGui.QWidget):
             view.add_object(apc_object)
             view.center_on_object(apc_object)
 
-    @QtCore.Slot()
     def update_corrected_mri_view(self):
         view = self._views[self.BIAS_CORRECTED]
         view.clear()
@@ -246,7 +234,6 @@ class IntraAnalysisViewportView(QtGui.QWidget):
             else:
                 view.add_object(mask) 
 
-    @QtCore.Slot()
     def update_split_mask_view(self):
         view = self._views[self.SPLIT_MASK]
         view.clear()
@@ -261,8 +248,6 @@ class IntraAnalysisViewportView(QtGui.QWidget):
             else:
                 view.add_object(mask) 
 
-
-    @QtCore.Slot()
     def update_grey_white_view(self):
         view = self._views[self.GREY_WHITE]
         view.clear()
@@ -281,7 +266,6 @@ class IntraAnalysisViewportView(QtGui.QWidget):
                 self._objects[self.GREY_WHITE] = mask_fusion
                 view.add_object(mask_fusion)
 
-    @QtCore.Slot()
     def update_grey_surface_view(self):
         view = self._views[self.GREY_SURFACE]
         view.clear()
@@ -299,7 +283,6 @@ class IntraAnalysisViewportView(QtGui.QWidget):
             if mri is not None:
                 view.add_object(mri)
 
-    @QtCore.Slot()
     def update_white_surface_sulci_view(self):
         view = self._views[self.WHITE_SURFACE_SULCI]
         view.clear()
