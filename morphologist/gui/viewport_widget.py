@@ -263,7 +263,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         if left_mask is not None and right_mask is not None:
             left_mask.set_color_map("RAINBOW")
             right_mask.set_color_map("RAINBOW")
-            mask_fusion = Object3D.from_fusion(left_mask, right_mask, mode='linear', rate=0.5)
+            mask_fusion = Object3D.from_fusion(left_mask, right_mask, mode='max_channel', rate=0.5)
             mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
             if mri is not None:
                 fusion = Object3D.from_fusion(mri, mask_fusion, mode='linear', rate=0.7)

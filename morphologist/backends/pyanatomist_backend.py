@@ -87,8 +87,8 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
     def create_backend_fusion_object(cls, backend_object1, backend_object2, mode, rate):
         fusion = cls.anatomist.fusionObjects([backend_object1, backend_object2], 
                                              method='Fusion2DMethod')
-        cls.anatomist.execute("Fusion2DParams", object=fusion, mode=mode, rate=rate,
-                              reorder_objects=[backend_object1, backend_object2])
+        cls.anatomist.execute("TexturingParams", objects=[fusion], mode=mode, rate=rate, 
+                              texture_index=1)
         return fusion
 
     @classmethod
