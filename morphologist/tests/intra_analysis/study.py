@@ -44,13 +44,13 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
     def delete_some_input_files(self):
         parameter_names = [IntraAnalysis.MRI]
         for name in parameter_names:
-            file_name = self.study.analyses.values()[1].input_params.get_value(name)
+            file_name = self.study.analyses.values()[1].inputs.get_value(name)
             os.rename(file_name, file_name + "hide_for_test") 
 
     def create_some_output_files(self):
         parameter_names = [IntraAnalysis.SPLIT_MASK, IntraAnalysis.VARIANCE]
         for name in parameter_names:
-            file_name = self.study.analyses.values()[0].output_params.get_value(name)
+            file_name = self.study.analyses.values()[0].outputs.get_value(name)
             f = open(file_name, "w")
             f.write("something\n")
             f.close() 
@@ -58,7 +58,7 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
     def restore_input_files(self):
         parameter_names = [IntraAnalysis.MRI]
         for name in parameter_names:
-            file_name = self.study.analyses.values()[1].input_params.get_value(name)
+            file_name = self.study.analyses.values()[1].inputs.get_value(name)
             if file_name != None and os.path.isfile(file_name + "hide_for_test"):
                 os.rename(file_name + "hide_for_test", file_name) 
 

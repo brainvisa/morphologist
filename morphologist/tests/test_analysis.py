@@ -28,7 +28,7 @@ class TestAnalysis(unittest.TestCase):
 
         self.assertRaises(UnknownParameterName, 
                           InputParameters.get_value, 
-                          self.analysis.input_params, wrong_parameter_name)
+                          self.analysis.inputs, wrong_parameter_name)
 
     def test_clear_output_files(self):
         self.test_case.set_analysis_parameters()

@@ -45,8 +45,8 @@ class IntraAnalysis(Analysis):
     def __init__(self):
         super(IntraAnalysis, self).__init__() 
         self._init_steps()
-        self.input_params = IntraAnalysisParameterTemplate.get_empty_input_params()
-        self.output_params = IntraAnalysisParameterTemplate.get_empty_output_params()
+        self.inputs = IntraAnalysisParameterTemplate.get_empty_inputs()
+        self.outputs = IntraAnalysisParameterTemplate.get_empty_outputs()
 
     def _init_steps(self):
         self._normalization = SpatialNormalization()
@@ -88,25 +88,25 @@ class IntraAnalysis(Analysis):
         return import_step.output
 
     def propagate_parameters(self):
-        self._normalization.mri = self.input_params[IntraAnalysis.MRI]
-        self._normalization.commissure_coordinates = self.output_params[IntraAnalysis.COMMISSURE_COORDINATES]
-        self._normalization.talairach_transformation = self.output_params[IntraAnalysis.TALAIRACH_TRANSFORMATION]
+        self._normalization.mri = self.inputs[IntraAnalysis.MRI]
+        self._normalization.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
+        self._normalization.talairach_transformation = self.outputs[IntraAnalysis.TALAIRACH_TRANSFORMATION]
         
-        self._bias_correction.mri = self.input_params[IntraAnalysis.MRI]
+        self._bias_correction.mri = self.inputs[IntraAnalysis.MRI]
         self._bias_correction.commissure_coordinates = self._normalization.commissure_coordinates
 
-        self._bias_correction.hfiltered = self.output_params[IntraAnalysis.HFILTERED]
-        self._bias_correction.white_ridges = self.output_params[IntraAnalysis.WHITE_RIDGES]
-        self._bias_correction.edges = self.output_params[IntraAnalysis.EDGES]
-        self._bias_correction.variance = self.output_params[IntraAnalysis.VARIANCE]
-        self._bias_correction.corrected_mri = self.output_params[IntraAnalysis.CORRECTED_MRI]
+        self._bias_correction.hfiltered = self.outputs[IntraAnalysis.HFILTERED]
+        self._bias_correction.white_ridges = self.outputs[IntraAnalysis.WHITE_RIDGES]
+        self._bias_correction.edges = self.outputs[IntraAnalysis.EDGES]
+        self._bias_correction.variance = self.outputs[IntraAnalysis.VARIANCE]
+        self._bias_correction.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
 
 
         self._histogram_analysis.corrected_mri = self._bias_correction.corrected_mri
         self._histogram_analysis.hfiltered = self._bias_correction.hfiltered
         self._histogram_analysis.white_ridges = self._bias_correction.white_ridges
         
-        self._histogram_analysis.histo_analysis = self.output_params[IntraAnalysis.HISTO_ANALYSIS]
+        self._histogram_analysis.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
 
 
         self._brain_segmentation.corrected_mri = self._bias_correction.corrected_mri
@@ -115,9 +115,9 @@ class IntraAnalysis(Analysis):
         self._brain_segmentation.edges = self._bias_correction.edges
         self._brain_segmentation.variance = self._bias_correction.variance
         self._brain_segmentation.histo_analysis = self._histogram_analysis.histo_analysis        
-        self._brain_segmentation.erosion_size = self.input_params[IntraAnalysis.EROSION_SIZE]
+        self._brain_segmentation.erosion_size = self.inputs[IntraAnalysis.EROSION_SIZE]
 
-        self._brain_segmentation.brain_mask = self.output_params[IntraAnalysis.BRAIN_MASK]
+        self._brain_segmentation.brain_mask = self.outputs[IntraAnalysis.BRAIN_MASK]
 
   
         self._split_brain.corrected_mri = self._bias_correction.corrected_mri
@@ -125,9 +125,9 @@ class IntraAnalysis(Analysis):
         self._split_brain.white_ridges = self._bias_correction.white_ridges
         self._split_brain.histo_analysis = self._histogram_analysis.histo_analysis
         self._split_brain.commissure_coordinates = self._normalization.commissure_coordinates
-        self._split_brain.bary_factor = self.input_params[IntraAnalysis.BARY_FACTOR]
+        self._split_brain.bary_factor = self.inputs[IntraAnalysis.BARY_FACTOR]
 
-        self._split_brain.split_mask = self.output_params[IntraAnalysis.SPLIT_MASK]
+        self._split_brain.split_mask = self.outputs[IntraAnalysis.SPLIT_MASK]
 
 
         self._left_grey_white.corrected_mri = self._bias_correction.corrected_mri
@@ -135,31 +135,31 @@ class IntraAnalysis(Analysis):
         self._left_grey_white.histo_analysis = self._histogram_analysis.histo_analysis
         self._left_grey_white.split_mask = self._split_brain.split_mask
         self._left_grey_white.edges = self._bias_correction.edges
-        self._left_grey_white.left_grey_white = self.output_params[IntraAnalysis.LEFT_GREY_WHITE]
+        self._left_grey_white.left_grey_white = self.outputs[IntraAnalysis.LEFT_GREY_WHITE]
 
         self._right_grey_white.corrected_mri = self._bias_correction.corrected_mri
         self._right_grey_white.commissure_coordinates = self._normalization.commissure_coordinates
         self._right_grey_white.histo_analysis = self._histogram_analysis.histo_analysis
         self._right_grey_white.split_mask = self._split_brain.split_mask
         self._right_grey_white.edges = self._bias_correction.edges
-        self._right_grey_white.right_grey_white = self.output_params[IntraAnalysis.RIGHT_GREY_WHITE]
+        self._right_grey_white.right_grey_white = self.outputs[IntraAnalysis.RIGHT_GREY_WHITE]
 
 
         self._left_grey.corrected_mri = self._bias_correction.corrected_mri
         self._left_grey.histo_analysis = self._histogram_analysis.histo_analysis
         self._left_grey.grey_white = self._left_grey_white.left_grey_white
-        self._left_grey.grey = self.output_params[IntraAnalysis.LEFT_GREY]
+        self._left_grey.grey = self.outputs[IntraAnalysis.LEFT_GREY]
 
         self._right_grey.corrected_mri = self._bias_correction.corrected_mri
         self._right_grey.histo_analysis = self._histogram_analysis.histo_analysis
         self._right_grey.grey_white = self._right_grey_white.right_grey_white
-        self._right_grey.grey = self.output_params[IntraAnalysis.RIGHT_GREY]
+        self._right_grey.grey = self.outputs[IntraAnalysis.RIGHT_GREY]
 
         self._left_white_surface.grey = self._left_grey.grey
-        self._left_white_surface.white_surface = self.output_params[IntraAnalysis.LEFT_WHITE_SURFACE]
+        self._left_white_surface.white_surface = self.outputs[IntraAnalysis.LEFT_WHITE_SURFACE]
 
         self._right_white_surface.grey = self._right_grey.grey
-        self._right_white_surface.white_surface = self.output_params[IntraAnalysis.RIGHT_WHITE_SURFACE]
+        self._right_white_surface.white_surface = self.outputs[IntraAnalysis.RIGHT_WHITE_SURFACE]
 
     @classmethod
     def get_mri_path(cls, parameter_template, groupname, subjectname, directory):
@@ -193,12 +193,12 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
                                IntraAnalysis.RIGHT_WHITE_SURFACE]
 
     @classmethod
-    def get_empty_input_params(cls):
+    def get_empty_inputs(cls):
         return InputParameters(cls.input_file_param_names,
                                cls.input_other_param_names)
 
     @classmethod
-    def get_empty_output_params(cls):
+    def get_empty_outputs(cls):
         return OutputParameters(cls.output_file_param_names)
     
     @classmethod
@@ -206,7 +206,7 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
         raise Exception("IntraAnalysisParameterTemplate is an Abstract class.")
     
     @classmethod
-    def get_input_params(cls, input_filename):
+    def get_inputs(cls, input_filename):
         # input_filename should be in cls.get_mri_path()
         # TODO raise an exception if it not the case ?
         parameters = InputParameters(cls.input_file_param_names,
@@ -231,7 +231,7 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                             cls.ACQUISITION, subjectname + ".nii")
 
     @classmethod
-    def get_output_params(cls, groupname, subjectname, outputdir):
+    def get_outputs(cls, groupname, subjectname, outputdir):
         # the directory hierarchy in the outputdir will be 
         # subjectname/t1mri/default_acquisition/default_analysis/segmentation
         default_acquisition_path = os.path.join(outputdir, groupname, subjectname, 
@@ -313,7 +313,7 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         return os.path.join(directory, groupname, subjectname, subjectname + ".nii")
 
     @classmethod
-    def get_output_params(cls, groupname, subjectname, outputdir):
+    def get_outputs(cls, groupname, subjectname, outputdir):
         parameters = OutputParameters(cls.output_file_param_names)
 
         subject_path = os.path.join(outputdir, groupname, subjectname)

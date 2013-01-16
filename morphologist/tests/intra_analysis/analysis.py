@@ -43,13 +43,13 @@ class IntraAnalysisTestCase(AnalysisTestCase):
         self.analysis.clear_output_files() 
 
     def delete_some_parameter_values(self):
-        self.analysis.output_params.edges = None
-        self.analysis.input_params.mri = None
+        self.analysis.outputs.edges = None
+        self.analysis.inputs.mri = None
 
     def create_some_output_files(self):
         parameter_names = [IntraAnalysis.SPLIT_MASK, IntraAnalysis.HFILTERED]
         for name in parameter_names:
-            file_name = self.analysis.output_params.get_value(name)
+            file_name = self.analysis.outputs.get_value(name)
             f = open(file_name, "w")
             f.write("something\n")
             f.close() 

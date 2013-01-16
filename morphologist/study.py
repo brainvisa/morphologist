@@ -74,19 +74,19 @@ class Study(object):
         for subject_name, serialized_subject in serialized['subjects'].iteritems():
             study.subjects[subject_name] = Subject.unserialize(serialized_subject)
         for subject_name in study.subjects.iterkeys():
-            if subject_name not in serialized['input_params']:
+            if subject_name not in serialized['inputs']:
                 raise StudySerializationError("Cannot find input params"
                                          " for subject %s" %subject_name)
-            if subject_name not in serialized['output_params']:
+            if subject_name not in serialized['outputs']:
                 raise StudySerializationError("Cannot find output params" 
                                          " for subject %s" %subject_name)
-            serialized_input_params = serialized['input_params'][subject_name] 
-            serialized_output_params = serialized['output_params'][subject_name]
-            input_params = InputParameters.unserialize(serialized_input_params) 
-            output_params = OutputParameters.unserialize(serialized_output_params)
+            serialized_inputs = serialized['inputs'][subject_name] 
+            serialized_outputs = serialized['outputs'][subject_name]
+            inputs = InputParameters.unserialize(serialized_inputs) 
+            outputs = OutputParameters.unserialize(serialized_outputs)
             analysis = cls._create_analysis()
-            analysis.input_params = input_params
-            analysis.output_params = output_params
+            analysis.inputs = inputs
+            analysis.outputs = outputs
             # TODO => check if the parameters are compatibles with the analysis ?
             study.analyses[subject_name] = analysis
         return study
@@ -106,11 +106,11 @@ class Study(object):
         serialized['subjects'] = {}
         for subjectname, subject in self.subjects.iteritems():
             serialized['subjects'][subjectname] = subject.serialize()
-        serialized['input_params'] = {}
-        serialized['output_params'] = {}
+        serialized['inputs'] = {}
+        serialized['outputs'] = {}
         for subjectname, analysis in self.analyses.iteritems():
-            serialized['input_params'][subjectname] = analysis.input_params.serialize()
-            serialized['output_params'][subjectname] = analysis.output_params.serialize()
+            serialized['inputs'][subjectname] = analysis.inputs.serialize()
+            serialized['outputs'][subjectname] = analysis.outputs.serialize()
         return serialized 
 
     @staticmethod

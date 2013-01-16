@@ -15,7 +15,7 @@ class MockIntraAnalysis(IntraAnalysis):
 
 
     def _init_steps(self):
-        mock_out_files = BrainvisaIntraAnalysisParameterTemplate.get_output_params("test", "hyperion",
+        mock_out_files = BrainvisaIntraAnalysisParameterTemplate.get_outputs("test", "hyperion",
                         "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/bv_database")
         self._normalization = MockSpatialNormalization(mock_out_files)
         self._bias_correction = MockBiasCorrection(mock_out_files)

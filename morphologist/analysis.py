@@ -8,8 +8,8 @@ class Analysis(object):
 
     def __init__(self):
         self._steps = []
-        self.input_params = InputParameters(file_param_names=[])
-        self.output_params = OutputParameters(file_param_names=[])
+        self.inputs = InputParameters(file_param_names=[])
+        self.outputs = OutputParameters(file_param_names=[])
 
     @classmethod
     def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
@@ -20,8 +20,8 @@ class Analysis(object):
             raise UnknownParameterTemplate(parameter_template)
 
         param_template_instance = self.param_template_map[parameter_template]
-        self.input_params = param_template_instance.get_input_params(input_filename)
-        self.output_params = param_template_instance.get_output_params(groupname, subjectname, outputdir)
+        self.inputs = param_template_instance.get_inputs(input_filename)
+        self.outputs = param_template_instance.get_outputs(groupname, subjectname, outputdir)
 
     def get_command_list(self):
         self._check_parameter_values_filled()
@@ -36,22 +36,22 @@ class Analysis(object):
  
     def _check_parameter_values_filled(self):
         missing_parameters = []
-        missing_parameters.extend(self.input_params.list_missing_parameter_values())  
-        missing_parameters.extend(self.output_params.list_missing_parameter_values())
+        missing_parameters.extend(self.inputs.list_missing_parameter_values())  
+        missing_parameters.extend(self.outputs.list_missing_parameter_values())
         if missing_parameters:
             separator = " ,"
             message = separator.join(missing_parameters)
             raise MissingParameterValueError(message)
 
     def list_existing_output_files(self):
-        return self.output_params.list_existing_files()
+        return self.outputs.list_existing_files()
 
     def list_missing_output_files(self):
-        return self.output_params.list_missing_files()
+        return self.outputs.list_missing_files()
 
     def clear_output_files(self):
-        for param_name in self.output_params.list_file_parameter_names():
-            out_file_path = self.output_params.get_value(param_name)
+        for param_name in self.outputs.list_file_parameter_names():
+            out_file_path = self.outputs.get_value(param_name)
             if os.path.isfile(out_file_path):
                 os.remove(out_file_path)
 
@@ -59,19 +59,19 @@ class Analysis(object):
 class ParameterTemplate(object):
     
     @classmethod
-    def get_empty_input_params(cls):
+    def get_empty_inputs(cls):
         raise NotImplementedError("ParameterTemplate is an abstract class")
 
     @classmethod
-    def get_empty_output_params(cls):
+    def get_empty_outputs(cls):
         raise NotImplementedError("ParameterTemplate is an abstract class")
 
     @classmethod
-    def get_input_params(cls, input_filename):
+    def get_inputs(cls, input_filename):
         raise NotImplementedError("ParameterTemplate is an abstract class")
 
     @classmethod
-    def get_output_params(cls, groupname, subjectname, outputdir):
+    def get_outputs(cls, groupname, subjectname, outputdir):
         raise NotImplementedError("ParameterTemplate is an abstract class")
     
     @classmethod

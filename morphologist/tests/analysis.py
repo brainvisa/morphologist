@@ -49,13 +49,13 @@ class MockAnalysisTestCase(AnalysisTestCase):
                                      outputdir=self.outputdir)
 
     def delete_some_parameter_values(self):
-        self.analysis.output_params.output_3 = None
-        self.analysis.input_params.input_4 = None
+        self.analysis.outputs.output_3 = None
+        self.analysis.inputs.input_4 = None
 
     def create_some_output_files(self):
         parameter_names = ['output_1', 'output_4']
         for name in parameter_names:
-            file_name = self.analysis.output_params.get_value(name)
+            file_name = self.analysis.outputs.get_value(name)
             f = open(file_name, "w")
             f.write("something\n")
             f.close()
