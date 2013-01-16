@@ -129,18 +129,18 @@ class IntraAnalysisViewportView(QtGui.QWidget):
 
     def _init_widget(self):
         self.ui.setStyleSheet(self.main_frame_style_sheet)
-        self.ui.view1_label.setText("1 ) Raw MRI, AC/PC")
+        self.ui.view1_label.setText(" 1 ) Raw MRI, AC/PC")
         self.ui.view1_label.setToolTip("Raw T1 MRI + Anterior(blue)/Posterior(yellow) commissures")
-        self.ui.view2_label.setText("2 ) Bias corrected MRI")
-        self.ui.view3_label.setText("3 ) Histogram")
+        self.ui.view2_label.setText(" 2 ) Bias corrected MRI")
+        self.ui.view3_label.setText(" 3 ) Histogram")
         self.ui.view3_label.setToolTip("Histogram analysis")
-        self.ui.view4_label.setText("4 ) Brain mask")
-        self.ui.view5_label.setText("5 ) Hemispheres mask")
+        self.ui.view4_label.setText(" 4 ) Brain mask")
+        self.ui.view5_label.setText(" 5 ) Hemispheres mask")
         self.ui.view5_label.setToolTip("Hemispheres and cerebellum mask")
-        self.ui.view6_label.setText("6 ) G/W classification")
+        self.ui.view6_label.setText(" 6 ) G/W classification")
         self.ui.view6_label.setToolTip("Grey/White classification")
-        self.ui.view7_label.setText("7 ) Grey surface")
-        self.ui.view8_label.setText("8 ) White surface, Sulci")
+        self.ui.view7_label.setText(" 7 ) Grey surface")
+        self.ui.view8_label.setText(" 8 ) White surface, Sulci")
         self.ui.view8_label.setToolTip("Labelled sulci on white surface")
 
         for view_name, view_hook in [(self.RAW_MRI_ACPC, self.ui.view1_hook), 
