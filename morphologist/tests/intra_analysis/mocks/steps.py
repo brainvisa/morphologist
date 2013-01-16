@@ -1,6 +1,6 @@
 from morphologist.intra_analysis_steps import SpatialNormalization, \
         BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
-        LeftGreyWhite, RightGreyWhite, Grey, WhiteSurface
+        GreyWhite, Grey, WhiteSurface
 from morphologist.intra_analysis import IntraAnalysis
 
 
@@ -79,34 +79,24 @@ class MockSplitBrain(SplitBrain):
         return command
 
 
-class MockLeftGreyWhite(LeftGreyWhite):
+class MockGreyWhite(GreyWhite):
     
-    def __init__(self, mock_out_files):
-        super(MockLeftGreyWhite, self).__init__()
+    def __init__(self, mock_out_files, left=True):
+        super(MockGreyWhite, self).__init__(left)
         self.out_files = mock_out_files
  
     def get_command(self):
+        if self.left:
+            out_file = self.out_files[IntraAnalysis.LEFT_GREY_WHITE]
+        else:
+            out_file = self.out_files[IntraAnalysis.RIGHT_GREY_WHITE]
         command = ['python', '-m',
             'morphologist.tests.intra_analysis.mocks.steps',
             'grey_white',
-            self.out_files[IntraAnalysis.LEFT_GREY_WHITE],
-            self.left_grey_white]
+            out_file, 
+            self.grey_white]
         return command
 
-
-class MockRightGreyWhite(RightGreyWhite):
-    
-    def __init__(self, mock_out_files):
-        super(MockRightGreyWhite, self).__init__()
-        self.out_files = mock_out_files
- 
-    def get_command(self):
-        command = ['python', '-m',
-            'morphologist.tests.intra_analysis.mocks.steps',
-            'grey_white',
-            self.out_files[IntraAnalysis.RIGHT_GREY_WHITE],
-            self.right_grey_white]
-        return command
 
 class MockGrey(Grey):
     
@@ -121,6 +111,7 @@ class MockGrey(Grey):
                    self.ref_grey,
                    self.grey]
         return command
+
     
 class MockWhiteSurface(WhiteSurface):
     

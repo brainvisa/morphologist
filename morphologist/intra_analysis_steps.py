@@ -186,10 +186,11 @@ class SplitBrain(Step):
         return command
     
 
-class AbstractGreyWhite(Step):
+class GreyWhite(Step):
 
-    def __init__(self):
-        super(AbstractGreyWhite, self).__init__()
+    def __init__(self, left=True):
+        super(GreyWhite, self).__init__()
+        self.left = left
         #inputs
         self.corrected_mri = None
         self.commissure_coordinates = None
@@ -197,11 +198,10 @@ class AbstractGreyWhite(Step):
         self.split_mask = None
         self.edges = None
         self.fix_random_seed = False
+        #outputs
+        self.grey_white = None
 
     def get_command(self):
-        raise NotImplementedError("AbstractGreyWhite is an abstract class.")
-
-    def _get_base_command(self):
         command  = ['VipGreyWhiteClassif',
                     '-input', self.corrected_mri,
                     '-Points', self.commissure_coordinates,
@@ -212,35 +212,10 @@ class AbstractGreyWhite(Step):
                     '-algo', 'N']
         if self.fix_random_seed:
             command.extend(['-srand', '10'])  
-        return command
-
-
-class LeftGreyWhite(AbstractGreyWhite):
-
-    def __init__(self):
-        super(LeftGreyWhite, self).__init__()
-        #outputs
-        self.left_grey_white = None
-
-    def get_command(self):
-        command = self._get_base_command()
-        command.extend(['-label', '2', '-output', self.left_grey_white])
-
-        # TODO referentials ?
-        return command
-
-
-class RightGreyWhite(AbstractGreyWhite):
-
-    def __init__(self):
-        super(RightGreyWhite, self).__init__()
-        #outputs
-        self.right_grey_white = None
-
-    def get_command(self):
-        command = self._get_base_command()
-        command.extend(['-label', '1', '-output', self.right_grey_white])
-
+        if self.left:
+            command.extend(['-label', '2', '-output', self.grey_white])
+        else:
+            command.extend(['-label', '1', '-output', self.grey_white])
         # TODO referentials ?
         return command
 

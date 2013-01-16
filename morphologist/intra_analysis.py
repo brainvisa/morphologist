@@ -4,7 +4,7 @@ from morphologist.analysis import Analysis, InputParameters, OutputParameters, \
                                   ImportationError, ParameterTemplate
 from morphologist.intra_analysis_steps import ImageImportation, \
     BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
-    LeftGreyWhite, RightGreyWhite, SpatialNormalization, Grey, WhiteSurface
+    GreyWhite, SpatialNormalization, Grey, WhiteSurface
 
 
 
@@ -56,8 +56,8 @@ class IntraAnalysis(Analysis):
         self._histogram_analysis = HistogramAnalysis()
         self._brain_segmentation = BrainSegmentation()
         self._split_brain = SplitBrain()
-        self._left_grey_white = LeftGreyWhite()
-        self._right_grey_white = RightGreyWhite()
+        self._left_grey_white = GreyWhite(left=True)
+        self._right_grey_white = GreyWhite(left=False)
         self._left_grey = Grey()
         self._right_grey = Grey()
         self._left_white_surface = WhiteSurface()
@@ -138,24 +138,23 @@ class IntraAnalysis(Analysis):
         self._left_grey_white.histo_analysis = self._histogram_analysis.histo_analysis
         self._left_grey_white.split_mask = self._split_brain.split_mask
         self._left_grey_white.edges = self._bias_correction.edges
-        self._left_grey_white.left_grey_white = self.outputs[IntraAnalysis.LEFT_GREY_WHITE]
+        self._left_grey_white.grey_white = self.outputs[IntraAnalysis.LEFT_GREY_WHITE]
 
         self._right_grey_white.corrected_mri = self._bias_correction.corrected_mri
         self._right_grey_white.commissure_coordinates = self._normalization.commissure_coordinates
         self._right_grey_white.histo_analysis = self._histogram_analysis.histo_analysis
         self._right_grey_white.split_mask = self._split_brain.split_mask
         self._right_grey_white.edges = self._bias_correction.edges
-        self._right_grey_white.right_grey_white = self.outputs[IntraAnalysis.RIGHT_GREY_WHITE]
-
+        self._right_grey_white.grey_white = self.outputs[IntraAnalysis.RIGHT_GREY_WHITE]
 
         self._left_grey.corrected_mri = self._bias_correction.corrected_mri
         self._left_grey.histo_analysis = self._histogram_analysis.histo_analysis
-        self._left_grey.grey_white = self._left_grey_white.left_grey_white
+        self._left_grey.grey_white = self._left_grey_white.grey_white
         self._left_grey.grey = self.outputs[IntraAnalysis.LEFT_GREY]
 
         self._right_grey.corrected_mri = self._bias_correction.corrected_mri
         self._right_grey.histo_analysis = self._histogram_analysis.histo_analysis
-        self._right_grey.grey_white = self._right_grey_white.right_grey_white
+        self._right_grey.grey_white = self._right_grey_white.grey_white
         self._right_grey.grey = self.outputs[IntraAnalysis.RIGHT_GREY]
 
         self._left_white_surface.grey = self._left_grey.grey

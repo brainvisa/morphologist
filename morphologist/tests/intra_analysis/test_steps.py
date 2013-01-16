@@ -12,7 +12,7 @@ from brainvisa.data import neuroHierarchy
 
 from morphologist.intra_analysis_steps import ImageImportation, \
     SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation,\
-    SplitBrain, LeftGreyWhite, RightGreyWhite, Grey, WhiteSurface
+    SplitBrain, GreyWhite, Grey, WhiteSurface
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate, \
                                         IntraAnalysis    
 
@@ -180,13 +180,13 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         self._assert_same_results([IntraAnalysis.SPLIT_MASK])
 
     def test_grey_white(self):
-        left_grey_white = LeftGreyWhite()
-        right_grey_white = RightGreyWhite()
+        left_grey_white = GreyWhite(left=True)
+        right_grey_white = GreyWhite(left=False)
         self._init_test_grey_white(left_grey_white)
         self._init_test_grey_white(right_grey_white)
 
-        left_grey_white.left_grey_white = self.test_outputs[IntraAnalysis.LEFT_GREY_WHITE]
-        right_grey_white.right_grey_white = self.test_outputs[IntraAnalysis.RIGHT_GREY_WHITE]
+        left_grey_white.grey_white = self.test_outputs[IntraAnalysis.LEFT_GREY_WHITE]
+        right_grey_white.grey_white = self.test_outputs[IntraAnalysis.RIGHT_GREY_WHITE]
                 
         self.assert_(left_grey_white.run() == 0)
         self.assert_(right_grey_white.run() == 0)
