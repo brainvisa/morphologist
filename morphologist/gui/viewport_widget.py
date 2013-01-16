@@ -150,7 +150,9 @@ class IntraAnalysisViewportView(QtGui.QWidget):
                                      (self.GREY_WHITE, self.ui.view6_hook),
                                      (self.GREY_SURFACE, self.ui.view7_hook),
                                      (self.WHITE_SURFACE_SULCI, self.ui.view8_hook)]:
-            QtGui.QVBoxLayout(view_hook)
+            layout = QtGui.QVBoxLayout(view_hook)
+            layout.setMargin(0)
+            layout.setSpacing(0)
             view = View(view_hook)
             view.set_bgcolor([0., 0., 0., 1.])
             self._views[view_name] = view
