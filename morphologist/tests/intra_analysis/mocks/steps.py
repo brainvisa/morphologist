@@ -81,19 +81,15 @@ class MockSplitBrain(SplitBrain):
 
 class MockGreyWhite(GreyWhite):
     
-    def __init__(self, mock_out_files, left=True):
-        super(MockGreyWhite, self).__init__(left)
-        self.out_files = mock_out_files
+    def __init__(self, ref_grey_white):
+        super(MockGreyWhite, self).__init__()
+        self.ref_grey_white = ref_grey_white
  
     def get_command(self):
-        if self.left:
-            out_file = self.out_files[IntraAnalysis.LEFT_GREY_WHITE]
-        else:
-            out_file = self.out_files[IntraAnalysis.RIGHT_GREY_WHITE]
         command = ['python', '-m',
             'morphologist.tests.intra_analysis.mocks.steps',
             'grey_white',
-            out_file, 
+            self.ref_grey_white, 
             self.grey_white]
         return command
 
