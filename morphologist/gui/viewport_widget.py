@@ -1,5 +1,7 @@
 import os
 
+from morphologist_common import histo_analysis_widget
+
 from morphologist.backends.mixins import LoadObjectError
 from morphologist.gui.object3d import Object3D, APCObject, View
 from morphologist.gui.qt_backend import QtCore, QtGui, loadUi 
@@ -61,6 +63,7 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
     raw_mri_changed = QtCore.pyqtSignal()
     commissure_coordinates_changed = QtCore.pyqtSignal()
     corrected_mri_changed = QtCore.pyqtSignal()
+    histo_analysis_changed = QtCore.pyqtSignal()
     brain_mask_changed = QtCore.pyqtSignal()
     split_mask_changed = QtCore.pyqtSignal()
     grey_white_changed = QtCore.pyqtSignal()
@@ -70,6 +73,7 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
         IntraAnalysis.MRI : 'raw_mri_changed',
         IntraAnalysis.COMMISSURE_COORDINATES : 'commissure_coordinates_changed',
         IntraAnalysis.CORRECTED_MRI : 'corrected_mri_changed',
+        IntraAnalysis.HISTO_ANALYSIS : 'histo_analysis_changed',
         IntraAnalysis.BRAIN_MASK : 'brain_mask_changed',
         IntraAnalysis.SPLIT_MASK : 'split_mask_changed',
         IntraAnalysis.LEFT_GREY_WHITE : 'grey_white_changed',
@@ -86,6 +90,7 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
             IntraAnalysis.MRI : None,
             IntraAnalysis.COMMISSURE_COORDINATES : None, 
             IntraAnalysis.CORRECTED_MRI : None,
+            IntraAnalysis.HISTO_ANALYSIS : None,
             IntraAnalysis.BRAIN_MASK : None,
             IntraAnalysis.SPLIT_MASK : None,
             IntraAnalysis.LEFT_GREY_WHITE : None,
@@ -99,6 +104,8 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
         obj = None
         if (parameter_name == IntraAnalysis.COMMISSURE_COORDINATES):
             obj = APCObject(filename)
+        elif (parameter_name == IntraAnalysis.HISTO_ANALYSIS):
+            obj = histo_analysis_widget.load_histo_data(filename)
         else:
             obj = Object3D.from_filename(filename) 
         return obj
@@ -121,6 +128,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     '''
     RAW_MRI_ACPC = "raw_mri_acpc"
     BIAS_CORRECTED = "bias_corrected"
+    HISTO_ANALYSIS="histo_analysis"
     BRAIN_MASK = "brain_mask"
     SPLIT_MASK = "split_mask"
     GREY_WHITE = "grey_white"
@@ -144,6 +152,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         self._viewport_model.corrected_mri_changed.connect(self.update_split_mask_view) 
         self._viewport_model.corrected_mri_changed.connect(self.update_grey_white_view) 
         self._viewport_model.corrected_mri_changed.connect(self.update_white_surface_sulci_view) 
+        self._viewport_model.histo_analysis_changed.connect(self.update_histo_analysis_view)
         self._viewport_model.brain_mask_changed.connect(self.update_brain_mask_view)
         self._viewport_model.split_mask_changed.connect(self.update_split_mask_view)
         self._viewport_model.grey_white_changed.connect(self.update_grey_white_view)
@@ -170,7 +179,10 @@ class IntraAnalysisViewportView(QtGui.QWidget):
             view = View(view_hook)
             view.set_bgcolor([0., 0., 0., 1.])
             self._views[view_name] = view
-        
+        QtGui.QVBoxLayout(self.ui.view3_hook)
+        view = histo_analysis_widget.create_histo_view(self.ui.view3_hook)
+        self._views[self.HISTO_ANALYSIS] = view
+
     @QtCore.Slot()
     def on_model_changed(self):
         for view in self._views.values():
@@ -202,6 +214,14 @@ class IntraAnalysisViewportView(QtGui.QWidget):
             self._objects[self.BIAS_CORRECTED] = mri_copy
             mri_copy.set_color_map("Rainbow2")
             view.add_object(mri_copy)
+
+    @QtCore.Slot()
+    def update_histo_analysis_view(self):
+        view = self._views[self.HISTO_ANALYSIS]
+        histo_analysis = self._viewport_model.observed_objects[IntraAnalysis.HISTO_ANALYSIS]
+        if histo_analysis is not None:
+            view.set_histo_data(histo_analysis, nbins=100)
+            view.draw_histo()
 
     @QtCore.Slot()
     def update_brain_mask_view(self):
