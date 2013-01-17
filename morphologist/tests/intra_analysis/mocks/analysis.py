@@ -4,7 +4,7 @@ from morphologist.intra_analysis import IntraAnalysis
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate
 from morphologist.tests.intra_analysis.mocks.steps import MockSpatialNormalization, \
     MockBiasCorrection, MockHistogramAnalysis, MockBrainSegmentation, MockSplitBrain, \
-    MockGreyWhite, MockGrey, MockWhiteSurface
+    MockGreyWhite, MockGrey, MockGreySurface, MockWhiteSurface
 
 
 class MockIntraAnalysis(IntraAnalysis):
@@ -26,6 +26,8 @@ class MockIntraAnalysis(IntraAnalysis):
         self._right_grey_white = MockGreyWhite(mock_out_files[IntraAnalysis.RIGHT_GREY_WHITE])  
         self._left_grey = MockGrey(mock_out_files[IntraAnalysis.LEFT_GREY])
         self._right_grey = MockGrey(mock_out_files[IntraAnalysis.RIGHT_GREY])
+        self._left_grey_surface = MockGreySurface(mock_out_files[IntraAnalysis.LEFT_GREY_SURFACE])
+        self._right_grey_surface = MockGreySurface(mock_out_files[IntraAnalysis.RIGHT_GREY_SURFACE])
         self._left_white_surface = MockWhiteSurface(mock_out_files[IntraAnalysis.LEFT_WHITE_SURFACE])
         self._right_white_surface = MockWhiteSurface(mock_out_files[IntraAnalysis.RIGHT_WHITE_SURFACE])
         self._steps = [self._normalization, 
@@ -37,6 +39,8 @@ class MockIntraAnalysis(IntraAnalysis):
                        self._right_grey_white, 
                        self._left_grey, 
                        self._right_grey,
+                       self._left_grey_surface,
+                       self._right_grey_surface,
                        self._left_white_surface, 
                        self._right_white_surface]
 

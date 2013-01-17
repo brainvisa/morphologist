@@ -1,6 +1,6 @@
 from morphologist.intra_analysis_steps import SpatialNormalization, \
         BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
-        GreyWhite, Grey, WhiteSurface
+        GreyWhite, Grey, GreySurface, WhiteSurface
 from morphologist.intra_analysis import IntraAnalysis
 
 
@@ -121,6 +121,20 @@ class MockWhiteSurface(WhiteSurface):
                    'white_surface',
                    self.ref_white_surface,
                    self.white_surface]
+        return command
+
+class MockGreySurface(GreySurface):
+  
+    def __init__(self, ref_grey_surface):
+        super(MockGreySurface, self).__init__()
+        self.ref_grey_surface = ref_grey_surface
+
+    def get_command(self):
+        command = ['python', '-m',
+                   'morphologist.tests.intra_analysis.mocks.steps',
+                   'grey_surface',
+                   self.ref_grey_surface,
+                   self.grey_surface]
         return command
 
    

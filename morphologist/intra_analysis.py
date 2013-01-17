@@ -4,7 +4,7 @@ from morphologist.analysis import Analysis, InputParameters, OutputParameters, \
                                   ImportationError, ParameterTemplate
 from morphologist.intra_analysis_steps import ImageImportation, \
     BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
-    GreyWhite, SpatialNormalization, Grey, WhiteSurface
+    GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface
 
 
 
@@ -33,6 +33,8 @@ class IntraAnalysis(Analysis):
     RIGHT_GREY_WHITE = 'right_grey_white'
     LEFT_GREY = 'left_grey'
     RIGHT_GREY = 'right_grey'
+    LEFT_GREY_SURFACE = 'left_grey_surface'
+    RIGHT_GREY_SURFACE = 'right_grey_surface'
     LEFT_WHITE_SURFACE = 'left_white_surface'
     RIGHT_WHITE_SURFACE = 'right_white_surface'
 
@@ -60,6 +62,8 @@ class IntraAnalysis(Analysis):
         self._right_grey_white = GreyWhite(left=False)
         self._left_grey = Grey()
         self._right_grey = Grey()
+        self._left_grey_surface = GreySurface(left=True)
+        self._right_grey_surface = GreySurface(left=False)
         self._left_white_surface = WhiteSurface()
         self._right_white_surface = WhiteSurface()
         self._steps = [self._normalization, 
@@ -71,6 +75,8 @@ class IntraAnalysis(Analysis):
                        self._right_grey_white,
                        self._left_grey,
                        self._right_grey,
+                       self._left_grey_surface,
+                       self._right_grey_surface,
                        self._left_white_surface,
                        self._right_white_surface]
 
@@ -157,6 +163,16 @@ class IntraAnalysis(Analysis):
         self._right_grey.grey_white = self._right_grey_white.grey_white
         self._right_grey.grey = self.outputs[IntraAnalysis.RIGHT_GREY]
 
+        self._left_grey_surface.corrected_mri = self._bias_correction.corrected_mri
+        self._left_grey_surface.split_mask = self._split_brain.split_mask
+        self._left_grey_surface.grey = self._left_grey.grey 
+        self._left_grey_surface.grey_surface = self.outputs[IntraAnalysis.LEFT_GREY_SURFACE]
+
+        self._right_grey_surface.corrected_mri = self._bias_correction.corrected_mri
+        self._right_grey_surface.split_mask = self._split_brain.split_mask 
+        self._right_grey_surface.grey = self._right_grey.grey 
+        self._right_grey_surface.grey_surface = self.outputs[IntraAnalysis.RIGHT_GREY_SURFACE]
+
         self._left_white_surface.grey = self._left_grey.grey
         self._left_white_surface.white_surface = self.outputs[IntraAnalysis.LEFT_WHITE_SURFACE]
 
@@ -192,6 +208,8 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
                                IntraAnalysis.RIGHT_GREY_WHITE,
                                IntraAnalysis.LEFT_GREY,
                                IntraAnalysis.RIGHT_GREY,
+                               IntraAnalysis.LEFT_GREY_SURFACE,
+                               IntraAnalysis.RIGHT_GREY_SURFACE,
                                IntraAnalysis.LEFT_WHITE_SURFACE,
                                IntraAnalysis.RIGHT_WHITE_SURFACE]
 
@@ -277,6 +295,10 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                         segmentation_path, "Lcortex_%s.nii" % subjectname)
         parameters[IntraAnalysis.RIGHT_GREY] = os.path.join(\
                         segmentation_path, "Rcortex_%s.nii" % subjectname)
+        parameters[IntraAnalysis.LEFT_GREY_SURFACE] = os.path.join(\
+                        surface_path, "%s_Lhemi.gii" % subjectname)
+        parameters[IntraAnalysis.RIGHT_GREY_SURFACE] = os.path.join(\
+                        surface_path, "%s_Rhemi.gii" % subjectname)
         parameters[IntraAnalysis.LEFT_WHITE_SURFACE] = os.path.join(\
                         surface_path, "%s_Lwhite.gii" % subjectname)
         parameters[IntraAnalysis.RIGHT_WHITE_SURFACE] = os.path.join(\
@@ -353,6 +375,10 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                 subject_path, "left_grey_%s.nii" % subjectname)
         parameters[IntraAnalysis.RIGHT_GREY] = os.path.join(\
                 subject_path, "right_grey_%s.nii" % subjectname)
+        parameters[IntraAnalysis.LEFT_GREY_SURFACE] = os.path.join(\
+                        subject_path, "left_grey_surface_%s.gii" % subjectname)
+        parameters[IntraAnalysis.RIGHT_GREY_SURFACE] = os.path.join(\
+                        subject_path, "right_grey_surface_%s.gii" % subjectname)
         parameters[IntraAnalysis.LEFT_WHITE_SURFACE] = os.path.join(\
                 subject_path, "left_white_surface_%s.gii" % subjectname)
         parameters[IntraAnalysis.RIGHT_WHITE_SURFACE] = os.path.join(\

@@ -260,3 +260,24 @@ class WhiteSurface(Step):
         command = ['python', '-m', 'morphologist.intra_analysis_white_surface', 
                    self.grey, self.white_surface]
         return command
+
+
+class GreySurface(Step):
+
+    def __init__(self, left=True):
+        super(GreySurface, self).__init__()
+        #inputs
+        self.corrected_mri = None
+        self.split_mask = None
+        self.grey = None
+        #outputs:
+        self.grey_surface = None
+
+    def get_command(self):
+        command = ['python', '-m', 'morphologist.intra_analysis_grey_surface',
+                   self.corrected_mri, self.split_mask, self.grey, self.grey_surface]
+        return command
+
+
+
+
