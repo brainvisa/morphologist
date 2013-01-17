@@ -216,9 +216,10 @@ class GreyWhite(Step):
                     '-writeformat', 't',
                     '-algo', 'N']
         if self.left:
-            command.extend(['-label', '2', '-output', self.outputs.grey_white])
+            label = '2'
         else:
-            command.extend(['-label', '1', '-output', self.outputs.grey_white])
+            label = '1'
+        command.extend(['-label', label, '-output', self.outputs.grey_white])
         if self.inputs.fix_random_seed:
             command.extend(['-srand', '10'])  
         # TODO referentials ?
