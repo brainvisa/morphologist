@@ -54,7 +54,7 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         backend_view.moveLinkedCursor(position)
         
     @classmethod
-    def create_backend_view(cls, parent, view_type):
+    def create_view(cls, parent, view_type):
         cmd = ana.cpp.CreateWindowCommand(view_type, -1, None,
                 [], 1, parent, 2, 0,
                 { '__syntax__' : 'dictionary',  'no_decoration' : 1})
@@ -71,7 +71,7 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         backend_object.reload()
     
     @classmethod
-    def shallow_copy_backend_object(cls, backend_object):
+    def shallow_copy_object(cls, backend_object):
         return cls.anatomist.duplicateObject(backend_object)
         
     @classmethod
@@ -89,7 +89,7 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         backend_object.setMaterial(diffuse=rgba_color)
 
     @classmethod
-    def create_backend_fusion_object(cls, backend_object1, backend_object2, mode, rate):
+    def create_fusion_object(cls, backend_object1, backend_object2, mode, rate):
         fusion = cls.anatomist.fusionObjects([backend_object1, backend_object2], 
                                              method='Fusion2DMethod')
         cls.anatomist.execute("TexturingParams", objects=[fusion], mode=mode, rate=rate, 
@@ -97,14 +97,14 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         return fusion
 
     @classmethod
-    def load_backend_object(cls, filename):
+    def load_object(cls, filename):
         aobject = cls.anatomist.loadObject(filename)
         if aobject.getInternalRep() == None:
             raise LoadObjectError(str(filename))
         return aobject
     
     @classmethod
-    def create_backend_point_object(cls, coordinates):
+    def create_point_object(cls, coordinates):
         cross_mesh = os.path.join(cls.anatomist.anatomistSharedPath(), 
                                   "cursors", "cross.mesh")
         point_object = cls.anatomist.loadObject(cross_mesh, forceReload=True)
@@ -126,6 +126,6 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         brainvisa_share_path = os.path.join(shared_dirname, brainvisa_share)
         sulci_colormap_filename = os.path.join(brainvisa_share_path, "nomenclature", 
                                                "hierarchy", "sulcal_root_colors.hie")
-        return cls.load_backend_object(sulci_colormap_filename) 
+        return cls.load_object(sulci_colormap_filename) 
         
         
