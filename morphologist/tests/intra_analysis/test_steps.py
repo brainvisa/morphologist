@@ -68,7 +68,6 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         # select steps until Grey/White surface and fix the random seed
         nodes.child('TalairachTransformation').setSelected(0)
         nodes.child('HeadMesh').setSelected(0)
-        nodes.child('CorticalFoldsGraph').setSelected(0)
         
         nodes.child('BiasCorrection').fix_random_seed = True
         nodes.child('HistoAnalysis').fix_random_seed = True
@@ -85,6 +84,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         nodes.child('GreyWhiteClassification').setSelected(0)
         nodes.child('GreyWhiteSurface').setSelected(0)
         nodes.child('HemispheresMesh').setSelected(0)
+        nodes.child('CorticalFoldsGraph').setSelected(0)
         defaultContext().runProcess(pipeline, t1mri)
         # Save the white ridge in another file because it will be re-written
         white_ridges = self.ref_outputs[IntraAnalysis.WHITE_RIDGES]
@@ -100,6 +100,8 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         nodes.child('GreyWhiteClassification').setSelected(1)
         nodes.child('GreyWhiteSurface').setSelected(1)
         nodes.child('HemispheresMesh').setSelected(1)
+        nodes.child('CorticalFoldsGraph').setSelected(1)
+        
         defaultContext().runProcess(pipeline, t1mri)
 
         brainvisa.axon.cleanup()

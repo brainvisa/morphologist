@@ -1,6 +1,8 @@
+import os
+
 from morphologist.intra_analysis_steps import SpatialNormalization, \
         BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
-        GreyWhite, Grey, GreySurface, WhiteSurface
+        GreyWhite, Grey, GreySurface, WhiteSurface, Sulci
 from morphologist.intra_analysis import IntraAnalysis
 
 
@@ -137,17 +139,39 @@ class MockGreySurface(GreySurface):
                    self.grey_surface]
         return command
 
-   
+class MockSulci(Sulci):
+  
+    def __init__(self, ref_sulci):
+        super(MockSulci, self).__init__()
+        self.ref_sulci = ref_sulci
+
+    def get_command(self):
+        command = ['python', '-m',
+                   'morphologist.tests.intra_analysis.mocks.steps',
+                   'sulci',
+                   self.ref_sulci,
+                   self.sulci,
+                   self.ref_sulci.replace(".arg", ".data"),
+                   self.sulci.replace(".arg", ".data")]
+        return command
+
+  
 def main():
     import time, sys, shutil
  
     def _mock_step(args, idle_time):
         time.sleep(idle_time)
         while len(args) > 1:
-            target_file = args.pop()
-            source_file = args.pop()
-            print "\ncopy " + repr(source_file) + " to " + repr(target_file)
-            shutil.copy(source_file, target_file)
+            target = args.pop()
+            source = args.pop()
+            print "\ncopy " + repr(source) + " to " + repr(target)
+            if os.path.isdir(source):
+                if os.path.isdir(target):
+                    shutil.rmtree(target)
+                shutil.copytree(source, target)
+            else:
+
+                shutil.copy(source, target)
  
     stepname = sys.argv[1]
     args = sys.argv[2:]

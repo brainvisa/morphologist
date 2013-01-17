@@ -280,4 +280,25 @@ class GreySurface(Step):
 
 
 
+class Sulci(Step):
 
+    def __init__(self, left=True):
+        super(Sulci, self).__init__()
+        self.left = left
+        #inputs
+        self.corrected_mri = None
+        self.split_mask = None
+        self.grey = None
+        self.talairach_transformation = None
+        self.grey_white = None
+        #outputs
+        self.sulci = None
+
+
+    def get_command(self):
+        command = ['python', '-m', 'morphologist.intra_analysis_sulci',
+                   self.corrected_mri, self.split_mask, self.grey, self.grey_surface]
+        return command
+
+
+ 

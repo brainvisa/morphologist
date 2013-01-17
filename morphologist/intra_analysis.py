@@ -4,7 +4,7 @@ from morphologist.analysis import Analysis, InputParameters, OutputParameters, \
                                   ImportationError, ParameterTemplate
 from morphologist.intra_analysis_steps import ImageImportation, \
     BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
-    GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface
+    GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface, Sulci
 
 
 
@@ -37,6 +37,8 @@ class IntraAnalysis(Analysis):
     RIGHT_GREY_SURFACE = 'right_grey_surface'
     LEFT_WHITE_SURFACE = 'left_white_surface'
     RIGHT_WHITE_SURFACE = 'right_white_surface'
+    LEFT_SULCI = 'left_sulci'
+    RIGHT_SULCI = 'right_sulci'
 
     # TODO: reimplement a standard python method ?
     @classmethod
@@ -66,6 +68,8 @@ class IntraAnalysis(Analysis):
         self._right_grey_surface = GreySurface(left=False)
         self._left_white_surface = WhiteSurface()
         self._right_white_surface = WhiteSurface()
+        self._left_sulci = Sulci(left=True)
+        self._right_sulci = Sulci(left=False)
         self._steps = [self._normalization, 
                        self._bias_correction, 
                        self._histogram_analysis, 
@@ -78,7 +82,9 @@ class IntraAnalysis(Analysis):
                        self._left_grey_surface,
                        self._right_grey_surface,
                        self._left_white_surface,
-                       self._right_white_surface]
+                       self._right_white_surface,
+                       self._left_sulci,
+                       self._right_sulci]
 
     @classmethod
     def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
@@ -179,6 +185,21 @@ class IntraAnalysis(Analysis):
         self._right_white_surface.grey = self._right_grey.grey
         self._right_white_surface.white_surface = self.outputs[IntraAnalysis.RIGHT_WHITE_SURFACE]
 
+        self._left_sulci.corrected_mri = self._bias_correction.corrected_mri       
+        self._left_sulci.grey = self._left_grey.grey
+        self._left_sulci.split_mask = self._split_brain.split_mask
+        self._left_sulci.talairach_transformation = self._normalization.talairach_transformation
+        self._left_sulci.grey_white = self._left_grey_white.grey_white
+        self._left_sulci.sulci = self.outputs[IntraAnalysis.LEFT_SULCI]
+ 
+        self._right_sulci.corrected_mri = self._bias_correction.corrected_mri       
+        self._right_sulci.grey = self._right_grey.grey
+        self._right_sulci.split_mask = self._split_brain.split_mask
+        self._right_sulci.talairach_transformation = self._normalization.talairach_transformation
+        self._right_sulci.grey_white = self._right_grey_white.grey_white
+        self._right_sulci.sulci = self.outputs[IntraAnalysis.RIGHT_SULCI]
+
+
     @classmethod
     def get_mri_path(cls, parameter_template, groupname, subjectname, directory):
         param_template_instance = cls.param_template_map[parameter_template]
@@ -211,7 +232,9 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
                                IntraAnalysis.LEFT_GREY_SURFACE,
                                IntraAnalysis.RIGHT_GREY_SURFACE,
                                IntraAnalysis.LEFT_WHITE_SURFACE,
-                               IntraAnalysis.RIGHT_WHITE_SURFACE]
+                               IntraAnalysis.RIGHT_WHITE_SURFACE,
+                               IntraAnalysis.LEFT_SULCI,
+                               IntraAnalysis.RIGHT_SULCI]
 
     @classmethod
     def get_empty_inputs(cls):
@@ -245,6 +268,8 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
     MODALITY = "t1mri"
     SEGMENTATION = "segmentation"
     SURFACE = "mesh"
+    FOLDS = "folds"
+    FOLDS_3_1 = "3.1"
     
     @classmethod
     def get_mri_path(cls, groupname, subjectname, directory):
@@ -262,6 +287,8 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
           
         segmentation_path = os.path.join(default_analysis_path, cls.SEGMENTATION)
         surface_path = os.path.join(segmentation_path, cls.SURFACE)
+
+        folds_path = os.path.join(default_analysis_path, cls.FOLDS, cls.FOLDS_3_1)
  
         parameters = OutputParameters(cls.output_file_param_names)
         parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(default_acquisition_path, 
@@ -303,6 +330,11 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                         surface_path, "%s_Lwhite.gii" % subjectname)
         parameters[IntraAnalysis.RIGHT_WHITE_SURFACE] = os.path.join(\
                         surface_path, "%s_Rwhite.gii" % subjectname)
+        parameters[IntraAnalysis.LEFT_SULCI] = os.path.join(\
+                        folds_path, "L%s.arg" % subjectname)
+        parameters[IntraAnalysis.RIGHT_SULCI] = os.path.join(\
+                        folds_path, "R%s.arg" % subjectname)
+        
 
         return parameters
 
@@ -331,6 +363,13 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         
         surface_path = os.path.join(segmentation_path, cls.SURFACE)
         create_directory_if_missing(surface_path)
+
+        folds_path = os.path.join(default_analysis_path, cls.FOLDS)
+        create_directory_if_missing(folds_path)
+  
+        folds_3_1_path = os.path.join(default_analysis_path, cls.FOLDS, cls.FOLDS_3_1)
+        create_directory_if_missing(folds_3_1_path)
+ 
 
            
 class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
@@ -383,6 +422,10 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                 subject_path, "left_white_surface_%s.gii" % subjectname)
         parameters[IntraAnalysis.RIGHT_WHITE_SURFACE] = os.path.join(\
                 subject_path, "right_white_surface_%s.gii" % subjectname)
+        parameters[IntraAnalysis.LEFT_SULCI] = os.path.join(\
+                subject_path, "left_sulci_%s.arg" % subjectname)        
+        parameters[IntraAnalysis.RIGHT_SULCI] = os.path.join(\
+                subject_path, "right_sulci_%s.arg" % subjectname)        
 
         return parameters
 
