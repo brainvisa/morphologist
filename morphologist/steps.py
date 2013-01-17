@@ -1,10 +1,16 @@
 import os
 
+from morphologist.analysis import InputParameters, OutputParameters
+
+
 class Step(object):
     ''' Abstract class '''
 
     def __init__(self):
-        pass
+        file_inputs, other_inputs = self._get_inputs()
+        file_outputs = self._get_outputs()
+        self.inputs = InputParameters(file_inputs, other_inputs)
+        self.outputs = OutputParameters(file_outputs)
 
     def run(self):
         # WARNING do not overload: get_command should be used to run the step 
