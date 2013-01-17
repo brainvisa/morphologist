@@ -101,6 +101,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         nodes.child('GreyWhiteSurface').setSelected(1)
         nodes.child('HemispheresMesh').setSelected(1)
         nodes.child('CorticalFoldsGraph').setSelected(1)
+        nodes.child('SulciRecognition').setSelected(1)
         
         defaultContext().runProcess(pipeline, t1mri)
 

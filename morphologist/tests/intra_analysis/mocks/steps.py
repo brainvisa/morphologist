@@ -2,7 +2,7 @@ import os
 
 from morphologist.intra_analysis_steps import SpatialNormalization, \
         BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
-        GreyWhite, Grey, GreySurface, WhiteSurface, Sulci
+        GreyWhite, Grey, GreySurface, WhiteSurface, Sulci, SulciLabelling
 from morphologist.intra_analysis import IntraAnalysis
 
 
@@ -154,6 +154,24 @@ class MockSulci(Sulci):
                    self.ref_sulci.replace(".arg", ".data"),
                    self.sulci.replace(".arg", ".data")]
         return command
+
+
+class MockSulciLabelling(SulciLabelling):
+
+    def __init__(self, ref_labeled_sulci):
+        super(MockSulciLabelling, self).__init__()
+        self.ref_labeled_sulci = ref_labeled_sulci
+
+    def get_command(self):
+        command = ['python', '-m',
+                   'morphologist.tests.intra_analysis.mocks.steps',
+                   'sulci_labelling',
+                   self.ref_labeled_sulci,
+                   self.labeled_sulci,
+                   self.ref_labeled_sulci.replace(".arg", ".data"),
+                   self.labeled_sulci.replace(".arg", ".data")]
+        return command
+
 
   
 def main():

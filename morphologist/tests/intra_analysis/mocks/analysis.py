@@ -4,7 +4,7 @@ from morphologist.intra_analysis import IntraAnalysis
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate
 from morphologist.tests.intra_analysis.mocks.steps import MockSpatialNormalization, \
     MockBiasCorrection, MockHistogramAnalysis, MockBrainSegmentation, MockSplitBrain, \
-    MockGreyWhite, MockGrey, MockGreySurface, MockWhiteSurface, MockSulci
+    MockGreyWhite, MockGrey, MockGreySurface, MockWhiteSurface, MockSulci, MockSulciLabelling
 
 
 class MockIntraAnalysis(IntraAnalysis):
@@ -32,6 +32,8 @@ class MockIntraAnalysis(IntraAnalysis):
         self._right_white_surface = MockWhiteSurface(mock_out_files[IntraAnalysis.RIGHT_WHITE_SURFACE])
         self._left_sulci = MockSulci(mock_out_files[IntraAnalysis.LEFT_SULCI])
         self._right_sulci = MockSulci(mock_out_files[IntraAnalysis.RIGHT_SULCI])
+        self._left_sulci_labelling = MockSulciLabelling(mock_out_files[IntraAnalysis.LEFT_LABELED_SULCI])
+        self._right_sulci_labelling = MockSulciLabelling(mock_out_files[IntraAnalysis.RIGHT_LABELED_SULCI])
         self._steps = [self._normalization, 
                        self._bias_correction, 
                        self._histogram_analysis, 
@@ -46,7 +48,9 @@ class MockIntraAnalysis(IntraAnalysis):
                        self._left_white_surface, 
                        self._right_white_surface,
                        self._left_sulci,
-                       self._right_sulci]
+                       self._right_sulci,
+                       self._left_sulci_labelling,
+                       self._right_sulci_labelling]
 
     @classmethod
     def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):

@@ -4,7 +4,7 @@ from morphologist.analysis import Analysis, InputParameters, OutputParameters, \
                                   ImportationError, ParameterTemplate
 from morphologist.intra_analysis_steps import ImageImportation, \
     BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
-    GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface, Sulci
+    GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface, Sulci, SulciLabelling
 
 
 
@@ -39,6 +39,8 @@ class IntraAnalysis(Analysis):
     RIGHT_WHITE_SURFACE = 'right_white_surface'
     LEFT_SULCI = 'left_sulci'
     RIGHT_SULCI = 'right_sulci'
+    LEFT_LABELED_SULCI = 'left_labeled_sulci'
+    RIGHT_LABELED_SULCI = 'right_labeled_sulci'
 
     # TODO: reimplement a standard python method ?
     @classmethod
@@ -70,6 +72,8 @@ class IntraAnalysis(Analysis):
         self._right_white_surface = WhiteSurface()
         self._left_sulci = Sulci(left=True)
         self._right_sulci = Sulci(left=False)
+        self._left_sulci_labelling = SulciLabelling(left=True)
+        self._right_sulci_labelling = SulciLabelling(left=False)
         self._steps = [self._normalization, 
                        self._bias_correction, 
                        self._histogram_analysis, 
@@ -84,7 +88,9 @@ class IntraAnalysis(Analysis):
                        self._left_white_surface,
                        self._right_white_surface,
                        self._left_sulci,
-                       self._right_sulci]
+                       self._right_sulci,
+                       self._left_sulci_labelling,
+                       self._right_sulci_labelling]
 
     @classmethod
     def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
@@ -199,6 +205,12 @@ class IntraAnalysis(Analysis):
         self._right_sulci.grey_white = self._right_grey_white.grey_white
         self._right_sulci.sulci = self.outputs[IntraAnalysis.RIGHT_SULCI]
 
+        self._left_sulci_labelling.sulci = self._left_sulci.sulci
+        self._left_sulci_labelling.labeled_sulci = self.outputs[IntraAnalysis.LEFT_LABELED_SULCI]
+
+        self._right_sulci_labelling.sulci = self._right_sulci.sulci
+        self._right_sulci_labelling.labeled_sulci = self.outputs[IntraAnalysis.RIGHT_LABELED_SULCI]
+
 
     @classmethod
     def get_mri_path(cls, parameter_template, groupname, subjectname, directory):
@@ -234,7 +246,9 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
                                IntraAnalysis.LEFT_WHITE_SURFACE,
                                IntraAnalysis.RIGHT_WHITE_SURFACE,
                                IntraAnalysis.LEFT_SULCI,
-                               IntraAnalysis.RIGHT_SULCI]
+                               IntraAnalysis.RIGHT_SULCI,
+                               IntraAnalysis.LEFT_LABELED_SULCI,
+                               IntraAnalysis.RIGHT_LABELED_SULCI]
 
     @classmethod
     def get_empty_inputs(cls):
@@ -270,6 +284,7 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
     SURFACE = "mesh"
     FOLDS = "folds"
     FOLDS_3_1 = "3.1"
+    SESSION_AUTO = "default_session_auto"
     
     @classmethod
     def get_mri_path(cls, groupname, subjectname, directory):
@@ -289,6 +304,8 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         surface_path = os.path.join(segmentation_path, cls.SURFACE)
 
         folds_path = os.path.join(default_analysis_path, cls.FOLDS, cls.FOLDS_3_1)
+  
+        session_auto_path = os.path.join(folds_path, cls.SESSION_AUTO)
  
         parameters = OutputParameters(cls.output_file_param_names)
         parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(default_acquisition_path, 
@@ -334,7 +351,10 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                         folds_path, "L%s.arg" % subjectname)
         parameters[IntraAnalysis.RIGHT_SULCI] = os.path.join(\
                         folds_path, "R%s.arg" % subjectname)
-        
+        parameters[IntraAnalysis.LEFT_LABELED_SULCI] = os.path.join(\
+                        session_auto_path, "L%s_default_session_auto.arg" % subjectname)
+        parameters[IntraAnalysis.RIGHT_LABELED_SULCI] = os.path.join(\
+                        session_auto_path, "R%s_default_session_auto.arg" % subjectname)
 
         return parameters
 
@@ -370,6 +390,8 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         folds_3_1_path = os.path.join(default_analysis_path, cls.FOLDS, cls.FOLDS_3_1)
         create_directory_if_missing(folds_3_1_path)
  
+        session_auto_path = os.path.join(folds_3_1_path, cls.SESSION_AUTO)
+        create_directory_if_missing(session_auto_path)
 
            
 class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
@@ -426,6 +448,11 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                 subject_path, "left_sulci_%s.arg" % subjectname)        
         parameters[IntraAnalysis.RIGHT_SULCI] = os.path.join(\
                 subject_path, "right_sulci_%s.arg" % subjectname)        
+        parameters[IntraAnalysis.LEFT_LABELED_SULCI] = os.path.join(\
+                subject_path, "left_labeled_sulci_%s.arg" % subjectname)        
+        parameters[IntraAnalysis.RIGHT_LABELED_SULCI] = os.path.join(\
+                subject_path, "right_labeled_sulci_%s.arg" % subjectname)        
+
 
         return parameters
 

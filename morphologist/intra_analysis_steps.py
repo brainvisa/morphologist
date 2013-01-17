@@ -301,4 +301,20 @@ class Sulci(Step):
         return command
 
 
- 
+class SulciLabelling(Step):
+
+    def __init__(self, left=True):
+        super(SulciLabelling, self).__init__()
+        self.left = left
+        #inputs
+        self.sulci = None
+        #outputs
+        self.labeled_sulci = None
+
+
+    def get_command(self):
+        command = ['python', '-m', 'morphologist.intra_analysis_sulci_labeling',
+                   self.sulci, self.labeled_sulci]
+        return command
+
+
