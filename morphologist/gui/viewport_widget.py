@@ -75,7 +75,12 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
             IntraAnalysis.LEFT_GREY_SURFACE : None,
             IntraAnalysis.RIGHT_GREY_SURFACE : None,
             IntraAnalysis.LEFT_WHITE_SURFACE : None,
-            IntraAnalysis.RIGHT_WHITE_SURFACE : None
+            IntraAnalysis.RIGHT_WHITE_SURFACE : None,
+            IntraAnalysis.LEFT_SULCI : None, 
+            IntraAnalysis.RIGHT_SULCI : None,
+            IntraAnalysis.LEFT_LABELED_SULCI : None, 
+            IntraAnalysis.RIGHT_LABELED_SULCI : None,
+
         }
 
     @classmethod
@@ -141,19 +146,20 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         self.ui.view6_label.setToolTip("Grey/White classification")
         self.ui.view7_label.setText(" 7 ) Grey surface")
         self.ui.view8_label.setText(" 8 ) White surface, Sulci")
-        self.ui.view8_label.setToolTip("Labelled sulci on white surface")
+        self.ui.view8_label.setToolTip("Labeled sulci on white surface")
 
-        for view_name, view_hook in [(self.RAW_MRI_ACPC, self.ui.view1_hook), 
-                                     (self.BIAS_CORRECTED, self.ui.view2_hook),
-                                     (self.BRAIN_MASK, self.ui.view4_hook), 
-                                     (self.SPLIT_MASK, self.ui.view5_hook),
-                                     (self.GREY_WHITE, self.ui.view6_hook),
-                                     (self.GREY_SURFACE, self.ui.view7_hook),
-                                     (self.WHITE_SURFACE_SULCI, self.ui.view8_hook)]:
+        for view_name, view_hook, view_type in \
+                [(self.RAW_MRI_ACPC, self.ui.view1_hook, View.AXIAL), 
+                 (self.BIAS_CORRECTED, self.ui.view2_hook, View.AXIAL),
+                 (self.BRAIN_MASK, self.ui.view4_hook, View.AXIAL), 
+                 (self.SPLIT_MASK, self.ui.view5_hook, View.AXIAL),
+                 (self.GREY_WHITE, self.ui.view6_hook, View.AXIAL),
+                 (self.GREY_SURFACE, self.ui.view7_hook, View.AXIAL), 
+                 (self.WHITE_SURFACE_SULCI, self.ui.view8_hook, View.THREE_D)]:
             layout = QtGui.QVBoxLayout(view_hook)
             layout.setMargin(0)
             layout.setSpacing(0)
-            view = View(view_hook)
+            view = View(view_hook, view_type)
             view.set_bgcolor([0., 0., 0., 1.])
             self._views[view_name] = view
         QtGui.QVBoxLayout(self.ui.view3_hook)
@@ -189,8 +195,12 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         elif ((parameter_name == IntraAnalysis.LEFT_GREY_SURFACE) or
               (parameter_name == IntraAnalysis.RIGHT_GREY_SURFACE)):
             self.update_grey_surface_view()
-        elif ((parameter_name == IntraAnalysis.LEFT_WHITE_SURFACE) or
-              (parameter_name == IntraAnalysis.RIGHT_WHITE_SURFACE)):
+        elif (parameter_name in [IntraAnalysis.LEFT_WHITE_SURFACE, 
+                                 IntraAnalysis.RIGHT_WHITE_SURFACE, 
+                                 IntraAnalysis.LEFT_SULCI, 
+                                 IntraAnalysis.RIGHT_SULCI, 
+                                 IntraAnalysis.LEFT_LABELED_SULCI, 
+                                 IntraAnalysis.RIGHT_LABELED_SULCI]):
             self.update_white_surface_sulci_view()
         
     def update_raw_mri_acpc_view(self):
@@ -295,6 +305,10 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         view.clear()
         left_mesh = self._viewport_model.observed_objects[IntraAnalysis.LEFT_WHITE_SURFACE]
         right_mesh = self._viewport_model.observed_objects[IntraAnalysis.RIGHT_WHITE_SURFACE]
+        left_sulci = self._viewport_model.observed_objects[IntraAnalysis.LEFT_SULCI]
+        right_sulci = self._viewport_model.observed_objects[IntraAnalysis.RIGHT_SULCI]
+        left_labeled_sulci = self._viewport_model.observed_objects[IntraAnalysis.LEFT_LABELED_SULCI]
+        right_labeled_sulci = self._viewport_model.observed_objects[IntraAnalysis.RIGHT_LABELED_SULCI]
         green_color = [0.3, 1, 0.6, 1]
         if left_mesh is not None:
             left_mesh.set_color(green_color) 
@@ -302,7 +316,17 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         if right_mesh is not None:
             right_mesh.set_color(green_color)
             view.add_object(right_mesh)
-        if left_mesh is not None or right_mesh is not None:
+        if left_labeled_sulci is not None:
+            view.add_object(left_labeled_sulci)
+        elif left_sulci is not None:
+            view.add_object(left_sulci)
+        if right_labeled_sulci is not None:
+            view.add_object(right_labeled_sulci)
+        elif right_sulci is not None:
+            view.add_object(right_sulci)
+        if ((left_mesh is not None) or (right_mesh is not None) or
+            (left_sulci is not None) or (right_sulci is not None) or
+            (left_labeled_sulci is not None) or (right_labeled_sulci is not None)):
             mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
             if mri is not None:
                 view.add_object(mri)

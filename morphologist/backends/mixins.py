@@ -24,7 +24,7 @@ class DisplayManagerMixin(object):
     def set_position(self, backend_view, position):
         raise NotImplementedError("DisplayManagerMixin is an abstract class")
 
-    def create_backend_view(self, parent=None):
+    def create_backend_view(self, parent, view_type):
         raise NotImplementedError("DisplayManagerMixin is an abstract class")
         
 

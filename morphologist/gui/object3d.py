@@ -139,13 +139,17 @@ class APCObject(GroupObject):
 
     def set_ih_color(self, rgba_color):
         self._ih_object.set_color(rgba_color)
-
-
+    
+    
 class View(object):
-      
-    def __init__(self, parent=None):
+    AXIAL = "Axial"
+    SAGITTAL = "Sagittal"
+    CORONAL = "Coronal"
+    THREE_D = "3D"
+    
+    def __init__(self, parent, view_type=AXIAL):
         self._backend = Backend.display_backend()
-        self._backend_view = self._backend.create_backend_view(parent)
+        self._backend_view = self._backend.create_backend_view(parent, view_type)
         
     def add_object(self, object):
         object._friend_accept_visitor(self)

@@ -47,9 +47,8 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         backend_view.moveLinkedCursor(position)
         
     @classmethod
-    def create_backend_view(cls, parent=None):
-        wintype = 'Axial'
-        cmd = ana.cpp.CreateWindowCommand(wintype, -1, None,
+    def create_backend_view(cls, parent, view_type):
+        cmd = ana.cpp.CreateWindowCommand(view_type, -1, None,
                 [], 1, parent, 2, 0,
                 { '__syntax__' : 'dictionary',  'no_decoration' : 1})
         cls.anatomist.execute(cmd)
@@ -111,3 +110,6 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
                                             referential, 
                                             cls.anatomist.centralRef)
         return point_object
+        
+        
+        
