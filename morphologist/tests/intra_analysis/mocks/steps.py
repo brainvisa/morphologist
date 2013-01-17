@@ -130,57 +130,19 @@ class MockWhiteSurface(WhiteSurface):
    
 def main():
     import time, sys, shutil
-
+ 
+    def _mock_step(args, idle_time):
+        time.sleep(idle_time)
+        while len(args) > 1:
+            target_file = args.pop()
+            source_file = args.pop()
+            print "\ncopy " + repr(source_file) + " to " + repr(target_file)
+            shutil.copy(source_file, target_file)
+ 
     stepname = sys.argv[1]
     args = sys.argv[2:]
     time_to_sleep = 0
 
-    if stepname == 'normalization':
-        out_files_commissure_coordinates, commissure_coordinates, \
-        out_files_talairach_transformation, talairach_transformation = args
-        time.sleep(time_to_sleep)
-        shutil.copy(out_files_commissure_coordinates, commissure_coordinates)
-        shutil.copy(out_files_talairach_transformation, talairach_transformation)
-    elif stepname == 'bias_correction':
-        out_files_hfiltered, hfiltered, \
-        out_files_white_ridges, white_ridges, \
-        out_files_edges, edges, \
-        out_files_corrected_mri, corrected_mri, \
-        out_files_variance, variance = args
-        time.sleep(time_to_sleep)
-        shutil.copy(out_files_hfiltered, hfiltered)
-        shutil.copy(out_files_white_ridges, white_ridges)
-        shutil.copy(out_files_edges, edges)
-        shutil.copy(out_files_corrected_mri, corrected_mri)
-        shutil.copy(out_files_variance, variance)
-    elif stepname == 'histogram_analysis':
-        out_files_histo_analysis, histo_analysis, \
-        out_files_histogram, histogram = args
-        time.sleep(time_to_sleep)
-        shutil.copy(out_files_histo_analysis, histo_analysis)
-        shutil.copy(out_files_histogram, histogram)
-    elif stepname == 'brain_segmentation':
-        out_files_brain_mask, brain_mask, \
-            out_files_white_ridges, white_ridges = args
-        time.sleep(time_to_sleep)
-        shutil.copy(out_files_brain_mask, brain_mask)
-        shutil.copy(out_files_white_ridges, white_ridges)
-    elif stepname == 'split_brain':
-        out_files_split_mask, split_mask = args
-        time.sleep(time_to_sleep)
-        shutil.copy(out_files_split_mask, split_mask)
-    elif stepname == 'grey_white':
-        out_files_grey_white, grey_white = args
-        time.sleep(time_to_sleep)
-        shutil.copy(out_files_grey_white, grey_white)
-    elif stepname == 'grey':
-        out_files_grey, grey = args
-        time.sleep(time_to_sleep)
-        shutil.copy(out_files_grey, grey)
-    elif stepname == 'white_surface':
-        out_files_white_surface, white_surface = args
-        time.sleep(time_to_sleep)
-        shutil.copy(out_files_white_surface, white_surface)
-    
+    _mock_step(args, time_to_sleep)
 
 if __name__ == '__main__' : main()
