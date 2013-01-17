@@ -5,15 +5,22 @@ import anatomist.direct.api as ana
 from morphologist.gui.qt_backend import QtCore
 from morphologist.backends import Backend
 from morphologist.backends.mixins import DisplayManagerMixin, \
-                                         ObjectsManagerMixin, LoadObjectError
+                                         ObjectsManagerMixin, LoadObjectError, \
+                                         ColorMap
 
 
 class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
     anatomist = None
+    sulci_color_map = None
+    color_map_names = {ColorMap.RAINBOW_MASK : "RAINBOW", 
+                       ColorMap.GREEN_MASK : "GREEN-lfusion",
+                       ColorMap.RAINBOW : "Rainbow2"}
     
     def __new__(cls):
         if cls.anatomist is None:
             cls._init_anatomist()
+        if cls.sulci_color_map is None:
+            cls.sulci_color_map = cls._load_sulci_color_map()
         return super(PyanatomistBackend, cls).__new__(cls)
         
     def __init__(self):
@@ -73,10 +80,9 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         position = (bb[1] - bb[0]) / 2
         return position
 
-    
     @classmethod
     def set_object_color_map(cls, backend_object, color_map_name):
-        backend_object.setPalette(color_map_name)
+        backend_object.setPalette(cls.color_map_names.get(color_map_name))
     
     @classmethod
     def set_object_color(cls, backend_object, rgba_color):
@@ -110,6 +116,16 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
                                             referential, 
                                             cls.anatomist.centralRef)
         return point_object
-        
+
+    @classmethod
+    def _load_sulci_color_map(cls):
+        anatomist_shared_path = unicode(cls.anatomist.anatomistSharedPath())
+        shared_dirname = os.path.dirname(anatomist_shared_path)
+        shared_basename = os.path.basename(anatomist_shared_path)
+        brainvisa_share = shared_basename.replace("anatomist", "brainvisa-share")
+        brainvisa_share_path = os.path.join(shared_dirname, brainvisa_share)
+        sulci_colormap_filename = os.path.join(brainvisa_share_path, "nomenclature", 
+                                               "hierarchy", "sulcal_root_colors.hie")
+        return cls.load_backend_object(sulci_colormap_filename) 
         
         

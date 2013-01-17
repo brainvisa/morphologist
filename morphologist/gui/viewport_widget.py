@@ -2,7 +2,7 @@ import os
 
 from morphologist_common import histo_analysis_widget
 
-from morphologist.backends.mixins import LoadObjectError
+from morphologist.backends.mixins import LoadObjectError, ColorMap
 from morphologist.gui.object3d import Object3D, APCObject, View
 from morphologist.gui.qt_backend import QtCore, QtGui, loadUi 
 from morphologist.gui import ui_directory 
@@ -225,7 +225,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         if corrected_mri is not None:
             mri_copy = corrected_mri.shallow_copy()
             self._objects[self.BIAS_CORRECTED] = mri_copy
-            mri_copy.set_color_map("Rainbow2")
+            mri_copy.set_color_map(ColorMap.RAINBOW)
             view.add_object(mri_copy)
 
     @QtCore.Slot()
@@ -242,7 +242,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         view.clear()
         mask = self._viewport_model.observed_objects[IntraAnalysis.BRAIN_MASK]
         if mask is not None:
-            mask.set_color_map("GREEN-lfusion")
+            mask.set_color_map(ColorMap.GREEN_MASK)
             mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
             if mri is not None:
                 fusion = Object3D.from_fusion(mri, mask, mode='linear', rate=0.7)
@@ -256,7 +256,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         view.clear()
         mask = self._viewport_model.observed_objects[IntraAnalysis.SPLIT_MASK]
         if mask is not None:
-            mask.set_color_map("RAINBOW")
+            mask.set_color_map(ColorMap.RAINBOW_MASK)
             mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
             if mri is not None:
                 fusion = Object3D.from_fusion(mri, mask, mode='linear', rate=0.7)
@@ -271,8 +271,8 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         left_mask = self._viewport_model.observed_objects[IntraAnalysis.LEFT_GREY_WHITE]
         right_mask = self._viewport_model.observed_objects[IntraAnalysis.RIGHT_GREY_WHITE]
         if left_mask is not None and right_mask is not None:
-            left_mask.set_color_map("RAINBOW")
-            right_mask.set_color_map("RAINBOW")
+            left_mask.set_color_map(ColorMap.RAINBOW_MASK)
+            right_mask.set_color_map(ColorMap.RAINBOW_MASK)
             mask_fusion = Object3D.from_fusion(left_mask, right_mask, mode='max_channel', rate=0.5)
             mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
             if mri is not None:
@@ -309,12 +309,12 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         right_sulci = self._viewport_model.observed_objects[IntraAnalysis.RIGHT_SULCI]
         left_labeled_sulci = self._viewport_model.observed_objects[IntraAnalysis.LEFT_LABELED_SULCI]
         right_labeled_sulci = self._viewport_model.observed_objects[IntraAnalysis.RIGHT_LABELED_SULCI]
-        green_color = [0.3, 1, 0.6, 1]
+        grey_color = [0.8, 0.8, 0.8, 1.]
         if left_mesh is not None:
-            left_mesh.set_color(green_color) 
+            left_mesh.set_color(grey_color) 
             view.add_object(left_mesh)
         if right_mesh is not None:
-            right_mesh.set_color(green_color)
+            right_mesh.set_color(grey_color)
             view.add_object(right_mesh)
         if left_labeled_sulci is not None:
             view.add_object(left_labeled_sulci)

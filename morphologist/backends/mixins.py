@@ -61,3 +61,7 @@ class ObjectsManagerMixin(object):
 class LoadObjectError(Exception):
     pass
 
+class ColorMap:
+    RAINBOW_MASK = "rainbow_mask"
+    GREEN_MASK = "green_mask"
+    RAINBOW = "rainbow"
