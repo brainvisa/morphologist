@@ -8,28 +8,30 @@ class MockStep(Step):
 
     def __init__(self):
         super(MockStep, self).__init__()
-
         self.time_to_sleep = 0
 
-        self.input_1 = None
-        self.input_2 = None
-        self.input_3 = None
+    def _get_authorized_attributes(self):
+        return Step._get_authorized_attributes(self) + ['time_to_sleep']
 
-        #outputs
-        self.output_1 = None
-        self.output_2 = None
+    def _get_inputs(self):
+        file_inputs = ['input_1', 'input_2', 'input_3']
+        other_inputs = []
+        return file_inputs, other_inputs  
+
+    def _get_outputs(self):               
+        return ['output_1', 'output_2']
 
     def get_command(self):
         message = "MockStep "
-        message += "inputs: %s %s %s outputs: %s %s" %(self.input_1, 
-                                                       self.input_2, 
-                                                       self.input_3, 
-                                                       self.output_1, 
-                                                       self.output_2)
+        message += "inputs: %s %s %s outputs: %s %s" % (self.inputs.input_1, 
+                                                       self.inputs.input_2, 
+                                                       self.inputs.input_3, 
+                                                       self.outputs.output_1, 
+                                                       self.outputs.output_2)
         command = ["sleep", str(self.time_to_sleep)]
-        out_file_1 = open(self.output_1, "w")
+        out_file_1 = open(self.outputs.output_1, "w")
         out_file_1.close()
-        out_file_2 = open(self.output_2, "w")
+        out_file_2 = open(self.outputs.output_2, "w")
         out_file_2.close()
         return command
 
@@ -62,24 +64,23 @@ class MockAnalysis(Analysis):
         
 
     def propagate_parameters(self):
-        self._steps[0].input_1 = self.inputs.input_1
-        self._steps[0].input_2 = self.inputs.input_2
-        self._steps[0].input_3 = self.inputs.input_3
-        self._steps[0].output_1 = self.outputs.output_1
-        self._steps[0].output_2 = self.outputs.output_2
+        self._steps[0].inputs.input_1 = self.inputs.input_1
+        self._steps[0].inputs.input_2 = self.inputs.input_2
+        self._steps[0].inputs.input_3 = self.inputs.input_3
+        self._steps[0].outputs.output_1 = self.outputs.output_1
+        self._steps[0].outputs.output_2 = self.outputs.output_2
 
-        self._steps[1].input_1 = self._steps[0].output_1
-        self._steps[1].input_2 = self._steps[0].output_2
-        self._steps[1].input_3 = self.inputs.input_4
-        self._steps[1].output_1 = self.outputs.output_3
-        self._steps[1].output_2 = self.outputs.output_4
+        self._steps[1].inputs.input_1 = self._steps[0].outputs.output_1
+        self._steps[1].inputs.input_2 = self._steps[0].outputs.output_2
+        self._steps[1].inputs.input_3 = self.inputs.input_4
+        self._steps[1].outputs.output_1 = self.outputs.output_3
+        self._steps[1].outputs.output_2 = self.outputs.output_4
 
-        self._steps[2].input_1 = self.inputs.input_5
-        self._steps[2].input_2 = self._steps[1].output_1
-        self._steps[2].input_3 = self.inputs.input_6
-        self._steps[2].output_1 = self.outputs.output_5
-        self._steps[2].output_2 = self.outputs.output_6
-    
+        self._steps[2].inputs.input_1 = self.inputs.input_5
+        self._steps[2].inputs.input_2 = self._steps[1].outputs.output_1
+        self._steps[2].inputs.input_3 = self.inputs.input_6
+        self._steps[2].outputs.output_1 = self.outputs.output_5
+        self._steps[2].outputs.output_2 = self.outputs.output_6
  
     def set_parameters(self, parameter_template, groupname, subjectname, input_filename, outputdir):
         self.inputs.input_1 = self._generate_in_file_path(subjectname, "in1", outputdir)
