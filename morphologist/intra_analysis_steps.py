@@ -257,7 +257,7 @@ class WhiteSurface(Step):
         self.white_surface = None
 
     def get_command(self):
-        command = ['python', '-m', 'morphologist.intra_analysis_white_surface', 
+        command = ['python', '-m', 'morphologist.intra_analysis_surface', 
                    self.grey, self.white_surface]
         return command
 
@@ -266,6 +266,10 @@ class GreySurface(Step):
 
     def __init__(self, left=True):
         super(GreySurface, self).__init__()
+        if left:
+            self.side = 'left'
+        else: 
+            self.side = 'right'
         #inputs
         self.corrected_mri = None
         self.split_mask = None
@@ -275,7 +279,8 @@ class GreySurface(Step):
 
     def get_command(self):
         command = ['python', '-m', 'morphologist.intra_analysis_grey_surface',
-                   self.corrected_mri, self.split_mask, self.grey, self.grey_surface]
+                   self.corrected_mri, self.split_mask, self.grey, 
+                   self.grey_surface, self.side]
         return command
 
 
@@ -296,8 +301,7 @@ class Sulci(Step):
 
 
     def get_command(self):
-        command = ['python', '-m', 'morphologist.intra_analysis_sulci',
-                   self.corrected_mri, self.split_mask, self.grey, self.grey_surface]
+        command = ['python', '-m', 'morphologist.intra_analysis_sulci']
         return command
 
 

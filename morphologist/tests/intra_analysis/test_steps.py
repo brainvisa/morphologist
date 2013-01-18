@@ -12,7 +12,7 @@ from brainvisa.data import neuroHierarchy
 
 from morphologist.intra_analysis_steps import ImageImportation, \
     SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation,\
-    SplitBrain, GreyWhite, Grey, WhiteSurface
+    SplitBrain, GreyWhite, Grey, WhiteSurface, GreySurface
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate, \
                                         IntraAnalysis    
 
@@ -75,6 +75,8 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         nodes.child('SplitBrain').fix_random_seed = True
         nodes.child('GreyWhiteClassification').fix_random_seed = True
         nodes.child('GreyWhiteSurface').fix_random_seed = True
+        nodes.child('HemispheresMesh').fix_random_seed = True
+        nodes.child('CorticalFoldsGraph').fix_random_seed = True
         
         print "* Run Axon Morphologist to get reference results"
         print "* First until the bias correction to save the first white ridge result"
@@ -239,6 +241,26 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         self.assert_(right_white_surface.run() == 0)
         
         self._assert_same_results([IntraAnalysis.LEFT_WHITE_SURFACE, IntraAnalysis.RIGHT_WHITE_SURFACE])
+
+    def test_grey_surface(self):
+        left_grey_surface = GreySurface(left=True)
+        right_grey_surface = GreySurface(left=False)
+       
+        left_grey_surface.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
+        right_grey_surface.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
+        left_grey_surface.split_mask = self.ref_outputs[IntraAnalysis.SPLIT_MASK] 
+        right_grey_surface.split_mask = self.ref_outputs[IntraAnalysis.SPLIT_MASK] 
+        left_grey_surface.grey = self.ref_outputs[IntraAnalysis.LEFT_GREY]
+        right_grey_surface.grey = self.ref_outputs[IntraAnalysis.RIGHT_GREY]
+        left_grey_surface.grey_surface = self.test_outputs[IntraAnalysis.LEFT_GREY_SURFACE]
+        right_grey_surface.grey_surface = self.test_outputs[IntraAnalysis.RIGHT_GREY_SURFACE]
+        
+        self.assert_(left_grey_surface.run() == 0)
+        self.assert_(right_grey_surface.run() == 0)
+        
+        self._assert_same_results([IntraAnalysis.LEFT_GREY_SURFACE, IntraAnalysis.RIGHT_GREY_SURFACE])
+
+
 
     def _assert_same_files(self, file_ref, file_test):
         self.assert_(filecmp.cmp(file_ref, file_test), 
