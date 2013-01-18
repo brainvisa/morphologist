@@ -197,6 +197,9 @@ class GreyWhite(Step):
         self.left = left
         self.inputs.fix_random_seed = False
 
+    def _get_authorized_attributes(self):
+        return Step._get_authorized_attributes(self) + ['left']
+
     def _get_inputs(self):
         file_inputs = ['corrected_mri', 'commissure_coordinates',
                        'histo_analysis', 'split_mask', 'edges']
@@ -283,6 +286,9 @@ class GreySurface(Step):
         else: 
             self.inputs.side = 'right'
 
+    def _get_authorized_attributes(self):
+        return Step._get_authorized_attributes(self) + ['side']
+
     def _get_inputs(self):
         file_inputs = ['corrected_mri', 'split_mask', 'grey']
         other_inputs = ['side']
@@ -310,6 +316,9 @@ class Sulci(Step):
             self.inputs.side = 'left'
         else: 
             self.inputs.side = 'right'
+
+    def _get_authorized_attributes(self):
+        return Step._get_authorized_attributes(self) + ['side']
 
     def _get_inputs(self):
         file_inputs = ['corrected_mri', 'split_mask', 'grey',
@@ -345,6 +354,9 @@ class SulciLabelling(Step):
             self.inputs.side = 'left'
         else: 
             self.inputs.side = 'right'
+
+    def _get_authorized_attributes(self):
+        return Step._get_authorized_attributes(self) + ['side']
 
     def _get_inputs(self):
         file_inputs = ['sulci']

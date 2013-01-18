@@ -23,3 +23,11 @@ class Step(object):
     def get_command(self):
         raise NotImplementedError("Step is an abstract class.")
 
+    def __setattr__(self, attr, value):
+        msg = "'%s': invalid attribute: use inputs or outputs instead" % attr
+        if attr not in self._get_authorized_attributes():
+            raise ValueError(msg)
+        object.__setattr__(self, attr, value)
+
+    def _get_authorized_attributes(self):
+        return ['inputs', 'outputs']
