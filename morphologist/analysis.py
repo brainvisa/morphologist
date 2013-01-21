@@ -117,7 +117,7 @@ class Parameters(object):
     def set_value(self, name, value):
         if not name in self._parameter_names:
             raise UnknownParameterName(name)
-        return setattr(self, name, value)
+        setattr(self, name, value)
 
     def list_missing_parameter_values(self):
         missing_values = []

@@ -5,6 +5,7 @@ class AbstractObject3D(object):
     
     def __init__(self):
         self._backend = Backend.objects_loader_backend()
+        self._friend_backend_object = None
         
     def reload(self):
         raise NotImplementedError("AbstractObject3D is an abstract class")

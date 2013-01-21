@@ -25,6 +25,7 @@ class AnalysisViewportModel(QtCore.QObject):
                 self.on_analysis_model_files_changed)
 
     def _init_3d_objects(self):
+        self.observed_objects = {}
         raise NotImplementedError("SubjectwiseViewportModel is an abstract class")
 
     @QtCore.Slot()
@@ -57,8 +58,9 @@ class AnalysisViewportModel(QtCore.QObject):
                 object3d = None
         self.observed_objects[parameter_name] = object3d
 
-    @classmethod
-    def load_object(cls, parameter_name, filename):
+    @staticmethod
+    def load_object(parameter_name, filename):
+        _ = parameter_name
         return Object3D.from_filename(filename)
     
     def _remove_useless_parameters(self, changed_parameters):
@@ -88,9 +90,9 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
             IntraAnalysis.LEFT_LABELED_SULCI : None, 
             IntraAnalysis.RIGHT_LABELED_SULCI : None,
         }
-    
-    @classmethod
-    def load_object(cls, parameter_name, filename):
+
+    @staticmethod
+    def load_object(parameter_name, filename):
         obj = None
         if (parameter_name == IntraAnalysis.COMMISSURE_COORDINATES):
             obj = APCObject(filename)
