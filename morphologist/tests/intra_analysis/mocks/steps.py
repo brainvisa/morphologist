@@ -28,7 +28,19 @@ class AutomockStep(object):
         raise NotImplementedError("AutomockStep is an abstract class")
 
 
-class MockSpatialNormalization(AutomockStep, SpatialNormalization):
+class MetaAutomockStep(type):
+    def __new__(cls, name, bases, dict):
+        def func(self):
+            StandardStep = self.__class__.__bases__[1]
+            std_authorized_attr = StandardStep._get_authorized_attributes(self)
+            return ['out_files', 'name'] + std_authorized_attr
+        ExtendedAutomockStep = type(name, (AutomockStep,) + bases, dict)
+        ExtendedAutomockStep._get_authorized_attributes = func
+        return ExtendedAutomockStep
+
+
+class MockSpatialNormalization(SpatialNormalization):
+    __metaclass__ = MetaAutomockStep
     
     def __init__(self, mock_out_files):
         super(MockSpatialNormalization, self).__init__()
@@ -38,7 +50,8 @@ class MockSpatialNormalization(AutomockStep, SpatialNormalization):
         self.inputs.talairach_transformation = self.out_files[IntraAnalysis.TALAIRACH_TRANSFORMATION]
 
 
-class MockBiasCorrection(AutomockStep, BiasCorrection):
+class MockBiasCorrection(BiasCorrection):
+    __metaclass__ = MetaAutomockStep
 
     def __init__(self, mock_out_files):
         super(MockBiasCorrection, self).__init__()
@@ -51,7 +64,8 @@ class MockBiasCorrection(AutomockStep, BiasCorrection):
         self.inputs.variance = self.out_files[IntraAnalysis.VARIANCE]
  
 
-class MockHistogramAnalysis(AutomockStep, HistogramAnalysis):
+class MockHistogramAnalysis(HistogramAnalysis):
+    __metaclass__ = MetaAutomockStep
     
     def __init__(self, mock_out_files):
         super(MockHistogramAnalysis, self).__init__()
@@ -61,7 +75,8 @@ class MockHistogramAnalysis(AutomockStep, HistogramAnalysis):
         self.inputs.histogram = self.out_files[IntraAnalysis.HISTOGRAM]
 
 
-class MockBrainSegmentation(AutomockStep, BrainSegmentation):
+class MockBrainSegmentation(BrainSegmentation):
+    __metaclass__ = MetaAutomockStep
     
     def __init__(self, mock_out_files):
         super(MockBrainSegmentation, self).__init__()
@@ -71,7 +86,8 @@ class MockBrainSegmentation(AutomockStep, BrainSegmentation):
         self.inputs.white_ridges = self.out_files[IntraAnalysis.WHITE_RIDGES]
  
 
-class MockSplitBrain(AutomockStep, SplitBrain):
+class MockSplitBrain(SplitBrain):
+    __metaclass__ = MetaAutomockStep
     
     def __init__(self, mock_out_files):
         super(MockSplitBrain, self).__init__()
@@ -80,7 +96,8 @@ class MockSplitBrain(AutomockStep, SplitBrain):
         self.inputs.split_mask = self.out_files[IntraAnalysis.SPLIT_MASK]
  
 
-class MockGreyWhite(AutomockStep, GreyWhite):
+class MockGreyWhite(GreyWhite):
+    __metaclass__ = MetaAutomockStep
     
     def __init__(self, ref_grey_white):
         super(MockGreyWhite, self).__init__()
@@ -88,7 +105,8 @@ class MockGreyWhite(AutomockStep, GreyWhite):
         self.inputs.grey_white = ref_grey_white
  
 
-class MockGrey(AutomockStep, Grey):
+class MockGrey(Grey):
+    __metaclass__ = MetaAutomockStep
     
     def __init__(self, ref_grey):
         super(MockGrey, self).__init__()
@@ -96,7 +114,8 @@ class MockGrey(AutomockStep, Grey):
         self.inputs.grey = ref_grey
         
     
-class MockWhiteSurface(AutomockStep, WhiteSurface):
+class MockWhiteSurface(WhiteSurface):
+    __metaclass__ = MetaAutomockStep
     
     def __init__(self, ref_white_surface):
         super(MockWhiteSurface, self).__init__()
@@ -105,6 +124,7 @@ class MockWhiteSurface(AutomockStep, WhiteSurface):
         
 
 class MockGreySurface(GreySurface):
+    __metaclass__ = MetaAutomockStep
   
     def __init__(self, ref_grey_surface):
         super(MockGreySurface, self).__init__()
@@ -120,6 +140,7 @@ class MockGreySurface(GreySurface):
 
 
 class MockSulci(Sulci):
+    __metaclass__ = MetaAutomockStep
   
     def __init__(self, ref_sulci):
         super(MockSulci, self).__init__()
@@ -137,6 +158,7 @@ class MockSulci(Sulci):
 
 
 class MockSulciLabelling(SulciLabelling):
+    __metaclass__ = MetaAutomockStep
 
     def __init__(self, ref_labeled_sulci):
         super(MockSulciLabelling, self).__init__()
