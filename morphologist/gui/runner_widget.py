@@ -39,6 +39,7 @@ class RunnerView(QtGui.QWidget):
             self.ui.run_button.setEnabled(True)
             self.ui.stop_button.setEnabled(False)
               
+    # this slot is automagically connected
     @QtCore.Slot()
     def on_run_button_clicked(self):
         if self._runner_model is not None:
@@ -67,6 +68,7 @@ class RunnerView(QtGui.QWidget):
                 run = self._run_analyses()
         return run
  
+    # this slot is automagically connected
     @QtCore.Slot()
     def on_stop_button_clicked(self):
         if self._runner_model is not None:
