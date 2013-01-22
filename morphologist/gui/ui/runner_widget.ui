@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>755</width>
-    <height>47</height>
+    <width>849</width>
+    <height>45</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -54,6 +54,16 @@
      </property>
      <property name="text">
       <string>Stop</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="erase_button">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>Erase results</string>
      </property>
     </widget>
    </item>
