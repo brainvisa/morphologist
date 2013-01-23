@@ -11,7 +11,7 @@ from morphologist.intra_analysis import IntraAnalysis
 
 class AnalysisViewportModel(QtCore.QObject):
     changed = QtCore.pyqtSignal()
-    parameter_changed = QtCore.pyqtSignal(str)
+    parameter_changed = QtCore.pyqtSignal(list)
 
     def __init__(self, model):
         super(AnalysisViewportModel, self).__init__()
@@ -35,27 +35,34 @@ class AnalysisViewportModel(QtCore.QObject):
 
     @QtCore.Slot(dict)
     def on_analysis_model_files_changed(self, changed_parameters):
-        for parameter_name, filename in changed_parameters.items():
-            if not parameter_name in self.observed_objects.keys():
-                continue
-            object = self.observed_objects[parameter_name]
-            if object is not None:
-                if os.path.exists(filename):
-                    object.reload()
-                else:
-                    object = None
+        updated_parameters = []
+        self._remove_useless_parameters(changed_parameters)
+        for parameter_name, filename in changed_parameters.iteritems():
+            if parameter_name in self.observed_objects.keys():
+                self._update_observed_objects(parameter_name, filename)
+                updated_parameters.append(parameter_name)
+        self.parameter_changed.emit(updated_parameters)
+        
+    def _update_observed_objects(self, parameter_name, filename):
+        object3d = self.observed_objects[parameter_name]
+        if object3d is not None:
+            if os.path.exists(filename):
+                object3d.reload()
             else:
-                try:
-                    object = self.load_object(parameter_name, filename)
-                except LoadObjectError, e:
-                    object = None
-            self.observed_objects[parameter_name] = object
-            self.parameter_changed.emit(parameter_name)
+                object3d = None
+        else:
+            try:
+                object3d = self.load_object(parameter_name, filename)
+            except LoadObjectError:
+                object3d = None
+        self.observed_objects[parameter_name] = object3d
 
     @classmethod
     def load_object(cls, parameter_name, filename):
         return Object3D.from_filename(filename)
-
+    
+    def _remove_useless_parameters(self, changed_parameters):
+        pass
 
 class IntraAnalysisViewportModel(AnalysisViewportModel):
 
@@ -80,9 +87,8 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
             IntraAnalysis.RIGHT_SULCI : None,
             IntraAnalysis.LEFT_LABELED_SULCI : None, 
             IntraAnalysis.RIGHT_LABELED_SULCI : None,
-
         }
-
+    
     @classmethod
     def load_object(cls, parameter_name, filename):
         obj = None
@@ -94,6 +100,13 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
             obj = Object3D.from_filename(filename) 
         return obj
 
+    def _remove_useless_parameters(self, changed_parameters):
+        for sulci, labelled_sulci in [(IntraAnalysis.LEFT_SULCI,IntraAnalysis.LEFT_LABELED_SULCI), 
+                                      (IntraAnalysis.RIGHT_SULCI,IntraAnalysis.RIGHT_LABELED_SULCI)]:
+            labeled_sulci_filename = changed_parameters.get(labelled_sulci, None)
+            if (labeled_sulci_filename and os.path.exists(labeled_sulci_filename)):
+                if changed_parameters.get(sulci, None):
+                    changed_parameters.pop(sulci)
 
 class IntraAnalysisViewportView(QtGui.QWidget):
     uifile = os.path.join(ui_directory, 'viewport_widget.ui')
@@ -171,37 +184,59 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         for view in self._views.values():
             view.clear()
     
-    @QtCore.Slot(str)
-    def on_parameter_changed(self, parameter_name):
-        if ((parameter_name == IntraAnalysis.MRI) or 
-            (parameter_name == IntraAnalysis.COMMISSURE_COORDINATES)):
-            self.update_raw_mri_acpc_view()
-        elif parameter_name == IntraAnalysis.CORRECTED_MRI:
-            self.update_corrected_mri_view()
-            self.update_brain_mask_view()
-            self.update_split_mask_view()
-            self.update_grey_white_view()
-            self.update_grey_surface_view()
-            self.update_white_surface_sulci_view()
-        elif parameter_name == IntraAnalysis.HISTO_ANALYSIS:
-            self.update_histo_analysis_view()
-        elif parameter_name == IntraAnalysis.BRAIN_MASK:
-            self.update_brain_mask_view()
-        elif parameter_name == IntraAnalysis.SPLIT_MASK:
-            self.update_split_mask_view()
-        elif ((parameter_name == IntraAnalysis.LEFT_GREY_WHITE) or
-              (parameter_name == IntraAnalysis.RIGHT_GREY_WHITE)):
-            self.update_grey_white_view()
-        elif ((parameter_name == IntraAnalysis.LEFT_GREY_SURFACE) or
-              (parameter_name == IntraAnalysis.RIGHT_GREY_SURFACE)):
-            self.update_grey_surface_view()
-        elif (parameter_name in [IntraAnalysis.LEFT_WHITE_SURFACE, 
-                                 IntraAnalysis.RIGHT_WHITE_SURFACE, 
-                                 IntraAnalysis.LEFT_SULCI, 
-                                 IntraAnalysis.RIGHT_SULCI, 
-                                 IntraAnalysis.LEFT_LABELED_SULCI, 
-                                 IntraAnalysis.RIGHT_LABELED_SULCI]):
-            self.update_white_surface_sulci_view()
+    @QtCore.Slot(list)
+    def on_parameter_changed(self, parameter_name_list):
+        views_to_update=set()
+        for parameter_name in parameter_name_list:
+            if ((parameter_name == IntraAnalysis.MRI) or 
+                (parameter_name == IntraAnalysis.COMMISSURE_COORDINATES)):
+                views_to_update.add(self.RAW_MRI_ACPC)  
+            elif parameter_name == IntraAnalysis.CORRECTED_MRI:
+                views_to_update.add(self.BIAS_CORRECTED)
+                views_to_update.add(self.BRAIN_MASK)
+                views_to_update.add(self.SPLIT_MASK)
+                views_to_update.add(self.GREY_WHITE)
+                views_to_update.add(self.GREY_SURFACE)
+                views_to_update.add(self.WHITE_SURFACE_SULCI)
+            elif parameter_name == IntraAnalysis.HISTO_ANALYSIS:
+                views_to_update.add(self.HISTO_ANALYSIS)
+            elif parameter_name == IntraAnalysis.BRAIN_MASK:
+                views_to_update.add(self.BRAIN_MASK)
+            elif parameter_name == IntraAnalysis.SPLIT_MASK:
+                views_to_update.add(self.SPLIT_MASK)
+            elif ((parameter_name == IntraAnalysis.LEFT_GREY_WHITE) or
+                  (parameter_name == IntraAnalysis.RIGHT_GREY_WHITE)):
+                views_to_update.add(self.GREY_WHITE)
+            elif ((parameter_name == IntraAnalysis.LEFT_GREY_SURFACE) or
+                  (parameter_name == IntraAnalysis.RIGHT_GREY_SURFACE)):
+                views_to_update.add(self.GREY_SURFACE)
+            elif ( (parameter_name == IntraAnalysis.LEFT_WHITE_SURFACE) or 
+                   (parameter_name == IntraAnalysis.RIGHT_WHITE_SURFACE) or
+                   (parameter_name == IntraAnalysis.LEFT_SULCI) or
+                   (parameter_name == IntraAnalysis.RIGHT_SULCI) or 
+                   (parameter_name == IntraAnalysis.LEFT_LABELED_SULCI) or 
+                   (parameter_name == IntraAnalysis.RIGHT_LABELED_SULCI)):
+                views_to_update.add(self.WHITE_SURFACE_SULCI)
+        self.update_views(views_to_update)
+            
+    def update_views(self, view_name_list):
+        for view_name in view_name_list:
+            if view_name == self.RAW_MRI_ACPC:
+                self.update_raw_mri_acpc_view()
+            elif view_name == self.BIAS_CORRECTED:
+                self.update_corrected_mri_view()
+            elif view_name == self.HISTO_ANALYSIS:
+                self.update_histo_analysis_view()
+            elif view_name ==self.BRAIN_MASK:
+                self.update_brain_mask_view()
+            elif view_name == self.SPLIT_MASK:
+                self.update_split_mask_view()
+            elif view_name == self.GREY_WHITE:
+                self.update_grey_white_view()
+            elif view_name == self.GREY_SURFACE:
+                self.update_grey_surface_view()
+            elif view_name == self.WHITE_SURFACE_SULCI:
+                self.update_white_surface_sulci_view()
         
     def update_raw_mri_acpc_view(self):
         view = self._views[self.RAW_MRI_ACPC]
