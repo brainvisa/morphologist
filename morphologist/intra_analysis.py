@@ -96,8 +96,8 @@ class IntraAnalysis(Analysis):
     def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
 
         import_step = ImageImportation()
-        import_step.input = filename
-        import_step.output = cls.get_mri_path(parameter_template,
+        import_step.inputs.input = filename
+        import_step.outputs.output = cls.get_mri_path(parameter_template,
                                               groupname, 
                                               subjectname,
                                               outputdir)
@@ -105,117 +105,109 @@ class IntraAnalysis(Analysis):
         if import_step.run() != 0:
             raise ImportationError("The importation failed for the subject %s."
                                    % subjectname)
-        return import_step.output
+        return import_step.outputs.output
 
     def propagate_parameters(self):
-        self._normalization.mri = self.inputs[IntraAnalysis.MRI]
-        self._normalization.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
-        self._normalization.talairach_transformation = self.outputs[IntraAnalysis.TALAIRACH_TRANSFORMATION]
+        self._normalization.inputs.mri = self.inputs[IntraAnalysis.MRI]
+        self._normalization.outputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
+        self._normalization.outputs.talairach_transformation = self.outputs[IntraAnalysis.TALAIRACH_TRANSFORMATION]
         
-        self._bias_correction.mri = self.inputs[IntraAnalysis.MRI]
-        self._bias_correction.commissure_coordinates = self._normalization.commissure_coordinates
+        self._bias_correction.inputs.mri = self.inputs[IntraAnalysis.MRI]
+        self._bias_correction.inputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
+        self._bias_correction.outputs.hfiltered = self.outputs[IntraAnalysis.HFILTERED]
+        self._bias_correction.outputs.white_ridges = self.outputs[IntraAnalysis.WHITE_RIDGES]
+        self._bias_correction.outputs.edges = self.outputs[IntraAnalysis.EDGES]
+        self._bias_correction.outputs.variance = self.outputs[IntraAnalysis.VARIANCE]
+        self._bias_correction.outputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
 
-        self._bias_correction.hfiltered = self.outputs[IntraAnalysis.HFILTERED]
-        self._bias_correction.white_ridges = self.outputs[IntraAnalysis.WHITE_RIDGES]
-        self._bias_correction.edges = self.outputs[IntraAnalysis.EDGES]
-        self._bias_correction.variance = self.outputs[IntraAnalysis.VARIANCE]
-        self._bias_correction.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
+        self._histogram_analysis.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI] 
+        self._histogram_analysis.inputs.hfiltered = self.outputs[IntraAnalysis.HFILTERED] 
+        self._histogram_analysis.inputs.white_ridges = self.outputs[IntraAnalysis.WHITE_RIDGES] 
+        self._histogram_analysis.outputs.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
+        self._histogram_analysis.outputs.histogram = self.outputs[IntraAnalysis.HISTOGRAM]
 
+        self._brain_segmentation.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
+        self._brain_segmentation.inputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
+        self._brain_segmentation.inputs.edges = self.outputs[IntraAnalysis.EDGES]
+        self._brain_segmentation.inputs.variance = self.outputs[IntraAnalysis.VARIANCE]
+        self._brain_segmentation.inputs.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
+        self._brain_segmentation.inputs.erosion_size = self.inputs[IntraAnalysis.EROSION_SIZE]
+        self._brain_segmentation.outputs.brain_mask = self.outputs[IntraAnalysis.BRAIN_MASK]
+        self._brain_segmentation.outputs.white_ridges = self.outputs[IntraAnalysis.WHITE_RIDGES]
 
-        self._histogram_analysis.corrected_mri = self._bias_correction.corrected_mri
-        self._histogram_analysis.hfiltered = self._bias_correction.hfiltered
-        self._histogram_analysis.white_ridges = self._bias_correction.white_ridges
-        
-        self._histogram_analysis.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
-        self._histogram_analysis.histogram = self.outputs[IntraAnalysis.HISTOGRAM]
+        self._split_brain.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
+        self._split_brain.inputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
+        self._split_brain.inputs.brain_mask = self.outputs[IntraAnalysis.BRAIN_MASK] 
+        self._split_brain.inputs.white_ridges = self.outputs[IntraAnalysis.WHITE_RIDGES]
+        self._split_brain.inputs.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
+        self._split_brain.inputs.bary_factor = self.inputs[IntraAnalysis.BARY_FACTOR]
+        self._split_brain.outputs.split_mask = self.outputs[IntraAnalysis.SPLIT_MASK]
 
+        self._left_grey_white.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
+        self._left_grey_white.inputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
+        self._left_grey_white.inputs.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
+        self._left_grey_white.inputs.split_mask = self.outputs[IntraAnalysis.SPLIT_MASK]
+        self._left_grey_white.inputs.edges = self.outputs[IntraAnalysis.EDGES]
+        self._left_grey_white.outputs.grey_white = self.outputs[IntraAnalysis.LEFT_GREY_WHITE]
 
-        self._brain_segmentation.corrected_mri = self._bias_correction.corrected_mri
-        self._brain_segmentation.commissure_coordinates = self._normalization.commissure_coordinates
-        self._brain_segmentation.white_ridges = self._bias_correction.white_ridges
-        self._brain_segmentation.edges = self._bias_correction.edges
-        self._brain_segmentation.variance = self._bias_correction.variance
-        self._brain_segmentation.histo_analysis = self._histogram_analysis.histo_analysis        
-        self._brain_segmentation.erosion_size = self.inputs[IntraAnalysis.EROSION_SIZE]
+        self._right_grey_white.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
+        self._right_grey_white.inputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
+        self._right_grey_white.inputs.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
+        self._right_grey_white.inputs.split_mask = self.outputs[IntraAnalysis.SPLIT_MASK]
+        self._right_grey_white.inputs.edges = self.outputs[IntraAnalysis.EDGES]
+        self._right_grey_white.outputs.grey_white = self.outputs[IntraAnalysis.RIGHT_GREY_WHITE]
 
-        self._brain_segmentation.brain_mask = self.outputs[IntraAnalysis.BRAIN_MASK]
+        self._left_grey.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
+        self._left_grey.inputs.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
+        self._left_grey.inputs.grey_white = self.outputs[IntraAnalysis.LEFT_GREY_WHITE]
+        self._left_grey.outputs.grey = self.outputs[IntraAnalysis.LEFT_GREY]
 
-  
-        self._split_brain.corrected_mri = self._bias_correction.corrected_mri
-        self._split_brain.brain_mask = self._brain_segmentation.brain_mask
-        self._split_brain.white_ridges = self._bias_correction.white_ridges
-        self._split_brain.histo_analysis = self._histogram_analysis.histo_analysis
-        self._split_brain.commissure_coordinates = self._normalization.commissure_coordinates
-        self._split_brain.bary_factor = self.inputs[IntraAnalysis.BARY_FACTOR]
+        self._right_grey.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
+        self._right_grey.inputs.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
+        self._right_grey.inputs.grey_white = self.outputs[IntraAnalysis.RIGHT_GREY_WHITE]
+        self._right_grey.outputs.grey = self.outputs[IntraAnalysis.RIGHT_GREY]
 
-        self._split_brain.split_mask = self.outputs[IntraAnalysis.SPLIT_MASK]
+        self._left_grey_surface.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI] 
+        self._left_grey_surface.inputs.split_mask = self.outputs[IntraAnalysis.SPLIT_MASK]
+        self._left_grey_surface.inputs.grey = self.outputs[IntraAnalysis.LEFT_GREY]
+        self._left_grey_surface.outputs.grey_surface = self.outputs[IntraAnalysis.LEFT_GREY_SURFACE]
 
+        self._right_grey_surface.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
+        self._right_grey_surface.inputs.split_mask = self.outputs[IntraAnalysis.SPLIT_MASK]
+        self._right_grey_surface.inputs.grey = self.outputs[IntraAnalysis.RIGHT_GREY]
+        self._right_grey_surface.outputs.grey_surface = self.outputs[IntraAnalysis.RIGHT_GREY_SURFACE]
 
-        self._left_grey_white.corrected_mri = self._bias_correction.corrected_mri
-        self._left_grey_white.commissure_coordinates = self._normalization.commissure_coordinates
-        self._left_grey_white.histo_analysis = self._histogram_analysis.histo_analysis
-        self._left_grey_white.split_mask = self._split_brain.split_mask
-        self._left_grey_white.edges = self._bias_correction.edges
-        self._left_grey_white.grey_white = self.outputs[IntraAnalysis.LEFT_GREY_WHITE]
+        self._left_white_surface.inputs.grey = self.outputs[IntraAnalysis.LEFT_GREY]
+        self._left_white_surface.outputs.white_surface = self.outputs[IntraAnalysis.LEFT_WHITE_SURFACE]
 
-        self._right_grey_white.corrected_mri = self._bias_correction.corrected_mri
-        self._right_grey_white.commissure_coordinates = self._normalization.commissure_coordinates
-        self._right_grey_white.histo_analysis = self._histogram_analysis.histo_analysis
-        self._right_grey_white.split_mask = self._split_brain.split_mask
-        self._right_grey_white.edges = self._bias_correction.edges
-        self._right_grey_white.grey_white = self.outputs[IntraAnalysis.RIGHT_GREY_WHITE]
+        self._right_white_surface.inputs.grey = self.outputs[IntraAnalysis.RIGHT_GREY]
+        self._right_white_surface.outputs.white_surface = self.outputs[IntraAnalysis.RIGHT_WHITE_SURFACE]
 
-        self._left_grey.corrected_mri = self._bias_correction.corrected_mri
-        self._left_grey.histo_analysis = self._histogram_analysis.histo_analysis
-        self._left_grey.grey_white = self._left_grey_white.grey_white
-        self._left_grey.grey = self.outputs[IntraAnalysis.LEFT_GREY]
-
-        self._right_grey.corrected_mri = self._bias_correction.corrected_mri
-        self._right_grey.histo_analysis = self._histogram_analysis.histo_analysis
-        self._right_grey.grey_white = self._right_grey_white.grey_white
-        self._right_grey.grey = self.outputs[IntraAnalysis.RIGHT_GREY]
-
-        self._left_grey_surface.corrected_mri = self._bias_correction.corrected_mri
-        self._left_grey_surface.split_mask = self._split_brain.split_mask
-        self._left_grey_surface.grey = self._left_grey.grey 
-        self._left_grey_surface.grey_surface = self.outputs[IntraAnalysis.LEFT_GREY_SURFACE]
-
-        self._right_grey_surface.corrected_mri = self._bias_correction.corrected_mri
-        self._right_grey_surface.split_mask = self._split_brain.split_mask 
-        self._right_grey_surface.grey = self._right_grey.grey 
-        self._right_grey_surface.grey_surface = self.outputs[IntraAnalysis.RIGHT_GREY_SURFACE]
-
-        self._left_white_surface.grey = self._left_grey.grey
-        self._left_white_surface.white_surface = self.outputs[IntraAnalysis.LEFT_WHITE_SURFACE]
-
-        self._right_white_surface.grey = self._right_grey.grey
-        self._right_white_surface.white_surface = self.outputs[IntraAnalysis.RIGHT_WHITE_SURFACE]
-
-        self._left_sulci.corrected_mri = self._bias_correction.corrected_mri       
-        self._left_sulci.grey = self._left_grey.grey
-        self._left_sulci.split_mask = self._split_brain.split_mask
-        self._left_sulci.talairach_transformation = self._normalization.talairach_transformation
-        self._left_sulci.grey_white = self._left_grey_white.grey_white
-        self._left_sulci.white_surface = self._left_white_surface.white_surface
-        self._left_sulci.grey_surface = self._left_grey_surface.grey_surface
-        self._left_sulci.commissure_coordinates = self._normalization.commissure_coordinates
-        self._left_sulci.sulci = self.outputs[IntraAnalysis.LEFT_SULCI]
+        self._left_sulci.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
+        self._left_sulci.inputs.grey = self.outputs[IntraAnalysis.LEFT_GREY]
+        self._left_sulci.inputs.split_mask = self.outputs[IntraAnalysis.SPLIT_MASK]
+        self._left_sulci.inputs.talairach_transformation = self.outputs[IntraAnalysis.TALAIRACH_TRANSFORMATION]
+        self._left_sulci.inputs.grey_white = self.outputs[IntraAnalysis.LEFT_GREY_WHITE]
+        self._left_sulci.inputs.white_surface = self.outputs[IntraAnalysis.LEFT_WHITE_SURFACE]
+        self._left_sulci.inputs.grey_surface = self.outputs[IntraAnalysis.LEFT_GREY_SURFACE]
+        self._left_sulci.inputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
+        self._left_sulci.outputs.sulci = self.outputs[IntraAnalysis.LEFT_SULCI]
  
-        self._right_sulci.corrected_mri = self._bias_correction.corrected_mri       
-        self._right_sulci.grey = self._right_grey.grey
-        self._right_sulci.split_mask = self._split_brain.split_mask
-        self._right_sulci.talairach_transformation = self._normalization.talairach_transformation
-        self._right_sulci.grey_white = self._right_grey_white.grey_white
-        self._right_sulci.white_surface = self._right_white_surface.white_surface
-        self._right_sulci.grey_surface = self._right_grey_surface.grey_surface
-        self._right_sulci.commissure_coordinates = self._normalization.commissure_coordinates
-        self._right_sulci.sulci = self.outputs[IntraAnalysis.RIGHT_SULCI]
+        self._right_sulci.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
+        self._right_sulci.inputs.grey = self.outputs[IntraAnalysis.RIGHT_GREY]
+        self._right_sulci.inputs.split_mask = self.outputs[IntraAnalysis.SPLIT_MASK]
+        self._right_sulci.inputs.talairach_transformation = self.outputs[IntraAnalysis.TALAIRACH_TRANSFORMATION]
+        self._right_sulci.inputs.grey_white = self.outputs[IntraAnalysis.RIGHT_GREY_WHITE]
+        self._right_sulci.inputs.white_surface = self.outputs[IntraAnalysis.RIGHT_WHITE_SURFACE]
+        self._right_sulci.inputs.grey_surface = self.outputs[IntraAnalysis.RIGHT_GREY_SURFACE]
+        self._right_sulci.inputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
+        self._right_sulci.outputs.sulci = self.outputs[IntraAnalysis.RIGHT_SULCI]
 
-        self._left_sulci_labelling.sulci = self._left_sulci.sulci
-        self._left_sulci_labelling.labeled_sulci = self.outputs[IntraAnalysis.LEFT_LABELED_SULCI]
+        self._left_sulci_labelling.inputs.sulci = self.outputs[IntraAnalysis.LEFT_SULCI]
+        self._left_sulci_labelling.outputs.labeled_sulci = self.outputs[IntraAnalysis.LEFT_LABELED_SULCI]
 
-        self._right_sulci_labelling.sulci = self._right_sulci.sulci
-        self._right_sulci_labelling.labeled_sulci = self.outputs[IntraAnalysis.RIGHT_LABELED_SULCI]
+        self._right_sulci_labelling.inputs.sulci = self.outputs[IntraAnalysis.RIGHT_SULCI]
+        self._right_sulci_labelling.outputs.labeled_sulci = self.outputs[IntraAnalysis.RIGHT_LABELED_SULCI]
 
 
     @classmethod
