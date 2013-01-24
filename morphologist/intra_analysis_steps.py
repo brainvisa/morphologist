@@ -96,6 +96,7 @@ class HistogramAnalysis(Step):
         command = ['VipHistoAnalysis', 
                    '-i', self.corrected_mri, 
                    '-o', self.histo_analysis, 
+                   '-output-his', self.histogram, 
                    '-Save', 'y',
                    '-Mask', self.hfiltered,
                    '-Ridge', self.white_ridges,
