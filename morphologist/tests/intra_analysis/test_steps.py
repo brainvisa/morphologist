@@ -37,8 +37,6 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         
         self.ref_white_ridges_bc = self.ref_outputs[IntraAnalysis.WHITE_RIDGES].replace(".nii", "_bc.nii")
         self.test_white_ridges_bc = self.test_outputs[IntraAnalysis.WHITE_RIDGES].replace(".nii", "_bc.nii")
-        self.ref_histo_analysis_his = self.ref_outputs[IntraAnalysis.HISTO_ANALYSIS].replace(".han", ".his")
-        self.test_histo_analysis_his = self.test_outputs[IntraAnalysis.HISTO_ANALYSIS].replace(".han", ".his")
         
         BrainvisaIntraAnalysisParameterTemplate.create_outputdirs(self.group, self.subject, 
                                                                   self.output_directory)
@@ -146,9 +144,10 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         histo_analysis.hfiltered = self.ref_outputs[IntraAnalysis.HFILTERED]
         histo_analysis.fix_random_seed = True
         histo_analysis.histo_analysis = self.test_outputs[IntraAnalysis.HISTO_ANALYSIS]
+        histo_analysis.histogram = self.test_outputs[IntraAnalysis.HISTOGRAM]
         self.assert_(histo_analysis.run() == 0)
-        self._assert_same_results([IntraAnalysis.HISTO_ANALYSIS])
-        self._assert_same_files(self.ref_histo_analysis_his, self.test_histo_analysis_his)
+        self._assert_same_results([IntraAnalysis.HISTO_ANALYSIS,
+                                   IntraAnalysis.HISTOGRAM])
         
     def test_brain_segmentation(self):
         brain_segmentation = BrainSegmentation()
