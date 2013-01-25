@@ -196,6 +196,9 @@ class IntraAnalysis(Analysis):
         self._left_sulci.split_mask = self._split_brain.split_mask
         self._left_sulci.talairach_transformation = self._normalization.talairach_transformation
         self._left_sulci.grey_white = self._left_grey_white.grey_white
+        self._left_sulci.white_surface = self._left_white_surface.white_surface
+        self._left_sulci.grey_surface = self._left_grey_surface.grey_surface
+        self._left_sulci.commissure_coordinates = self._normalization.commissure_coordinates
         self._left_sulci.sulci = self.outputs[IntraAnalysis.LEFT_SULCI]
  
         self._right_sulci.corrected_mri = self._bias_correction.corrected_mri       
@@ -203,6 +206,9 @@ class IntraAnalysis(Analysis):
         self._right_sulci.split_mask = self._split_brain.split_mask
         self._right_sulci.talairach_transformation = self._normalization.talairach_transformation
         self._right_sulci.grey_white = self._right_grey_white.grey_white
+        self._right_sulci.white_surface = self._right_white_surface.white_surface
+        self._right_sulci.grey_surface = self._right_grey_surface.grey_surface
+        self._right_sulci.commissure_coordinates = self._normalization.commissure_coordinates
         self._right_sulci.sulci = self.outputs[IntraAnalysis.RIGHT_SULCI]
 
         self._left_sulci_labelling.sulci = self._left_sulci.sulci

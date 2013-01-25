@@ -12,7 +12,7 @@ from brainvisa.data import neuroHierarchy
 
 from morphologist.intra_analysis_steps import ImageImportation, \
     SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation,\
-    SplitBrain, GreyWhite, Grey, WhiteSurface, GreySurface
+    SplitBrain, GreyWhite, Grey, WhiteSurface, GreySurface, Sulci
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate, \
                                         IntraAnalysis    
 
@@ -260,6 +260,31 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         
         self._assert_same_results([IntraAnalysis.LEFT_GREY_SURFACE, IntraAnalysis.RIGHT_GREY_SURFACE])
 
+    def test_sulci(self):
+        left_sulci = Sulci(left=True)
+        right_sulci = Sulci(left=False)
+      
+        for sulci_step in [left_sulci, right_sulci]:
+            sulci_step.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
+            sulci_step.split_mask = self.ref_outputs[IntraAnalysis.SPLIT_MASK] 
+            sulci_step.talairach_transformation = self.ref_outputs[IntraAnalysis.TALAIRACH_TRANSFORMATION]
+            sulci_step.commissure_coordinates = self.ref_outputs[IntraAnalysis.COMMISSURE_COORDINATES]
+        
+        left_sulci.grey_white = self.ref_outputs[IntraAnalysis.LEFT_GREY_WHITE]
+        right_sulci.grey_white = self.ref_outputs[IntraAnalysis.RIGHT_GREY_WHITE]
+        left_sulci.grey = self.ref_outputs[IntraAnalysis.LEFT_GREY]
+        right_sulci.grey = self.ref_outputs[IntraAnalysis.RIGHT_GREY]
+        left_sulci.grey_surface = self.ref_outputs[IntraAnalysis.LEFT_GREY_SURFACE]
+        right_sulci.grey_surface = self.ref_outputs[IntraAnalysis.RIGHT_GREY_SURFACE]
+        left_sulci.white_surface = self.ref_outputs[IntraAnalysis.LEFT_WHITE_SURFACE]
+        right_sulci.white_surface = self.ref_outputs[IntraAnalysis.RIGHT_WHITE_SURFACE]
+        left_sulci.sulci = self.test_outputs[IntraAnalysis.LEFT_SULCI]
+        right_sulci.sulci = self.test_outputs[IntraAnalysis.RIGHT_SULCI]
+        
+        self.assert_(left_sulci.run() == 0)
+        self.assert_(right_sulci.run() == 0)
+        
+        #TODO compare results ie IntraAnalysis.LEFT_SULCI, IntraAnalysis.RIGHT_SULCI
 
 
     def _assert_same_files(self, file_ref, file_test):

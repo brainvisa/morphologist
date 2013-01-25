@@ -289,19 +289,28 @@ class Sulci(Step):
 
     def __init__(self, left=True):
         super(Sulci, self).__init__()
-        self.left = left
+        if left:
+            self.side = 'left'
+        else: 
+            self.side = 'right'
         #inputs
         self.corrected_mri = None
         self.split_mask = None
         self.grey = None
         self.talairach_transformation = None
         self.grey_white = None
+        self.white_surface = None
+        self.grey_surface = None
+        self.commissure_coordinates = None
         #outputs
         self.sulci = None
 
 
     def get_command(self):
-        command = ['python', '-m', 'morphologist.intra_analysis_sulci']
+        command = ['python', '-m', 'morphologist.intra_analysis_sulci', 
+                   self.corrected_mri, self.split_mask, self.grey, self.talairach_transformation,
+                   self.grey_white, self.commissure_coordinates, 
+                   self.white_surface, self.grey_surface, self.sulci, self.side] 
         return command
 
 
