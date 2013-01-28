@@ -125,8 +125,9 @@ class  SomaWorkflowRunner(Runner):
         self._workflow_controller = WorkflowController()
         self._workflow_id = None
         self._subjects_jobs = None  #subject_name -> list of job_ids
-        self._jobs_status = None #job_id -> status
+        self._jobs_status = None # job_id -> status
         self._last_status_update = None
+	self._jobid_to_step = {} # subject_name -> (job_id -> step)
         self._delete_old_workflows()
         cpu_count = Helper.cpu_count()
         if cpu_count > 1:
@@ -144,6 +145,7 @@ class  SomaWorkflowRunner(Runner):
         if self._workflow_id is not None:
             self._workflow_controller.delete_workflow(self._workflow_id)
         self._workflow_id = self._workflow_controller.submit_workflow(workflow, name=workflow.name)
+        self._update_jobid_to_step()
         self._update_subjects_jobs()
         # the status does not change immediately after run, 
         # so we wait for the status WORKFLOW_IN_PROGRESS or timeout
@@ -182,7 +184,19 @@ class  SomaWorkflowRunner(Runner):
 			    root_group=groups)
         return workflow
 
-    def _update_subjects_jobs(self):
+    def _update_jobid_to_step(self):
+	self._jobid_to_step = {}
+        workflow = self._workflow_controller.workflow(self._workflow_id)
+        for group in workflow.groups:
+            subjectname = group.name
+            self._jobid_to_step[subjectname] = {}
+            job_list = group.elements 
+            for job in job_list:
+            	job_id = workflow.job_mapping[job].job_id
+            	self._jobid_to_step[job_id] = job.name
+            	self._jobid_to_step[subjectname][job_id] = job.name
+
+    def _update_subjects_jobs(self): # TODO: can be replaced/removed (see above)
         self._subjects_jobs = {}
         engine_workflow = self._workflow_controller.workflow(self._workflow_id)
         for group in engine_workflow.groups:
@@ -246,13 +260,19 @@ class  SomaWorkflowRunner(Runner):
         return failed     
 
     def stop(self):
-        if self.is_running():
-            self._workflow_controller.stop_workflow(self._workflow_id)
-            failed_jobs = self._really_failed_jobs()
-            print "failed_jobs = ", failed_jobs
-            for job in failed_jobs:
-                step = self._step_from_job(job) # TODO
-                step.clear_results()
+        if not self.is_running(): return
+        self._workflow_controller.stop_workflow(self._workflow_id)
+        failed_jobs_data = self._really_failed_jobs()
+        workflow = self._workflow_controller.workflow(self._workflow_id)
+        for job_data in failed_jobs_data:
+            stepname = self._jobid_to_step[job_data.job_id]
+            subjectname = job_data.groupname
+            analysis = self._study.analyses[subjectname]
+	    step = analysis.step_from_name(stepname)
+            # step.clear_results() # TODO
+
+    def _step_from_job(self, job_id):
+        job_id
 
     def _really_failed_jobs(self):
         exit_info_by_job = self._sw_exit_info_by_job()
@@ -291,8 +311,8 @@ class  SomaWorkflowRunner(Runner):
                     failed_node = False
             if failed_node: # skip root node
                 if node != 0:
-                    job_id = graph.data(node).job_id
-                    extra_data['failed_jobs'].append(job_id)
+                    data = graph.data(node)
+                    extra_data['failed_jobs'].append(data)
                 continue_graph_coverage = False
             return continue_graph_coverage
                 
@@ -340,7 +360,8 @@ class Graph(object):
         '''
         class SWGraphData(object):
 
-            def __init__(self, job_id):
+            def __init__(self, groupname, job_id):
+		self.groupname = groupname
                 self.job_id = job_id
 
         def _find_alone_starting_nodes(dependencies):
@@ -356,11 +377,13 @@ class Graph(object):
         data = [None] * size
         dependencies = [[] for i in range(size)]
         job_map = {}
-        for i, job in enumerate(workflow.jobs):
-            ind = i + 1 # take into account root node
-            job_map[id(job)] = ind
-            job_id = workflow.job_mapping[job].job_id
-            data[ind] = SWGraphData(job_id)
+	ind = 1 # take into account root node
+        for group in workflow.groups:
+            for job in group.elements:
+            	job_id = workflow.job_mapping[job].job_id
+            	job_map[id(job)] = ind
+            	data[ind] = SWGraphData(group.name, job_id)
+		ind += 1
         for src, dst in workflow.dependencies:
             id_src, id_dst = id(src), id(dst)
             dependencies[job_map[id_dst]].append(job_map[id_src])
