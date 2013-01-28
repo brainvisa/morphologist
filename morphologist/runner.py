@@ -40,16 +40,16 @@ class Runner(object):
     def run(self):
         raise NotImplementedError("Runner is an abstract class.")
     
-    def is_running(self, subjectname=None, stepname=None, update_status=True):
+    def is_running(self, subject=None, stepname=None, update_status=True):
         raise NotImplementedError("Runner is an abstract class.")
     
-    def wait(self, subjectname=None, stepname=None):
+    def wait(self, subject=None, stepname=None):
         raise NotImplementedError("Runner is an abstract class.")
 
-    def has_failed(self, subjectname=None, stepname=None):
+    def has_failed(self, subject=None, stepname=None):
         raise NotImplementedError("Runner is an abstract class.")
 
-    def stop(self, subjectname=None, stepname=None):
+    def stop(self, subject=None, stepname=None):
         raise NotImplementedError("Runner is an abstract class.")
 
     def steps_status(self):
@@ -57,9 +57,10 @@ class Runner(object):
 
     def _check_input_files(self):
         subjects_with_missing_inputs = []
-        for subjectname, analysis in self._study.analyses.iteritems():
+
+        for subject, analysis in self._study.analyses.iteritems():
             if not analysis.inputs.all_file_exists():
-                subjects_with_missing_inputs.append(subjectname)
+                subjects_with_missing_inputs.append(str(subject))
         if len(subjects_with_missing_inputs) != 0:
             raise MissingInputFileError("Subjects: %s" % ", ".join(subjects_with_missing_inputs))
 
@@ -105,23 +106,23 @@ class ThreadRunner(Runner):
             self._execution_thread.setDaemon(True)
             self._execution_thread.start()
     
-    def is_running(self, subjectname=None, stepname=None, update_status=True):
-        _ = subjectname
+    def is_running(self, subject=None, stepname=None, update_status=True):
+        _ = subject
         _ = stepname
         return self._execution_thread.is_alive() 
     
-    def wait(self, subjectname=None, stepname=None):
-        _ = subjectname
+    def wait(self, subject=None, stepname=None):
+        _ = subject
         _ = stepname
         self._execution_thread.join()
         
-    def has_failed(self, subjectname=None, stepname=None):
-        _ = subjectname
+    def has_failed(self, subject=None, stepname=None):
+        _ = subject
         _ = stepname
         return self._last_run_failed
 
-    def stop(self, subjectname=None, stepname=None):
-        _ = subjectname
+    def stop(self, subject=None, stepname=None):
+        _ = subject
         _ = stepname
         with self._lock:
             self._interruption = True
@@ -149,7 +150,7 @@ class  SomaWorkflowRunner(Runner):
 
     def _init_internal_parameters(self):
         self._workflow_id = None
-        self._jobid_to_step = {} # subjectname -> (job_id -> step)
+        self._jobid_to_step = {} # subjectid -> (job_id -> step)
         self._cached_jobs_status = None
         self._cached_failed_jobs = None
         
@@ -184,7 +185,7 @@ class  SomaWorkflowRunner(Runner):
         dependencies = []
         groups = []
         
-        for subjectname, analysis in self._study.analyses.iteritems():
+        for subject, analysis in self._study.analyses.iteritems():
             subject_jobs = []
             previous_job = None
             
@@ -195,10 +196,11 @@ class  SomaWorkflowRunner(Runner):
                 if previous_job is not None:
                     dependencies.append((previous_job, job))
                 previous_job = job
+
             # skip finished analysis
             if len(subject_jobs) != 0:
-                group = Group(name=subjectname, elements=subject_jobs)
-                group.user_storage = subjectname
+                group = Group(name=str(subject), elements=subject_jobs)
+                group.user_storage = subject.id()
                 groups.append(group)
             jobs.extend(subject_jobs)
         
@@ -211,100 +213,100 @@ class  SomaWorkflowRunner(Runner):
         self._jobid_to_step = {}
         workflow = self._workflow_controller.workflow(self._workflow_id)
         for group in workflow.groups:
-            subjectname = group.user_storage
-            self._jobid_to_step[subjectname] = BidiMap('job_id', 'stepname')
+            subjectid = group.user_storage
+            self._jobid_to_step[subjectid] = BidiMap('job_id', 'stepname')
             job_list = group.elements 
             for job in job_list:
                 job_id = workflow.job_mapping[job].job_id
                 step_id = job.user_storage
-                self._jobid_to_step[subjectname][job_id] = step_id
+                self._jobid_to_step[subjectid][job_id] = step_id
 
     def _define_workflow_name(self): 
         return self._study.name + " " + self.WORKFLOW_NAME_SUFFIX
             
-    def is_running(self, subjectname=None, stepname=None, update_status=True):
+    def is_running(self, subject=None, stepname=None, update_status=True):
         running = False
         if self._workflow_id is not None:
-            running = self._workflow_is_running(subjectname,
+            running = self._workflow_is_running(subject.id(),
                                    stepname, update_status)
         return running
 
-    def _workflow_is_running(self, subjectname=None, stepname=None,
+    def _workflow_is_running(self, subjectid=None, stepname=None,
                                                 update_status=True):
-        if subjectname is None and stepname is None:
+        if subjectid is None and stepname is None:
             status = self._workflow_controller.workflow_status(self._workflow_id)
             running = (status == sw.constants.WORKFLOW_IN_PROGRESS)
-        elif subjectname is not None:
+        elif subjectid is not None:
             if stepname is None:
-                running = self._subject_is_running(subjectname, update_status)
+                running = self._subject_is_running(subjectid, update_status)
             else:
                 raise exceptions.NotImplementedError
         else:
             raise exceptions.NotImplementedError
         return running
     
-    def _subject_is_running(self, subjectname, update_status=True):
+    def _subject_is_running(self, subjectid, update_status=True):
         jobs_status = self._get_jobs_status(update_status)
         running = False
-        for job_id in self._jobid_to_step[subjectname].keys():
+        for job_id in self._jobid_to_step[subjectid].keys():
             if jobs_status[job_id] == Runner.RUNNING:
                 running = True
                 break
         return running
             
-    def wait(self, subjectname=None, stepname=None):
-        if subjectname is None and stepname is None:
+    def wait(self, subject=None, stepname=None):
+        if subject is None and stepname is None:
             Helper.wait_workflow(self._workflow_id, self._workflow_controller)
-        elif subjectname is not None:
+        elif subject is not None:
             if stepname is None:
                 raise exceptions.NotImplementedError
             else:
-                self._step_wait(subjectname, stepname)
+                self._step_wait(subject.id(), stepname)
         else:
             raise exceptions.NotImplementedError
 
-    def _step_wait(self, subjectname, stepname):
-        job_id = self._jobid_to_step[subjectname][stepname, 'stepname']
+    def _step_wait(self, subjectid, stepname):
+        job_id = self._jobid_to_step[subjectid][stepname, 'stepname']
         self._workflow_controller.wait_job([job_id])
         
-    def has_failed(self, subjectname=None, stepname=None):
+    def has_failed(self, subject=None, stepname=None):
         has_failed = True
         if self.has_not_started():
             raise RuntimeError("Runner has not been started.")
-        if subjectname is None and stepname is None:
+        if subject is None and stepname is None:
             has_failed = len(self._get_failed_jobs()) != 0
-        elif subjectname is not None:
+        elif subject is not None:
             if stepname is None:
-                has_failed = self._subject_has_failed(subjectname)
+                has_failed = self._subject_has_failed(subject.id())
             else:
-                has_failed = self._step_has_failed(subjectname)
+                has_failed = self._step_has_failed(subject.id())
         else:
             raise exceptions.NotImplementedError
         return has_failed
 
-    def _subject_has_failed(self, subjectname):
+    def _subject_has_failed(self, subjectid):
         failed_jobs = self._get_failed_jobs()
         failed_steps = []
         for job_data in failed_jobs:
-            if subjectname == job_data.groupname:
+            if subjectid == job_data.groupname:
                 return True
         return False
 
-    def _step_has_failed(self, subjectname, stepname):
+    def _step_has_failed(self, subjectid, stepname):
         failed_jobs = self._get_failed_jobs()
         failed_steps = []
         for job_data in failed_jobs:
-            if subjectname == job_data.groupname and \
-                stepname == self._jobid_to_step[subjectname][job_data.job_id]:
+            if subjectid == job_data.groupname and \
+                stepname == self._jobid_to_step[subjectid][job_data.job_id]:
                 return True # if step failed
         return False # if step succeed or was not even started
 
-    def stop(self, subjectname=None, stepname=None):
+    def stop(self, subject=None, stepname=None):
         if not self.is_running():
             raise RuntimeError("Runner is not running.")
-        if subjectname is None and stepname is None:
-            self._workflow_stop(subjectname, stepname)
-        elif subjectname is not None:
+        if subject is None and stepname is None:
+            self._workflow_stop()
+        elif subject is not None:
             if stepname is None:
                 raise exceptions.NotImplementedError
             else:
@@ -312,33 +314,35 @@ class  SomaWorkflowRunner(Runner):
         else:
             raise exceptions.NotImplementedError
 
-    def _workflow_stop(self, subjectname, stepname):
+    def _workflow_stop(self):
+        assert(0) # TODO: fix subjectid in study analyses
         self._workflow_controller.stop_workflow(self._workflow_id)
         failed_jobs = self._get_failed_jobs()
         workflow = self._workflow_controller.workflow(self._workflow_id)
         failed_jobs_by_subject = {}
         for job_data in failed_jobs:
-            subjectname = job_data.groupname
-            stepname = self._jobid_to_step[subjectname][job_data.job_id]
-            failed_jobs_by_subject.setdefault(subjectname, []).append(stepname)
-        for subjectname, stepnames in failed_jobs_by_subject.items():
-            analysis = self._study.analyses[subjectname]
+            subjectid = job_data.groupname
+            stepname = self._jobid_to_step[subjectid][job_data.job_id]
+            failed_jobs_by_subject.setdefault(subjectid, []).append(stepname)
+        for subjectid, stepnames in failed_jobs_by_subject.items():
+            analysis = self._study.analyses[subjectid]
             analysis.clear_steps(stepnames)
 
     def steps_status(self):
+        assert(0) # TODO: fix subjectid in study analyses
         steps_status = {}
         jobs_status = self._get_jobs_status()
         engine_workflow = self._workflow_controller.workflow(self._workflow_id)
         for group in engine_workflow.groups:
-            subjectname = group.user_storage
-            steps_status[subjectname] = {}
+            subjectid = group.user_storage
+            steps_status[subjectid] = {}
             for job in group.elements:
                 job_id = engine_workflow.job_mapping[job].job_id
-                stepname = self._jobid_to_step[subjectname][job_id]
-                analysis = self._study.analyses[subjectname]
+                stepname = self._jobid_to_step[subjectid][job_id]
+                analysis = self._study.analyses[subjectid]
                 step = analysis.step_from_name(stepname)
                 job_status = jobs_status[job_id]
-                steps_status[subjectname][stepname] = (step, job_status)
+                steps_status[subjectid][stepname] = (step, job_status)
         return steps_status
 
     def _get_jobs_status(self, update_status=True):

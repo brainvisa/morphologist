@@ -10,6 +10,7 @@ from brainvisa.processes import defaultContext
 from brainvisa.configuration import neuroConfig
 from brainvisa.data import neuroHierarchy
 
+from morphologist.study import Subject
 from morphologist.intra_analysis_steps import ImageImportation, \
     SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation,\
     SplitBrain, GreyWhite, Grey, WhiteSurface, GreySurface, Sulci, SulciLabelling
@@ -22,27 +23,24 @@ import morphologist.intra_analysis_constants as constants
 class TestIntraAnalysisSteps(unittest.TestCase):
     
     def setUp(self):
-        self.subject = "hyperion"
+        self.subjectname = "hyperion"
         self.group = "test"
         self.bv_db_directory = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/bv_database"
         self.output_directory = "/tmp/morphologist_test_steps"
-        self.raw_mri = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/raw_irm/%s.nii" % self.subject
+        self.raw_mri = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/raw_irm/%s.nii" % self.subjectname
         
         if os.path.exists(self.output_directory):
             shutil.rmtree(self.output_directory)
         os.makedirs(self.output_directory)
   
-        self.ref_outputs = BrainvisaIntraAnalysisParameterTemplate.get_outputs(self.group, 
-                                                                    self.subject, self.bv_db_directory)
-        self.test_outputs = BrainvisaIntraAnalysisParameterTemplate.get_outputs(self.group, 
-                                                                  self.subject, self.output_directory)
+        subject = Subject(self.group, self.subjectname, self.raw_mri)
+        self.ref_outputs = BrainvisaIntraAnalysisParameterTemplate.get_outputs(subject, self.bv_db_directory)
+        self.test_outputs = BrainvisaIntraAnalysisParameterTemplate.get_outputs(subject, self.output_directory)
         
-        BrainvisaIntraAnalysisParameterTemplate.create_outputdirs(self.group, self.subject, 
+        BrainvisaIntraAnalysisParameterTemplate.create_outputdirs(subject, 
                                                                   self.output_directory)
-        self.ref_mri = BrainvisaIntraAnalysisParameterTemplate.get_mri_path(self.group, 
-                                                    self.subject, self.bv_db_directory)
-        self.test_mri = BrainvisaIntraAnalysisParameterTemplate.get_mri_path(self.group, 
-                                                    self.subject, self.output_directory)
+        self.ref_mri = BrainvisaIntraAnalysisParameterTemplate.get_mri_path(subject, self.bv_db_directory)
+        self.test_mri = BrainvisaIntraAnalysisParameterTemplate.get_mri_path(subject, self.output_directory)
         
         if not os.path.exists(self.bv_db_directory):
             self._create_ref_database()
@@ -58,7 +56,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
                                                settings=database_settings )
         neuroHierarchy.databases.add(database)
         t1mri = {"_database" : database.name, '_format' : 'NIFTI-1 image', 
-                "protocol" : self.group, "subject" : self.subject}
+                "protocol" : self.group, "subject" : self.subjectname}
         defaultContext().runProcess('ImportT1MRI', self.raw_mri, t1mri)
 
         pipeline=brainvisa.processes.getProcessInstance("morphologist")

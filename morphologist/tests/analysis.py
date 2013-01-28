@@ -1,5 +1,6 @@
 import os
 
+from morphologist.study import Subject
 from morphologist.tests.mocks.analysis import MockAnalysis
 from morphologist.tests import reset_directory
 
@@ -43,10 +44,8 @@ class MockAnalysisTestCase(AnalysisTestCase):
         return self.analysis
 
     def set_analysis_parameters(self):
-        self.analysis.set_parameters(parameter_template='foo',
-                                     groupname='foo',
-                                     subjectname='foo',
-                                     input_filename='foo',
+        subject = Subject('foo', 'foo', 'foo')
+        self.analysis.set_parameters(parameter_template='foo', subject=subject,
                                      outputdir=self.outputdir)
 
     def delete_some_parameter_values(self):

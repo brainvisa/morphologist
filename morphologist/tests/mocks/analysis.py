@@ -72,7 +72,8 @@ class MockAnalysis(Analysis):
         self._steps[2].outputs.output_1 = self.outputs.output_5
         self._steps[2].outputs.output_2 = self.outputs.output_6
  
-    def set_parameters(self, parameter_template, groupname, subjectname, input_filename, outputdir):
+    def set_parameters(self, parameter_template, subject, outputdir):
+        subjectname = subject.subjectname
         self.inputs.input_1 = self._generate_in_file_path(subjectname, "in1", outputdir)
         self.inputs.input_2 = self._generate_in_file_path(subjectname, "in2", outputdir)
         self.inputs.input_3 = 1.2 

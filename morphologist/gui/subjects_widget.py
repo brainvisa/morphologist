@@ -19,8 +19,8 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
                     self.on_study_model_status_changed)
         self._study_model.changed.connect(self.on_study_model_changed)
 
-    def subjectname_from_row_index(self, index):
-        return self._study_model.get_subjectname(index)
+    def subject_from_row_index(self, index):
+        return self._study_model.get_subject(index)
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return self._study_model.subject_count()
@@ -39,7 +39,7 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
         row, column = index.row(), index.column()
         if role == QtCore.Qt.DisplayRole:
             if column == SubjectsTableModel.SUBJECTNAME_COL:
-                return self._study_model.get_subjectname(row)
+                return self._study_model.get_subject(row).subjectname
             if column == SubjectsTableModel.SUBJECTSTATUS_COL:
                 return self._study_model.get_status(row)
 

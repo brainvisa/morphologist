@@ -6,25 +6,39 @@ from morphologist.analysis import InputParameters, OutputParameters, Importation
 
 class Subject(object):
     
-    def __init__(self, imgname, groupname=None):
-        self.imgname = imgname
+    def __init__(self, groupname, subjectname, filename):
         self.groupname = groupname
-
+        self.subjectname = subjectname
+        self.filename = filename
+        
+    def id(self):
+        return self.groupname + "-" + self.subjectname
+        
     def __repr__(self):
-        s = '\timgname: ' + str(self.imgname) + ',\n'
-        s += '\tgroupname: ' + str(self.groupname) + '\n'
+        s = "(%s, %s, %s)" % (self.groupname, self.subjectname, self.filename)
         return s
 
+    def __str__(self):
+        return self.id()
+    
+    def __hash__(self):
+        return hash(self.id())
+    
+    def __cmp__(self, other):
+        return cmp(self.id(), other.id())
+        
     def serialize(self):
         serialized = {}
-        serialized['imgname'] = self.imgname
+        serialized['filename'] = self.filename
         serialized['groupname'] = self.groupname
+        serialized['subjectname'] = self.subjectname
         return serialized
 
     @classmethod
     def unserialize(cls, serialized):
-        subject = cls(imgname=serialized['imgname'], 
-                      groupname=serialized['groupname'])
+        subject = cls(groupname=serialized['groupname'],
+                      subjectname=serialized['subjectname'], 
+                      filename=serialized['filename'])
         return subject
 
 
@@ -37,7 +51,7 @@ class Study(object):
         outputdir=default_outputdir, backup_filename=None):
         self.name = name
         self.outputdir = outputdir
-        self.subjects = {}
+        self.subjects = []
         self.analyses = {}
         if backup_filename is None:
             backup_filename = self.default_backup_filename_from_outputdir(outputdir)
@@ -71,24 +85,25 @@ class Study(object):
     def unserialize(cls, serialized):
         study = cls(name=serialized['name'],
                     outputdir=serialized['outputdir'])
-        for subject_name, serialized_subject in serialized['subjects'].iteritems():
-            study.subjects[subject_name] = Subject.unserialize(serialized_subject)
-        for subject_name in study.subjects.iterkeys():
-            if subject_name not in serialized['inputs']:
+        for serialized_subject in serialized['subjects']:
+            study.subjects.append(Subject.unserialize(serialized_subject))
+        for subject in study.subjects:
+            subject_id = subject.id()
+            if subject_id not in serialized['inputs']:
                 raise StudySerializationError("Cannot find input params"
-                                         " for subject %s" %subject_name)
-            if subject_name not in serialized['outputs']:
+                                         " for subject %s" %subject_id)
+            if subject_id not in serialized['outputs']:
                 raise StudySerializationError("Cannot find output params" 
-                                         " for subject %s" %subject_name)
-            serialized_inputs = serialized['inputs'][subject_name] 
-            serialized_outputs = serialized['outputs'][subject_name]
+                                         " for subject %s" %subject_id)
+            serialized_inputs = serialized['inputs'][subject_id] 
+            serialized_outputs = serialized['outputs'][subject_id]
             inputs = InputParameters.unserialize(serialized_inputs) 
             outputs = OutputParameters.unserialize(serialized_outputs)
             analysis = cls._create_analysis()
             analysis.inputs = inputs
             analysis.outputs = outputs
             # TODO => check if the parameters are compatibles with the analysis ?
-            study.analyses[subject_name] = analysis
+            study.analyses[subject] = analysis
         return study
 
     def save_to_backup_file(self):
@@ -103,31 +118,35 @@ class Study(object):
         serialized = {}
         serialized['name'] = self.name
         serialized['outputdir'] = self.outputdir
-        serialized['subjects'] = {}
-        for subjectname, subject in self.subjects.iteritems():
-            serialized['subjects'][subjectname] = subject.serialize()
+        serialized['subjects'] = []
+        for subject in self.subjects:
+            serialized['subjects'].append(subject.serialize())
         serialized['inputs'] = {}
         serialized['outputs'] = {}
-        for subjectname, analysis in self.analyses.iteritems():
-            serialized['inputs'][subjectname] = analysis.inputs.serialize()
-            serialized['outputs'][subjectname] = analysis.outputs.serialize()
+        for subject, analysis in self.analyses.iteritems():
+            subject_id = subject.id()
+            serialized['inputs'][subject_id] = analysis.inputs.serialize()
+            serialized['outputs'][subject_id] = analysis.outputs.serialize()
         return serialized 
 
     @staticmethod
     def define_subjectname_from_filename(filename):
         return remove_all_extensions(filename)
 
+    def add_subject(self, subject):
+        if subject in self.subjects:
+            raise SubjectExistsError(subject)
+        self.subjects.append(subject)
+        self.analyses[subject] = self._create_analysis()
+        
     def add_subject_from_file(self, filename, subjectname=None, groupname=None):
         if subjectname is None:
             subjectname = self.define_subjectname_from_filename(filename)
         if groupname is None:
             groupname = self.DEFAULT_GROUP
-        if subjectname in self.subjects:
-            raise SubjectNameExistsError(subjectname)
-        subject = Subject(filename, groupname)
-        self.subjects[subjectname] = subject
-        self.analyses[subjectname] = self._create_analysis()
-
+        subject = Subject(groupname, subjectname, filename)
+        self.add_subject(subject)
+        
     @staticmethod
     def _create_analysis():
         raise NotImplementedError("Study is an abstract class.")
@@ -137,46 +156,37 @@ class Study(object):
         raise NotImplementedError("Study is an abstract class")
 
     def set_analysis_parameters(self, parameter_template):
-        for subjectname, subject in self.subjects.iteritems():
-            self.analyses[subjectname].set_parameters(parameter_template,
-                                                      subject.groupname, 
-                                                      subjectname,
-                                                      subject.imgname,
-                                                      self.outputdir)
+        for subject in self.subjects:
+            self.analyses[subject].set_parameters(parameter_template, subject,
+                                                  self.outputdir)
 
     def import_data(self, parameter_template):
         subjects_failed = []
-        for subjectname, subject in self.subjects.iteritems():
+        for subject in self.subjects:
             try:
                 new_imgname = self.analysis_cls().import_data(parameter_template, 
-                                                                 subject.imgname,
-                                                                 subject.groupname,
-                                                                 subjectname,
-                                                                 self.outputdir)
-                subject.imgname = new_imgname
+                                                              subject, self.outputdir)
+                subject.filename = new_imgname
             except ImportationError:
-                subjects_failed.append(subjectname) 
+                subjects_failed.append(subject) 
         if len(subjects_failed) > 0:
-            for subjectname in subjects_failed:
-                del self.subjects[subjectname]
-                del self.analyses[subjectname]
+            for subject in subjects_failed:
+                self.subjects.remove(subject)
+                del self.analyses[subject]
             raise ImportationError("The importation failed for the following subjects:\n%s."
-                                   % ", ".join(subjects_failed))
+                                   % ", ".join([subject.id() for subject in subjects_failed]))
 
     def has_subjects(self):
         return len(self.subjects) != 0
-                        
-    def list_subject_names(self):
-        return self.subjects.keys()
 
     def has_some_results(self):
-        for subjectname, analysis in self.analyses.iteritems():
+        for analysis in self.analyses.itervalues():
             if analysis.outputs.some_file_exists():
                 return True
         return False
 
     def has_all_results(self):
-        for subjectname, analysis in self.analyses.iteritems():
+        for analysis in self.analyses.itervalues():
             if not analysis.outputs.all_file_exists():
                 return False
         return True
@@ -202,5 +212,5 @@ def remove_all_extensions(filename):
 class StudySerializationError(Exception):
     pass
 
-class SubjectNameExistsError(Exception):
+class SubjectExistsError(Exception):
     pass

@@ -2,7 +2,7 @@ import unittest
 import os
 import filecmp
 
-from morphologist.study import SubjectNameExistsError
+from morphologist.study import SubjectExistsError
 from morphologist.tests.study import MockStudyTestCase
 
 class TestStudy(unittest.TestCase):
@@ -15,14 +15,15 @@ class TestStudy(unittest.TestCase):
         self.study = self.test_case.study
  
  
-    def test_subject_name_exists_error(self):
-        existing_subject_name = self.study.list_subject_names()[0]
+    def test_subject_exists_error(self):
+        existing_subject = self.study.subjects[0]
         
-        self.assertRaises(SubjectNameExistsError, 
+        self.assertRaises(SubjectExistsError, 
                           self.test_case.study_cls().add_subject_from_file,
                           self.study,
                           "/mypath/imgpath", 
-                          existing_subject_name) 
+                          existing_subject.subjectname, 
+                          existing_subject.groupname) 
    
 
     def test_save_load_study(self):

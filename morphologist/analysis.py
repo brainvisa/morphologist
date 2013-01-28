@@ -42,16 +42,16 @@ class Analysis(object):
             yield command, step_id
 
     @classmethod
-    def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
-        return filename
+    def import_data(cls, parameter_template, subject, outputdir):
+        return subject.filename
 
-    def set_parameters(self, parameter_template, groupname, subjectname, input_filename, outputdir):
+    def set_parameters(self, parameter_template, subject, outputdir):
         if parameter_template not in self.PARAMETER_TEMPLATES:
             raise UnknownParameterTemplate(parameter_template)
 
         param_template_instance = self.param_template_map[parameter_template]
-        self.inputs = param_template_instance.get_inputs(input_filename)
-        self.outputs = param_template_instance.get_outputs(groupname, subjectname, outputdir)
+        self.inputs = param_template_instance.get_inputs(subject)
+        self.outputs = param_template_instance.get_outputs(subject, outputdir)
 
     def get_command_list(self):
         self._check_parameter_values_filled()
@@ -88,15 +88,15 @@ class ParameterTemplate(object):
         raise NotImplementedError("ParameterTemplate is an abstract class")
 
     @classmethod
-    def get_inputs(cls, input_filename):
+    def get_inputs(cls, subject):
         raise NotImplementedError("ParameterTemplate is an abstract class")
 
     @classmethod
-    def get_outputs(cls, groupname, subjectname, outputdir):
+    def get_outputs(cls, subject, outputdir):
         raise NotImplementedError("ParameterTemplate is an abstract class")
     
     @classmethod
-    def create_outputdirs(cls, groupname, subjectname, outputdir):
+    def create_outputdirs(cls, subject, outputdir):
         raise NotImplementedError("ParameterTemplate is an abstract class")
     
 

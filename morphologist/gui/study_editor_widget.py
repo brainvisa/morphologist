@@ -2,7 +2,7 @@ import os
 
 from .qt_backend import QtGui, QtCore, loadUi
 from morphologist.gui import ui_directory
-from morphologist.study import Study
+from morphologist.study import Study, Subject
 from morphologist.formats import FormatsManager
 
 
@@ -208,17 +208,16 @@ class StudyEditorDialog(QtGui.QDialog):
         studyname = self.ui.studyname_lineEdit.text()
         outputdir = self.ui.outputdir_lineEdit.text()
         backup_filename = self.ui.backup_filename_lineEdit.text()
-        subjects_data = []
+        subjects = []
         for i in range(self.ui.subjects_tablewidget.rowCount()):
-            subjects_data.append(self._get_subject_data(i))
+            subjects.append(self._get_subject(i))
             
-        if self._check_study_consistency(outputdir,
-                    subjects_data, backup_filename): 
+        if self._check_study_consistency(outputdir, subjects, backup_filename): 
             self.study.name = studyname
             self.study.outputdir = outputdir
             self.study.backup_filename = backup_filename 
-            for groupname, subjectname, filename in subjects_data:
-                self.study.add_subject_from_file(filename, subjectname, groupname)
+            for subject in subjects:
+                self.study.add_subject(subject)
             self.parameter_template = self.ui.parameter_template_combobox.currentText()
             self.ui.accept()
 
@@ -266,23 +265,20 @@ class StudyEditorDialog(QtGui.QDialog):
             QtGui.QMessageBox.critical(self, "Study consistency error", msg)
         return consistency
         
-    def _check_duplicated_subjects(self, subjects_data):
-        study_keys = [] #subjectname is the subject uid for now 
+    def _check_duplicated_subjects(self, subjects):
+        processed = []
         multiples = []
-        for groupname, subjectname, filename in subjects_data:
-            if subjectname in study_keys and\
-               subjectname not in multiples:
-                multiples.append(subjectname)
+        for subject in subjects:
+            if subject in processed and\
+               subject not in multiples:
+                multiples.append(subject)
             else:
-                study_keys.append(subjectname)
+                processed.append(subject)
         if multiples: 
-            subjectname = multiples[0]
-            multiple_str = "%s" %(subjectname)
-            for subjectname in multiples[1:len(multiples)]:
-                multiple_str += ", %s" %(subjectname)
+            multiple_str = ", ".join([subject.id() for subject in multiples])
             QtGui.QMessageBox.critical(self, "Study consistency error",
                                        "Some subjects have the same "
-                                       "name: \n %s" %(multiple_str))
+                                       "identifier: \n %s" %(multiple_str))
             return False
         return True
         
@@ -311,11 +307,11 @@ class StudyEditorDialog(QtGui.QDialog):
         self.ui.subjects_tablewidget.setItem(subject_index,
                             self.FILENAME_COL, filename_item)
 
-    def _get_subject_data(self, subject_index):
+    def _get_subject(self, subject_index):
         tablewidget = self.ui.subjects_tablewidget
         groupname = tablewidget.item(subject_index, self.GROUPNAME_COL).text()
         subjectname = tablewidget.item(subject_index, self.SUBJECTNAME_COL).text()
         filename = tablewidget.item(subject_index, self.FILENAME_COL).text()
-        return groupname, subjectname, filename
+        return Subject(groupname, subjectname, filename)
 
 StudyEditorDialog._init_class()
