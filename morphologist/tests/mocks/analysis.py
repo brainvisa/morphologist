@@ -6,9 +6,10 @@ from morphologist.analysis import Analysis, InputParameters, OutputParameters
 
 class MockStep(Step):
 
-    def __init__(self):
+    def __init__(self, name):
         super(MockStep, self).__init__()
         self.time_to_sleep = 0
+	self.name = name
 
     def _get_authorized_attributes(self):
         return Step._get_authorized_attributes(self) + ['time_to_sleep']
@@ -57,9 +58,9 @@ class MockAnalysis(Analysis):
 
 
     def _init_steps(self):
-        step1 = MockStep()
-        step2 = MockStep()
-        step3 = MockStep()
+        step1 = MockStep('step1')
+        step2 = MockStep('step2')
+        step3 = MockStep('step3')
         self._steps = [step1, step2, step3] 
         
 

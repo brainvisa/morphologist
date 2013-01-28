@@ -33,7 +33,7 @@ class MetaAutomockStep(type):
         def func(self):
             StandardStep = self.__class__.__bases__[1]
             std_authorized_attr = StandardStep._get_authorized_attributes(self)
-            return ['out_files', 'name'] + std_authorized_attr
+            return ['out_files'] + std_authorized_attr
         ExtendedAutomockStep = type(name, (AutomockStep,) + bases, dict)
         ExtendedAutomockStep._get_authorized_attributes = func
         return ExtendedAutomockStep
@@ -45,7 +45,6 @@ class MockSpatialNormalization(SpatialNormalization):
     def __init__(self, mock_out_files):
         super(MockSpatialNormalization, self).__init__()
         self.out_files = mock_out_files
-        self.name = 'normalization'
         self.inputs.commissure_coordinates = self.out_files[IntraAnalysis.COMMISSURE_COORDINATES]
         self.inputs.talairach_transformation = self.out_files[IntraAnalysis.TALAIRACH_TRANSFORMATION]
 
@@ -56,7 +55,6 @@ class MockBiasCorrection(BiasCorrection):
     def __init__(self, mock_out_files):
         super(MockBiasCorrection, self).__init__()
         self.out_files = mock_out_files
-        self.name = 'bias_correction'
         self.inputs.hfiltered = self.out_files[IntraAnalysis.HFILTERED]
         self.inputs.white_ridges = self.out_files[IntraAnalysis.WHITE_RIDGES]
         self.inputs.edges = self.out_files[IntraAnalysis.EDGES]
@@ -70,7 +68,6 @@ class MockHistogramAnalysis(HistogramAnalysis):
     def __init__(self, mock_out_files):
         super(MockHistogramAnalysis, self).__init__()
         self.out_files = mock_out_files
-        self.name = 'histogram_analysis'
         self.inputs.histo_analysis = self.out_files[IntraAnalysis.HISTO_ANALYSIS]
         self.inputs.histogram = self.out_files[IntraAnalysis.HISTOGRAM]
 
@@ -81,7 +78,6 @@ class MockBrainSegmentation(BrainSegmentation):
     def __init__(self, mock_out_files):
         super(MockBrainSegmentation, self).__init__()
         self.out_files = mock_out_files
-        self.name = 'brain_segmentation'
         self.inputs.brain_mask = self.out_files[IntraAnalysis.BRAIN_MASK]
         self.inputs.white_ridges = self.out_files[IntraAnalysis.WHITE_RIDGES]
  
@@ -92,7 +88,6 @@ class MockSplitBrain(SplitBrain):
     def __init__(self, mock_out_files):
         super(MockSplitBrain, self).__init__()
         self.out_files = mock_out_files
-        self.name = 'split_brain'
         self.inputs.split_mask = self.out_files[IntraAnalysis.SPLIT_MASK]
  
 
@@ -101,7 +96,6 @@ class MockGreyWhite(GreyWhite):
     
     def __init__(self, ref_grey_white):
         super(MockGreyWhite, self).__init__()
-        self.name = 'grey_white'
         self.inputs.grey_white = ref_grey_white
  
 
@@ -110,7 +104,6 @@ class MockGrey(Grey):
     
     def __init__(self, ref_grey):
         super(MockGrey, self).__init__()
-        self.name = 'grey'
         self.inputs.grey = ref_grey
         
     
@@ -119,7 +112,6 @@ class MockWhiteSurface(WhiteSurface):
     
     def __init__(self, ref_white_surface):
         super(MockWhiteSurface, self).__init__()
-        self.name = 'white_surface'
         self.inputs.white_surface = ref_white_surface
         
 
@@ -128,7 +120,6 @@ class MockGreySurface(GreySurface):
   
     def __init__(self, ref_grey_surface):
         super(MockGreySurface, self).__init__()
-        self.name = 'grey_surface'
         self.inputs.grey_surface = ref_grey_surface
 
 
@@ -137,7 +128,6 @@ class MockSulci(Sulci):
   
     def __init__(self, ref_sulci):
         super(MockSulci, self).__init__()
-        self.name = 'sulci'
         self.inputs.sulci = ref_sulci
 
 
@@ -146,7 +136,6 @@ class MockSulciLabelling(SulciLabelling):
 
     def __init__(self, ref_labeled_sulci):
         super(MockSulciLabelling, self).__init__()
-        self.name = 'sulci_labelling'
         self.inputs.labeled_sulci = ref_labeled_sulci
 
 

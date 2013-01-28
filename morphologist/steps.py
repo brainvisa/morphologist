@@ -11,6 +11,7 @@ class Step(object):
         file_outputs = self._get_outputs()
         self.inputs = InputParameters(file_inputs, other_inputs)
         self.outputs = OutputParameters(file_outputs)
+	self.name = 'unnamed step'
 
     def run(self):
         # WARNING do not overload: get_command should be used to run the step 
@@ -36,4 +37,4 @@ class Step(object):
         object.__setattr__(self, attr, value)
 
     def _get_authorized_attributes(self):
-        return ['inputs', 'outputs']
+        return ['inputs', 'outputs', 'name']

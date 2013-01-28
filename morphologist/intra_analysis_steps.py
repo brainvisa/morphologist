@@ -25,6 +25,7 @@ class SpatialNormalization(Step):
 
     def __init__(self):
         super(SpatialNormalization, self).__init__()
+        self.name = 'normalization'
 
     def _get_inputs(self):
         file_inputs = ['mri']
@@ -46,6 +47,7 @@ class BiasCorrection(Step):
 
     def __init__(self):
         super(BiasCorrection, self).__init__()
+        self.name = 'bias_correction'
         self.inputs.fix_random_seed = False
 
     def _get_inputs(self):
@@ -88,6 +90,7 @@ class HistogramAnalysis(Step):
 
     def __init__(self):
         super(HistogramAnalysis, self).__init__()
+        self.name = 'histogram_analysis'
         self.inputs.fix_random_seed = False
 
     def _get_inputs(self):
@@ -116,6 +119,7 @@ class BrainSegmentation(Step):
 
     def __init__(self):
         super(BrainSegmentation, self).__init__()
+        self.name = 'brain_segmentation'
         self.inputs.erosion_size = 1.8
         self.inputs.fix_random_seed = False
 
@@ -154,6 +158,7 @@ class SplitBrain(Step):
 
     def __init__(self):
         super(SplitBrain, self).__init__()
+        self.name = 'split_brain'
         self.inputs.bary_factor = 0.6
         self.inputs.fix_random_seed = False
 
@@ -194,6 +199,7 @@ class GreyWhite(Step):
 
     def __init__(self, left=True):
         super(GreyWhite, self).__init__()
+        self.name = 'grey_white'
         self.left = left
         self.inputs.fix_random_seed = False
 
@@ -233,6 +239,7 @@ class Grey(Step):
 
     def __init__(self):
         super(Grey, self).__init__()
+        self.name = 'grey'
         self.inputs.fix_random_seed = False
 
     def _get_inputs(self):
@@ -261,6 +268,7 @@ class WhiteSurface(Step):
 
     def __init__(self):
         super(WhiteSurface, self).__init__()
+        self.name = 'white_surface'
 
     def _get_inputs(self):
         file_inputs = ['grey']
@@ -281,10 +289,14 @@ class GreySurface(Step):
 
     def __init__(self, left=True):
         super(GreySurface, self).__init__()
+        self.name = 'grey_surface'
         if left:
             self.inputs.side = 'left'
         else: 
             self.inputs.side = 'right'
+
+    def _get_authorized_attributes(self):
+        return Step._get_authorized_attributes(self) + ['side']
 
     def _get_authorized_attributes(self):
         return Step._get_authorized_attributes(self) + ['side']
@@ -312,6 +324,7 @@ class Sulci(Step):
 
     def __init__(self, left=True):
         super(Sulci, self).__init__()
+        self.name = 'sulci'
         if left:
             self.inputs.side = 'left'
         else: 
@@ -350,6 +363,7 @@ class SulciLabelling(Step):
 
     def __init__(self, left=True):
         super(SulciLabelling, self).__init__()
+        self.name = 'sulci_labelling'
         if left:
             self.inputs.side = 'left'
         else: 
