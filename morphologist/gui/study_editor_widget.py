@@ -69,9 +69,9 @@ class StudyEditorDialog(QtGui.QDialog):
     def _init_class(cls):
         apply_role = QtGui.QDialogButtonBox.ApplyRole
         reject_role = QtGui.QDialogButtonBox.RejectRole
-        map = cls.on_apply_cancel_buttons_clicked_map
-        map[apply_role] = cls.on_apply_button_clicked
-        map[reject_role] = cls.on_cancel_button_clicked
+        role_map = cls.on_apply_cancel_buttons_clicked_map
+        role_map[apply_role] = cls.on_apply_button_clicked
+        role_map[reject_role] = cls.on_cancel_button_clicked
 
     def __init__(self, study, parent=None):
         super(StudyEditorDialog, self).__init__(parent)
@@ -163,9 +163,41 @@ class StudyEditorDialog(QtGui.QDialog):
     @QtCore.Slot()
     def on_add_one_subject_from_a_file_button_clicked(self):
         dialog = SelectSubjectsDialog(self.ui)
-        dialog.filesSelected.connect(self.onSelectSubjectsDialogfilesSelected)
+        dialog.filesSelected.connect(self.on_select_subjects_dialog_files_selected)
         dialog.show()
+    
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_edit_subjects_name_button_clicked(self):
+        subject, ok = QtGui.QInputDialog.getText(self, "Enter the subject name", "Subject name:")
+        if ok:
+            for selection_range in self.ui.subjects_tablewidget.selectedRanges():
+                for row in range(selection_range.topRow(), selection_range.bottomRow()+1):
+                    item = self.ui.subjects_tablewidget.item(row, self.SUBJECTNAME_COL)
+                    item.setText(subject)
+    
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_edit_subjects_group_button_clicked(self): 
+        group, ok = QtGui.QInputDialog.getText(self, "Enter the group name", "Group name:")
+        if ok:
+            for selection_range in self.ui.subjects_tablewidget.selectedRanges():
+                for row in range(selection_range.topRow(), selection_range.bottomRow()+1):
+                    item = self.ui.subjects_tablewidget.item(row, self.GROUPNAME_COL)
+                    item.setText(group)
 
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_remove_subjects_button_clicked(self):
+        rows_to_remove = []
+        for selection_range in self.ui.subjects_tablewidget.selectedRanges():
+            for row in range(selection_range.topRow(), selection_range.bottomRow()+1):
+                rows_to_remove.append(row)
+        # remove rows from bottom to top to avoid changing the rows indexes
+        rows_to_remove.sort(reverse=True)
+        for row in rows_to_remove:
+            self.ui.subjects_tablewidget.removeRow(row)
+    
     # this slot is automagically connected
     @QtCore.Slot("QAbstractButton *")
     def on_apply_cancel_buttons_clicked(self, button):
@@ -194,7 +226,7 @@ class StudyEditorDialog(QtGui.QDialog):
         self.ui.reject()
 
     @QtCore.Slot("const QStringList &")
-    def onSelectSubjectsDialogfilesSelected(self, filenames):
+    def on_select_subjects_dialog_files_selected(self, filenames):
         self.add_subjects(filenames)
 
     def _check_study_consistency(self, outputdir,
