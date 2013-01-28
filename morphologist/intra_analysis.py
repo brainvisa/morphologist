@@ -53,6 +53,7 @@ class IntraAnalysis(Analysis):
     def __init__(self):
         super(IntraAnalysis, self).__init__() 
         self._init_steps()
+        self._init_named_steps()
         self.inputs = IntraAnalysisParameterTemplate.get_empty_inputs()
         self.outputs = IntraAnalysisParameterTemplate.get_empty_outputs()
 

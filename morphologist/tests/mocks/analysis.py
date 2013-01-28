@@ -42,6 +42,7 @@ class MockAnalysis(Analysis):
     def __init__(self):
         super(MockAnalysis, self).__init__() 
         self._init_steps()
+        self._init_named_steps()
         self.inputs = InputParameters(file_param_names=['input_1',
                                                         'input_2',
                                                         'input_5'],
@@ -62,7 +63,6 @@ class MockAnalysis(Analysis):
         step2 = MockStep('step2')
         step3 = MockStep('step3')
         self._steps = [step1, step2, step3] 
-        
 
     def propagate_parameters(self):
         self._steps[0].inputs.input_1 = self.inputs.input_1

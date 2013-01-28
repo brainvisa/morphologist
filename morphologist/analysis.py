@@ -14,6 +14,14 @@ class Analysis(object):
     def steps(self):
         return self._steps
 
+    def step_from_name(self, name):
+	return self._named_steps[name]
+
+    def _init_named_steps(self):
+	self._named_steps = {}
+	for step in self._steps:
+            self._named_steps[step.name] = step
+
     @classmethod
     def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
         return filename
