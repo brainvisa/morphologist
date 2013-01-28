@@ -11,6 +11,9 @@ class Analysis(object):
         self.inputs = InputParameters(file_param_names=[])
         self.outputs = OutputParameters(file_param_names=[])
 
+    def steps(self):
+        return self._steps
+
     @classmethod
     def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
         return filename

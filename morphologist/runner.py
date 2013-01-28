@@ -164,8 +164,10 @@ class  SomaWorkflowRunner(Runner):
             subject_jobs=[]
             previous_job=None
             
-            for command in analysis.get_command_list():
-                job = Job(command=command)
+            analysis.propagate_parameters() # FIXME : needed ?
+            for step in analysis.steps():
+		command = step.get_command()
+                job = Job(command=command, name=step.name)
                 subject_jobs.append(job)
                 if previous_job is not None:
                     dependencies.append((previous_job, job))
@@ -176,7 +178,8 @@ class  SomaWorkflowRunner(Runner):
             jobs.extend(subject_jobs)
         
         workflow = Workflow(jobs=jobs, dependencies=dependencies, 
-                            name=self._define_workflow_name(), root_group=groups)
+                            name=self._define_workflow_name(),
+			    root_group=groups)
         return workflow
 
     def _update_subjects_jobs(self):
@@ -278,14 +281,10 @@ class  SomaWorkflowRunner(Runner):
     def _sw_really_failed_jobs_from_dep_graph(dep_graph):
         def func(graph, node, extra_data):
             data = graph.data(node)
-            print "node = ", node
-            if data is not None:
-                print "\tsuccess = ", data.success
             if data is not None and data.success: return False
             deps = graph.dependencies(node)
             continue_graph_coverage = True
             failed_node = True
-            print "\tdeps = ", deps
             for dep in deps:
                 data = graph.data(dep)
                 if not data.success:
@@ -293,7 +292,6 @@ class  SomaWorkflowRunner(Runner):
             if failed_node: # skip root node
                 if node != 0:
                     job_id = graph.data(node).job_id
-                    print "\tfailed jobs (node, job_id) = ", node, job_id
                     extra_data['failed_jobs'].append(job_id)
                 continue_graph_coverage = False
             return continue_graph_coverage
