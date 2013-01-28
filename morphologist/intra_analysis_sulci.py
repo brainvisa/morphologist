@@ -80,7 +80,6 @@ class Sulci(object):
     @staticmethod
     def _run_command(command):
         str_command = " ".join(command)
-        print "====> run " + str_command
         return_value = os.system(str_command)
         if return_value != 0:
             msg = "The following command failed : %s" % str_command

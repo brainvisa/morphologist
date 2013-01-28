@@ -12,7 +12,7 @@ from brainvisa.data import neuroHierarchy
 
 from morphologist.intra_analysis_steps import ImageImportation, \
     SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation,\
-    SplitBrain, GreyWhite, Grey, WhiteSurface, GreySurface, Sulci
+    SplitBrain, GreyWhite, Grey, WhiteSurface, GreySurface, Sulci, SulciLabelling
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate, \
                                         IntraAnalysis    
 
@@ -263,7 +263,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
     def test_sulci(self):
         left_sulci = Sulci(left=True)
         right_sulci = Sulci(left=False)
-      
+         
         for sulci_step in [left_sulci, right_sulci]:
             sulci_step.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
             sulci_step.split_mask = self.ref_outputs[IntraAnalysis.SPLIT_MASK] 
@@ -286,6 +286,20 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         
         #TODO compare results ie IntraAnalysis.LEFT_SULCI, IntraAnalysis.RIGHT_SULCI
 
+    def test_sulci_labelling(self):
+        left_sulci_labelling = SulciLabelling(left=True)
+        right_sulci_labelling = SulciLabelling(left=False)
+    
+        left_sulci_labelling.sulci = self.ref_outputs[IntraAnalysis.LEFT_SULCI] 
+        right_sulci_labelling.sulci = self.ref_outputs[IntraAnalysis.RIGHT_SULCI] 
+        left_sulci_labelling.labeled_sulci = self.test_outputs[IntraAnalysis.LEFT_LABELED_SULCI] 
+        right_sulci_labelling.labeled_sulci = self.test_outputs[IntraAnalysis.RIGHT_LABELED_SULCI] 
+ 
+        self.assert_(left_sulci_labelling.run() == 0)
+        self.assert_(right_sulci_labelling.run() == 0)
+        
+        #TODO compare results ie IntraAnalysis.LEFT_LABELED_SULCI, IntraAnalysis.RIGHT_LABELED_SULCI
+        
 
     def _assert_same_files(self, file_ref, file_test):
         self.assert_(filecmp.cmp(file_ref, file_test), 

@@ -318,7 +318,10 @@ class SulciLabelling(Step):
 
     def __init__(self, left=True):
         super(SulciLabelling, self).__init__()
-        self.left = left
+        if left:
+            self.side = 'left'
+        else: 
+            self.side = 'right'
         #inputs
         self.sulci = None
         #outputs
@@ -326,8 +329,8 @@ class SulciLabelling(Step):
 
 
     def get_command(self):
-        command = ['python', '-m', 'morphologist.intra_analysis_sulci_labeling',
-                   self.sulci, self.labeled_sulci]
+        command = ['python', '-m', 'morphologist.intra_analysis_sulci_labelling',
+                   self.sulci, self.labeled_sulci, self.side]
         return command
 
 
