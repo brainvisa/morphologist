@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 import threading
 import os
 import time
 from datetime import timedelta, datetime
 
 import soma.workflow as sw
+
 from soma.workflow.client import WorkflowController, Helper, Workflow, Job, Group
 
 
@@ -25,7 +27,7 @@ class Runner(object):
         
     def last_run_failed(self):
         raise NotImplementedError("Runner is an abstract class.")
-        
+
     def stop(self):
         raise NotImplementedError("Runner is an abstract class.")
 
@@ -239,8 +241,162 @@ class  SomaWorkflowRunner(Runner):
                                                   include_aborted_jobs=True, 
                                                   include_user_killed_jobs=True)) != 0)
         return failed     
-        
+
     def stop(self):
         if self.is_running():
             self._workflow_controller.stop_workflow(self._workflow_id)
-            self._study.clear_results()
+            failed_jobs = self._really_failed_jobs()
+            print "failed_jobs = ", failed_jobs
+            for job in failed_jobs:
+                step = self._step_from_job(job) # TODO
+                step.clear_results()
+
+    def _really_failed_jobs(self):
+        exit_info_by_job = self._sw_exit_info_by_job()
+        dep_graph = self._sw_dep_graph(exit_info_by_job)
+        return self._sw_really_failed_jobs_from_dep_graph(dep_graph)
+
+    def _sw_exit_info_by_job(self):
+        exit_info_by_job = {}
+        job_info_seq, _, _, _  = self._workflow_controller.workflow_elements_status(self._workflow_id)
+        for job_id, status, _, exit_info, _ in job_info_seq: 
+            exit_status, exit_value, _, _ = exit_info
+            exit_info_by_job[job_id] = (exit_status, exit_value)
+        return exit_info_by_job
+
+    def _sw_dep_graph(self, exit_info_by_job):
+        workflow = self._workflow_controller.workflow(self._workflow_id)
+        dep_graph = Graph.from_soma_workflow(workflow)
+        for data in dep_graph:
+            if data is None: continue
+            exit_status, exit_value = exit_info_by_job[data.job_id]
+            data.success = (exit_status == sw.constants.FINISHED_REGULARLY \
+                            and exit_value == 0)
+        return dep_graph
+
+    @staticmethod
+    def _sw_really_failed_jobs_from_dep_graph(dep_graph):
+        def func(graph, node, extra_data):
+            data = graph.data(node)
+            print "node = ", node
+            if data is not None:
+                print "\tsuccess = ", data.success
+            if data is not None and data.success: return False
+            deps = graph.dependencies(node)
+            continue_graph_coverage = True
+            failed_node = True
+            print "\tdeps = ", deps
+            for dep in deps:
+                data = graph.data(dep)
+                if not data.success:
+                    failed_node = False
+            if failed_node: # skip root node
+                if node != 0:
+                    job_id = graph.data(node).job_id
+                    print "\tfailed jobs (node, job_id) = ", node, job_id
+                    extra_data['failed_jobs'].append(job_id)
+                continue_graph_coverage = False
+            return continue_graph_coverage
+                
+        failed_jobs = []
+        func_extra_data = {'failed_jobs' : failed_jobs}
+        dep_graph.breadth_first_coverage(func, func_extra_data)
+        return failed_jobs
+
+
+import collections
+
+
+class Graph(object):
+    '''
+    example : (A is the root node)
+
+    A ----> B -----> C <------------·
+    |                               |
+    ·-----> D -----> E -----·       |
+            |               |       |
+            ·------> F -----·-----> G
+      
+    dependencies : [[1, 3],  # A -> (B, D)
+                    [2],     # B -> C
+                    [],      # C
+                    [4, 5],  # D -> (E, F)
+                    [6],     # E -> G
+                    [6],     # F -> G
+                    [2]]     # G -> C
+    data = [A, B, C, D, E, F, G]
+    '''
+
+    def __init__(self, dependencies=None, data=None):
+        if dependencies is not None:
+            self._dependencies = dependencies
+        if data:
+            self._data = data
+        else:
+            self._data = [None] * len(self)
+
+    @staticmethod
+    def from_soma_workflow(workflow):
+        '''
+    an additionnal root node is added at index 0 with None data
+        '''
+        class SWGraphData(object):
+
+            def __init__(self, job_id):
+                self.job_id = job_id
+
+        def _find_alone_starting_nodes(dependencies):
+            marks = [False] * len(dependencies)
+            marks[0] = True # special case for root nodes
+            for deps in dependencies:
+                for dep in deps:
+                    marks[dep] = True
+            starting_nodes = [i for i, mark in enumerate(marks)
+                                            if mark is False]
+            return starting_nodes
+        size = len(workflow.jobs) + 1 # add root node
+        data = [None] * size
+        dependencies = [[] for i in range(size)]
+        job_map = {}
+        for i, job in enumerate(workflow.jobs):
+            ind = i + 1 # take into account root node
+            job_map[id(job)] = ind
+            job_id = workflow.job_mapping[job].job_id
+            data[ind] = SWGraphData(job_id)
+        for src, dst in workflow.dependencies:
+            id_src, id_dst = id(src), id(dst)
+            dependencies[job_map[id_dst]].append(job_map[id_src])
+        # all starting nodes are linked to a spurious root node
+        dependencies[0] = _find_alone_starting_nodes(dependencies)
+        return Graph(dependencies, data)
+
+    def __len__(self):
+        return len(self._dependencies)
+
+    def dependencies(self, node):
+        return self._dependencies[node]
+
+    def data(self, node):
+        return self._data[node]
+
+    def set_data(self, data):
+        assert len(data) == len(self)
+        self._data = data
+
+    def __iter__(self):
+        for data in self._data:
+            yield data
+
+    def breadth_first_coverage(self, func=(lambda n, f : None),
+                                     func_extra_data=None):
+        marks = [False] * len(self)
+        marks[0] = True
+        queue = collections.deque([0])
+        while len(queue):
+            node = queue.popleft()
+            continue_graph_coverage = func(self, node, func_extra_data)
+            if not continue_graph_coverage: continue # skip dependencies
+            for dep in self._dependencies[node]:
+                if not marks[dep]:
+                    queue.append(dep)
+                    marks[dep] = True
