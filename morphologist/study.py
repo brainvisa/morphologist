@@ -205,6 +205,7 @@ class Study(object):
         s += 'subjects :' + repr(self.subjects) + '\n'
         return s
 
+
 def remove_all_extensions(filename):
     name, ext = os.path.splitext(os.path.basename(filename))
     while (ext != ""):
