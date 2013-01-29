@@ -61,10 +61,7 @@ class Analysis(object):
         return self.outputs.list_missing_files()
 
     def clear_output_files(self):
-        for param_name in self.outputs.list_file_parameter_names():
-            out_file_path = self.outputs.get_value(param_name)
-            if os.path.isfile(out_file_path):
-                os.remove(out_file_path)
+        self.outputs.clear()
 
 
 class ParameterTemplate(object):
@@ -191,7 +188,12 @@ class UnknownParameterName(Exception):
     pass
 
 class OutputParameters(Parameters):
-    pass
+
+    def clear(self):
+        for param_name in self.list_file_parameter_names():
+            filename = self.get_value(param_name)
+            if os.path.isfile(filename):
+                os.remove(filename)
 
 class InputParameters(Parameters):
     pass
