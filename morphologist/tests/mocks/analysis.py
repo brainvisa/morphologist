@@ -9,7 +9,7 @@ class MockStep(Step):
     def __init__(self, name):
         super(MockStep, self).__init__()
         self.time_to_sleep = 0
-	self.name = name
+        self.name = name
 
     def _get_authorized_attributes(self):
         return Step._get_authorized_attributes(self) + ['time_to_sleep']
@@ -29,11 +29,10 @@ class MockStep(Step):
                                                        self.inputs.input_3, 
                                                        self.outputs.output_1, 
                                                        self.outputs.output_2)
-        command = ["sleep", str(self.time_to_sleep)]
-        out_file_1 = open(self.outputs.output_1, "w")
-        out_file_1.close()
-        out_file_2 = open(self.outputs.output_2, "w")
-        out_file_2.close()
+        command = ['python', '-m',
+                   'morphologist.tests.mocks.analysis',
+                    str(self.time_to_sleep),
+                    self.outputs.output_1, self.outputs.output_2]
         return command
 
 
@@ -55,8 +54,6 @@ class MockAnalysis(Analysis):
                                                           'output_4',
                                                           'output_5',
                                                           'output_6'])
- 
-
 
     def _init_steps(self):
         step1 = MockStep('step1')
@@ -115,4 +112,17 @@ class MockAnalysis(Analysis):
         return os.path.join(outputdir, filename)
 
 
+def main():
+    import sys
+    import time
 
+    time_to_sleep = int(sys.argv[1])
+    args = sys.argv[2:]
+
+    for filename in args:
+        fd = open(filename, "w")
+        fd.close()
+    time.sleep(time_to_sleep)
+
+
+if __name__ == '__main__' : main()
