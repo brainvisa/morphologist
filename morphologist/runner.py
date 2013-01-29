@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-import threading
 import os
 import time
+import threading
+import collections
 from datetime import timedelta, datetime
 
 import soma.workflow as sw
@@ -9,8 +10,14 @@ import soma.workflow as sw
 from soma.workflow.client import WorkflowController, Helper, Workflow, Job, Group
 
 
-import collections
-
+# XXX:
+# Now, step terminaison is assessed by:
+#      1) the existance of some outputcomes (files)
+#   or 2) the success of command (exit value = 0)
+#
+# An alternative would be to follow each external command by the creation of
+# a file or by filling a log, something created by the runner of which value
+# can be checked by him to assess without any doubt the step is finished.
 
 class BidiMap(collections.MutableMapping):
     '''Bi-directional map'''
@@ -263,15 +270,19 @@ class  SomaWorkflowRunner(Runner):
             
             analysis.propagate_parameters() # FIXME : needed ?
             for step in analysis.steps():
+                # skip finished steps
+                if len(step.outputs.list_missing_files()) == 0:
+                    continue
                 command = step.get_command()
                 job = Job(command=command, name=step.name)
                 subject_jobs.append(job)
                 if previous_job is not None:
                     dependencies.append((previous_job, job))
                 previous_job = job
-                
-            group = Group(name=subjectname, elements=subject_jobs)
-            groups.append(group)
+            # skip finished analysis
+            if len(subject_jobs) != 0:
+                group = Group(name=subjectname, elements=subject_jobs)
+                groups.append(group)
             jobs.extend(subject_jobs)
         
         workflow = Workflow(jobs=jobs, dependencies=dependencies, 
