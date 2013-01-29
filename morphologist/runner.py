@@ -9,8 +9,83 @@ import soma.workflow as sw
 from soma.workflow.client import WorkflowController, Helper, Workflow, Job, Group
 
 
+import collections
+
+
+class BidiMap(collections.MutableMapping):
+    '''Bi-directional map'''
+
+    def __init__(self, default_keyname='default', reverse_keyname='reverse'):
+        super(BidiMap, self).__init__()
+        self._map = {}
+        self._rmap = {}
+        self.default_keyname = default_keyname
+        self.reverse_keyname = reverse_keyname
+        self.iter_keyname = default_keyname
+
+    def __len__(self):
+        return len(self._map)
+
+    def __delitem__(self, key_keyname):
+        key, keyname = self._get_key_keyname(key_keyname)
+        first_map, snd_map = self._select_maps(keyname)
+        del first_map[key]
+        keys = [k for k, v in snd_map.items() if v == key]
+        for k in keys: del snd_map[k]
+
+    def __getitem__(self, key_keyname):
+        key, keyname = self._get_key_keyname(key_keyname)
+        first_map, snd_map = self._select_maps(keyname)
+        return first_map[key]
+
+    def __setitem__(self, key_keyname, value):
+        key, keyname = self._get_key_keyname(key_keyname)
+        first_map, snd_map = self._select_maps(keyname)
+        first_map[key] = value
+        snd_map[value] = key
+
+    def __contains__(self, key_keyname):
+        key, keyname = self._get_key_keyname(key_keyname)
+        first_map, snd_map = self._select_maps(keyname)
+        return first_map.__contains__(key)
+        
+    def __iter__(self):
+        first_map, snd_map = self._select_maps(self.iter_keyname)
+        for key in first_map:
+            yield key
+
+    def _select_maps(self, keyname):
+        if keyname is None or keyname == self.default_keyname:
+            first_map = self._map
+            snd_map = self._rmap
+        elif keyname == self.reverse_keyname:
+            first_map = self._rmap
+            snd_map = self._map
+        else:
+            raise KeyError(keyname)
+        return first_map, snd_map
+
+    def _get_key_keyname(self, key_keyname):
+        if isinstance(key_keyname, tuple):
+            key, keyname = key_keyname
+        else:
+            key, keyname = key_keyname, None
+        if keyname is None:
+            keyname = self.default_keyname
+        return key, keyname
+
+    def __str__(self):
+        s = "('%s': %s, " % (self.default_keyname, self._map)
+        s += "'%s': %s)" % (self.reverse_keyname, self._rmap)
+        return s
+        
+
 class Runner(object):
     ''' Abstract class '''
+    FAILED = 'failed'
+    SUCCESS = 'success'
+    NOT_STARTED = 'not started'
+    RUNNING = 'running'
     
     def __init__(self, study):
         super(Runner, self).__init__()
@@ -24,11 +99,26 @@ class Runner(object):
     
     def wait(self):
         raise NotImplementedError("Runner is an abstract class.")
+
+    def wait_step(self, subjectname, stepname):
+        raise NotImplementedError("Runner is an abstract class.")
         
     def last_run_failed(self):
         raise NotImplementedError("Runner is an abstract class.")
 
+    def failed_steps(self):
+        raise NotImplementedError("Runner is an abstract class.")
+
+    def failed_steps_for_subject(self, subjectname):
+        raise NotImplementedError("Runner is an abstract class.")
+
+    def step_has_failed(self, subjectname, stepname):
+        raise NotImplementedError("Runner is an abstract class.")
+
     def stop(self):
+        raise NotImplementedError("Runner is an abstract class.")
+
+    def steps_status(self):
         raise NotImplementedError("Runner is an abstract class.")
 
     def _check_input_output_files(self):
@@ -123,16 +213,20 @@ class  SomaWorkflowRunner(Runner):
     def __init__(self, study):
         super(SomaWorkflowRunner, self).__init__(study)
         self._workflow_controller = WorkflowController()
-        self._workflow_id = None
-        self._subjects_jobs = None  #subject_name -> list of job_ids
-        self._jobs_status = None # job_id -> status
-        self._last_status_update = None
-	self._jobid_to_step = {} # subject_name -> (job_id -> step)
+        self._reset_internal_parameters()
         self._delete_old_workflows()
         cpu_count = Helper.cpu_count()
         if cpu_count > 1:
             cpu_count -= 1
         self._workflow_controller.scheduler_config.set_proc_nb(cpu_count)
+
+    def _reset_internal_parameters(self):
+        self._workflow_id = None
+        self._subjects_jobs = None  #subject_name -> list of job_ids
+        self._jobs_status = None # job_id -> status
+        self._last_status_update = None
+        self._jobid_to_step = {} # subject_name -> (job_id -> step)
+        self._failed_jobs = None
         
     def _delete_old_workflows(self):        
         for (workflow_id, (name, _)) in self._workflow_controller.workflows().iteritems():
@@ -140,6 +234,7 @@ class  SomaWorkflowRunner(Runner):
                 self._workflow_controller.delete_workflow(workflow_id)
           
     def run(self):
+        self._reset_internal_parameters()
         self._check_input_output_files()
         workflow = self._create_workflow()
         if self._workflow_id is not None:
@@ -168,7 +263,7 @@ class  SomaWorkflowRunner(Runner):
             
             analysis.propagate_parameters() # FIXME : needed ?
             for step in analysis.steps():
-		command = step.get_command()
+                command = step.get_command()
                 job = Job(command=command, name=step.name)
                 subject_jobs.append(job)
                 if previous_job is not None:
@@ -181,20 +276,20 @@ class  SomaWorkflowRunner(Runner):
         
         workflow = Workflow(jobs=jobs, dependencies=dependencies, 
                             name=self._define_workflow_name(),
-			    root_group=groups)
+                            root_group=groups)
         return workflow
 
     def _update_jobid_to_step(self):
-	self._jobid_to_step = {}
+        self._jobid_to_step = {}
         workflow = self._workflow_controller.workflow(self._workflow_id)
         for group in workflow.groups:
             subjectname = group.name
-            self._jobid_to_step[subjectname] = {}
+            self._jobid_to_step[subjectname] = BidiMap('job_id', 'stepname')
             job_list = group.elements 
             for job in job_list:
-            	job_id = workflow.job_mapping[job].job_id
-            	self._jobid_to_step[job_id] = job.name
-            	self._jobid_to_step[subjectname][job_id] = job.name
+                job_id = workflow.job_mapping[job].job_id
+                stepname = job.name
+                self._jobid_to_step[subjectname][job_id] = stepname
 
     def _update_subjects_jobs(self): # TODO: can be replaced/removed (see above)
         self._subjects_jobs = {}
@@ -228,16 +323,30 @@ class  SomaWorkflowRunner(Runner):
             self._last_status_update = datetime.now()
         running = False
         for job_id in self._subjects_jobs[subject_name]:
-            if self._job_is_running(self._job_status[job_id]):
+            if self._jobs_status[job_id] == Runner.RUNNING:
                 running = True
                 break
         return running
             
     def _update_jobs_status(self):
-        self._job_status = {}
+        self._jobs_status = {}
         job_info_seq, _, _, _ = self._workflow_controller.workflow_elements_status(self._workflow_id)
-        for job_id, status, _, _, _ in job_info_seq:
-            self._job_status[job_id] = status
+        for job_id, sw_status, _, _, _ in job_info_seq:
+            status = self._sw_status_to_runner_status(sw_status)
+            self._jobs_status[job_id] = status
+
+    def _sw_status_to_runner_status(self, sw_status):
+        if sw_status in [sw.constants.FAILED,
+                         sw.constants.DELETE_PENDING,
+                         sw.constants.KILL_PENDING]:
+            status = Runner.FAILED
+        elif sw_status == sw.constants.DONE:
+            status = Runner.SUCCESS # FIXME : missing exit value = 0
+        elif sw_status == sw.constants.NOT_SUBMITTED:
+            status = Runner.NOT_STARTED
+        elif not sw_status in [sw.constants.WARNING]:
+            status = Runner.RUNNING
+        return status
             
     def _job_is_running(self, status):
         return not status in [sw.constants.NOT_SUBMITTED,
@@ -249,6 +358,10 @@ class  SomaWorkflowRunner(Runner):
 
     def wait(self):
         Helper.wait_workflow(self._workflow_id, self._workflow_controller)
+
+    def wait_step(self, subjectname, stepname):
+        job_id = self._jobid_to_step[subjectname][stepname, 'stepname']
+        self._workflow_controller.wait_job([job_id])
         
     def last_run_failed(self):
         failed = False
@@ -259,25 +372,80 @@ class  SomaWorkflowRunner(Runner):
                                                   include_user_killed_jobs=True)) != 0)
         return failed     
 
-    def stop(self):
-        if not self.is_running(): return
-        self._workflow_controller.stop_workflow(self._workflow_id)
-        failed_jobs_data = self._really_failed_jobs()
-        workflow = self._workflow_controller.workflow(self._workflow_id)
-        for job_data in failed_jobs_data:
-            stepname = self._jobid_to_step[job_data.job_id]
+    def failed_steps(self):
+        if self.is_running():
+            raise RuntimeError("Runner is still running.")
+        self._update_failed_jobs_if_needed()
+        failed_steps = {}
+        for job_data in self._failed_jobs:
             subjectname = job_data.groupname
+            stepname = self._jobid_to_step[subjectname][job_data.job_id]
             analysis = self._study.analyses[subjectname]
-	    step = analysis.step_from_name(stepname)
-            # step.clear_results() # TODO
+            step = analysis.step_from_name(stepname)
+            failed_steps[subjectname] = step
+        return failed_steps
 
-    def _step_from_job(self, job_id):
-        job_id
+    def failed_steps_for_subject(self, subjectname):
+        if self.is_running():
+            raise RuntimeError("Runner is still running.")
+        self._update_failed_jobs_if_needed()
+        failed_steps = []
+        for job_data in self._failed_jobs:
+            if subjectname == job_data.groupname:
+                stepname = self._jobid_to_step[subjectname][job_data.job_id]
+                analysis = self._study.analyses[subjectname]
+                step = analysis.step_from_name(stepname)
+                failed_steps.append(step)
+        return failed_steps
 
-    def _really_failed_jobs(self):
+    def step_has_failed(self, subjectname, stepname):
+        if self.is_running():
+            raise RuntimeError("Runner is still running.")
+        self._update_failed_jobs_if_needed()
+        failed_steps = []
+        for job_data in self._failed_jobs:
+            if subjectname == job_data.groupname and \
+                stepname == self._jobid_to_step[subjectname][job_data.job_id]:
+                return True # if step failed
+        return False # if step succeed or was not even started
+
+    def steps_status(self):
+        steps_status = {}
+        # FIXME : not optimal, muste be done only if needed
+        self._update_jobs_status()
+        engine_workflow = self._workflow_controller.workflow(self._workflow_id)
+        for group in engine_workflow.groups:
+            subjectname = group.name
+            steps_status[subjectname] = {}
+            for job in group.elements:
+                job_id = engine_workflow.job_mapping[job].job_id
+                stepname = self._jobid_to_step[subjectname][job_id]
+                analysis = self._study.analyses[subjectname]
+                step = analysis.step_from_name(stepname)
+                jobs_status = self._jobs_status[job_id]
+                steps_status[subjectname][stepname] = (step, jobs_status)
+        return steps_status
+
+    def _update_failed_jobs_if_needed(self):
+        if self._failed_jobs is not None:
+            return
         exit_info_by_job = self._sw_exit_info_by_job()
         dep_graph = self._sw_dep_graph(exit_info_by_job)
-        return self._sw_really_failed_jobs_from_dep_graph(dep_graph)
+        self._failed_jobs = self._sw_really_failed_jobs_from_dep_graph(dep_graph)
+
+    def stop(self):
+        if not self.is_running():
+            raise RuntimeError("Runner is not running.")
+        self._workflow_controller.stop_workflow(self._workflow_id)
+        self._update_jobs_status()
+        self._update_failed_jobs_if_needed()
+        workflow = self._workflow_controller.workflow(self._workflow_id)
+        for job_data in self._failed_jobs:
+            subjectname = job_data.groupname
+            stepname = self._jobid_to_step[subjectname][job_data.job_id]
+            analysis = self._study.analyses[subjectname]
+            step = analysis.step_from_name(stepname)
+            step.outputs.clear()
 
     def _sw_exit_info_by_job(self):
         exit_info_by_job = {}
@@ -361,7 +529,7 @@ class Graph(object):
         class SWGraphData(object):
 
             def __init__(self, groupname, job_id):
-		self.groupname = groupname
+                self.groupname = groupname
                 self.job_id = job_id
 
         def _find_alone_starting_nodes(dependencies):
@@ -377,13 +545,13 @@ class Graph(object):
         data = [None] * size
         dependencies = [[] for i in range(size)]
         job_map = {}
-	ind = 1 # take into account root node
+        ind = 1 # take into account root node
         for group in workflow.groups:
             for job in group.elements:
-            	job_id = workflow.job_mapping[job].job_id
-            	job_map[id(job)] = ind
-            	data[ind] = SWGraphData(group.name, job_id)
-		ind += 1
+                job_id = workflow.job_mapping[job].job_id
+                job_map[id(job)] = ind
+                data[ind] = SWGraphData(group.name, job_id)
+                ind += 1
         for src, dst in workflow.dependencies:
             id_src, id_dst = id(src), id(dst)
             dependencies[job_map[id_dst]].append(job_map[id_src])
