@@ -183,6 +183,18 @@ class Study(object):
                 subjects.append(subjectname)
         return subjects
 
+    def has_results(self):
+        for subjectname, analysis in self.analyses.iteritems():
+            if analysis.list_existing_output_files():
+                return True
+        return False
+
+    def has_all_results(self):
+        for subjectname, analysis in self.analyses.iteritems():
+            if analysis.list_missing_output_files():
+                return False
+        return True
+
     def clear_results(self):
         for analysis in self.analyses.itervalues():
             analysis.clear_output_files()
