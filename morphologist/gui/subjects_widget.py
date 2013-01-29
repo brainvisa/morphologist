@@ -5,9 +5,10 @@ from morphologist.gui import ui_directory
 
 
 class SubjectsTableModel(QtCore.QAbstractTableModel):
-    SUBJECTNAME_COL = 0 
-    SUBJECTSTATUS_COL = 1
-    header = ['name', 'status'] #TODO: to be extended
+    GROUPNAME_COL = 0
+    SUBJECTNAME_COL = 1 
+    SUBJECTSTATUS_COL = 2
+    header = ['group', 'name', 'status']
 
     def __init__(self, study_model, parent=None):
         super(SubjectsTableModel, self).__init__(parent)
@@ -26,7 +27,7 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
         return self._study_model.subject_count()
 
     def columnCount(self, parent=QtCore.QModelIndex()):
-        return 2 #TODO: to be extended
+        return 3
 
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         if role == QtCore.Qt.DisplayRole:
@@ -38,6 +39,8 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
     def data(self, index, role=QtCore.Qt.DisplayRole):
         row, column = index.row(), index.column()
         if role == QtCore.Qt.DisplayRole:
+            if column == SubjectsTableModel.GROUPNAME_COL:
+                return self._study_model.get_subject(row).groupname
             if column == SubjectsTableModel.SUBJECTNAME_COL:
                 return self._study_model.get_subject(row).subjectname
             if column == SubjectsTableModel.SUBJECTSTATUS_COL:
