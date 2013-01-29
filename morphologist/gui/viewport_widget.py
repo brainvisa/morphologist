@@ -179,6 +179,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
             self._views[view_name] = view
         QtGui.QVBoxLayout(self.ui.view3_hook)
         view = histo_analysis_widget.create_histo_view(self.ui.view3_hook)
+        view.setPalette(QtGui.QPalette(QtGui.QColor(0, 0, 0)))
         self._views[self.HISTO_ANALYSIS] = view
 
     @QtCore.Slot()
@@ -268,6 +269,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     @QtCore.Slot()
     def update_histo_analysis_view(self):
         view = self._views[self.HISTO_ANALYSIS]
+        view.clear()
         histo_analysis = self._viewport_model.observed_objects[IntraAnalysis.HISTO_ANALYSIS]
         if histo_analysis is not None:
             view.set_histo_data(histo_analysis, nbins=100)
