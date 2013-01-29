@@ -39,6 +39,12 @@ class AbstractStudyTestCase(object):
     def restore_input_files(self):
         raise NotImplementedError("AbstractStudyTestCase is an abstract class")
 
+    def step_to_wait_testcase_1(self):
+        raise NotImplementedError("AbstractStudyTestCase is an abstract class")
+
+    def step_to_wait_testcase_2(self):
+        raise NotImplementedError("AbstractStudyTestCase is an abstract class")
+
 
 class MockStudyTestCase(AbstractStudyTestCase):
 
@@ -83,5 +89,8 @@ class MockStudyTestCase(AbstractStudyTestCase):
         # useless because the input files are created in set_analysis_parameters
         pass
 
+    def step_to_wait_testcase_1(self):
+        return self.subjectnames[0], "step1"
 
-
+    def step_to_wait_testcase_2(self):
+        return self.subjectnames[0], "step2"

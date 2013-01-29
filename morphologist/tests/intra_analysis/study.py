@@ -62,6 +62,12 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
             if file_name != None and os.path.isfile(file_name + "hide_for_test"):
                 os.rename(file_name + "hide_for_test", file_name) 
 
+    def step_to_wait_testcase_1(self):
+        return self.subjectnames[0], 'normalization'
+
+    def step_to_wait_testcase_2(self):
+        return self.subjectnames[0], 'histogram_analysis'
+
 
 class MockIntraAnalysisStudyTestCase(IntraAnalysisStudyTestCase):
     '''
@@ -102,6 +108,3 @@ class MockIntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
 
     def parameter_template(self):
         return IntraAnalysis.BRAINVISA_PARAM_TEMPLATE 
-
-
-

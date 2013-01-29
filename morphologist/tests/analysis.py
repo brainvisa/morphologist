@@ -3,6 +3,7 @@ import os
 from morphologist.tests.mocks.analysis import MockAnalysis
 from morphologist.tests import reset_directory
 
+
 class AnalysisTestCase(object):
     ''' abstract class '''
     def __init__(self):
