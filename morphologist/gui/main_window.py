@@ -18,7 +18,7 @@ from morphologist.analysis import ImportationError
 class IntraAnalysisWindow(QtGui.QMainWindow):
     uifile = os.path.join(ui_directory, 'main_window.ui')
 
-    def __init__(self, study_file=None):
+    def __init__(self, study_file=None, enable_brainomics_db=False):
         super(IntraAnalysisWindow, self).__init__()
         self.ui = loadUi(self.uifile, self)
 
@@ -48,6 +48,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self.ui.runner_widget_dock.setWidget(self.runner_view)
         
         self.study_editor_widget_window = None
+        self.enable_brainomics_db = enable_brainomics_db
 
         self._init_qt_connections()
 
@@ -69,7 +70,8 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
     @QtCore.Slot()
     def on_action_new_study_triggered(self):
         study = self._create_study()
-        self.study_editor_widget_window = StudyEditorDialog(study, parent=self)
+        self.study_editor_widget_window = StudyEditorDialog(study, parent=self,
+                                            enable_brainomics_db=self.enable_brainomics_db)
         self.study_editor_widget_window.ui.accepted.connect(self.on_study_dialog_accepted)
         self.study_editor_widget_window.ui.show()
         
@@ -153,9 +155,9 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         return "Morphologist - %s" % self.study.name
 
 
-def create_main_window(study_file=None, mock=False):
+def create_main_window(study_file=None, mock=False, enable_brainomics_db=False):
     if not mock:
-        return IntraAnalysisWindow(study_file)
+        return IntraAnalysisWindow(study_file, enable_brainomics_db)
     else:
         from morphologist.tests.intra_analysis.mocks.main_window import MockIntraAnalysisWindow
-        return MockIntraAnalysisWindow(study_file) 
+        return MockIntraAnalysisWindow(study_file, enable_brainomics_db) 

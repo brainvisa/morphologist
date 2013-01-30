@@ -2,8 +2,9 @@ import os
 import urllib
 import zipfile
 import shutil
+import tempfile
 
-from .qt_backend import QtGui, QtCore, loadUi
+from morphologist.gui.qt_backend import QtGui, QtCore, loadUi
 from morphologist.gui import ui_directory
 from morphologist.study import Study, Subject
 from morphologist.formats import FormatsManager
@@ -45,7 +46,7 @@ class StudyEditorDialog(QtGui.QDialog):
         role_map[apply_role] = cls.on_apply_button_clicked
         role_map[reject_role] = cls.on_cancel_button_clicked
 
-    def __init__(self, study, parent=None):
+    def __init__(self, study, parent=None, enable_brainomics_db=False):
         super(StudyEditorDialog, self).__init__(parent)
         self.study = study
         self.parameter_template = study.analysis_cls().PARAMETER_TEMPLATES[0]
@@ -65,14 +66,27 @@ class StudyEditorDialog(QtGui.QDialog):
             self.ui.parameter_template_combobox.addItem(param_template_name)
             if param_template_name == self.parameter_template:
                 self.ui.parameter_template_combobox.setCurrentIndex(self.ui.parameter_template_combobox.count()-1)
-        self._init_ui()
 
-        self._subject_from_db_dialog = SubjectsFromDatabaseDialog(self.ui)
+        self._subject_from_db_dialog = None
+        if enable_brainomics_db:
+            self.ui.add_subjects_from_database_button.setEnabled(True)
+            self._init_db_dialog()
+        else:
+            self.ui.add_subjects_from_database_button.hide()    
+            
+        self._init_ui()
 
     def _init_ui(self):
         tablewidget = self.ui.subjects_tablewidget
         tablewidget.setColumnWidth(0, self.group_column_width)
 
+    def _init_db_dialog(self):
+        self._subject_from_db_dialog = SubjectsFromDatabaseDialog(self.ui)
+        self._subject_from_db_dialog.set_group(self.default_group)
+        self._subject_from_db_dialog.set_server_url("http://neurospin-cubicweb.intra.cea.fr:8080")
+        self._subject_from_db_dialog.set_rql_request('''Any X WHERE X is Scan, X type "raw T1", X concerns A, A age 25''')
+        self._subject_from_db_dialog.accepted.connect(self.on_subject_from_db_dialog_accepted)
+                                                          
     def add_subjects(self, filenames, groupname=default_group):
         for filename in filenames:
             self._add_subject(filename, groupname)
@@ -175,14 +189,10 @@ class StudyEditorDialog(QtGui.QDialog):
     # this slot is automagically connected
     @QtCore.Slot()
     def on_add_subjects_from_database_button_clicked(self):
-        self._subject_from_db_dialog.set_group(self.default_group)
-        self._subject_from_db_dialog.set_server_url("http://neurospin-cubicweb.intra.cea.fr:8080")
-        self._subject_from_db_dialog.set_rql_request('''Any X WHERE X is Scan, X type "raw T1", X concerns A, A age 25''')
-        self._subject_from_db_dialog.exec_()
-        filenames = self._subject_from_db_dialog.get_filenames()
-        group = self._subject_from_db_dialog.get_group() 
-        print "filenames " + repr(filenames)
-        print "group " + repr(group)
+        self._subject_from_db_dialog.show()
+       
+    @QtCore.Slot() 
+    def on_subject_from_db_dialog_accepted(self):
         self.add_subjects(self._subject_from_db_dialog.get_filenames(), 
                           self._subject_from_db_dialog.get_group())
 
@@ -306,7 +316,7 @@ class StudyEditorDialog(QtGui.QDialog):
 class SelectSubjectsDialog(QtGui.QFileDialog):
     
     def __init__(self, parent):
-        caption = "Select one or more subjects to be include into your study"
+        caption = "Select one or more subjects to be included into your study"
         files_filter = self._define_selectable_files_regexp()
         default_directory = ""
         super(SelectSubjectsDialog, self).__init__(parent, caption,
@@ -341,11 +351,11 @@ class SubjectsFromDatabaseDialog(QtGui.QDialog):
 
         uifile = os.path.join(ui_directory, 'rql_subjects_widget.ui')
         self.ui = loadUi(uifile, self)
-       
+        
         self._filenames = []
         self._groupname = None
    
-        tmp_directory = "/tmp/"
+        tmp_directory = tempfile.gettempdir()
         self._zip_filename = os.path.join(tmp_directory, "cubic_web_tmp_data.zip")
         self._unzipped_dirname = os.path.join(tmp_directory, "cubic_web_unzipped_dir")
         self._files_directory = os.path.join(tmp_directory, "morphologist_tmp_files")
@@ -356,19 +366,32 @@ class SubjectsFromDatabaseDialog(QtGui.QDialog):
     # this slot is automagically connected 
     @QtCore.Slot()
     def on_load_button_clicked(self):
-        self.load(self.ui.server_url_LineEdit.text(),
-                  self.ui.rql_request_LineEdit.text())
-        self._group = self.ui.group_LineEdit.text()
-        self.accept()
+        self.ui.load_button.setEnabled(False)
+        QtGui.QApplication.processEvents()
+        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        error = None
+        try:
+            self.load(self.ui.server_url_lineEdit.text(), 
+                      self.ui.rql_request_lineEdit.text())
+        except LoadSubjectsFromDatabaseError, e:
+            error = "Cannot load files from the database: \n%s" % unicode(e)
+        finally:
+            QtGui.QApplication.restoreOverrideCursor()
+            self.ui.load_button.setEnabled(True)
+        self._group = self.ui.group_lineEdit.text()
+        if error:
+            QtGui.QMessageBox.critical(self, "Load error", error)
+        else:
+            self.accept()
 
     def set_server_url(self, server_url):
-        self.ui.server_url_LineEdit.setText(server_url)
+        self.ui.server_url_lineEdit.setText(server_url)
 
     def set_rql_request(self, rql_request):
-        self.ui.rql_request_LineEdit.setText(rql_request)
+        self.ui.rql_request_lineEdit.setText(rql_request)
 
     def set_group(self, groupname):
-        self.ui.group_LineEdit.setText(groupname)
+        self.ui.group_lineEdit.setText(groupname)
 
     def get_filenames(self):
         return self._filenames
@@ -378,22 +401,29 @@ class SubjectsFromDatabaseDialog(QtGui.QDialog):
 
     def load(self, server_url, rql_request):
         url = server_url + '''/view?rql=''' + rql_request + '''&vid=data-zip'''
-        print "url : " + repr(url)
-        urllib.urlretrieve(url, self._zip_filename)
-        zip_file = zipfile.ZipFile(self._zip_filename)
-        print "extract all" + self._zip_filename + " to " + self._unzipped_dirname
-        zip_file.extractall(self._unzipped_dirname)
+        try:
+            urllib.urlretrieve(url, self._zip_filename)
+        except IOError:
+            raise LoadSubjectsFromDatabaseError("Cannot connect to the database server.")
 
+        try:
+            zip_file = zipfile.ZipFile(self._zip_filename)
+            zip_file.extractall(self._unzipped_dirname)
+        except zipfile.BadZipfile:
+            raise LoadSubjectsFromDatabaseError("The request is incorrect or has no results.")
+        
         self._filenames = []
         dirname = os.path.join(self._unzipped_dirname, "brainomics_data")
-        for subject_name in os.listdir(dirname):
+        subject_dirs = os.listdir(dirname)
+        for subject_name in subject_dirs:
             filename = os.path.join(self._files_directory, subject_name + ".nii.gz")
             shutil.move(os.path.join(dirname, subject_name, "raw_T1_raw_anat.nii.gz"), filename)
-            self._filenames.append(filename) 
+            self._filenames.append(filename)
     
         if os.path.isdir(self._unzipped_dirname):
             shutil.rmtree(self._unzipped_dirname)
-
-
+    
+class LoadSubjectsFromDatabaseError(Exception):
+    pass        
 
 StudyEditorDialog._init_class()
