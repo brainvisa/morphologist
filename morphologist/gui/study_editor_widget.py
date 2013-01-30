@@ -67,18 +67,15 @@ class StudyEditorDialog(QtGui.QDialog):
             if param_template_name == self.parameter_template:
                 self.ui.parameter_template_combobox.setCurrentIndex(self.ui.parameter_template_combobox.count()-1)
 
+        tablewidget_header = self.ui.subjects_tablewidget.horizontalHeader()
+        tablewidget_header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        
         self._subject_from_db_dialog = None
         if enable_brainomics_db:
             self.ui.add_subjects_from_database_button.setEnabled(True)
             self._init_db_dialog()
         else:
             self.ui.add_subjects_from_database_button.hide()    
-            
-        self._init_ui()
-
-    def _init_ui(self):
-        tablewidget = self.ui.subjects_tablewidget
-        tablewidget.setColumnWidth(0, self.group_column_width)
 
     def _init_db_dialog(self):
         self._subject_from_db_dialog = SubjectsFromDatabaseDialog(self.ui)
@@ -304,6 +301,7 @@ class StudyEditorDialog(QtGui.QDialog):
         filename_item = QtGui.QTableWidgetItem(filename)
         self.ui.subjects_tablewidget.setItem(subject_index,
                             self.FILENAME_COL, filename_item)
+        filename_item.setToolTip(filename)
 
     def _get_subject(self, subject_index):
         tablewidget = self.ui.subjects_tablewidget
