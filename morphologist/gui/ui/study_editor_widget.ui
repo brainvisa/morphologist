@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>562</width>
-    <height>527</height>
+    <height>560</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -283,8 +283,11 @@
            </item>
            <item>
             <widget class="QPushButton" name="add_subjects_from_database_button">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
-              <string>from a database</string>
+              <string>From Brainomics database</string>
              </property>
             </widget>
            </item>

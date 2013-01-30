@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>664</width>
     <height>148</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Subjects from cubicweb database</string>
+   <string>Subjects from Brainomics database</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -19,32 +19,32 @@
      <item row="0" column="0">
       <widget class="QLabel" name="serverUrlLabel">
        <property name="text">
-        <string>server url:</string>
+        <string>Server URL</string>
        </property>
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QLineEdit" name="server_url_LineEdit"/>
+      <widget class="QLineEdit" name="server_url_lineEdit"/>
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="rqlRequestLabel">
        <property name="text">
-        <string>rql request:</string>
+        <string>RQL request</string>
        </property>
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="rql_request_LineEdit"/>
+      <widget class="QLineEdit" name="rql_request_lineEdit"/>
      </item>
      <item row="2" column="0">
       <widget class="QLabel" name="groupLabel">
        <property name="text">
-        <string>group</string>
+        <string>Group</string>
        </property>
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QLineEdit" name="group_LineEdit"/>
+      <widget class="QLineEdit" name="group_lineEdit"/>
      </item>
     </layout>
    </item>
