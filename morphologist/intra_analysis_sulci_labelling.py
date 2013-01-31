@@ -1,6 +1,7 @@
 from optparse import OptionParser
 import os
 import tempfile
+import shutil
 
 from brainvisa.configuration import neuroConfig
 
@@ -57,7 +58,7 @@ class SulciLabelling(object):
         tal_to_spam_transformation = tempfile.NamedTemporaryFile(suffix='.trm')
         transformation_matrix = tempfile.NamedTemporaryFile(suffix='.trm')
         t1_to_global_transformation = tempfile.NamedTemporaryFile(suffix='.trm')
-        global_to_local_transformation = tempfile.NamedTemporaryFile(suffix='.trm')
+        global_to_local_transformation = tempfile.mkdtemp()
 
         indep_tag_with_reg_command_path = os.path.join(neuroConfig.basePath, 'scripts', 
                                                        'sigraph', 'sulci_registration', 
@@ -89,7 +90,7 @@ class SulciLabelling(object):
                    '--distrib-gaussians', local_referencials, 
                    '--mode', 'local',
                    '--input-motion', tal_to_spam_transformation.name,
-                   '--motion', global_to_local_transformation.name]
+                   '--motion', global_to_local_transformation]
         SulciLabelling._run_command(command)
  
         posterior_probabilities_local.close()
@@ -98,7 +99,7 @@ class SulciLabelling(object):
         tal_to_spam_transformation.close()
         t1_to_global_transformation.close()
         transformation_matrix.close()
-        global_to_local_transformation.close()
+        shutil.rmtree(global_to_local_transformation)
 
 
     @staticmethod
