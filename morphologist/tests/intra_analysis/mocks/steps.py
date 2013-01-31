@@ -131,13 +131,6 @@ class MockGreySurface(GreySurface):
         self.name = 'grey_surface'
         self.inputs.grey_surface = ref_grey_surface
 
-    def get_command(self):
-        command = ['python', '-m',
-                   'morphologist.tests.intra_analysis.mocks.steps', self.name,
-                   self.inputs.grey_surface,
-                   self.outputs.grey_surface]
-        return command
-
 
 class MockSulci(Sulci):
     __metaclass__ = MetaAutomockStep
@@ -147,15 +140,6 @@ class MockSulci(Sulci):
         self.name = 'sulci'
         self.inputs.sulci = ref_sulci
 
-    def get_command(self):
-        command = ['python', '-m',
-                   'morphologist.tests.intra_analysis.mocks.steps', self.name,
-                   self.inputs.sulci,
-                   self.outputs.sulci,
-                   self.inputs.sulci.replace(".arg", ".data"),
-                   self.outputs.sulci.replace(".arg", ".data")]
-        return command
-
 
 class MockSulciLabelling(SulciLabelling):
     __metaclass__ = MetaAutomockStep
@@ -164,15 +148,6 @@ class MockSulciLabelling(SulciLabelling):
         super(MockSulciLabelling, self).__init__()
         self.name = 'sulci_labelling'
         self.inputs.labeled_sulci = ref_labeled_sulci
-
-    def get_command(self):
-        command = ['python', '-m',
-                   'morphologist.tests.intra_analysis.mocks.steps', self.name,
-                   self.inputs.labeled_sulci,
-                   self.outputs.labeled_sulci,
-                   self.inputs.labeled_sulci.replace(".arg", ".data"),
-                   self.outputs.labeled_sulci.replace(".arg", ".data")]
-        return command
 
 
 def main():
