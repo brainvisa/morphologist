@@ -70,6 +70,7 @@ class StudyEditorDialog(QtGui.QDialog):
         tablewidget_header = self.ui.subjects_tablewidget.horizontalHeader()
         tablewidget_header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
         
+        self._subjects_from_study_dialog = None
         self._subject_from_db_dialog = None
         if enable_brainomics_db:
             self.ui.add_subjects_from_database_button.setEnabled(True)
@@ -84,10 +85,15 @@ class StudyEditorDialog(QtGui.QDialog):
         self._subject_from_db_dialog.set_rql_request('''Any X WHERE X is Scan, X type "raw T1", X concerns A, A age 25''')
         self._subject_from_db_dialog.accepted.connect(self.on_subject_from_db_dialog_accepted)
                                                           
-    def add_subjects(self, filenames, groupname=default_group):
+    def add_subjects_from_filenames(self, filenames, groupname=default_group):
         for filename in filenames:
-            self._add_subject(filename, groupname)
+            subjectname = Study.define_subjectname_from_filename(filename)
+            self._add_subject(Subject(groupname, subjectname, filename))
 
+    def add_subjects(self, subjects):
+        for subject in subjects:
+            self._add_subject(subject)
+        
     # this slot is automagically connected
     @QtCore.Slot("const QString &")
     def on_studyname_lineEdit_textChanged(self, text):
@@ -150,6 +156,30 @@ class StudyEditorDialog(QtGui.QDialog):
         dialog = SelectSubjectsDialog(self.ui)
         dialog.filesSelected.connect(self.on_select_subjects_dialog_files_selected)
         dialog.show()
+
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_add_subjects_from_a_study_directory_button_clicked(self):
+        outputdir = self.ui.outputdir_lineEdit.text()
+        parameter_templates = self.study.analysis_cls().PARAMETER_TEMPLATES
+        selected_template = self.ui.parameter_template_combobox.currentText()
+        self._subjects_from_study_dialog = SelectStudyDirectoryDialog(self.ui, outputdir, 
+                                            parameter_templates, selected_template)
+        self._subjects_from_study_dialog.accepted.connect(self.on_subjects_from_study_dialog_accepted)
+        self._subjects_from_study_dialog.show()
+        
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_subjects_from_study_dialog_accepted(self):
+        study_directory = self._subjects_from_study_dialog.get_study_directory()
+        parameter_template_name = self._subjects_from_study_dialog.get_study_parameter_template()
+        parameter_template = self.study.analysis_cls().param_template_map[parameter_template_name]
+        subjects = parameter_template.get_subjects(study_directory)
+        if not subjects:
+            QtGui.QMessageBox.warning(self, "No subjects", 
+                                      "Cannot find subjects in this directory.")
+        else:
+            self.add_subjects(subjects)
     
     # this slot is automagically connected
     @QtCore.Slot()
@@ -277,16 +307,14 @@ class StudyEditorDialog(QtGui.QDialog):
             return False
         return True
         
-        
-    def _add_subject(self, filename, groupname):
-        subjectname = Study.define_subjectname_from_filename(filename)
+    def _add_subject(self, subject):
         new_row = self.ui.subjects_tablewidget.rowCount()
         self.ui.subjects_tablewidget.insertRow(new_row)
-        if groupname is not None:
-            self._fill_groupname(new_row, groupname)
-        self._fill_subjectname(new_row, subjectname)
-        self._fill_filename(new_row, filename)
-
+        if subject.groupname is not None:
+            self._fill_groupname(new_row, subject.groupname)
+        self._fill_subjectname(new_row, subject.subjectname)
+        self._fill_filename(new_row, subject.filename)
+        
     def _fill_groupname(self, subject_index, groupname):
         groupname_item = QtGui.QTableWidgetItem(groupname)
         self.ui.subjects_tablewidget.setItem(subject_index,
@@ -341,6 +369,39 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
         final_filter = ';;'.join(all_filters)
         return final_filter
 
+
+class SelectStudyDirectoryDialog(QtGui.QDialog):
+    
+    def __init__(self, parent, default_study_directory, 
+                 parameter_templates, selected_template):
+        super(SelectStudyDirectoryDialog, self).__init__(parent)
+        
+        uifile = os.path.join(ui_directory, 'select_study_directory.ui')
+        self.ui = loadUi(uifile, self)
+        
+        self.ui.study_directory_lineEdit.setText(default_study_directory)
+        
+        for param_template_name in parameter_templates:
+            self.ui.parameter_template_combobox.addItem(param_template_name)
+            if param_template_name == selected_template:
+                self.ui.parameter_template_combobox.setCurrentIndex(self.ui.parameter_template_combobox.count()-1)
+    
+    def get_study_directory(self):
+        return self.ui.study_directory_lineEdit.text()
+    
+    def get_study_parameter_template(self):
+        return self.ui.parameter_template_combobox.currentText()
+
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_study_directory_button_clicked(self):
+        selected_directory = QtGui.QFileDialog.getExistingDirectory(self.ui,
+                                caption="Select a study directory", 
+                                directory=self.get_study_directory(), 
+                                options=QtGui.QFileDialog.DontUseNativeDialog)
+        if selected_directory != '':
+            self.ui.study_directory_lineEdit.setText(selected_directory)
+            
 
 class SubjectsFromDatabaseDialog(QtGui.QDialog):
 
@@ -420,8 +481,10 @@ class SubjectsFromDatabaseDialog(QtGui.QDialog):
     
         if os.path.isdir(self._unzipped_dirname):
             shutil.rmtree(self._unzipped_dirname)
-    
+ 
+
 class LoadSubjectsFromDatabaseError(Exception):
     pass        
+
 
 StudyEditorDialog._init_class()

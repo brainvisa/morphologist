@@ -1,12 +1,14 @@
 import os
+import glob
+import re
 
+from morphologist.study import Subject
 from morphologist.analysis import Analysis, InputParameters, OutputParameters, \
                                   ImportationError, ParameterTemplate
 from morphologist.intra_analysis_steps import ImageImportation, \
     BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
     GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface, Sulci, SulciLabelling
 import morphologist.intra_analysis_constants as constants
-
 
 class IntraAnalysis(Analysis):
     # TODO: change string by a number
@@ -414,7 +416,23 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         session_auto_path = os.path.join(folds_3_1_path, cls.SESSION_AUTO)
         create_directory_if_missing(session_auto_path)
 
+    @classmethod
+    def get_subjects(cls, directory):
+        subjects = []
+        glob_pattern = os.path.join(directory, "*", "*", cls.MODALITY, "*", "*.*")
+        any_dir = "([^/]+)"
+        regexp=re.compile("^"+os.path.join(directory, any_dir, any_dir, cls.MODALITY,
+                                           any_dir, "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$"))
+        for filename in glob.iglob(glob_pattern):
+            match=regexp.match(filename)
+            if match:
+                groupname = match.group(1)
+                subjectname = match.group(2)
+                subject = Subject(groupname, subjectname, filename)
+                subjects.append(subject)
+        return subjects
            
+        
 class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
 
     @classmethod
@@ -494,6 +512,22 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         create_directory_if_missing(group_path)
         subject_path = os.path.join(group_path, subject.subjectname)
         create_directory_if_missing(subject_path)    
+
+    @classmethod
+    def get_subjects(cls, directory):
+        subjects = []
+        glob_pattern = os.path.join(directory, "*", "*", "*.*")
+        any_dir = "([^/]+)"
+        regexp=re.compile("^"+os.path.join(directory, any_dir, any_dir, 
+                                           "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$"))
+        for filename in glob.iglob(glob_pattern):
+            match=regexp.match(filename)
+            if match:
+                groupname = match.group(1)
+                subjectname = match.group(2)
+                subject = Subject(groupname, subjectname, filename)
+                subjects.append(subject)
+        return subjects
 
 
 def create_directory_if_missing(dir_path):

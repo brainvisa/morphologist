@@ -99,6 +99,10 @@ class ParameterTemplate(object):
     def create_outputdirs(cls, subject, outputdir):
         raise NotImplementedError("ParameterTemplate is an abstract class")
     
+    @classmethod
+    def get_subjects(cls, directory):
+        raise NotImplementedError("ParameterTemplate is an abstract class")
+
 
 class UnknownParameterTemplate(Exception):
     pass
