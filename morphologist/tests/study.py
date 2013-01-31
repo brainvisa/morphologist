@@ -45,6 +45,9 @@ class AbstractStudyTestCase(object):
     def step_to_wait_testcase_2(self):
         raise NotImplementedError("AbstractStudyTestCase is an abstract class")
 
+    def step_to_wait_testcase_3(self):
+        raise NotImplementedError("AbstractStudyTestCase is an abstract class")
+
 
 class MockStudyTestCase(AbstractStudyTestCase):
 
@@ -94,3 +97,6 @@ class MockStudyTestCase(AbstractStudyTestCase):
 
     def step_to_wait_testcase_2(self):
         return self.subjectnames[0], "step2"
+
+    def step_to_wait_testcase_3(self):
+        return self.subjectnames[0], "step3"

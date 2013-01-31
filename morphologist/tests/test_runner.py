@@ -71,7 +71,15 @@ class TestRunner(unittest.TestCase):
         self.runner.wait_step(analysis_name, stepname)
         if self.runner.is_running(): self.runner.stop()
         self.assert_output_files_exist_only_for_succeed_steps()
-        
+
+    def test_clear_state_after_waiting_a_given_step_3(self):
+        self.study.clear_results()
+        self.runner.run()
+        analysis_name, stepname = self.test_case.step_to_wait_testcase_3()
+        self.runner.wait_step(analysis_name, stepname)
+        if self.runner.is_running(): self.runner.stop()
+        self.assert_output_files_exist_only_for_succeed_steps()
+ 
     def test_missing_input_file_error(self):
         self.study.clear_results()
         self.test_case.delete_some_input_files()

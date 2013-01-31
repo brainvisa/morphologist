@@ -68,6 +68,9 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
     def step_to_wait_testcase_2(self):
         return self.subjectnames[0], 'histogram_analysis'
 
+    def step_to_wait_testcase_3(self):
+        return self.subjectnames[0], 'sulci'
+
 
 class MockIntraAnalysisStudyTestCase(IntraAnalysisStudyTestCase):
     '''
