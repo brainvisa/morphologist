@@ -82,6 +82,7 @@ class Sulci(object):
         str_command = ""
         for command_element in command:
             str_command = str_command + " '%s'" % command_element
+        print "===> run \n" + str_command
         return_value = os.system(str_command)
         if return_value != 0:
             msg = "The following command failed : %s" % str_command
