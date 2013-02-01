@@ -167,8 +167,9 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         brain_segmentation.inputs.variance = self.ref_outputs[IntraAnalysis.VARIANCE]
         brain_segmentation.inputs.histo_analysis = self.ref_outputs[IntraAnalysis.HISTO_ANALYSIS]
         brain_segmentation.inputs.fix_random_seed = True
+        brain_segmentation.inputs.white_ridges = self.ref_outputs[IntraAnalysis.WHITE_RIDGES]
         brain_segmentation.outputs.brain_mask = self.test_outputs[IntraAnalysis.BRAIN_MASK]
-        brain_segmentation.outputs.white_ridges = self.test_outputs[IntraAnalysis.WHITE_RIDGES]
+        brain_segmentation.outputs.white_ridges = self.test_outputs[IntraAnalysis.REFINED_WHITE_RIDGES]
         # copy white ridge file into the output directory because it is an input/output
         shutil.copy(self.ref_white_ridges_bc,
                     brain_segmentation.outputs.white_ridges)
@@ -176,7 +177,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
                     brain_segmentation.outputs.white_ridges + ".minf")
         self.assert_(brain_segmentation.run() == 0)
         self._assert_same_results([IntraAnalysis.BRAIN_MASK, 
-                                   IntraAnalysis.WHITE_RIDGES],
+                                   IntraAnalysis.REFINED_WHITE_RIDGES],
                                    self._same_files)
 
     def test_split_brain(self):

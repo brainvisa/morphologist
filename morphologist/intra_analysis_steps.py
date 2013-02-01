@@ -125,13 +125,12 @@ class BrainSegmentation(Step):
 
     def _get_inputs(self):
         file_inputs = ['corrected_mri', 'commissure_coordinates',
-                       'edges', 'variance', 'histo_analysis']
+                       'edges', 'variance', 'histo_analysis', 'white_ridges']
         other_inputs = ['erosion_size', 'fix_random_seed']
         return file_inputs, other_inputs
 
     def _get_outputs(self):
-        return ['brain_mask',
-                'white_ridges'] #input/output
+        return ['brain_mask', 'white_ridges']
  
     def get_command(self):
         command = ['VipGetBrain',
@@ -142,7 +141,8 @@ class BrainSegmentation(Step):
                    '-Variancename', self.inputs.variance,
                    '-hname',  self.inputs.histo_analysis,
                    '-bname', self.outputs.brain_mask,
-                   '-Ridge', self.outputs.white_ridges,
+                   '-Ridge', self.inputs.white_ridges,
+                   '-output-Ridge', self.outputs.white_ridges,
                    '-analyse', 'r', 
                    '-First', "0",
                    '-Last', "0", 

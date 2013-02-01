@@ -22,6 +22,7 @@ class IntraAnalysis(Analysis):
     BARY_FACTOR = 'bary_factor'
     HFILTERED = 'hfiltered'
     WHITE_RIDGES = 'white_ridges'
+    REFINED_WHITE_RIDGES = 'refined_white_ridges'
     EDGES = 'edges'
     VARIANCE = 'variance'
     CORRECTED_MRI = 'corrected_mri'
@@ -133,13 +134,14 @@ class IntraAnalysis(Analysis):
         self._brain_segmentation.inputs.variance = self.outputs[IntraAnalysis.VARIANCE]
         self._brain_segmentation.inputs.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
         self._brain_segmentation.inputs.erosion_size = self.inputs[IntraAnalysis.EROSION_SIZE]
+        self._brain_segmentation.inputs.white_ridges = self.outputs[IntraAnalysis.WHITE_RIDGES]
         self._brain_segmentation.outputs.brain_mask = self.outputs[IntraAnalysis.BRAIN_MASK]
-        self._brain_segmentation.outputs.white_ridges = self.outputs[IntraAnalysis.WHITE_RIDGES]
+        self._brain_segmentation.outputs.white_ridges = self.outputs[IntraAnalysis.REFINED_WHITE_RIDGES]
 
         self._split_brain.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
         self._split_brain.inputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
         self._split_brain.inputs.brain_mask = self.outputs[IntraAnalysis.BRAIN_MASK] 
-        self._split_brain.inputs.white_ridges = self.outputs[IntraAnalysis.WHITE_RIDGES]
+        self._split_brain.inputs.white_ridges = self.outputs[IntraAnalysis.REFINED_WHITE_RIDGES]
         self._split_brain.inputs.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
         self._split_brain.inputs.bary_factor = self.inputs[IntraAnalysis.BARY_FACTOR]
         self._split_brain.outputs.split_mask = self.outputs[IntraAnalysis.SPLIT_MASK]
@@ -229,6 +231,7 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
                                IntraAnalysis.TALAIRACH_TRANSFORMATION,
                                IntraAnalysis.HFILTERED,
                                IntraAnalysis.WHITE_RIDGES,
+                               IntraAnalysis.REFINED_WHITE_RIDGES,
                                IntraAnalysis.EDGES,
                                IntraAnalysis.VARIANCE,
                                IntraAnalysis.CORRECTED_MRI,
@@ -315,6 +318,8 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         parameters[IntraAnalysis.HFILTERED] = os.path.join(default_analysis_path, 
                                             "hfiltered_%s.nii" % subjectname)
         parameters[IntraAnalysis.WHITE_RIDGES] = os.path.join(default_analysis_path, 
+                                            "raw_whiteridge_%s.nii" % subjectname)
+        parameters[IntraAnalysis.REFINED_WHITE_RIDGES] = os.path.join(default_analysis_path, 
                                             "whiteridge_%s.nii" % subjectname)
         parameters[IntraAnalysis.EDGES] = os.path.join(default_analysis_path, 
                                             "edges_%s.nii" % subjectname)
@@ -412,7 +417,9 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         parameters[IntraAnalysis.HFILTERED] = os.path.join(subject_path, 
                                             "hfiltered_%s.nii" % subjectname)
         parameters[IntraAnalysis.WHITE_RIDGES] = os.path.join(subject_path, 
-                                            "whiteridge_%s.nii" % subjectname)
+                                            "raw_whiteridge_%s.nii" % subjectname)
+        parameters[IntraAnalysis.REFINED_WHITE_RIDGES] = os.path.join(subject_path, 
+                                            "refined_whiteridge_%s.nii" % subjectname)
         parameters[IntraAnalysis.EDGES] = os.path.join(subject_path, 
                                             "edges_%s.nii" % subjectname)
         parameters[IntraAnalysis.CORRECTED_MRI] = os.path.join(subject_path, 
