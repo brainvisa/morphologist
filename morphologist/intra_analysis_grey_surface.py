@@ -66,7 +66,7 @@ class GreySurface(object):
 
  
 if __name__ == '__main__':
-    parser = OptionParser(usage='%prog mri_corrected split_mask grey grey_surface left')
+    parser = OptionParser(usage='%prog mri_corrected split_mask grey grey_surface side')
     options, args = parser.parse_args()
     if len(args) != 5:
         parser.error('Invalid arguments: all arguments are mandatory.')

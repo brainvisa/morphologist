@@ -114,7 +114,7 @@ class SulciLabelling(object):
 
  
 if __name__ == '__main__':
-    parser = OptionParser(usage='%prog mri_corrected split_mask grey talairach_transformation grey_white')
+    parser = OptionParser(usage='%prog sulci sulci_labelling side')
     options, args = parser.parse_args()
     if len(args) != 3:
         parser.error('Invalid arguments: all arguments are mandatory.')

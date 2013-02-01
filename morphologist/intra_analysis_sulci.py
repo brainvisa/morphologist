@@ -82,7 +82,6 @@ class Sulci(object):
         str_command = ""
         for command_element in command:
             str_command = str_command + " '%s'" % command_element
-        print "===> run \n" + str_command
         return_value = os.system(str_command)
         if return_value != 0:
             msg = "The following command failed : %s" % str_command
@@ -90,7 +89,7 @@ class Sulci(object):
 
  
 if __name__ == '__main__':
-    parser = OptionParser(usage='%prog mri_corrected split_mask grey talairach_transformation grey_white')
+    parser = OptionParser(usage='%prog mri_corrected split_mask grey talairach_transformation grey_white commissure_coordinates white_surface grey_surface sulci side')
     options, args = parser.parse_args()
     if len(args) != 10:
         parser.error('Invalid arguments: all arguments are mandatory.')
