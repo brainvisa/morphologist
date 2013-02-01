@@ -188,7 +188,7 @@ class ThreadRunner(Runner):
                 break
 
     def run(self):
-        self._check_input_output_files()
+        self._check_input_files()
         if not self._execution_thread.is_alive():
             self._execution_thread.setDaemon(True)
             self._execution_thread.start()
@@ -242,7 +242,7 @@ class  SomaWorkflowRunner(Runner):
           
     def run(self):
         self._reset_internal_parameters()
-        self._check_input_output_files()
+        self._check_input_files()
         workflow = self._create_workflow()
         if self._workflow_id is not None:
             self._workflow_controller.delete_workflow(self._workflow_id)
