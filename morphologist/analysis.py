@@ -1,5 +1,6 @@
 import copy
 import os
+import shutil
 
 
 class Analysis(object):
@@ -138,7 +139,7 @@ class Parameters(object):
         missing_files = []
         for name in self._file_param_names:
             file_name = getattr(self, name)
-            if not os.path.isfile(file_name):
+            if not os.path.isfile(file_name) and not os.path.isdir(file_name):
                 missing_files.append(file_name)
         return missing_files
 
@@ -146,7 +147,7 @@ class Parameters(object):
         existing_files = [] 
         for name in self._file_param_names:
             file_name = getattr(self, name)
-            if os.path.isfile(file_name):
+            if os.path.isfile(file_name) or os.path.isdir(file_name):
                 existing_files.append(file_name)
         return existing_files
 
@@ -154,7 +155,7 @@ class Parameters(object):
         existing_files = {}
         for name in self._file_param_names:
             file_name = getattr(self, name)
-            if os.path.isfile(file_name):
+            if os.path.isfile(file_name) or os.path.isdir(file_name):
                 existing_files[name] = file_name
         return existing_files
 
@@ -194,6 +195,8 @@ class OutputParameters(Parameters):
             filename = self.get_value(param_name)
             if os.path.isfile(filename):
                 os.remove(filename)
+            elif os.path.isdir(filename):
+                shutil.rmtree(filename)
 
 class InputParameters(Parameters):
     pass

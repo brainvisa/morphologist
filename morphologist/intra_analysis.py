@@ -42,6 +42,11 @@ class IntraAnalysis(Analysis):
     RIGHT_SULCI = 'right_sulci'
     LEFT_LABELED_SULCI = 'left_labeled_sulci'
     RIGHT_LABELED_SULCI = 'right_labeled_sulci'
+    # XXX _DATA are used to hardcode .data directory generated with .arg files
+    LEFT_SULCI_DATA = 'left_sulci_data'
+    RIGHT_SULCI_DATA = 'right_sulci_data'
+    LEFT_LABELED_SULCI_DATA = 'left_labeled_sulci_data'
+    RIGHT_LABELED_SULCI_DATA = 'right_labeled_sulci_data'
 
     # TODO: reimplement a standard python method ?
     @classmethod
@@ -195,6 +200,7 @@ class IntraAnalysis(Analysis):
         self._left_sulci.inputs.grey_surface = self.outputs[IntraAnalysis.LEFT_GREY_SURFACE]
         self._left_sulci.inputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
         self._left_sulci.outputs.sulci = self.outputs[IntraAnalysis.LEFT_SULCI]
+        self._left_sulci.outputs.sulci_data = self.outputs[IntraAnalysis.LEFT_SULCI_DATA]
  
         self._right_sulci.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
         self._right_sulci.inputs.grey = self.outputs[IntraAnalysis.RIGHT_GREY]
@@ -205,12 +211,15 @@ class IntraAnalysis(Analysis):
         self._right_sulci.inputs.grey_surface = self.outputs[IntraAnalysis.RIGHT_GREY_SURFACE]
         self._right_sulci.inputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
         self._right_sulci.outputs.sulci = self.outputs[IntraAnalysis.RIGHT_SULCI]
+        self._right_sulci.outputs.sulci_data = self.outputs[IntraAnalysis.RIGHT_SULCI_DATA]
 
         self._left_sulci_labelling.inputs.sulci = self.outputs[IntraAnalysis.LEFT_SULCI]
         self._left_sulci_labelling.outputs.labeled_sulci = self.outputs[IntraAnalysis.LEFT_LABELED_SULCI]
+        self._left_sulci_labelling.outputs.labeled_sulci_data = self.outputs[IntraAnalysis.LEFT_LABELED_SULCI_DATA]
 
         self._right_sulci_labelling.inputs.sulci = self.outputs[IntraAnalysis.RIGHT_SULCI]
         self._right_sulci_labelling.outputs.labeled_sulci = self.outputs[IntraAnalysis.RIGHT_LABELED_SULCI]
+        self._right_sulci_labelling.outputs.labeled_sulci_data = self.outputs[IntraAnalysis.RIGHT_LABELED_SULCI_DATA]
 
 
     @classmethod
@@ -249,8 +258,12 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
                                IntraAnalysis.RIGHT_WHITE_SURFACE,
                                IntraAnalysis.LEFT_SULCI,
                                IntraAnalysis.RIGHT_SULCI,
+                               IntraAnalysis.LEFT_SULCI_DATA,
+                               IntraAnalysis.RIGHT_SULCI_DATA,
                                IntraAnalysis.LEFT_LABELED_SULCI,
-                               IntraAnalysis.RIGHT_LABELED_SULCI]
+                               IntraAnalysis.RIGHT_LABELED_SULCI,
+                               IntraAnalysis.LEFT_LABELED_SULCI_DATA,
+                               IntraAnalysis.RIGHT_LABELED_SULCI_DATA]
 
     @classmethod
     def get_empty_inputs(cls):
@@ -355,10 +368,19 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                         folds_path, "L%s.arg" % subjectname)
         parameters[IntraAnalysis.RIGHT_SULCI] = os.path.join(\
                         folds_path, "R%s.arg" % subjectname)
+        parameters[IntraAnalysis.LEFT_SULCI_DATA] = os.path.join(\
+                        folds_path, "L%s.data" % subjectname)
+        parameters[IntraAnalysis.RIGHT_SULCI_DATA] = os.path.join(\
+                        folds_path, "R%s.data" % subjectname)
         parameters[IntraAnalysis.LEFT_LABELED_SULCI] = os.path.join(\
                         session_auto_path, "L%s_default_session_auto.arg" % subjectname)
         parameters[IntraAnalysis.RIGHT_LABELED_SULCI] = os.path.join(\
                         session_auto_path, "R%s_default_session_auto.arg" % subjectname)
+        parameters[IntraAnalysis.LEFT_LABELED_SULCI_DATA] = os.path.join(\
+                        session_auto_path, "L%s_default_session_auto.data" % subjectname)
+        parameters[IntraAnalysis.RIGHT_LABELED_SULCI_DATA] = os.path.join(\
+                        session_auto_path, "R%s_default_session_auto.data" % subjectname)
+
 
         return parameters
 
@@ -454,11 +476,18 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                 subject_path, "left_sulci_%s.arg" % subjectname)        
         parameters[IntraAnalysis.RIGHT_SULCI] = os.path.join(\
                 subject_path, "right_sulci_%s.arg" % subjectname)        
+        parameters[IntraAnalysis.LEFT_SULCI_DATA] = os.path.join(\
+                subject_path, "left_sulci_%s.data" % subjectname)        
+        parameters[IntraAnalysis.RIGHT_SULCI_DATA] = os.path.join(\
+                subject_path, "right_sulci_%s.data" % subjectname)        
         parameters[IntraAnalysis.LEFT_LABELED_SULCI] = os.path.join(\
                 subject_path, "left_labeled_sulci_%s.arg" % subjectname)        
         parameters[IntraAnalysis.RIGHT_LABELED_SULCI] = os.path.join(\
-                subject_path, "right_labeled_sulci_%s.arg" % subjectname)        
-
+                subject_path, "right_labeled_sulci_%s.arg" % subjectname) 
+        parameters[IntraAnalysis.LEFT_LABELED_SULCI_DATA] = os.path.join(\
+                subject_path, "left_labeled_sulci_%s.data" % subjectname)
+        parameters[IntraAnalysis.RIGHT_LABELED_SULCI_DATA] = os.path.join(\
+                subject_path, "right_labeled_sulci_%s.data" % subjectname) 
 
         return parameters
 

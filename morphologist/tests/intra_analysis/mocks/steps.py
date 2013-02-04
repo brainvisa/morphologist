@@ -126,17 +126,19 @@ class MockGreySurface(GreySurface):
 class MockSulci(Sulci):
     __metaclass__ = MetaAutomockStep
   
-    def __init__(self, ref_sulci):
+    def __init__(self, ref_sulci, ref_sulci_data):
         super(MockSulci, self).__init__()
         self.inputs.sulci = ref_sulci
+        self.inputs.sulci_data = ref_sulci_data
 
 
 class MockSulciLabelling(SulciLabelling):
     __metaclass__ = MetaAutomockStep
 
-    def __init__(self, ref_labeled_sulci):
+    def __init__(self, ref_labeled_sulci, ref_labeled_sulci_data):
         super(MockSulciLabelling, self).__init__()
         self.inputs.labeled_sulci = ref_labeled_sulci
+        self.inputs.labeled_sulci_data = ref_labeled_sulci_data
 
 
 def main():

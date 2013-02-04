@@ -342,7 +342,7 @@ class Sulci(Step):
         return file_inputs, other_inputs
 
     def _get_outputs(self):
-        return ['sulci']
+        return ['sulci', 'sulci_data']
 
     def get_command(self):
         command = ['python', '-m', 'morphologist.intra_analysis_sulci',
@@ -378,7 +378,7 @@ class SulciLabelling(Step):
         return file_inputs, other_inputs
 
     def _get_outputs(self):
-        return ['labeled_sulci']
+        return ['labeled_sulci', 'labeled_sulci_data']
 
     def get_command(self):
         command = ['python', '-m', 'morphologist.intra_analysis_sulci_labelling',

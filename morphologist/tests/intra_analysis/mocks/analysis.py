@@ -31,10 +31,15 @@ class MockIntraAnalysis(IntraAnalysis):
         self._right_grey_surface = MockGreySurface(mock_out_files[IntraAnalysis.RIGHT_GREY_SURFACE])
         self._left_white_surface = MockWhiteSurface(mock_out_files[IntraAnalysis.LEFT_WHITE_SURFACE])
         self._right_white_surface = MockWhiteSurface(mock_out_files[IntraAnalysis.RIGHT_WHITE_SURFACE])
-        self._left_sulci = MockSulci(mock_out_files[IntraAnalysis.LEFT_SULCI])
-        self._right_sulci = MockSulci(mock_out_files[IntraAnalysis.RIGHT_SULCI])
-        self._left_sulci_labelling = MockSulciLabelling(mock_out_files[IntraAnalysis.LEFT_LABELED_SULCI])
-        self._right_sulci_labelling = MockSulciLabelling(mock_out_files[IntraAnalysis.RIGHT_LABELED_SULCI])
+        self._left_sulci = MockSulci(mock_out_files[IntraAnalysis.LEFT_SULCI],
+                                     mock_out_files[IntraAnalysis.LEFT_SULCI_DATA])
+        self._right_sulci = MockSulci(mock_out_files[IntraAnalysis.RIGHT_SULCI],
+                                      mock_out_files[IntraAnalysis.RIGHT_SULCI_DATA])
+        self._left_sulci_labelling = MockSulciLabelling(mock_out_files[IntraAnalysis.LEFT_LABELED_SULCI],
+                                                        mock_out_files[IntraAnalysis.LEFT_LABELED_SULCI_DATA])
+        self._right_sulci_labelling = MockSulciLabelling(\
+            mock_out_files[IntraAnalysis.RIGHT_LABELED_SULCI],
+            mock_out_files[IntraAnalysis.RIGHT_LABELED_SULCI_DATA])
         self._steps = [self._normalization, 
                        self._bias_correction, 
                        self._histogram_analysis, 
