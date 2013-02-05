@@ -3,7 +3,7 @@ import time
 import unittest
 import optparse
     
-from morphologist.runner import MissingInputFileError, OutputFileExistError, \
+from morphologist.runner import MissingInputFileError, \
     Runner, SomaWorkflowRunner, ThreadRunner
 from morphologist.tests.study import MockStudyTestCase
 
@@ -86,12 +86,6 @@ class TestRunner(unittest.TestCase):
 
         self.assertRaises(MissingInputFileError, self.runner.run)
 
-    def test_output_file_exist_error(self):
-        self.study.clear_results()
-        self.test_case.create_some_output_files()
-        
-        self.assertRaises(OutputFileExistError, self.runner.run)
-       
     def assert_output_files_exist(self):
         self.assertEqual(len(self.study.list_subjects_with_missing_results()), 0)
        
