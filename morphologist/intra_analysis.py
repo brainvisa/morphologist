@@ -5,7 +5,7 @@ from morphologist.analysis import Analysis, InputParameters, OutputParameters, \
 from morphologist.intra_analysis_steps import ImageImportation, \
     BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
     GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface, Sulci, SulciLabelling
-
+import morphologist.intra_analysis_constants as constants
 
 
 class IntraAnalysis(Analysis):
@@ -15,6 +15,7 @@ class IntraAnalysis(Analysis):
     PARAMETER_TEMPLATES = [BRAINVISA_PARAM_TEMPLATE, DEFAULT_PARAM_TEMPLATE]
     param_template_map = {}
 
+    # intra analysis parameters (inputs / outputs)
     MRI = 'mri'
     COMMISSURE_COORDINATES = 'commissure_coordinates'
     TALAIRACH_TRANSFORMATION = 'talairach_transformation'
@@ -67,18 +68,18 @@ class IntraAnalysis(Analysis):
         self._histogram_analysis = HistogramAnalysis()
         self._brain_segmentation = BrainSegmentation()
         self._split_brain = SplitBrain()
-        self._left_grey_white = GreyWhite(left=True)
-        self._right_grey_white = GreyWhite(left=False)
+        self._left_grey_white = GreyWhite(constants.LEFT)
+        self._right_grey_white = GreyWhite(constants.RIGHT)
         self._left_grey = Grey()
         self._right_grey = Grey()
-        self._left_grey_surface = GreySurface(left=True)
-        self._right_grey_surface = GreySurface(left=False)
+        self._left_grey_surface = GreySurface(constants.LEFT)
+        self._right_grey_surface = GreySurface(constants.RIGHT)
         self._left_white_surface = WhiteSurface()
         self._right_white_surface = WhiteSurface()
-        self._left_sulci = Sulci(left=True)
-        self._right_sulci = Sulci(left=False)
-        self._left_sulci_labelling = SulciLabelling(left=True)
-        self._right_sulci_labelling = SulciLabelling(left=False)
+        self._left_sulci = Sulci(constants.LEFT)
+        self._right_sulci = Sulci(constants.RIGHT)
+        self._left_sulci_labelling = SulciLabelling(constants.LEFT)
+        self._right_sulci_labelling = SulciLabelling(constants.RIGHT)
         self._steps = [self._normalization, 
                        self._bias_correction, 
                        self._histogram_analysis, 

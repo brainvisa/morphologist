@@ -3,7 +3,11 @@ import os
 from morphologist.intra_analysis_steps import SpatialNormalization, \
         BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
         GreyWhite, Grey, GreySurface, WhiteSurface, Sulci, SulciLabelling
-from morphologist.intra_analysis import IntraAnalysis
+import morphologist.intra_analysis_constants as constants
+
+
+# XXX: spurious information, not used by mock steps but however necessary
+dummy_side = constants.LEFT
 
 
 class AutomockStep(object):
@@ -92,7 +96,7 @@ class MockGreyWhite(GreyWhite):
     __metaclass__ = MetaAutomockStep
     
     def __init__(self, ref_grey_white):
-        super(MockGreyWhite, self).__init__()
+        super(MockGreyWhite, self).__init__(dummy_side)
         self.inputs.grey_white = ref_grey_white
  
 
@@ -116,7 +120,7 @@ class MockGreySurface(GreySurface):
     __metaclass__ = MetaAutomockStep
   
     def __init__(self, ref_grey_surface):
-        super(MockGreySurface, self).__init__()
+        super(MockGreySurface, self).__init__(dummy_side)
         self.inputs.grey_surface = ref_grey_surface
 
 
@@ -124,7 +128,7 @@ class MockSulci(Sulci):
     __metaclass__ = MetaAutomockStep
   
     def __init__(self, ref_sulci, ref_sulci_data):
-        super(MockSulci, self).__init__()
+        super(MockSulci, self).__init__(dummy_side)
         self.inputs.sulci = ref_sulci
         self.inputs.sulci_data = ref_sulci_data
 
@@ -133,7 +137,7 @@ class MockSulciLabelling(SulciLabelling):
     __metaclass__ = MetaAutomockStep
 
     def __init__(self, ref_labeled_sulci, ref_labeled_sulci_data):
-        super(MockSulciLabelling, self).__init__()
+        super(MockSulciLabelling, self).__init__(dummy_side)
         self.inputs.labeled_sulci = ref_labeled_sulci
         self.inputs.labeled_sulci_data = ref_labeled_sulci_data
 

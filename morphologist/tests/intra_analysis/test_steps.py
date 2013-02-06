@@ -16,6 +16,8 @@ from morphologist.intra_analysis_steps import ImageImportation, \
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate, \
                                         IntraAnalysis    
 from morphologist.intra_analysis_graph_comparison import same_graphs
+import morphologist.intra_analysis_constants as constants
+
 
 class TestIntraAnalysisSteps(unittest.TestCase):
     
@@ -187,8 +189,8 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         self._assert_same_results([IntraAnalysis.SPLIT_MASK], self._same_files)
 
     def test_grey_white(self):
-        left_grey_white = GreyWhite(left=True)
-        right_grey_white = GreyWhite(left=False)
+        left_grey_white = GreyWhite(constants.LEFT)
+        right_grey_white = GreyWhite(constants.RIGHT)
         self._init_test_grey_white(left_grey_white)
         self._init_test_grey_white(right_grey_white)
 
@@ -250,8 +252,8 @@ class TestIntraAnalysisSteps(unittest.TestCase):
                                    self._same_files)
 
     def test_grey_surface(self):
-        left_grey_surface = GreySurface(left=True)
-        right_grey_surface = GreySurface(left=False)
+        left_grey_surface = GreySurface(constants.LEFT)
+        right_grey_surface = GreySurface(constants.RIGHT)
        
         left_grey_surface.inputs.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
         right_grey_surface.inputs.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
@@ -270,7 +272,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
                                    self._same_files)
 
     def test_sulci_left(self):
-        left_sulci = Sulci(left=True)
+        left_sulci = Sulci(constants.LEFT)
          
         left_sulci.inputs.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
         left_sulci.inputs.split_mask = self.ref_outputs[IntraAnalysis.SPLIT_MASK] 
@@ -291,7 +293,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
 
 
     def test_sulci_right(self):
-        right_sulci = Sulci(left=False)
+        right_sulci = Sulci(constants.RIGHT)
          
         right_sulci.inputs.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
         right_sulci.inputs.split_mask = self.ref_outputs[IntraAnalysis.SPLIT_MASK] 
@@ -310,7 +312,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
                                   same_graphs) 
 
     def test_sulci_labelling_left(self):
-        left_sulci_labelling = SulciLabelling(left=True)
+        left_sulci_labelling = SulciLabelling(constants.LEFT)
     
         left_sulci_labelling.inputs.sulci = self.ref_outputs[IntraAnalysis.LEFT_SULCI] 
         left_sulci_labelling.outputs.labeled_sulci = self.test_outputs[IntraAnalysis.LEFT_LABELED_SULCI] 
@@ -321,7 +323,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
 
 
     def test_sulci_labelling_right(self):
-        right_sulci_labelling = SulciLabelling(left=False)
+        right_sulci_labelling = SulciLabelling(constants.RIGHT)
     
         right_sulci_labelling.inputs.sulci = self.ref_outputs[IntraAnalysis.RIGHT_SULCI] 
         right_sulci_labelling.outputs.labeled_sulci = self.test_outputs[IntraAnalysis.RIGHT_LABELED_SULCI] 

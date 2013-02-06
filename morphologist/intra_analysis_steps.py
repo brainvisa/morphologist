@@ -1,4 +1,5 @@
 from morphologist.steps import Step
+import morphologist.intra_analysis_constants as constants
 
 
 class ImageImportation(Step):
@@ -197,19 +198,16 @@ class SplitBrain(Step):
 
 class GreyWhite(Step):
 
-    def __init__(self, left=True):
+    def __init__(self, side):
         super(GreyWhite, self).__init__()
         self.name = 'grey_white'
-        self.left = left
+        self.inputs.side = side
         self.inputs.fix_random_seed = False
-
-    def _get_authorized_attributes(self):
-        return Step._get_authorized_attributes(self) + ['left']
 
     def _get_inputs(self):
         file_inputs = ['corrected_mri', 'commissure_coordinates',
                        'histo_analysis', 'split_mask', 'edges']
-        other_inputs = ['fix_random_seed']
+        other_inputs = ['fix_random_seed', 'side']
         return file_inputs, other_inputs
 
     def _get_outputs(self):
@@ -224,10 +222,12 @@ class GreyWhite(Step):
                     '-edges', self.inputs.edges,
                     '-writeformat', 't',
                     '-algo', 'N']
-        if self.left:
+        if self.inputs.side == constants.LEFT:
             label = '2'
-        else:
+        elif self.inputs.side == constants.RIGHT:
             label = '1'
+        else:
+            assert(0)
         command.extend(['-label', label, '-output', self.outputs.grey_white])
         if self.inputs.fix_random_seed:
             command.extend(['-srand', '10'])  
@@ -287,13 +287,10 @@ class WhiteSurface(Step):
 
 class GreySurface(Step):
 
-    def __init__(self, left=True):
+    def __init__(self, side):
         super(GreySurface, self).__init__()
         self.name = 'grey_surface'
-        if left:
-            self.inputs.side = 'left'
-        else: 
-            self.inputs.side = 'right'
+        self.inputs.side = side
 
     def _get_inputs(self):
         file_inputs = ['corrected_mri', 'split_mask', 'grey']
@@ -316,13 +313,10 @@ class GreySurface(Step):
 
 class Sulci(Step):
 
-    def __init__(self, left=True):
+    def __init__(self, side):
         super(Sulci, self).__init__()
         self.name = 'sulci'
-        if left:
-            self.inputs.side = 'left'
-        else: 
-            self.inputs.side = 'right'
+        self.inputs.side = side
 
     def _get_inputs(self):
         file_inputs = ['corrected_mri', 'split_mask', 'grey',
@@ -352,13 +346,10 @@ class Sulci(Step):
 
 class SulciLabelling(Step):
 
-    def __init__(self, left=True):
+    def __init__(self, side):
         super(SulciLabelling, self).__init__()
         self.name = 'sulci_labelling'
-        if left:
-            self.inputs.side = 'left'
-        else: 
-            self.inputs.side = 'right'
+        self.inputs.side = side
 
     def _get_inputs(self):
         file_inputs = ['sulci']
