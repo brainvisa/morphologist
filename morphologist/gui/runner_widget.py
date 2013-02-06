@@ -31,14 +31,7 @@ class RunnerView(QtGui.QWidget):
 
     @QtCore.Slot()
     def on_model_changed(self):
-        study = self._runner_model.study
-        if study.has_subjects():
-            if not study.has_all_results():
-                self.ui.run_button.setEnabled(True)
-            if study.has_some_results():
-                self.ui.erase_button.setEnabled(True)
-        else:
-            self.ui.run_button.setEnabled(False)
+        self._set_not_running_state()
         
     @QtCore.Slot(bool)
     def on_runner_status_changed(self, running):
@@ -47,29 +40,14 @@ class RunnerView(QtGui.QWidget):
         else:
             self._set_not_running_state()
 
-    def _set_running_state(self):
-        self.ui.run_button.setEnabled(False)
-        self.ui.stop_button.setEnabled(True)
-        self.ui.erase_button.setEnabled(False)
-
-    def _set_not_running_state(self):
-        self.ui.run_button.setEnabled(True)
-        self.ui.stop_button.setEnabled(False)
-        self._set_erase_button_if_needed()
-
-    def _set_erase_button_if_needed(self):
-        enable_erase_button = self._runner_model.study.has_some_results()
-        self.ui.erase_button.setEnabled(enable_erase_button)
-
     # this slot is automagically connected
     @QtCore.Slot()
     def on_run_button_clicked(self):
-        '''calling assumption: a model must have been set with set_model.'''
-        self.ui.run_button.setEnabled(False)
+        assert(self._runner_model is not None)
         if self._run_analyses():
-            self.ui.stop_button.setEnabled(True)
+            self._set_running_state()
         else:
-            self.ui.run_button.setEnabled(True)
+            self._set_not_running_state()
 
     def _run_analyses(self):
         run = False
@@ -84,15 +62,35 @@ class RunnerView(QtGui.QWidget):
     # this slot is automagically connected
     @QtCore.Slot()
     def on_stop_button_clicked(self):
-        '''calling assumption: a model must have been set with set_model.'''
-        self.ui.stop_button.setEnabled(False)
+        assert(self._runner_model is not None)
         self._runner_model.runner.stop()
-        self.ui.run_button.setEnabled(True)
-        self._set_erase_button_if_needed()
+        self._set_not_running_state()
 
     # this slot is automagically connected
     def on_erase_button_clicked(self):
-        '''calling assumption: a model must have been set with set_model.'''
-        self.ui.erase_button.setEnabled(False)
+        assert(self._runner_model is not None)
         self._runner_model.study.clear_results()
-        self.ui.run_button.setEnabled(True)
+        # XXX: this buttun could remain enabled if some files are added manually
+        self._set_not_running_state()
+
+    def _set_running_state(self):
+        self.ui.run_button.setEnabled(False)
+        self.ui.stop_button.setEnabled(True)
+        self.ui.erase_button.setEnabled(False)
+
+    def _set_not_running_state(self):
+        self._set_run_button_if_needed()
+        self.ui.stop_button.setEnabled(False)
+        self._set_erase_button_if_needed()
+
+    def _set_run_button_if_needed(self):
+        has_subjects = self._runner_model.study.has_subjects()
+        has_no_results = not self._runner_model.study.has_all_results()
+        enable_run_button = has_subjects and has_no_results
+        self.ui.run_button.setEnabled(enable_run_button)
+
+    def _set_erase_button_if_needed(self):
+        enable_erase_button = self._runner_model.study.has_some_results()
+        self.ui.erase_button.setEnabled(enable_erase_button)
+
+
