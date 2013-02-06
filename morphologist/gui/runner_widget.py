@@ -12,6 +12,12 @@ class RunnerView(QtGui.QWidget):
         super(RunnerView, self).__init__(parent)
         self.ui = loadUi(self.uifile, self)
         self._runner_model = None
+        self._disable_all_buttons()
+
+    def _disable_all_buttons(self):
+        self.ui.run_button.setEnabled(False)
+        self.ui.stop_button.setEnabled(False)
+        self.ui.erase_button.setEnabled(False)
 
     def set_model(self, model):
         if self._runner_model is not None:
@@ -22,13 +28,6 @@ class RunnerView(QtGui.QWidget):
         self._runner_model.runner_status_changed.connect(\
                             self.on_runner_status_changed)
         self._runner_model.changed.connect(self.on_model_changed)
-        if model is None:
-            self._disable_all_buttons()
-
-    def _disable_all_buttons(self):
-        self.ui.run_button.setEnabled(False)
-        self.ui.stop_button.setEnabled(False)
-        self.ui.erase_button.setEnabled(False)
 
     @QtCore.Slot()
     def on_model_changed(self):
