@@ -23,12 +23,6 @@ class MockStep(Step):
         return ['output_1', 'output_2']
 
     def get_command(self):
-        message = "MockStep "
-        message += "inputs: %s %s %s outputs: %s %s" % (self.inputs.input_1, 
-                                                       self.inputs.input_2, 
-                                                       self.inputs.input_3, 
-                                                       self.outputs.output_1, 
-                                                       self.outputs.output_2)
         command = ['python', '-m',
                    'morphologist.tests.mocks.analysis',
                     str(self.time_to_sleep),
