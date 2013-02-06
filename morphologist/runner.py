@@ -150,10 +150,9 @@ class  SomaWorkflowRunner(Runner):
 
     def _reset_internal_parameters(self):
         self._workflow_id = None
-        self._subjects_jobs = None  #subject_name -> list of job_ids
         self._jobid_to_step = {} # subject_name -> (job_id -> step)
-        self._failed_jobs = None
         self._cached_jobs_status = None
+        self._cached_failed_jobs = None
         
     def _delete_old_workflows(self):        
         for (workflow_id, (name, _)) in self._workflow_controller.workflows().iteritems():
@@ -167,8 +166,7 @@ class  SomaWorkflowRunner(Runner):
         if self._workflow_id is not None:
             self._workflow_controller.delete_workflow(self._workflow_id)
         self._workflow_id = self._workflow_controller.submit_workflow(workflow, name=workflow.name)
-        self._update_jobid_to_step()
-        self._update_subjects_jobs()
+        self._build_jobid_to_step()
         # the status does not change immediately after run, 
         # so we wait for the status WORKFLOW_IN_PROGRESS or timeout
         status = self._workflow_controller.workflow_status(self._workflow_id)
@@ -210,7 +208,7 @@ class  SomaWorkflowRunner(Runner):
                             root_group=groups)
         return workflow
 
-    def _update_jobid_to_step(self):
+    def _build_jobid_to_step(self):
         self._jobid_to_step = {}
         workflow = self._workflow_controller.workflow(self._workflow_id)
         for group in workflow.groups:
@@ -221,18 +219,6 @@ class  SomaWorkflowRunner(Runner):
                 job_id = workflow.job_mapping[job].job_id
                 stepname = job.name
                 self._jobid_to_step[subjectname][job_id] = stepname
-
-    def _update_subjects_jobs(self): # TODO: can be replaced/removed (see above)
-        self._subjects_jobs = {}
-        engine_workflow = self._workflow_controller.workflow(self._workflow_id)
-        for group in engine_workflow.groups:
-            subject_name = group.name
-            job_list = group.elements 
-            job_ids = []
-            for job in job_list:
-                engine_job = engine_workflow.job_mapping[job]
-                job_ids.append(engine_job.job_id)
-            self._subjects_jobs[subject_name] = job_ids
 
     def _define_workflow_name(self): 
         return self._study.name + " " + self.WORKFLOW_NAME_SUFFIX
@@ -250,7 +236,7 @@ class  SomaWorkflowRunner(Runner):
     def _subject_is_running(self, subject_name, update_status=True):
         jobs_status = self._get_jobs_status(update_status)
         running = False
-        for job_id in self._subjects_jobs[subject_name]:
+        for job_id in self._jobid_to_step[subject_name].keys():
             if jobs_status[job_id] == Runner.RUNNING:
                 running = True
                 break
@@ -307,9 +293,9 @@ class  SomaWorkflowRunner(Runner):
     def failed_steps(self):
         if self.is_running():
             raise RuntimeError("Runner is still running.")
-        self._update_failed_jobs_if_needed()
+        failed_jobs = self._get_failed_jobs()
         failed_steps = {}
-        for job_data in self._failed_jobs:
+        for job_data in failed_jobs:
             subjectname = job_data.groupname
             stepname = self._jobid_to_step[subjectname][job_data.job_id]
             analysis = self._study.analyses[subjectname]
@@ -320,9 +306,9 @@ class  SomaWorkflowRunner(Runner):
     def failed_steps_for_subject(self, subjectname):
         if self.is_running():
             raise RuntimeError("Runner is still running.")
-        self._update_failed_jobs_if_needed()
+        failed_jobs = self._get_failed_jobs()
         failed_steps = []
-        for job_data in self._failed_jobs:
+        for job_data in failed_jobs:
             if subjectname == job_data.groupname:
                 stepname = self._jobid_to_step[subjectname][job_data.job_id]
                 analysis = self._study.analyses[subjectname]
@@ -333,9 +319,9 @@ class  SomaWorkflowRunner(Runner):
     def step_has_failed(self, subjectname, stepname):
         if self.is_running():
             raise RuntimeError("Runner is still running.")
-        self._update_failed_jobs_if_needed()
+        failed_jobs = self._get_failed_jobs()
         failed_steps = []
-        for job_data in self._failed_jobs:
+        for job_data in failed_jobs:
             if subjectname == job_data.groupname and \
                 stepname == self._jobid_to_step[subjectname][job_data.job_id]:
                 return True # if step failed
@@ -357,21 +343,23 @@ class  SomaWorkflowRunner(Runner):
                 steps_status[subjectname][stepname] = (step, job_status)
         return steps_status
 
-    def _update_failed_jobs_if_needed(self):
-        if self._failed_jobs is not None:
-            return
+    def _get_failed_jobs(self):
+        if self._cached_failed_jobs is not None:
+            return self._cached_failed_jobs
         exit_info_by_job = self._sw_exit_info_by_job()
         dep_graph = self._sw_dep_graph(exit_info_by_job)
-        self._failed_jobs = self._sw_really_failed_jobs_from_dep_graph(dep_graph)
+        failed_jobs = self._sw_really_failed_jobs_from_dep_graph(dep_graph)
+        self._cached_failed_jobs = failed_jobs
+        return failed_jobs
 
     def stop(self):
         if not self.is_running():
             raise RuntimeError("Runner is not running.")
         self._workflow_controller.stop_workflow(self._workflow_id)
-        self._update_failed_jobs_if_needed()
+        failed_jobs = self._get_failed_jobs()
         workflow = self._workflow_controller.workflow(self._workflow_id)
         failed_jobs_by_subject = {}
-        for job_data in self._failed_jobs:
+        for job_data in failed_jobs:
             subjectname = job_data.groupname
             stepname = self._jobid_to_step[subjectname][job_data.job_id]
             failed_jobs_by_subject.setdefault(subjectname, []).append(stepname)
