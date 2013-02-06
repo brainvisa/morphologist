@@ -141,14 +141,14 @@ class  SomaWorkflowRunner(Runner):
     def __init__(self, study):
         super(SomaWorkflowRunner, self).__init__(study)
         self._workflow_controller = WorkflowController()
-        self._reset_internal_parameters()
+        self._init_internal_parameters()
         self._delete_old_workflows()
         cpu_count = Helper.cpu_count()
         if cpu_count > 1:
             cpu_count -= 1
         self._workflow_controller.scheduler_config.set_proc_nb(cpu_count)
 
-    def _reset_internal_parameters(self):
+    def _init_internal_parameters(self):
         self._workflow_id = None
         self._jobid_to_step = {} # subject_name -> (job_id -> step)
         self._cached_jobs_status = None
@@ -160,7 +160,7 @@ class  SomaWorkflowRunner(Runner):
                 self._workflow_controller.delete_workflow(workflow_id)
           
     def run(self):
-        self._reset_internal_parameters()
+        self._init_internal_parameters()
         self._check_input_files()
         workflow = self._create_workflow()
         if self._workflow_id is not None:
