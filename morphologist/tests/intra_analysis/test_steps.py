@@ -35,9 +35,6 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         self.test_outputs = BrainvisaIntraAnalysisParameterTemplate.get_outputs(self.group, 
                                                                   self.subject, self.output_directory)
         
-        self.ref_white_ridges_bc = self.ref_outputs[IntraAnalysis.WHITE_RIDGES].replace(".nii", "_bc.nii")
-        self.test_white_ridges_bc = self.test_outputs[IntraAnalysis.WHITE_RIDGES].replace(".nii", "_bc.nii")
-        
         BrainvisaIntraAnalysisParameterTemplate.create_outputdirs(self.group, self.subject, 
                                                                   self.output_directory)
         self.ref_mri = BrainvisaIntraAnalysisParameterTemplate.get_mri_path(self.group, 
@@ -89,9 +86,10 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         nodes.child('CorticalFoldsGraph').setSelected(0)
         defaultContext().runProcess(pipeline, t1mri)
         # Save the white ridge in another file because it will be re-written
-        white_ridges = self.ref_outputs[IntraAnalysis.WHITE_RIDGES]
-        shutil.copy(white_ridges, self.ref_white_ridges_bc) 
-        shutil.copy(white_ridges+".minf", self.ref_white_ridges_bc+".minf")
+        bv_white_ridges = self.ref_outputs[IntraAnalysis.REFINED_WHITE_RIDGES]
+        raw_white_ridges = self.ref_outputs[IntraAnalysis.WHITE_RIDGES]
+        shutil.copy(bv_white_ridges, raw_white_ridges) 
+        shutil.copy(bv_white_ridges + ".minf", raw_white_ridges + ".minf") 
         
         print "* Then until Grey/White surface"
         nodes.child('PrepareSubject').setSelected(0)
@@ -136,21 +134,21 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         bias_correction.inputs.fix_random_seed = True
         
         bias_correction.outputs.hfiltered = self.test_outputs[IntraAnalysis.HFILTERED] 
-        bias_correction.outputs.white_ridges = self.test_white_ridges_bc
+        bias_correction.outputs.white_ridges = self.test_outputs[IntraAnalysis.WHITE_RIDGES]
         bias_correction.outputs.edges = self.test_outputs[IntraAnalysis.EDGES] 
         bias_correction.outputs.variance = self.test_outputs[IntraAnalysis.VARIANCE]  
         bias_correction.outputs.corrected_mri = self.test_outputs[IntraAnalysis.CORRECTED_MRI]  
         self.assert_(bias_correction.run() == 0)
-        self._assert_same_results([IntraAnalysis.HFILTERED, IntraAnalysis.EDGES, 
-                              IntraAnalysis.VARIANCE, IntraAnalysis.CORRECTED_MRI],
-                                  self._same_files)
-        self.assert_(self._same_files(self.ref_white_ridges_bc, self.test_white_ridges_bc))
+        self._assert_same_results([IntraAnalysis.HFILTERED,
+                IntraAnalysis.EDGES, IntraAnalysis.VARIANCE,
+                IntraAnalysis.CORRECTED_MRI, IntraAnalysis.WHITE_RIDGES],
+                self._same_files)
         
     def test_histogram_analysis(self):
         histo_analysis = HistogramAnalysis()
         histo_analysis.inputs.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
         histo_analysis.inputs.hfiltered = self.ref_outputs[IntraAnalysis.HFILTERED]
-        histo_analysis.inputs.white_ridges = self.ref_white_ridges_bc
+        histo_analysis.inputs.white_ridges = self.ref_outputs[IntraAnalysis.WHITE_RIDGES]
         histo_analysis.inputs.fix_random_seed = True
         histo_analysis.outputs.histo_analysis = self.test_outputs[IntraAnalysis.HISTO_ANALYSIS]
         histo_analysis.outputs.histogram = self.test_outputs[IntraAnalysis.HISTOGRAM]
@@ -170,11 +168,6 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         brain_segmentation.inputs.white_ridges = self.ref_outputs[IntraAnalysis.WHITE_RIDGES]
         brain_segmentation.outputs.brain_mask = self.test_outputs[IntraAnalysis.BRAIN_MASK]
         brain_segmentation.outputs.white_ridges = self.test_outputs[IntraAnalysis.REFINED_WHITE_RIDGES]
-        # copy white ridge file into the output directory because it is an input/output
-        shutil.copy(self.ref_white_ridges_bc,
-                    brain_segmentation.outputs.white_ridges)
-        shutil.copy(self.ref_white_ridges_bc + ".minf", 
-                    brain_segmentation.outputs.white_ridges + ".minf")
         self.assert_(brain_segmentation.run() == 0)
         self._assert_same_results([IntraAnalysis.BRAIN_MASK, 
                                    IntraAnalysis.REFINED_WHITE_RIDGES],
@@ -186,7 +179,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         split_brain.inputs.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
         split_brain.inputs.commissure_coordinates = self.ref_outputs[IntraAnalysis.COMMISSURE_COORDINATES]
         split_brain.inputs.brain_mask = self.ref_outputs[IntraAnalysis.BRAIN_MASK]
-        split_brain.inputs.white_ridges = self.ref_outputs[IntraAnalysis.WHITE_RIDGES]
+        split_brain.inputs.white_ridges = self.ref_outputs[IntraAnalysis.REFINED_WHITE_RIDGES]
         split_brain.inputs.histo_analysis = self.ref_outputs[IntraAnalysis.HISTO_ANALYSIS]
         split_brain.inputs.fix_random_seed = True
         split_brain.outputs.split_mask = self.test_outputs[IntraAnalysis.SPLIT_MASK]

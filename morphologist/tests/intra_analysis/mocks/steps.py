@@ -42,53 +42,50 @@ class MetaAutomockStep(type):
 class MockSpatialNormalization(SpatialNormalization):
     __metaclass__ = MetaAutomockStep
     
-    def __init__(self, mock_out_files):
+    def __init__(self, ref_commissure_coordinates,
+                       ref_talairach_transformation):
         super(MockSpatialNormalization, self).__init__()
-        self.out_files = mock_out_files
-        self.inputs.commissure_coordinates = self.out_files[IntraAnalysis.COMMISSURE_COORDINATES]
-        self.inputs.talairach_transformation = self.out_files[IntraAnalysis.TALAIRACH_TRANSFORMATION]
+        self.inputs.commissure_coordinates = ref_commissure_coordinates
+        self.inputs.talairach_transformation = ref_talairach_transformation
 
 
 class MockBiasCorrection(BiasCorrection):
     __metaclass__ = MetaAutomockStep
 
-    def __init__(self, mock_out_files):
+    def __init__(self, ref_hfiltered, ref_white_ridges,
+            ref_edges, ref_corrected_mri, ref_variance):
         super(MockBiasCorrection, self).__init__()
-        self.out_files = mock_out_files
-        self.inputs.hfiltered = self.out_files[IntraAnalysis.HFILTERED]
-        self.inputs.white_ridges = self.out_files[IntraAnalysis.WHITE_RIDGES]
-        self.inputs.edges = self.out_files[IntraAnalysis.EDGES]
-        self.inputs.corrected_mri = self.out_files[IntraAnalysis.CORRECTED_MRI]
-        self.inputs.variance = self.out_files[IntraAnalysis.VARIANCE]
- 
+        self.inputs.hfiltered = ref_hfiltered
+        self.inputs.white_ridges = ref_white_ridges
+        self.inputs.edges = ref_edges
+        self.inputs.corrected_mri = ref_corrected_mri
+        self.inputs.variance = ref_variance
+
 
 class MockHistogramAnalysis(HistogramAnalysis):
     __metaclass__ = MetaAutomockStep
     
-    def __init__(self, mock_out_files):
+    def __init__(self, ref_histo_analysis, ref_histogram):
         super(MockHistogramAnalysis, self).__init__()
-        self.out_files = mock_out_files
-        self.inputs.histo_analysis = self.out_files[IntraAnalysis.HISTO_ANALYSIS]
-        self.inputs.histogram = self.out_files[IntraAnalysis.HISTOGRAM]
+        self.inputs.histo_analysis = ref_histo_analysis
+        self.inputs.histogram = ref_histogram
 
 
 class MockBrainSegmentation(BrainSegmentation):
     __metaclass__ = MetaAutomockStep
     
-    def __init__(self, mock_out_files):
+    def __init__(self, ref_brain_mask, ref_refined_white_ridges):
         super(MockBrainSegmentation, self).__init__()
-        self.out_files = mock_out_files
-        self.inputs.brain_mask = self.out_files[IntraAnalysis.BRAIN_MASK]
-        self.inputs.white_ridges = self.out_files[IntraAnalysis.WHITE_RIDGES]
+        self.inputs.brain_mask = ref_brain_mask
+        self.inputs.white_ridges = ref_refined_white_ridges
  
 
 class MockSplitBrain(SplitBrain):
     __metaclass__ = MetaAutomockStep
     
-    def __init__(self, mock_out_files):
+    def __init__(self, ref_split_mask):
         super(MockSplitBrain, self).__init__()
-        self.out_files = mock_out_files
-        self.inputs.split_mask = self.out_files[IntraAnalysis.SPLIT_MASK]
+        self.inputs.split_mask = ref_split_mask
  
 
 class MockGreyWhite(GreyWhite):
