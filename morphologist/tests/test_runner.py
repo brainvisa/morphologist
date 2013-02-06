@@ -97,9 +97,9 @@ class TestRunner(unittest.TestCase):
         for subjectname, step_status_for_subject in step_status.items():
             for stepname, (step, status) in step_status_for_subject.items():
                 if status == Runner.SUCCESS:
-                    self.assertTrue(len(step.outputs.list_missing_files()) == 0)
+                    self.assertTrue(step.outputs.all_file_exists())
                 elif status in [Runner.FAILED, Runner.NOT_STARTED]:
-                    self.assertTrue(len(step.outputs.list_existing_files()) == 0)
+                    self.assertTrue(not step.outputs.some_file_exists())
                 else:
                     self.assertTrue(0)
         

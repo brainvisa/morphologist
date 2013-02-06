@@ -171,13 +171,13 @@ class Study(object):
 
     def has_some_results(self):
         for subjectname, analysis in self.analyses.iteritems():
-            if analysis.list_existing_output_files():
+            if analysis.outputs.some_file_exists():
                 return True
         return False
 
     def has_all_results(self):
         for subjectname, analysis in self.analyses.iteritems():
-            if analysis.list_missing_output_files():
+            if not analysis.outputs.all_file_exists():
                 return False
         return True
 

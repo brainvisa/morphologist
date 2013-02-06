@@ -59,12 +59,6 @@ class Analysis(object):
             message = separator.join(missing_parameters)
             raise MissingParameterValueError(message)
 
-    def list_existing_output_files(self):
-        return self.outputs.list_existing_files()
-
-    def list_missing_output_files(self):
-        return self.outputs.list_missing_files()
-
     def clear_output_files(self):
         self.outputs.clear()
 
@@ -139,21 +133,20 @@ class Parameters(object):
                 missing_values.append(name)
         return missing_values
 
-    def list_missing_files(self):
-        missing_files = []
-        for name in self._file_param_names:
-            file_name = getattr(self, name)
-            if not os.path.isfile(file_name) and not os.path.isdir(file_name):
-                missing_files.append(file_name)
-        return missing_files
-
-    def list_existing_files(self):
+    def some_file_exists(self):
         existing_files = [] 
         for name in self._file_param_names:
             file_name = getattr(self, name)
             if os.path.isfile(file_name) or os.path.isdir(file_name):
-                existing_files.append(file_name)
-        return existing_files
+                return True
+        return False
+
+    def all_file_exists(self):
+        for name in self._file_param_names:
+            file_name = getattr(self, name)
+            if not os.path.isfile(file_name) and not os.path.isdir(file_name):
+                return False
+        return True
 
     def list_parameters_with_existing_files(self):
         existing_files = {}

@@ -34,9 +34,9 @@ class TestAnalysis(unittest.TestCase):
         self.test_case.set_analysis_parameters()
         self.test_case.create_some_output_files()
         
-        self.assertNotEqual(len(self.analysis.list_existing_output_files()), 0)
+        self.assertTrue(self.analysis.outputs.some_file_exists())
         self.analysis.clear_output_files()
-        self.assertEqual(len(self.analysis.list_existing_output_files()), 0)
+        self.assertTrue(not self.analysis.outputs.some_file_exists())
         
     def tearDown(self):
         pass

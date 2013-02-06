@@ -131,7 +131,7 @@ class Runner(object):
     def _check_input_files(self):
         subjects_with_missing_inputs = []
         for subjectname, analysis in self._study.analyses.iteritems():
-            if len(analysis.inputs.list_missing_files()) != 0:
+            if not analysis.inputs.all_file_exists():
                 subjects_with_missing_inputs.append(subjectname)
         if len(subjects_with_missing_inputs) != 0:
             raise MissingInputFileError("Subjects: %s" % ", ".join(subjects_with_missing_inputs))
@@ -256,7 +256,7 @@ class  SomaWorkflowRunner(Runner):
             analysis.propagate_parameters() # FIXME : needed ?
             for step in analysis.steps():
                 # skip finished steps
-                if len(step.outputs.list_missing_files()) == 0:
+                if step.outputs.all_file_exists():
                     continue
                 command = step.get_command()
                 job = Job(command=command, name=step.name)
