@@ -40,8 +40,6 @@ class MockAnalysis(Analysis):
 
     def __init__(self):
         super(MockAnalysis, self).__init__() 
-        self._init_steps()
-        self._init_named_steps()
         self.inputs = InputParameters(file_param_names=['input_1',
                                                         'input_2',
                                                         'input_5'],

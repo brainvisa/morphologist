@@ -11,9 +11,6 @@ class MockIntraAnalysis(IntraAnalysis):
 
     def __init__(self):
         super(MockIntraAnalysis, self).__init__()
-        self._init_steps()   
-        self._init_named_steps()
-
 
     def _init_steps(self):
         mock_out_files = BrainvisaIntraAnalysisParameterTemplate.get_outputs("test", "hyperion",

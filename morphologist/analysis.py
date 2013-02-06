@@ -8,20 +8,24 @@ class Analysis(object):
     param_template_map = {}
 
     def __init__(self):
-        self._steps = []
+        self._init_steps()
+        self._init_named_steps()
         self.inputs = InputParameters(file_param_names=[])
         self.outputs = OutputParameters(file_param_names=[])
+
+    def _init_steps(self):
+        raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redifined.") 
+
+    def _init_named_steps(self):
+        self._named_steps = {}
+        for step in self._steps:
+            self._named_steps[step.name] = step
 
     def steps(self):
         return self._steps
 
     def step_from_name(self, name):
         return self._named_steps[name]
-
-    def _init_named_steps(self):
-        self._named_steps = {}
-        for step in self._steps:
-            self._named_steps[step.name] = step
 
     @classmethod
     def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
