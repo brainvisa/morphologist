@@ -5,7 +5,8 @@ import optparse
 
 import soma.workflow as sw
 
-from morphologist.runner import SomaWorkflowRunner, Graph
+from morphologist.runner import SomaWorkflowRunner
+from morphologist.utils import Graph
 
 
 F = False # job failed
