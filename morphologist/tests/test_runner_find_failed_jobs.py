@@ -91,7 +91,7 @@ class TestGraph(unittest.TestCase):
               ·-----> (8, ·) ---------------·
         '''
         dependencies = [[1], [2, 5, 8], [3], [4], [],
-			[3], [4, 7], [], [4, 6, 7]]
+                        [3], [4, 7], [], [4, 6, 7]]
         return Graph(dependencies, data)
 
     def test_leaf_graph_test1(self):
@@ -309,7 +309,7 @@ class TestGraph(unittest.TestCase):
               ·-----> (8, F) ---------------·
         '''
         data = [None, D(1, F), D(2, F), D(3, F), D(4, F),
-		D(5, F), D(6, F), D(7, F), D(8, F)]
+                D(5, F), D(6, F), D(7, F), D(8, F)]
         graph = self.create_complex_graph(data)
         result = [4, 7]
         self._test_graph(graph, result)
@@ -325,7 +325,7 @@ class TestGraph(unittest.TestCase):
               ·-----> (8, F) ---------------·
         '''
         data = [None, D(1, F), D(2, F), D(3, F), D(4, OK),
-		D(5, F), D(6, F), D(7, F), D(8, F)]
+                D(5, F), D(6, F), D(7, F), D(8, F)]
         graph = self.create_complex_graph(data)
         result = [3, 7]
         self._test_graph(graph, result)
@@ -341,7 +341,7 @@ class TestGraph(unittest.TestCase):
               ·-----> (8, F) ---------------·
         '''
         data = [None, D(1, F), D(2, F), D(3, F), D(4, OK),
-		D(5, F), D(6, F), D(7, OK), D(8, F)]
+                D(5, F), D(6, F), D(7, OK), D(8, F)]
         graph = self.create_complex_graph(data)
         result = [3, 6]
         self._test_graph(graph, result)
@@ -357,7 +357,7 @@ class TestGraph(unittest.TestCase):
               ·-----> (8, F) ----------------·
         '''
         data = [None, D(1, F), D(2, F), D(3, OK), D(4, OK),
-		D(5, F), D(6, F), D(7, OK), D(8, F)]
+                D(5, F), D(6, F), D(7, OK), D(8, F)]
         graph = self.create_complex_graph(data)
         result = [2, 5, 6]
         self._test_graph(graph, result)
@@ -373,7 +373,7 @@ class TestGraph(unittest.TestCase):
               ·-----> (8, F) ----------------·
         '''
         data = [None, D(1, F), D(2, F), D(3, OK), D(4, OK),
-		D(5, F), D(6, OK), D(7, OK), D(8, F)]
+                D(5, F), D(6, OK), D(7, OK), D(8, F)]
         graph = self.create_complex_graph(data)
         result = [2, 5, 8]
         self._test_graph(graph, result)
