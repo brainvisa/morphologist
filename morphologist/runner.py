@@ -150,10 +150,9 @@ class  SomaWorkflowRunner(Runner):
     def _reset_internal_parameters(self):
         self._workflow_id = None
         self._subjects_jobs = None  #subject_name -> list of job_ids
-        self._jobs_status = None # job_id -> status
-        self._last_status_update = None
         self._jobid_to_step = {} # subject_name -> (job_id -> step)
         self._failed_jobs = None
+        self._cached_jobs_status = None
         
     def _delete_old_workflows(self):        
         for (workflow_id, (name, _)) in self._workflow_controller.workflows().iteritems():
@@ -237,34 +236,35 @@ class  SomaWorkflowRunner(Runner):
     def _define_workflow_name(self): 
         return self._study.name + " " + self.WORKFLOW_NAME_SUFFIX
             
-    def is_running(self, subject_name=None):
+    def is_running(self, subject_name=None, update_status=True):
         running = False
         if self._workflow_id is not None:
             if subject_name:
-                running = self._subject_is_running(subject_name)
+                running = self._subject_is_running(subject_name, update_status)
             else:
                 status = self._workflow_controller.workflow_status(self._workflow_id)
                 running = (status == sw.constants.WORKFLOW_IN_PROGRESS)
         return running
     
-    def _subject_is_running(self, subject_name):
-        if self._jobs_status == None or \
-            datetime.now() - self._last_status_update > timedelta(seconds=2):
-            self._update_jobs_status()
-            self._last_status_update = datetime.now()
+    def _subject_is_running(self, subject_name, update_status=True):
+        jobs_status = self._get_jobs_status(update_status)
         running = False
         for job_id in self._subjects_jobs[subject_name]:
-            if self._jobs_status[job_id] == Runner.RUNNING:
+            if jobs_status[job_id] == Runner.RUNNING:
                 running = True
                 break
         return running
             
-    def _update_jobs_status(self):
-        self._jobs_status = {}
+    def _get_jobs_status(self, update_status=True):
+        if not update_status:
+            return self._cached_jobs_status
+        jobs_status = {} # job_id -> status
         job_info_seq, _, _, _ = self._workflow_controller.workflow_elements_status(self._workflow_id)
         for job_id, sw_status, _, _, _ in job_info_seq:
             status = self._sw_status_to_runner_status(sw_status)
-            self._jobs_status[job_id] = status
+            jobs_status[job_id] = status
+        self._cached_jobs_status = jobs_status
+        return jobs_status
 
     def _sw_status_to_runner_status(self, sw_status):
         if sw_status in [sw.constants.FAILED,
@@ -342,8 +342,7 @@ class  SomaWorkflowRunner(Runner):
 
     def steps_status(self):
         steps_status = {}
-        # FIXME : not optimal, muste be done only if needed
-        self._update_jobs_status()
+        jobs_status = self._get_jobs_status()
         engine_workflow = self._workflow_controller.workflow(self._workflow_id)
         for group in engine_workflow.groups:
             subjectname = group.name
@@ -353,8 +352,8 @@ class  SomaWorkflowRunner(Runner):
                 stepname = self._jobid_to_step[subjectname][job_id]
                 analysis = self._study.analyses[subjectname]
                 step = analysis.step_from_name(stepname)
-                jobs_status = self._jobs_status[job_id]
-                steps_status[subjectname][stepname] = (step, jobs_status)
+                job_status = jobs_status[job_id]
+                steps_status[subjectname][stepname] = (step, job_status)
         return steps_status
 
     def _update_failed_jobs_if_needed(self):
@@ -368,15 +367,16 @@ class  SomaWorkflowRunner(Runner):
         if not self.is_running():
             raise RuntimeError("Runner is not running.")
         self._workflow_controller.stop_workflow(self._workflow_id)
-        self._update_jobs_status()
         self._update_failed_jobs_if_needed()
         workflow = self._workflow_controller.workflow(self._workflow_id)
+        failed_jobs_by_subject = {}
         for job_data in self._failed_jobs:
             subjectname = job_data.groupname
             stepname = self._jobid_to_step[subjectname][job_data.job_id]
+            failed_jobs_by_subject.setdefault(subjectname, []).append(stepname)
+        for subjectname, stepnames in failed_jobs_by_subject.items():
             analysis = self._study.analyses[subjectname]
-            step = analysis.step_from_name(stepname)
-            step.outputs.clear()
+            analysis.clear_steps(stepnames)
 
     def _sw_exit_info_by_job(self):
         exit_info_by_job = {}

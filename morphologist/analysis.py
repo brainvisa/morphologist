@@ -27,6 +27,11 @@ class Analysis(object):
     def step_from_name(self, name):
         return self._named_steps[name]
 
+    def clear_steps(self, stepnames):
+        for stepname in stepnames:
+            step = self.step_from_name(stepname)
+            step.outputs.clear()
+
     @classmethod
     def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
         return filename

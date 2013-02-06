@@ -59,7 +59,7 @@ class LazyStudyModel(QtCore.QObject):
     def _update_status_for_one_subject(self, subjectname):
         analysis = self.study.analyses[subjectname]
         has_changed = False
-        if self.runner.is_running(subjectname):
+        if self.runner.is_running(subjectname, update_status=False):
             has_changed = self._update_one_status_for_one_subject_if_needed(\
                                                 subjectname, "is running")
         elif self.runner.last_run_failed():
