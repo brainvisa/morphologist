@@ -109,15 +109,15 @@ class Graph(object):
                 self.groupname = groupname
                 self.job_id = job_id
 
-        def _find_alone_starting_nodes(dependencies):
+        def _find_orphans_nodes(dependencies):
             marks = [False] * len(dependencies)
             marks[0] = True # special case for root nodes
             for deps in dependencies:
                 for dep in deps:
                     marks[dep] = True
-            starting_nodes = [i for i, mark in enumerate(marks)
+            orphans_nodes = [i for i, mark in enumerate(marks)
                                             if mark is False]
-            return starting_nodes
+            return orphans_nodes
         size = len(workflow.jobs) + 1 # add root node
         data = [None] * size
         dependencies = [[] for i in range(size)]
@@ -132,8 +132,8 @@ class Graph(object):
         for src, dst in workflow.dependencies:
             id_src, id_dst = id(src), id(dst)
             dependencies[job_map[id_dst]].append(job_map[id_src])
-        # all starting nodes are linked to a spurious root node
-        dependencies[0] = _find_alone_starting_nodes(dependencies)
+        # all orphans nodes are linked to a spurious root node
+        dependencies[0] = _find_orphans_nodes(dependencies)
         return Graph(dependencies, data)
 
     def __len__(self):
