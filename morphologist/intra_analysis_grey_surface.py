@@ -48,10 +48,17 @@ class GreySurface(object):
 
         Surface.run(hemi.name, grey_surface)
 
-        skeleton.close()
-        roots.close()
-        braing.close() 
-        hemi.close()
+        Surface._close_and_remove(skeleton)
+        Surface._close_and_remove(roots)
+        Surface._close_and_remove(braing) 
+        Surface._close_and_remove(hemi)
+
+
+    @staticmethod
+    def _close_and_remove(tmpfile):
+        tmpfile.close()
+        if os.path.isfile(tmpfile.name):
+            os.remove(tmpfile.name)
 
 
     @staticmethod

@@ -23,11 +23,19 @@ class Surface(object):
         command_list = ['AimsMeshBrain', '-i', "'%s'" % tmp_file.name,
                         '-o', "'%s'" % surface, '--internalinterface']
         Surface._run_command_list(command_list)
-        tmp_file.close()
+        Surface._close_and_remove(tmp_file)
 
         command_list = ['meshCleaner', '-i', "'%s'" % surface,
                        '-o', "'%s'" % surface, '-maxCurv', '0.5']
         Surface._run_command_list(command_list)
+
+
+    @staticmethod
+    def _close_and_remove(tmpfile):
+        tmpfile.close()
+        if os.path.isfile(tmpfile.name):
+            os.remove(tmpfile.name)
+
 
     @staticmethod
     def _run_command_list(command_list):

@@ -58,9 +58,9 @@ class Sulci(object):
                    '--apc', commissure_coordinates]
         Sulci._run_command(command)
 
-        braing.close()
-        skeleton.close()
-        roots.close()
+        Sulci._close_and_remove(braing)
+        Sulci._close_and_remove(skeleton)
+        Sulci._close_and_remove(roots)
         shutil.rmtree(graphd)
 
         ext = os.path.splitext(grey)[1]
@@ -74,8 +74,16 @@ class Sulci(object):
                    '-l', grey_surface, '-o', sulci, '-v', sulci_voronoi.name ]
         Sulci._run_command(command)
 
-        sulci_voronoi.close()
- 
+        Sulci._close_and_remove(sulci_voronoi)
+
+
+  
+    @staticmethod 
+    def _close_and_remove(tmpfile):
+        tmpfile.close()
+        if os.path.isfile(tmpfile.name):
+            os.remove(tmpfile.name)
+
 
     @staticmethod
     def _run_command(command):

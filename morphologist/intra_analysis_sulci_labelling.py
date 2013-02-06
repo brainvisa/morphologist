@@ -93,13 +93,20 @@ class SulciLabelling(object):
                    '--motion', global_to_local_transformation]
         SulciLabelling._run_command(command)
  
-        posterior_probabilities_local.close()
-        tmpfile_local.close()
-        tmpfile_global.close()
-        tal_to_spam_transformation.close()
-        t1_to_global_transformation.close()
-        transformation_matrix.close()
+        SulciLabelling._close_and_remove(posterior_probabilities_local)
+        SulciLabelling._close_and_remove(tmpfile_local)
+        SulciLabelling._close_and_remove(tmpfile_global)
+        SulciLabelling._close_and_remove(tal_to_spam_transformation)
+        SulciLabelling._close_and_remove(t1_to_global_transformation)
+        SulciLabelling._close_and_remove(transformation_matrix)
         shutil.rmtree(global_to_local_transformation)
+ 
+
+    @staticmethod
+    def _close_and_remove(tmpfile):
+        tmpfile.close()
+        if os.path.isfile(tmpfile.name):
+            os.remove(tmpfile.name)
 
 
     @staticmethod
