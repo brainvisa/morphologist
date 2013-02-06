@@ -28,6 +28,7 @@ class Runner(object):
     SUCCESS = 'success'
     NOT_STARTED = 'not started'
     RUNNING = 'running'
+    UNKNOWN = 'unknown'
     
     def __init__(self, study):
         super(Runner, self).__init__()
@@ -260,33 +261,33 @@ class  SomaWorkflowRunner(Runner):
             return self._cached_jobs_status
         jobs_status = {} # job_id -> status
         job_info_seq, _, _, _ = self._workflow_controller.workflow_elements_status(self._workflow_id)
-        for job_id, sw_status, _, _, _ in job_info_seq:
-            status = self._sw_status_to_runner_status(sw_status)
+        for job_id, sw_status, _, exit_info, _ in job_info_seq:
+            exit_status, exit_value, _, _ = exit_info
+            status = self._sw_status_to_runner_status(sw_status, exit_value)
             jobs_status[job_id] = status
         self._cached_jobs_status = jobs_status
         return jobs_status
 
-    def _sw_status_to_runner_status(self, sw_status):
+    def _sw_status_to_runner_status(self, sw_status, exit_value):
         if sw_status in [sw.constants.FAILED,
                          sw.constants.DELETE_PENDING,
-                         sw.constants.KILL_PENDING]:
+                         sw.constants.KILL_PENDING] or \
+            (exit_value is not None and exit_value != 0):
             status = Runner.FAILED
         elif sw_status == sw.constants.DONE:
-            status = Runner.SUCCESS # FIXME : missing exit value = 0
+            status = Runner.SUCCESS
         elif sw_status == sw.constants.NOT_SUBMITTED:
             status = Runner.NOT_STARTED
-        elif not sw_status in [sw.constants.WARNING]:
+        elif sw_status in [sw.constants.RUNNING]:
             status = Runner.RUNNING
+        elif sw_status in [sw.constants.WARNING, sw.constants.UNDETERMINED]:
+            status = Runner.UNKNOWN
+        else: # QUEUED_ACTIVE, SYSTEM_ON_HOLD, USER_ON_HOLD,
+              # USER_SYSTEM_ON_HOLD, SYSTEM_SUSPENDED, USER_SUSPENDED,
+              # USER_SYSTEM_SUSPENDED, SUBMISSION_PENDING
+            status = Runner.UNKNOWN
         return status
             
-    def _job_is_running(self, status):
-        return not status in [sw.constants.NOT_SUBMITTED,
-                              sw.constants.DONE,
-                              sw.constants.FAILED,
-                              sw.constants.DELETE_PENDING,
-                              sw.constants.KILL_PENDING,
-                              sw.constants.WARNING]
-
     def wait(self):
         Helper.wait_workflow(self._workflow_id, self._workflow_controller)
 
