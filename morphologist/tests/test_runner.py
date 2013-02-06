@@ -29,8 +29,7 @@ class TestRunner(unittest.TestCase):
         self.study.clear_results()
         self.runner.run()
         
-        self.assert_(self.runner.is_running() or 
-                     (len(self.study.list_subjects_with_missing_results()) == 0))
+        self.assert_(self.runner.is_running() or self.study.has_all_results())
         
     def test_has_run(self):
         self.study.clear_results()
@@ -87,11 +86,11 @@ class TestRunner(unittest.TestCase):
         self.assertRaises(MissingInputFileError, self.runner.run)
 
     def assert_output_files_exist(self):
-        self.assertEqual(len(self.study.list_subjects_with_missing_results()), 0)
+        self.assertTrue(self.study.has_all_results())
        
     def assert_output_files_cleared_or_all_exists(self):
-        self.assert_(len(self.study.list_subjects_with_some_results()) == 0 or 
-                     len(self.study.list_subjects_with_missing_results()) == 0)
+        self.assertTrue((not self.study.has_some_results()) or
+                        self.study.has_all_results())
 
     def assert_output_files_exist_only_for_succeed_steps(self):
         step_status = self.runner.steps_status()

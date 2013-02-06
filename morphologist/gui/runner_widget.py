@@ -35,7 +35,7 @@ class RunnerView(QtGui.QWidget):
         if study.has_subjects():
             if not study.has_all_results():
                 self.ui.run_button.setEnabled(True)
-            if study.has_results():
+            if study.has_some_results():
                 self.ui.erase_button.setEnabled(True)
         else:
             self.ui.run_button.setEnabled(False)
@@ -58,7 +58,7 @@ class RunnerView(QtGui.QWidget):
         self._set_erase_button_if_needed()
 
     def _set_erase_button_if_needed(self):
-        enable_erase_button = self._runner_model.study.has_results()
+        enable_erase_button = self._runner_model.study.has_some_results()
         self.ui.erase_button.setEnabled(enable_erase_button)
 
     # this slot is automagically connected
