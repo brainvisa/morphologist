@@ -1,3 +1,4 @@
+import os
 import hashlib
 
 from .qt_backend import QtCore
@@ -52,6 +53,8 @@ class LazyAnalysisModel(QtCore.QObject):
     def _changed_parameters(self, existing_items, parameters_file_sha):
         changed_parameters = []
         for parameter_name, filename in existing_items.iteritems():
+            # TODO: directories are ignored !
+            if os.path.isdir(filename): continue
             last_sha = parameters_file_sha.get(parameter_name, None)
             new_sha = self._sha(filename)
             if new_sha != last_sha:
