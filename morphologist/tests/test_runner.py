@@ -56,26 +56,22 @@ class TestRunner(unittest.TestCase):
         self.assert_output_files_exist_only_for_succeed_steps()
  
     def test_clear_state_after_waiting_a_given_step_1(self):
-        self.study.clear_results()
-        self.runner.run()
-        analysis_name, stepname = self.test_case.step_to_wait_testcase_1()
-        self.runner.wait_step(analysis_name, stepname)
-        if self.runner.is_running(): self.runner.stop()
-        self.assert_output_files_exist_only_for_succeed_steps()
+        subjectname, stepname = self.test_case.step_to_wait_testcase_1()
+        self._test_clear_state_after_waiting_a_given_step(subjectname, stepname)
 
     def test_clear_state_after_waiting_a_given_step_2(self):
-        self.study.clear_results()
-        self.runner.run()
-        analysis_name, stepname = self.test_case.step_to_wait_testcase_2()
-        self.runner.wait_step(analysis_name, stepname)
-        if self.runner.is_running(): self.runner.stop()
-        self.assert_output_files_exist_only_for_succeed_steps()
+        subjectname, stepname = self.test_case.step_to_wait_testcase_2()
+        self._test_clear_state_after_waiting_a_given_step(subjectname, stepname)
 
     def test_clear_state_after_waiting_a_given_step_3(self):
+        subjectname, stepname = self.test_case.step_to_wait_testcase_3()
+        self._test_clear_state_after_waiting_a_given_step(subjectname, stepname)
+
+    def _test_clear_state_after_waiting_a_given_step(self,
+                                    subjectname, stepname):
         self.study.clear_results()
         self.runner.run()
-        analysis_name, stepname = self.test_case.step_to_wait_testcase_3()
-        self.runner.wait_step(analysis_name, stepname)
+        self.runner.wait_step(subjectname, stepname)
         if self.runner.is_running(): self.runner.stop()
         self.assert_output_files_exist_only_for_succeed_steps()
  
