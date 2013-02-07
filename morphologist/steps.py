@@ -21,6 +21,9 @@ class Step(object):
         print "run the command: \n" + to_execute + "\n"
         return os.system(to_execute)
 
+    def has_all_results(self):
+        return self.outputs.all_file_exists()
+
     def get_command(self):
         raise NotImplementedError("Step is an abstract class.")
 

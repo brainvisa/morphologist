@@ -21,9 +21,6 @@ class Analysis(object):
         for step in self._steps:
             self._named_steps[step.name] = step
 
-    def steps(self):
-        return self._steps
-
     def step_from_name(self, name):
         return self._named_steps[name]
 
@@ -31,6 +28,14 @@ class Analysis(object):
         for stepname in stepnames:
             step = self.step_from_name(stepname)
             step.outputs.clear()
+
+    def remaining_steps_to_run(self):
+        self.propagate_parameters()
+        for step in self._steps:
+            # skip finished steps
+            if step.has_all_results():
+                continue
+            yield step
 
     @classmethod
     def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):

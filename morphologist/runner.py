@@ -186,11 +186,7 @@ class  SomaWorkflowRunner(Runner):
             subject_jobs=[]
             previous_job=None
             
-            analysis.propagate_parameters() # FIXME : needed ?
-            for step in analysis.steps():
-                # skip finished steps
-                if step.outputs.all_file_exists():
-                    continue
+            for step in analysis.remaining_steps_to_run():
                 command = step.get_command()
                 job = Job(command=command, name=step.name)
                 subject_jobs.append(job)
