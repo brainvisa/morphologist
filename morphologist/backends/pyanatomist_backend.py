@@ -126,6 +126,7 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         brainvisa_share_path = os.path.join(shared_dirname, brainvisa_share)
         sulci_colormap_filename = os.path.join(brainvisa_share_path, "nomenclature", 
                                                "hierarchy", "sulcal_root_colors.hie")
+        cls.anatomist.execute("GraphParams", label_attribute="label")
         return cls.load_object(sulci_colormap_filename) 
         
         
