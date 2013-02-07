@@ -37,7 +37,7 @@ class TestRunner(unittest.TestCase):
         self.runner.wait()
         
         self.assert_(not self.runner.is_running())
-        self.assert_(not self.runner.last_run_failed())
+        self.assert_(not self.runner.has_failed())
         self.assert_output_files_exist()
         
     def test_stop(self):
@@ -71,7 +71,7 @@ class TestRunner(unittest.TestCase):
                                     subjectname, stepname):
         self.study.clear_results()
         self.runner.run()
-        self.runner.wait_step(subjectname, stepname)
+        self.runner.wait(subjectname, stepname)
         if self.runner.is_running(): self.runner.stop()
         self.assert_output_files_exist_only_for_succeed_steps()
  
