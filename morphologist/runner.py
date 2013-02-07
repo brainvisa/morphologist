@@ -183,8 +183,8 @@ class  SomaWorkflowRunner(Runner):
         groups = []
         
         for subjectname, analysis in self._study.analyses.iteritems():
-            subject_jobs=[]
-            previous_job=None
+            subject_jobs = []
+            previous_job = None
             
             for step in analysis.remaining_steps_to_run():
                 command = step.get_command()
