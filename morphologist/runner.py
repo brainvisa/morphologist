@@ -34,6 +34,9 @@ class Runner(object):
         super(Runner, self).__init__()
         self._study = study
 
+    def has_not_started(self):
+        raise NotImplementedError("Runner is an abstract class.")
+
     def run(self):
         raise NotImplementedError("Runner is an abstract class.")
     
@@ -154,6 +157,9 @@ class  SomaWorkflowRunner(Runner):
         for (workflow_id, (name, _)) in self._workflow_controller.workflows().iteritems():
             if name is not None and name.endswith(self.WORKFLOW_NAME_SUFFIX):
                 self._workflow_controller.delete_workflow(workflow_id)
+
+    def has_not_started(self):
+        return self._workflow_id is None
           
     def run(self):
         self._init_internal_parameters()
@@ -263,8 +269,8 @@ class  SomaWorkflowRunner(Runner):
         
     def has_failed(self, subjectname=None, stepname=None):
         has_failed = True
-        if self.is_running():
-            raise RuntimeError("Runner is still running.")
+        if self.has_not_started():
+            raise RuntimeError("Runner has not been started.")
         if subjectname is None and stepname is None:
             has_failed = len(self._get_failed_jobs()) != 0
         elif subjectname is not None:
@@ -285,8 +291,6 @@ class  SomaWorkflowRunner(Runner):
         return False
 
     def _step_has_failed(self, subjectname, stepname):
-        if self.is_running():
-            raise RuntimeError("Runner is still running.")
         failed_jobs = self._get_failed_jobs()
         failed_steps = []
         for job_data in failed_jobs:
@@ -338,7 +342,7 @@ class  SomaWorkflowRunner(Runner):
         return steps_status
 
     def _get_jobs_status(self, update_status=True):
-        if not update_status:
+        if not update_status and self._cached_jobs_status is not None:
             return self._cached_jobs_status
         jobs_status = {} # job_id -> status
         job_info_seq, _, _, _ = self._workflow_controller.workflow_elements_status(self._workflow_id)
