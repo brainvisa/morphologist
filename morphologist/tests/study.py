@@ -93,10 +93,10 @@ class MockStudyTestCase(AbstractStudyTestCase):
         pass
 
     def step_to_wait_testcase_1(self):
-        return self.subjectnames[0], "step1"
+        return self.subjectnames[0], "0_step1"
 
     def step_to_wait_testcase_2(self):
-        return self.subjectnames[0], "step2"
+        return self.subjectnames[0], "1_step2"
 
     def step_to_wait_testcase_3(self):
-        return self.subjectnames[0], "step3"
+        return self.subjectnames[0], "2_step3"

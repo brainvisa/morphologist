@@ -2,6 +2,8 @@ import copy
 import os
 import shutil
 
+from morphologist.utils import OrderedDict
+
 
 class Analysis(object):
     PARAMETER_TEMPLATES = []
@@ -17,9 +19,10 @@ class Analysis(object):
         raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redifined.") 
 
     def _init_named_steps(self):
-        self._named_steps = {}
-        for step in self._steps:
-            self._named_steps[step.name] = step
+        self._named_steps = OrderedDict()
+        for i, step in enumerate(self._steps):
+            step_id = "%d_%s" % (i, step.name)
+            self._named_steps[step_id] = step
 
     def step_from_name(self, name):
         return self._named_steps[name]
@@ -29,13 +32,14 @@ class Analysis(object):
             step = self.step_from_name(stepname)
             step.outputs.clear()
 
-    def remaining_steps_to_run(self):
+    def remaining_commands_to_run(self):
         self.propagate_parameters()
-        for step in self._steps:
+        for step_id, step in self._named_steps.items():
             # skip finished steps
             if step.has_all_results():
                 continue
-            yield step
+            command = step.get_command()
+            yield command, step_id
 
     @classmethod
     def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):

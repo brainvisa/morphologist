@@ -63,13 +63,13 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
                 os.rename(file_name + "hide_for_test", file_name) 
 
     def step_to_wait_testcase_1(self):
-        return self.subjectnames[0], 'normalization'
+        return self.subjectnames[0], '0_normalization'
 
     def step_to_wait_testcase_2(self):
-        return self.subjectnames[0], 'histogram_analysis'
+        return self.subjectnames[0], '2_histogram_analysis'
 
     def step_to_wait_testcase_3(self):
-        return self.subjectnames[0], 'sulci'
+        return self.subjectnames[0], '13_sulci'
 
 
 class MockIntraAnalysisStudyTestCase(IntraAnalysisStudyTestCase):

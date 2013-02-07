@@ -182,9 +182,9 @@ class  SomaWorkflowRunner(Runner):
             subject_jobs = []
             previous_job = None
             
-            for step in analysis.remaining_steps_to_run():
-                command = step.get_command()
-                job = Job(command=command, name=step.name)
+            for command, step_id in analysis.remaining_commands_to_run():
+                job = Job(command=command, name=step_id)
+                job.user_storage = step_id
                 subject_jobs.append(job)
                 if previous_job is not None:
                     dependencies.append((previous_job, job))
@@ -192,6 +192,7 @@ class  SomaWorkflowRunner(Runner):
             # skip finished analysis
             if len(subject_jobs) != 0:
                 group = Group(name=subjectname, elements=subject_jobs)
+                group.user_storage = subjectname
                 groups.append(group)
             jobs.extend(subject_jobs)
         
@@ -204,13 +205,13 @@ class  SomaWorkflowRunner(Runner):
         self._jobid_to_step = {}
         workflow = self._workflow_controller.workflow(self._workflow_id)
         for group in workflow.groups:
-            subjectname = group.name
+            subjectname = group.user_storage
             self._jobid_to_step[subjectname] = BidiMap('job_id', 'stepname')
             job_list = group.elements 
             for job in job_list:
                 job_id = workflow.job_mapping[job].job_id
-                stepname = job.name
-                self._jobid_to_step[subjectname][job_id] = stepname
+                step_id = job.user_storage
+                self._jobid_to_step[subjectname][job_id] = step_id
 
     def _define_workflow_name(self): 
         return self._study.name + " " + self.WORKFLOW_NAME_SUFFIX
@@ -325,7 +326,7 @@ class  SomaWorkflowRunner(Runner):
         jobs_status = self._get_jobs_status()
         engine_workflow = self._workflow_controller.workflow(self._workflow_id)
         for group in engine_workflow.groups:
-            subjectname = group.name
+            subjectname = group.user_storage
             steps_status[subjectname] = {}
             for job in group.elements:
                 job_id = engine_workflow.job_mapping[job].job_id

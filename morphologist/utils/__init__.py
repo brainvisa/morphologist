@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import collections
 
+from ordered_dict import OrderedDict
+
 
 class BidiMap(collections.MutableMapping):
     '''Bi-directional map'''
