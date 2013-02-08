@@ -36,11 +36,11 @@ class TestStudyWidget(TestGui):
         main_window.set_study(self.test_case.study)
         main_window.show()
         model = main_window.study_tablemodel
-        subjects = [model.data(model.index(i, 0)) \
+        subjectnames = [model.data(model.index(i, model.SUBJECTNAME_COL)) \
                         for i in range(model.rowCount())]
-        subjects = sorted(subjects)
+        
         main_window.close()
-        self.assertEqual(self.test_case.study.subjects, subjects)
+        self.assertEqual(self.test_case.subjectnames, subjectnames)
 
     @TestGui.start_qt_and_test
     def test_create_new_study(self):
