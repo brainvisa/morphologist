@@ -220,7 +220,7 @@ class StudyEditorDialog(QtGui.QDialog):
        
     @QtCore.Slot() 
     def on_subject_from_db_dialog_accepted(self):
-        self.add_subjects(self._subject_from_db_dialog.get_filenames(), 
+        self.add_subjects_from_filenames(self._subject_from_db_dialog.get_filenames(), 
                           self._subject_from_db_dialog.get_group())
 
     # this slot is automagically connected
@@ -251,7 +251,7 @@ class StudyEditorDialog(QtGui.QDialog):
 
     @QtCore.Slot("const QStringList &")
     def on_select_subjects_dialog_files_selected(self, filenames):
-        self.add_subjects(filenames)
+        self.add_subjects_from_filenames(filenames)
 
     def _check_study_consistency(self, outputdir,
                 subjects_data, backup_filename):
