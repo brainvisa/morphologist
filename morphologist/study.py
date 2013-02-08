@@ -103,7 +103,7 @@ class Study(object):
             analysis.inputs = inputs
             analysis.outputs = outputs
             # TODO => check if the parameters are compatibles with the analysis ?
-            study.analyses[subject] = analysis
+            study.analyses[subject_id] = analysis
         return study
 
     def save_to_backup_file(self):
@@ -123,8 +123,7 @@ class Study(object):
             serialized['subjects'].append(subject.serialize())
         serialized['inputs'] = {}
         serialized['outputs'] = {}
-        for subject, analysis in self.analyses.iteritems():
-            subject_id = subject.id()
+        for subject_id, analysis in self.analyses.iteritems():
             serialized['inputs'][subject_id] = analysis.inputs.serialize()
             serialized['outputs'][subject_id] = analysis.outputs.serialize()
         return serialized 
@@ -137,7 +136,7 @@ class Study(object):
         if subject in self.subjects:
             raise SubjectExistsError(subject)
         self.subjects.append(subject)
-        self.analyses[subject] = self._create_analysis()
+        self.analyses[subject.id()] = self._create_analysis()
         
     def add_subject_from_file(self, filename, subjectname=None, groupname=None):
         if subjectname is None:
@@ -157,7 +156,7 @@ class Study(object):
 
     def set_analysis_parameters(self, parameter_template):
         for subject in self.subjects:
-            self.analyses[subject].set_parameters(parameter_template, subject,
+            self.analyses[subject.id()].set_parameters(parameter_template, subject,
                                                   self.outputdir)
 
     def import_data(self, parameter_template):
@@ -172,7 +171,7 @@ class Study(object):
         if len(subjects_failed) > 0:
             for subject in subjects_failed:
                 self.subjects.remove(subject)
-                del self.analyses[subject]
+                del self.analyses[subject.id()]
             raise ImportationError("The importation failed for the following subjects:\n%s."
                                    % ", ".join([subject.id() for subject in subjects_failed]))
 

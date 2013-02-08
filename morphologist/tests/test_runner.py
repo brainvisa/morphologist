@@ -56,22 +56,22 @@ class TestRunner(unittest.TestCase):
         self.assert_output_files_exist_only_for_succeed_steps()
  
     def test_clear_state_after_waiting_a_given_step_1(self):
-        subjectname, stepname = self.test_case.step_to_wait_testcase_1()
-        self._test_clear_state_after_waiting_a_given_step(subjectname, stepname)
+        subject, stepname = self.test_case.step_to_wait_testcase_1()
+        self._test_clear_state_after_waiting_a_given_step(subject, stepname)
 
     def test_clear_state_after_waiting_a_given_step_2(self):
-        subjectname, stepname = self.test_case.step_to_wait_testcase_2()
-        self._test_clear_state_after_waiting_a_given_step(subjectname, stepname)
+        subject, stepname = self.test_case.step_to_wait_testcase_2()
+        self._test_clear_state_after_waiting_a_given_step(subject, stepname)
 
     def test_clear_state_after_waiting_a_given_step_3(self):
-        subjectname, stepname = self.test_case.step_to_wait_testcase_3()
-        self._test_clear_state_after_waiting_a_given_step(subjectname, stepname)
+        subject, stepname = self.test_case.step_to_wait_testcase_3()
+        self._test_clear_state_after_waiting_a_given_step(subject, stepname)
 
     def _test_clear_state_after_waiting_a_given_step(self,
-                                    subjectname, stepname):
+                                    subject, stepname):
         self.study.clear_results()
         self.runner.run()
-        self.runner.wait(subjectname, stepname)
+        self.runner.wait(subject, stepname)
         if self.runner.is_running(): self.runner.stop()
         self.assert_output_files_exist_only_for_succeed_steps()
  
@@ -90,11 +90,11 @@ class TestRunner(unittest.TestCase):
 
     def assert_output_files_exist_only_for_succeed_steps(self):
         step_status = self.runner.steps_status()
-        for subjectname, step_status_for_subject in step_status.items():
+        for subjectid, step_status_for_subject in step_status.items():
             for stepname, (step, status) in step_status_for_subject.items():
                 if status == Runner.SUCCESS:
                     self.assertTrue(step.outputs.all_file_exists())
-                elif status in [Runner.FAILED, Runner.NOT_STARTED]:
+                elif status in [Runner.FAILED]:
                     self.assertTrue(not step.outputs.some_file_exists())
                 else:
                     self.assertTrue(0)

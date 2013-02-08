@@ -138,7 +138,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
     @QtCore.Slot("const QModelIndex &", "const QModelIndex &")
     def on_selection_changed(self, current, previous):
         subject = self.study_tablemodel.subject_from_row_index(current.row())
-        analysis = self.study.analyses[subject]
+        analysis = self.study.analyses[subject.id()]
         self.analysis_model.set_analysis(analysis)
 
     def set_study(self, study):

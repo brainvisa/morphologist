@@ -17,7 +17,7 @@ class LazyStudyModel(QtCore.QObject):
         self._timer = QtCore.QTimer(self)
         self._timer.setInterval(self._update_interval * 1000)
         if study is not None and runner is not None:
-            self.set_study(study, runner)
+            self.set_study_and_runner(study, runner)
         self._timer.start()
 
     def set_study_and_runner(self, study, runner):
@@ -73,7 +73,7 @@ class LazyStudyModel(QtCore.QObject):
 
     def _update_output_files_status_for_one_subject_if_needed(self,
                                                         subject):
-        analysis = self.study.analyses[subject]
+        analysis = self.study.analyses[subject.id()]
         has_changed = False
         if not analysis.outputs.some_file_exists():
             has_changed = self._update_one_status_for_one_subject_if_needed(\
