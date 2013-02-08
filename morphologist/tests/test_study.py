@@ -14,18 +14,14 @@ class TestStudy(unittest.TestCase):
         self.test_case.set_parameters() 
         self.study = self.test_case.study
  
- 
     def test_subject_exists_error(self):
         existing_subject = self.study.subjects[0]
         
         self.assertRaises(SubjectExistsError, 
-                          self.test_case.study_cls().add_subject_from_file,
+                          self.test_case.study_cls().add_subject,
                           self.study,
-                          "/mypath/imgpath", 
-                          existing_subject.subjectname, 
-                          existing_subject.groupname) 
+                          existing_subject) 
    
-
     def test_save_load_study(self):
         studyfilepath = self.study.backup_filename
         studyfilepath2 = studyfilepath + "_2"
@@ -39,7 +35,6 @@ class TestStudy(unittest.TestCase):
         loaded_study.save_to_backup_file()
 
         self.assert_(filecmp.cmp(studyfilepath, studyfilepath2))
-
 
     def create_test_case(self):
         test_case = MockStudyTestCase()
