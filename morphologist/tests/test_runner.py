@@ -90,8 +90,8 @@ class TestRunner(unittest.TestCase):
 
     def assert_output_files_exist_only_for_succeed_steps(self):
         step_status = self.runner.steps_status()
-        for subjectid, step_status_for_subject in step_status.items():
-            for stepname, (step, status) in step_status_for_subject.items():
+        for step_status_for_subject in step_status.itervalues():
+            for (step, status) in step_status_for_subject.itervalues():
                 if status == Runner.SUCCESS:
                     self.assertTrue(step.outputs.all_file_exists())
                 elif status in [Runner.FAILED]:
