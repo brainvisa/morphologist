@@ -91,10 +91,10 @@ class Study(object):
             subject_id = subject.id()
             if subject_id not in serialized['inputs']:
                 raise StudySerializationError("Cannot find input params"
-                                         " for subject %s" %subject_id)
+                                         " for subject %s" % str(subject))
             if subject_id not in serialized['outputs']:
                 raise StudySerializationError("Cannot find output params" 
-                                         " for subject %s" %subject_id)
+                                         " for subject %s" % str(subject))
             serialized_inputs = serialized['inputs'][subject_id] 
             serialized_outputs = serialized['outputs'][subject_id]
             inputs = InputParameters.unserialize(serialized_inputs) 
@@ -173,7 +173,7 @@ class Study(object):
                 self.subjects.remove(subject)
                 del self.analyses[subject.id()]
             raise ImportationError("The importation failed for the following subjects:\n%s."
-                                   % ", ".join([subject.id() for subject in subjects_failed]))
+                                   % ", ".join([str(subject) for subject in subjects_failed]))
 
     def has_subjects(self):
         return len(self.subjects) != 0

@@ -109,7 +109,7 @@ class IntraAnalysis(Analysis):
         cls.create_outputdirs(parameter_template, subject, outputdir)
         if import_step.run() != 0:
             raise ImportationError("The importation failed for the subject %s."
-                                   % subject.id())
+                                   % str(subject))
         return import_step.outputs.output
 
     def propagate_parameters(self):

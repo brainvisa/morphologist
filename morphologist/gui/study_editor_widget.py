@@ -300,7 +300,7 @@ class StudyEditorDialog(QtGui.QDialog):
             else:
                 processed.append(subject)
         if multiples: 
-            multiple_str = ", ".join([subject.id() for subject in multiples])
+            multiple_str = ", ".join([str(subject) for subject in multiples])
             QtGui.QMessageBox.critical(self, "Study consistency error",
                                        "Some subjects have the same "
                                        "identifier: \n %s" %(multiple_str))
