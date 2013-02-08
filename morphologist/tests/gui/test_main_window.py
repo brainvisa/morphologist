@@ -50,7 +50,6 @@ class TestStudyWidget(TestGui):
         QtTest.QTest.keyClicks(main_window, "n", QtCore.Qt.ControlModifier, 10 )
                                     
         dialog = main_window.findChild(QtGui.QDialog, 'StudyEditorDialog')
-        print "dialog : ", dialog
         TestStudyGui.action_define_new_study_content(dialog, 
                                                      self.test_case.studyname, 
                                                      self.test_case.outputdir,
