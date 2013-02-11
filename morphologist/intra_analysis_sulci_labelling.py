@@ -3,6 +3,8 @@ import os
 import tempfile
 import shutil
 
+# XXX Must import this module so the config file of brainvisa is read and configuration is correct
+import brainvisa.axon
 from brainvisa.configuration import neuroConfig
 
 RIGHT = 'right'
@@ -20,7 +22,10 @@ class SulciLabelling(object):
             fix_random_seed=True):
 
         brainvisa_share_directory = neuroConfig.dataPath[0].directory
-        model_2008_dir_name = os.path.join(brainvisa_share_directory, 'models', 'models_2008') 
+        brainvisa_models_directory = SulciLabelling.find_models_directory()
+        if brainvisa_models_directory is None:
+            raise SulciLabellingError("Cannot find the models needed for sulci labelling.")
+        model_2008_dir_name = os.path.join('models', 'models_2008') 
         labels_translation_map = os.path.join(brainvisa_share_directory, 'nomenclature',
                                               'translation', 'sulci_model_2008.trl') 
 
@@ -35,20 +40,27 @@ class SulciLabelling(object):
         else:
             raise SulciLabellingError("Side must be %s or %s." %(LEFT, RIGHT))
             
-        labels_priors = os.path.join(model_2008_dir_name, 'descriptive_models', 'labels_priors', 
+        labels_priors = os.path.join(brainvisa_share_directory, model_2008_dir_name, 
+                                     'descriptive_models', 'labels_priors', 
                                      labels_priors_dir_name, 'frequency_segments_priors.dat')
-        translation_priors = os.path.join(model_2008_dir_name, 'descriptive_models', 'segments', 
-                                    locally_from_global_spam, 'gaussian_translation_trm_priors.dat')
-        direction_priors = os.path.join(model_2008_dir_name, 'descriptive_models', 'segments', 
-                                    locally_from_global_spam, 'bingham_direction_trm_priors.dat')
-        angle_priors = os.path.join(model_2008_dir_name, 'descriptive_models', 'segments', 
+        translation_priors = os.path.join(brainvisa_models_directory, model_2008_dir_name, 
+                                          'descriptive_models', 'segments', 
+                                          locally_from_global_spam, 'gaussian_translation_trm_priors.dat')
+        direction_priors = os.path.join(brainvisa_models_directory, model_2008_dir_name, 
+                                        'descriptive_models', 'segments', 
+                                        locally_from_global_spam, 'bingham_direction_trm_priors.dat')
+        angle_priors = os.path.join(brainvisa_models_directory, model_2008_dir_name, 
+                                    'descriptive_models', 'segments', 
                                     locally_from_global_spam, 'vonmises_angle_trm_priors.dat') 
-        local_referencials =  os.path.join(model_2008_dir_name, 'descriptive_models', 'segments', 
-                                    locally_from_global_spam, 'local_referentials.dat') 
-        model_global = os.path.join(model_2008_dir_name, 'descriptive_models', 'segments', 
+        local_referencials =  os.path.join(brainvisa_models_directory, model_2008_dir_name, 
+                                           'descriptive_models', 'segments', 
+                                           locally_from_global_spam, 'local_referentials.dat') 
+        model_global = os.path.join(brainvisa_models_directory, model_2008_dir_name, 
+                                    'descriptive_models', 'segments', 
                                     global_registered_spam, 'spam_distribs.dat')
-        model_local = os.path.join(model_2008_dir_name, 'descriptive_models', 'segments', 
-                                    locally_from_global_spam, 'spam_distribs.dat')
+        model_local = os.path.join(brainvisa_models_directory, model_2008_dir_name, 
+                                   'descriptive_models', 'segments', 
+                                   locally_from_global_spam, 'spam_distribs.dat')
 
 
         posterior_probabilities_global = tempfile.NamedTemporaryFile(suffix='.csv')
@@ -101,13 +113,23 @@ class SulciLabelling(object):
         SulciLabelling._close_and_remove(transformation_matrix)
         shutil.rmtree(global_to_local_transformation)
  
-
+    @staticmethod
+    def find_models_directory():
+        models_db_directory = None
+        for db_settings in neuroConfig.dataPath:
+            if db_settings.expert_settings.ontology == 'shared':
+                directory = db_settings.directory
+                if os.path.exists(os.path.join(directory, 'models', 'models_2008', 
+                                               'descriptive_models', 'segments')):
+                    models_db_directory = directory
+                    break
+        return models_db_directory
+        
     @staticmethod
     def _close_and_remove(tmpfile):
         tmpfile.close()
         if os.path.isfile(tmpfile.name):
             os.remove(tmpfile.name)
-
 
     @staticmethod
     def _run_command(command):
