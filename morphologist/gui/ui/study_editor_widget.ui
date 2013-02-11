@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>465</width>
-    <height>527</height>
+    <width>562</width>
+    <height>560</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -185,6 +185,12 @@
          <height>0</height>
         </size>
        </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="alternatingRowColors">
+        <bool>false</bool>
+       </property>
        <property name="selectionMode">
         <enum>QAbstractItemView::ExtendedSelection</enum>
        </property>
@@ -271,17 +277,27 @@
            <item>
             <widget class="QPushButton" name="add_one_subject_from_a_file_button">
              <property name="text">
-              <string>one file after another</string>
+              <string>From files</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="add_subjects_from_a_directory_button">
+            <widget class="QPushButton" name="add_subjects_from_a_study_directory_button">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>From a study directory</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="add_subjects_from_database_button">
              <property name="enabled">
               <bool>false</bool>
              </property>
              <property name="text">
-              <string>all files from a directory</string>
+              <string>From Brainomics database</string>
              </property>
             </widget>
            </item>
@@ -291,7 +307,7 @@
               <bool>false</bool>
              </property>
              <property name="text">
-              <string>all files following a pattern</string>
+              <string>All files following a pattern</string>
              </property>
             </widget>
            </item>
@@ -305,32 +321,32 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
            <item>
-            <widget class="QPushButton" name="edit_subject_name_button">
+            <widget class="QPushButton" name="edit_subjects_name_button">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="text">
-              <string>Edit Subject Name</string>
+              <string>Edit subjects name</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="edit_subject_group_button">
+            <widget class="QPushButton" name="edit_subjects_group_button">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="text">
-              <string>Edit Subject Group</string>
+              <string>Edit subjects group</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="remove_subjects_button">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="text">
-              <string>Remove Subjects</string>
+              <string>Remove subjects</string>
              </property>
             </widget>
            </item>

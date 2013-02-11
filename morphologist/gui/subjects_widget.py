@@ -5,9 +5,10 @@ from morphologist.gui import ui_directory
 
 
 class SubjectsTableModel(QtCore.QAbstractTableModel):
-    SUBJECTNAME_COL = 0 
-    SUBJECTSTATUS_COL = 1
-    header = ['name', 'status'] #TODO: to be extended
+    GROUPNAME_COL = 0
+    SUBJECTNAME_COL = 1 
+    SUBJECTSTATUS_COL = 2
+    header = ['group', 'name', 'status']
 
     def __init__(self, study_model, parent=None):
         super(SubjectsTableModel, self).__init__(parent)
@@ -19,14 +20,14 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
                     self.on_study_model_status_changed)
         self._study_model.changed.connect(self.on_study_model_changed)
 
-    def subjectname_from_row_index(self, index):
-        return self._study_model.get_subjectname(index)
+    def subject_from_row_index(self, index):
+        return self._study_model.get_subject(index)
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return self._study_model.subject_count()
 
     def columnCount(self, parent=QtCore.QModelIndex()):
-        return 2 #TODO: to be extended
+        return 3
 
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         if role == QtCore.Qt.DisplayRole:
@@ -38,8 +39,10 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
     def data(self, index, role=QtCore.Qt.DisplayRole):
         row, column = index.row(), index.column()
         if role == QtCore.Qt.DisplayRole:
+            if column == SubjectsTableModel.GROUPNAME_COL:
+                return self._study_model.get_subject(row).groupname
             if column == SubjectsTableModel.SUBJECTNAME_COL:
-                return self._study_model.get_subjectname(row)
+                return self._study_model.get_subject(row).subjectname
             if column == SubjectsTableModel.SUBJECTSTATUS_COL:
                 return self._study_model.get_status(row)
 
@@ -69,8 +72,7 @@ class SubjectsTableView(QtGui.QWidget):
                                                stop:0 gray, stop:1 black);
             color:white;
             border: 0px
-        }'''
-    subjectname_column_width = 100    
+        }''' 
 
     def __init__(self, parent=None):
         super(SubjectsTableView, self).__init__(parent)
@@ -84,12 +86,12 @@ class SubjectsTableView(QtGui.QWidget):
         # FIXME : stylesheet has been disable and should stay disable until
         # subject list sorting has not been implementing
         #header.setStyleSheet(self.header_style_sheet)
-        header.resizeSection(0, self.subjectname_column_width)
-
+        header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        
     @QtCore.Slot()
     def on_modelReset(self):
         self._tableview.selectRow(0)
-
+        
     def set_model(self, model):
         if self._tablemodel is not None:
             self._tablemodel.modelReset.disconnect(self.on_modelReset)

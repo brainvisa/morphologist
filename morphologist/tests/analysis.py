@@ -1,7 +1,9 @@
 import os
 
+from morphologist.study import Subject
 from morphologist.tests.mocks.analysis import MockAnalysis
 from morphologist.tests import reset_directory
+
 
 class AnalysisTestCase(object):
     ''' abstract class '''
@@ -42,20 +44,18 @@ class MockAnalysisTestCase(AnalysisTestCase):
         return self.analysis
 
     def set_analysis_parameters(self):
-        self.analysis.set_parameters(parameter_template='foo',
-                                     groupname='foo',
-                                     subjectname='foo',
-                                     input_filename='foo',
+        subject = Subject('foo', 'foo', 'foo')
+        self.analysis.set_parameters(parameter_template='foo', subject=subject,
                                      outputdir=self.outputdir)
 
     def delete_some_parameter_values(self):
-        self.analysis.output_params.output_3 = None
-        self.analysis.input_params.input_4 = None
+        self.analysis.outputs.output_3 = None
+        self.analysis.inputs.input_4 = None
 
     def create_some_output_files(self):
         parameter_names = ['output_1', 'output_4']
         for name in parameter_names:
-            file_name = self.analysis.output_params.get_value(name)
+            file_name = self.analysis.outputs.get_value(name)
             f = open(file_name, "w")
             f.write("something\n")
             f.close()

@@ -5,7 +5,6 @@ from morphologist.gui import ui_directory
 from morphologist.intra_analysis_study import IntraAnalysisStudy
 from morphologist.study import StudySerializationError
 from .study_editor_widget import StudyEditorDialog
-from morphologist.intra_analysis import IntraAnalysis
 from morphologist.runner import SomaWorkflowRunner
 from .study_model import LazyStudyModel
 from morphologist.gui.analysis_model import LazyAnalysisModel
@@ -19,7 +18,7 @@ from morphologist.analysis import ImportationError
 class IntraAnalysisWindow(QtGui.QMainWindow):
     uifile = os.path.join(ui_directory, 'main_window.ui')
 
-    def __init__(self, study_file=None):
+    def __init__(self, study_file=None, enable_brainomics_db=False):
         super(IntraAnalysisWindow, self).__init__()
         self.ui = loadUi(self.uifile, self)
 
@@ -29,33 +28,34 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self.analysis_model = LazyAnalysisModel()
         self.study_tablemodel = SubjectsTableModel(self.study_model)
         self.study_selection_model = QtGui.QItemSelectionModel(self.study_tablemodel)
-        self.study_view = SubjectsTableView(self.ui.study_widget_dock)
+ 
+        self.study_view = SubjectsTableView()
         self.study_view.set_model(self.study_tablemodel)
         self.study_view.set_selection_model(self.study_selection_model)
         self.ui.study_widget_dock.setWidget(self.study_view)
+        
+        self.setCorner(QtCore.Qt.TopRightCorner, QtCore.Qt.RightDockWidgetArea)
+        self.setCorner(QtCore.Qt.BottomRightCorner, QtCore.Qt.RightDockWidgetArea)
+        self.setCorner(QtCore.Qt.TopLeftCorner, QtCore.Qt.LeftDockWidgetArea)
+        self.setCorner(QtCore.Qt.BottomLeftCorner, QtCore.Qt.LeftDockWidgetArea)
 
         self.viewport_model = IntraAnalysisViewportModel(self.analysis_model)
-        self.viewport_view = IntraAnalysisViewportView(self.viewport_model,
+        self.viewport_view = IntraAnalysisViewportView(self.viewport_model, 
                                                        self.ui.viewport_frame)
 
-        self.runner_view = RunnerView(self.ui.runner_frame)
-        layout = QtGui.QVBoxLayout()
-        self.ui.runner_frame.setLayout(layout)
-        layout.addWidget(self.runner_view)
+        self.runner_view = RunnerView()
         self.runner_view.set_model(self.study_model)
+        self.ui.runner_widget_dock.setWidget(self.runner_view)
         
         self.study_editor_widget_window = None
+        self.enable_brainomics_db = enable_brainomics_db
 
         self._init_qt_connections()
-        self._init_widget()
 
         self.set_study(self._create_study(study_file))
 
     def _init_qt_connections(self):
         self.study_selection_model.currentChanged.connect(self.on_selection_changed)
-
-    def _init_widget(self):
-        pass
 
     def _create_study(self, study_file=None):
         if study_file:
@@ -69,8 +69,11 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
 
     @QtCore.Slot()
     def on_action_new_study_triggered(self):
+        msg = 'Stop current running analysis and create a new study ?'
+        if self._runner_still_running_after_stopping_asked_to_user(msg): return
         study = self._create_study()
-        self.study_editor_widget_window = StudyEditorDialog(study, parent=self)
+        self.study_editor_widget_window = StudyEditorDialog(study, parent=self,
+                                            enable_brainomics_db=self.enable_brainomics_db)
         self.study_editor_widget_window.ui.accepted.connect(self.on_study_dialog_accepted)
         self.study_editor_widget_window.ui.show()
         
@@ -103,6 +106,8 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
     # this slot is automagically connected
     @QtCore.Slot()
     def on_action_open_study_triggered(self):
+        msg = 'Stop current running analysis and open a study ?'
+        if self._runner_still_running_after_stopping_asked_to_user(msg): return
         backup_filename = QtGui.QFileDialog.getOpenFileName(self.ui,
                                 caption="Open a study", directory="", 
                                 options=QtGui.QFileDialog.DontUseNativeDialog)
@@ -114,6 +119,19 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
                                           "Cannot load the study", "%s" %(e))
             else:
                 self.set_study(study) 
+
+    def _runner_still_running_after_stopping_asked_to_user(self,
+                        msg='Stop current running analysis ?'):
+        if self.runner.is_running():
+            title = 'Analyses are currently running'
+            answer = QtGui.QMessageBox.question(self, title, msg,
+                QtGui.QMessageBox.Yes, QtGui.QMessageBox.Cancel)
+            if answer == QtGui.QMessageBox.Yes:
+                self.runner.stop()
+                return False
+            else:
+                return True
+        return False
 
     # this slot is automagically connected
     @QtCore.Slot()
@@ -138,8 +156,8 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
 
     @QtCore.Slot("const QModelIndex &", "const QModelIndex &")
     def on_selection_changed(self, current, previous):
-        subjectname = self.study_tablemodel.subjectname_from_row_index(current.row())
-        analysis = self.study.analyses[subjectname]
+        subject = self.study_tablemodel.subject_from_row_index(current.row())
+        analysis = self.study.analyses[subject.id()]
         self.analysis_model.set_analysis(analysis)
 
     def set_study(self, study):
@@ -154,9 +172,9 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         return "Morphologist - %s" % self.study.name
 
 
-def create_main_window(study_file=None, mock=False):
+def create_main_window(study_file=None, mock=False, enable_brainomics_db=False):
     if not mock:
-        return IntraAnalysisWindow(study_file)
+        return IntraAnalysisWindow(study_file, enable_brainomics_db)
     else:
         from morphologist.tests.intra_analysis.mocks.main_window import MockIntraAnalysisWindow
-        return MockIntraAnalysisWindow(study_file) 
+        return MockIntraAnalysisWindow(study_file, enable_brainomics_db) 

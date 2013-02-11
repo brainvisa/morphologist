@@ -28,15 +28,19 @@ class TestAnalysis(unittest.TestCase):
 
         self.assertRaises(UnknownParameterName, 
                           InputParameters.get_value, 
-                          self.analysis.input_params, wrong_parameter_name)
+                          self.analysis.inputs, wrong_parameter_name)
 
     def test_clear_output_files(self):
         self.test_case.set_analysis_parameters()
         self.test_case.create_some_output_files()
         
-        self.assertNotEqual(len(self.analysis.list_existing_output_files()), 0)
+        self.assertTrue(self.analysis.outputs.some_file_exists())
         self.analysis.clear_output_files()
-        self.assertEqual(len(self.analysis.list_existing_output_files()), 0)
+        self.assertTrue(not self.analysis.outputs.some_file_exists())
+
+    def test_step_id(self):
+        self.assertEqual(len(self.analysis._named_steps),
+                         len(self.analysis._steps))
         
     def tearDown(self):
         pass

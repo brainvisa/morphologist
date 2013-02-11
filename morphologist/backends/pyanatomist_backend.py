@@ -5,15 +5,22 @@ import anatomist.direct.api as ana
 from morphologist.gui.qt_backend import QtCore
 from morphologist.backends import Backend
 from morphologist.backends.mixins import DisplayManagerMixin, \
-                                         ObjectsManagerMixin, LoadObjectError
+                                         ObjectsManagerMixin, LoadObjectError, \
+                                         ColorMap
 
 
 class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
     anatomist = None
+    sulci_color_map = None
+    color_map_names = {ColorMap.RAINBOW_MASK : "RAINBOW", 
+                       ColorMap.GREEN_MASK : "GREEN-lfusion",
+                       ColorMap.RAINBOW : "Rainbow2"}
     
     def __new__(cls):
         if cls.anatomist is None:
             cls._init_anatomist()
+        if cls.sulci_color_map is None:
+            cls.sulci_color_map = cls._load_sulci_color_map()
         return super(PyanatomistBackend, cls).__new__(cls)
         
     def __init__(self):
@@ -47,9 +54,8 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         backend_view.moveLinkedCursor(position)
         
     @classmethod
-    def create_backend_view(cls, parent=None):
-        wintype = 'Axial'
-        cmd = ana.cpp.CreateWindowCommand(wintype, -1, None,
+    def create_view(cls, parent, view_type):
+        cmd = ana.cpp.CreateWindowCommand(view_type, -1, None,
                 [], 1, parent, 2, 0,
                 { '__syntax__' : 'dictionary',  'no_decoration' : 1})
         cls.anatomist.execute(cmd)
@@ -65,7 +71,7 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         backend_object.reload()
     
     @classmethod
-    def shallow_copy_backend_object(cls, backend_object):
+    def shallow_copy_object(cls, backend_object):
         return cls.anatomist.duplicateObject(backend_object)
         
     @classmethod
@@ -74,32 +80,31 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         position = (bb[1] - bb[0]) / 2
         return position
 
-    
     @classmethod
     def set_object_color_map(cls, backend_object, color_map_name):
-        backend_object.setPalette(color_map_name)
+        backend_object.setPalette(cls.color_map_names.get(color_map_name))
     
     @classmethod
     def set_object_color(cls, backend_object, rgba_color):
         backend_object.setMaterial(diffuse=rgba_color)
 
     @classmethod
-    def create_backend_fusion_object(cls, backend_object1, backend_object2, mode, rate):
+    def create_fusion_object(cls, backend_object1, backend_object2, mode, rate):
         fusion = cls.anatomist.fusionObjects([backend_object1, backend_object2], 
                                              method='Fusion2DMethod')
-        cls.anatomist.execute("Fusion2DParams", object=fusion, mode=mode, rate=rate,
-                              reorder_objects=[backend_object1, backend_object2])
+        cls.anatomist.execute("TexturingParams", objects=[fusion], mode=mode, rate=rate, 
+                              texture_index=1)
         return fusion
 
     @classmethod
-    def load_backend_object(cls, filename):
+    def load_object(cls, filename):
         aobject = cls.anatomist.loadObject(filename)
         if aobject.getInternalRep() == None:
             raise LoadObjectError(str(filename))
         return aobject
     
     @classmethod
-    def create_backend_point_object(cls, coordinates):
+    def create_point_object(cls, coordinates):
         cross_mesh = os.path.join(cls.anatomist.anatomistSharedPath(), 
                                   "cursors", "cross.mesh")
         point_object = cls.anatomist.loadObject(cross_mesh, forceReload=True)
@@ -111,3 +116,17 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
                                             referential, 
                                             cls.anatomist.centralRef)
         return point_object
+
+    @classmethod
+    def _load_sulci_color_map(cls):
+        anatomist_shared_path = unicode(cls.anatomist.anatomistSharedPath())
+        shared_dirname = os.path.dirname(anatomist_shared_path)
+        shared_basename = os.path.basename(anatomist_shared_path)
+        brainvisa_share = shared_basename.replace("anatomist", "brainvisa-share")
+        brainvisa_share_path = os.path.join(shared_dirname, brainvisa_share)
+        sulci_colormap_filename = os.path.join(brainvisa_share_path, "nomenclature", 
+                                               "hierarchy", "sulcal_root_colors.hie")
+        cls.anatomist.execute("GraphParams", label_attribute="label")
+        return cls.load_object(sulci_colormap_filename) 
+        
+        

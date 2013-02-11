@@ -2,6 +2,7 @@ import sys
 import unittest
 import os
 
+from morphologist.study import Subject, Study
 from morphologist.gui.qt_backend import QtGui, QtCore, QtTest
 from morphologist.gui.main_window import create_main_window
 from morphologist.tests.gui import TestGui
@@ -35,9 +36,9 @@ class TestStudyWidget(TestGui):
         main_window.set_study(self.test_case.study)
         main_window.show()
         model = main_window.study_tablemodel
-        subjectnames = [model.data(model.index(i, 0)) \
+        subjectnames = [model.data(model.index(i, model.SUBJECTNAME_COL)) \
                         for i in range(model.rowCount())]
-        subjectnames = sorted(subjectnames)
+        
         main_window.close()
         self.assertEqual(self.test_case.subjectnames, subjectnames)
 
@@ -55,13 +56,19 @@ class TestStudyWidget(TestGui):
                                                      self.test_case.filenames)
         self.assertEqual(main_window.study.name, self.test_case.studyname)
         self.assertEqual(main_window.study.outputdir, self.test_case.outputdir)
-        for subjectname in self.test_case.subjectnames:
-            subject = main_window.study.subjects.get(subjectname)
-            self.assert_(subject is not None)
-            self.assert_(os.path.exists(subject.imgname))
-            self.assert_(subject.imgname.startswith(self.test_case.outputdir))
-        
+        self._assert_subjects_exist(main_window.study)
         main_window.close()
+        
+    def _assert_subjects_exist(self, study):
+        for filename in self.test_case.filenames:
+            subject = Subject(Study.DEFAULT_GROUP, 
+                              Study.define_subjectname_from_filename(filename), 
+                              filename)
+            self.assert_(subject in study.subjects)
+            subject_index = study.subjects.index(subject)
+            study_subject = study.subjects[subject_index]
+            self.assert_(os.path.exists(study_subject.filename))
+            self.assert_(study_subject.filename.startswith(self.test_case.outputdir))
 
 
 class TestStudyWidgetIntraAnalysis(TestStudyWidget):

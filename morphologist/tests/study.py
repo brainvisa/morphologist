@@ -39,6 +39,15 @@ class AbstractStudyTestCase(object):
     def restore_input_files(self):
         raise NotImplementedError("AbstractStudyTestCase is an abstract class")
 
+    def step_to_wait_testcase_1(self):
+        raise NotImplementedError("AbstractStudyTestCase is an abstract class")
+
+    def step_to_wait_testcase_2(self):
+        raise NotImplementedError("AbstractStudyTestCase is an abstract class")
+
+    def step_to_wait_testcase_3(self):
+        raise NotImplementedError("AbstractStudyTestCase is an abstract class")
+
 
 class MockStudyTestCase(AbstractStudyTestCase):
 
@@ -68,13 +77,13 @@ class MockStudyTestCase(AbstractStudyTestCase):
     def delete_some_input_files(self):
         parameter_names = ['input_2', 'input_5']
         for name in parameter_names:
-            file_name = self.study.analyses.values()[1].input_params.get_value(name)
+            file_name = self.study.analyses.values()[1].inputs.get_value(name)
             remove_file(file_name)
 
     def create_some_output_files(self):
         parameter_names = ['output_1', 'output_4']
         for name in parameter_names:
-            file_name = self.study.analyses.values()[0].output_params.get_value(name)
+            file_name = self.study.analyses.values()[0].outputs.get_value(name)
             f = open(file_name, "w")
             f.write("something\n")
             f.close()
@@ -83,5 +92,11 @@ class MockStudyTestCase(AbstractStudyTestCase):
         # useless because the input files are created in set_analysis_parameters
         pass
 
+    def step_to_wait_testcase_1(self):
+        return self.study.subjects[0], "0_step1"
 
+    def step_to_wait_testcase_2(self):
+        return self.study.subjects[0], "1_step2"
 
+    def step_to_wait_testcase_3(self):
+        return self.study.subjects[0], "2_step3"

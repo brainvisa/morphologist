@@ -1,40 +1,13 @@
 import os
+import urllib
+import zipfile
+import shutil
+import tempfile
 
-from .qt_backend import QtGui, QtCore, loadUi
+from morphologist.gui.qt_backend import QtGui, QtCore, loadUi
 from morphologist.gui import ui_directory
-from morphologist.study import Study
+from morphologist.study import Study, Subject
 from morphologist.formats import FormatsManager
-
-
-class SelectSubjectsDialog(QtGui.QFileDialog):
-    
-    def __init__(self, parent):
-        caption = "Select one or more subjects to be include into your study"
-        files_filter = self._define_selectable_files_regexp()
-        default_directory = ""
-        super(SelectSubjectsDialog, self).__init__(parent, caption,
-                                    default_directory, files_filter)
-        self.setObjectName("SelectSubjectsDialog")
-        self.setWindowModality(QtCore.Qt.ApplicationModal)
-        self.setFileMode(QtGui.QFileDialog.ExistingFiles)
-
-    def _define_selectable_files_regexp(self):
-        formats_manager = FormatsManager.formats_manager()
-        formats = formats_manager.formats()
-
-        volume_filters = []
-        all_volumes_regexp = []
-        for format in formats:
-            extensions = format.extensions
-            extensions_regexp = (' '.join([('*.' + ext) for ext in extensions]))
-            if extensions_regexp == '': continue
-            filter = '%s (%s)' % (format.name, extensions_regexp)
-            volume_filters.append(filter)
-            all_volumes_regexp.append(extensions_regexp)
-        all_volumes_filter = '3D Volumes (%s)' % (' '.join(all_volumes_regexp))
-        all_filters = [all_volumes_filter] + volume_filters +['All files (*.*)']
-        final_filter = ';;'.join(all_filters)
-        return final_filter
 
 
 class StudyEditorDialog(QtGui.QDialog):
@@ -69,11 +42,11 @@ class StudyEditorDialog(QtGui.QDialog):
     def _init_class(cls):
         apply_role = QtGui.QDialogButtonBox.ApplyRole
         reject_role = QtGui.QDialogButtonBox.RejectRole
-        map = cls.on_apply_cancel_buttons_clicked_map
-        map[apply_role] = cls.on_apply_button_clicked
-        map[reject_role] = cls.on_cancel_button_clicked
+        role_map = cls.on_apply_cancel_buttons_clicked_map
+        role_map[apply_role] = cls.on_apply_button_clicked
+        role_map[reject_role] = cls.on_cancel_button_clicked
 
-    def __init__(self, study, parent=None):
+    def __init__(self, study, parent=None, enable_brainomics_db=False):
         super(StudyEditorDialog, self).__init__(parent)
         self.study = study
         self.parameter_template = study.analysis_cls().PARAMETER_TEMPLATES[0]
@@ -93,16 +66,34 @@ class StudyEditorDialog(QtGui.QDialog):
             self.ui.parameter_template_combobox.addItem(param_template_name)
             if param_template_name == self.parameter_template:
                 self.ui.parameter_template_combobox.setCurrentIndex(self.ui.parameter_template_combobox.count()-1)
-        self._init_ui()
 
-    def _init_ui(self):
-        tablewidget = self.ui.subjects_tablewidget
-        tablewidget.setColumnWidth(0, self.group_column_width)
+        tablewidget_header = self.ui.subjects_tablewidget.horizontalHeader()
+        tablewidget_header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        
+        self._subjects_from_study_dialog = None
+        self._subject_from_db_dialog = None
+        if enable_brainomics_db:
+            self.ui.add_subjects_from_database_button.setEnabled(True)
+            self._init_db_dialog()
+        else:
+            self.ui.add_subjects_from_database_button.hide()    
 
-    def add_subjects(self, filenames, groupname=default_group):
+    def _init_db_dialog(self):
+        self._subject_from_db_dialog = SubjectsFromDatabaseDialog(self.ui)
+        self._subject_from_db_dialog.set_group(self.default_group)
+        self._subject_from_db_dialog.set_server_url("http://neurospin-cubicweb.intra.cea.fr:8080")
+        self._subject_from_db_dialog.set_rql_request('''Any X WHERE X is Scan, X type "raw T1", X concerns A, A age 25''')
+        self._subject_from_db_dialog.accepted.connect(self.on_subject_from_db_dialog_accepted)
+                                                          
+    def add_subjects_from_filenames(self, filenames, groupname=default_group):
         for filename in filenames:
-            self._add_subject(filename, groupname)
+            subjectname = Study.define_subjectname_from_filename(filename)
+            self._add_subject(Subject(groupname, subjectname, filename))
 
+    def add_subjects(self, subjects):
+        for subject in subjects:
+            self._add_subject(subject)
+        
     # this slot is automagically connected
     @QtCore.Slot("const QString &")
     def on_studyname_lineEdit_textChanged(self, text):
@@ -163,8 +154,74 @@ class StudyEditorDialog(QtGui.QDialog):
     @QtCore.Slot()
     def on_add_one_subject_from_a_file_button_clicked(self):
         dialog = SelectSubjectsDialog(self.ui)
-        dialog.filesSelected.connect(self.onSelectSubjectsDialogfilesSelected)
+        dialog.filesSelected.connect(self.on_select_subjects_dialog_files_selected)
         dialog.show()
+
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_add_subjects_from_a_study_directory_button_clicked(self):
+        outputdir = self.ui.outputdir_lineEdit.text()
+        parameter_templates = self.study.analysis_cls().PARAMETER_TEMPLATES
+        selected_template = self.ui.parameter_template_combobox.currentText()
+        self._subjects_from_study_dialog = SelectStudyDirectoryDialog(self.ui, outputdir, 
+                                            parameter_templates, selected_template)
+        self._subjects_from_study_dialog.accepted.connect(self.on_subjects_from_study_dialog_accepted)
+        self._subjects_from_study_dialog.show()
+        
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_subjects_from_study_dialog_accepted(self):
+        study_directory = self._subjects_from_study_dialog.get_study_directory()
+        parameter_template_name = self._subjects_from_study_dialog.get_study_parameter_template()
+        parameter_template = self.study.analysis_cls().param_template_map[parameter_template_name]
+        subjects = parameter_template.get_subjects(study_directory)
+        if not subjects:
+            QtGui.QMessageBox.warning(self, "No subjects", 
+                                      "Cannot find subjects in this directory.")
+        else:
+            self.add_subjects(subjects)
+    
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_edit_subjects_name_button_clicked(self):
+        subject, ok = QtGui.QInputDialog.getText(self, "Enter the subject name", "Subject name:")
+        if ok:
+            for selection_range in self.ui.subjects_tablewidget.selectedRanges():
+                for row in range(selection_range.topRow(), selection_range.bottomRow()+1):
+                    item = self.ui.subjects_tablewidget.item(row, self.SUBJECTNAME_COL)
+                    item.setText(subject)
+    
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_edit_subjects_group_button_clicked(self): 
+        group, ok = QtGui.QInputDialog.getText(self, "Enter the group name", "Group name:")
+        if ok:
+            for selection_range in self.ui.subjects_tablewidget.selectedRanges():
+                for row in range(selection_range.topRow(), selection_range.bottomRow()+1):
+                    item = self.ui.subjects_tablewidget.item(row, self.GROUPNAME_COL)
+                    item.setText(group)
+
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_remove_subjects_button_clicked(self):
+        rows_to_remove = []
+        for selection_range in self.ui.subjects_tablewidget.selectedRanges():
+            for row in range(selection_range.topRow(), selection_range.bottomRow()+1):
+                rows_to_remove.append(row)
+        # remove rows from bottom to top to avoid changing the rows indexes
+        rows_to_remove.sort(reverse=True)
+        for row in rows_to_remove:
+            self.ui.subjects_tablewidget.removeRow(row)
+    
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_add_subjects_from_database_button_clicked(self):
+        self._subject_from_db_dialog.show()
+       
+    @QtCore.Slot() 
+    def on_subject_from_db_dialog_accepted(self):
+        self.add_subjects_from_filenames(self._subject_from_db_dialog.get_filenames(), 
+                          self._subject_from_db_dialog.get_group())
 
     # this slot is automagically connected
     @QtCore.Slot("QAbstractButton *")
@@ -176,17 +233,16 @@ class StudyEditorDialog(QtGui.QDialog):
         studyname = self.ui.studyname_lineEdit.text()
         outputdir = self.ui.outputdir_lineEdit.text()
         backup_filename = self.ui.backup_filename_lineEdit.text()
-        subjects_data = []
+        subjects = []
         for i in range(self.ui.subjects_tablewidget.rowCount()):
-            subjects_data.append(self._get_subject_data(i))
+            subjects.append(self._get_subject(i))
             
-        if self._check_study_consistency(outputdir,
-                    subjects_data, backup_filename): 
+        if self._check_study_consistency(outputdir, subjects, backup_filename): 
             self.study.name = studyname
             self.study.outputdir = outputdir
             self.study.backup_filename = backup_filename 
-            for groupname, subjectname, filename in subjects_data:
-                self.study.add_subject_from_file(filename, subjectname, groupname)
+            for subject in subjects:
+                self.study.add_subject(subject)
             self.parameter_template = self.ui.parameter_template_combobox.currentText()
             self.ui.accept()
 
@@ -194,8 +250,8 @@ class StudyEditorDialog(QtGui.QDialog):
         self.ui.reject()
 
     @QtCore.Slot("const QStringList &")
-    def onSelectSubjectsDialogfilesSelected(self, filenames):
-        self.add_subjects(filenames)
+    def on_select_subjects_dialog_files_selected(self, filenames):
+        self.add_subjects_from_filenames(filenames)
 
     def _check_study_consistency(self, outputdir,
                 subjects_data, backup_filename):
@@ -234,36 +290,31 @@ class StudyEditorDialog(QtGui.QDialog):
             QtGui.QMessageBox.critical(self, "Study consistency error", msg)
         return consistency
         
-    def _check_duplicated_subjects(self, subjects_data):
-        study_keys = [] #subjectname is the subject uid for now 
+    def _check_duplicated_subjects(self, subjects):
+        processed = []
         multiples = []
-        for groupname, subjectname, filename in subjects_data:
-            if subjectname in study_keys and\
-               subjectname not in multiples:
-                multiples.append(subjectname)
+        for subject in subjects:
+            if subject in processed and\
+               subject not in multiples:
+                multiples.append(subject)
             else:
-                study_keys.append(subjectname)
+                processed.append(subject)
         if multiples: 
-            subjectname = multiples[0]
-            multiple_str = "%s" %(subjectname)
-            for subjectname in multiples[1:len(multiples)]:
-                multiple_str += ", %s" %(subjectname)
+            multiple_str = ", ".join([str(subject) for subject in multiples])
             QtGui.QMessageBox.critical(self, "Study consistency error",
                                        "Some subjects have the same "
-                                       "name: \n %s" %(multiple_str))
+                                       "identifier: \n %s" %(multiple_str))
             return False
         return True
         
-        
-    def _add_subject(self, filename, groupname):
-        subjectname = Study.define_subjectname_from_filename(filename)
+    def _add_subject(self, subject):
         new_row = self.ui.subjects_tablewidget.rowCount()
         self.ui.subjects_tablewidget.insertRow(new_row)
-        if groupname is not None:
-            self._fill_groupname(new_row, groupname)
-        self._fill_subjectname(new_row, subjectname)
-        self._fill_filename(new_row, filename)
-
+        if subject.groupname is not None:
+            self._fill_groupname(new_row, subject.groupname)
+        self._fill_subjectname(new_row, subject.subjectname)
+        self._fill_filename(new_row, subject.filename)
+        
     def _fill_groupname(self, subject_index, groupname):
         groupname_item = QtGui.QTableWidgetItem(groupname)
         self.ui.subjects_tablewidget.setItem(subject_index,
@@ -278,12 +329,162 @@ class StudyEditorDialog(QtGui.QDialog):
         filename_item = QtGui.QTableWidgetItem(filename)
         self.ui.subjects_tablewidget.setItem(subject_index,
                             self.FILENAME_COL, filename_item)
+        filename_item.setToolTip(filename)
 
-    def _get_subject_data(self, subject_index):
+    def _get_subject(self, subject_index):
         tablewidget = self.ui.subjects_tablewidget
         groupname = tablewidget.item(subject_index, self.GROUPNAME_COL).text()
         subjectname = tablewidget.item(subject_index, self.SUBJECTNAME_COL).text()
         filename = tablewidget.item(subject_index, self.FILENAME_COL).text()
-        return groupname, subjectname, filename
+        return Subject(groupname, subjectname, filename)
+
+
+class SelectSubjectsDialog(QtGui.QFileDialog):
+    
+    def __init__(self, parent):
+        caption = "Select one or more subjects to be included into your study"
+        files_filter = self._define_selectable_files_regexp()
+        default_directory = ""
+        super(SelectSubjectsDialog, self).__init__(parent, caption,
+                                    default_directory, files_filter)
+        self.setObjectName("SelectSubjectsDialog")
+        self.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.setFileMode(QtGui.QFileDialog.ExistingFiles)
+
+    def _define_selectable_files_regexp(self):
+        formats_manager = FormatsManager.formats_manager()
+        formats = formats_manager.formats()
+
+        volume_filters = []
+        all_volumes_regexp = []
+        for format in formats:
+            extensions = format.extensions
+            extensions_regexp = (' '.join([('*.' + ext) for ext in extensions]))
+            if extensions_regexp == '': continue
+            filter = '%s (%s)' % (format.name, extensions_regexp)
+            volume_filters.append(filter)
+            all_volumes_regexp.append(extensions_regexp)
+        all_volumes_filter = '3D Volumes (%s)' % (' '.join(all_volumes_regexp))
+        all_filters = [all_volumes_filter] + volume_filters +['All files (*.*)']
+        final_filter = ';;'.join(all_filters)
+        return final_filter
+
+
+class SelectStudyDirectoryDialog(QtGui.QDialog):
+    
+    def __init__(self, parent, default_study_directory, 
+                 parameter_templates, selected_template):
+        super(SelectStudyDirectoryDialog, self).__init__(parent)
+        
+        uifile = os.path.join(ui_directory, 'select_study_directory.ui')
+        self.ui = loadUi(uifile, self)
+        
+        self.ui.study_directory_lineEdit.setText(default_study_directory)
+        
+        for param_template_name in parameter_templates:
+            self.ui.parameter_template_combobox.addItem(param_template_name)
+            if param_template_name == selected_template:
+                self.ui.parameter_template_combobox.setCurrentIndex(self.ui.parameter_template_combobox.count()-1)
+    
+    def get_study_directory(self):
+        return self.ui.study_directory_lineEdit.text()
+    
+    def get_study_parameter_template(self):
+        return self.ui.parameter_template_combobox.currentText()
+
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_study_directory_button_clicked(self):
+        selected_directory = QtGui.QFileDialog.getExistingDirectory(self.ui,
+                                caption="Select a study directory", 
+                                directory=self.get_study_directory(), 
+                                options=QtGui.QFileDialog.DontUseNativeDialog)
+        if selected_directory != '':
+            self.ui.study_directory_lineEdit.setText(selected_directory)
+            
+
+class SubjectsFromDatabaseDialog(QtGui.QDialog):
+
+    def __init__(self, parent):
+        super(SubjectsFromDatabaseDialog, self).__init__(parent)
+
+        uifile = os.path.join(ui_directory, 'rql_subjects_widget.ui')
+        self.ui = loadUi(uifile, self)
+        
+        self._filenames = []
+        self._groupname = None
+   
+        tmp_directory = tempfile.gettempdir()
+        self._zip_filename = os.path.join(tmp_directory, "cubic_web_tmp_data.zip")
+        self._unzipped_dirname = os.path.join(tmp_directory, "cubic_web_unzipped_dir")
+        self._files_directory = os.path.join(tmp_directory, "morphologist_tmp_files")
+        if os.path.isdir(self._files_directory):
+            shutil.rmtree(self._files_directory)
+        os.mkdir(self._files_directory)
+
+    # this slot is automagically connected 
+    @QtCore.Slot()
+    def on_load_button_clicked(self):
+        self.ui.load_button.setEnabled(False)
+        QtGui.QApplication.processEvents()
+        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        error = None
+        try:
+            self.load(self.ui.server_url_lineEdit.text(), 
+                      self.ui.rql_request_lineEdit.text())
+        except LoadSubjectsFromDatabaseError, e:
+            error = "Cannot load files from the database: \n%s" % unicode(e)
+        finally:
+            QtGui.QApplication.restoreOverrideCursor()
+            self.ui.load_button.setEnabled(True)
+        self._group = self.ui.group_lineEdit.text()
+        if error:
+            QtGui.QMessageBox.critical(self, "Load error", error)
+        else:
+            self.accept()
+
+    def set_server_url(self, server_url):
+        self.ui.server_url_lineEdit.setText(server_url)
+
+    def set_rql_request(self, rql_request):
+        self.ui.rql_request_lineEdit.setText(rql_request)
+
+    def set_group(self, groupname):
+        self.ui.group_lineEdit.setText(groupname)
+
+    def get_filenames(self):
+        return self._filenames
+    
+    def get_group(self):
+        return self._group
+
+    def load(self, server_url, rql_request):
+        url = server_url + '''/view?rql=''' + rql_request + '''&vid=data-zip'''
+        try:
+            urllib.urlretrieve(url, self._zip_filename)
+        except IOError:
+            raise LoadSubjectsFromDatabaseError("Cannot connect to the database server.")
+
+        try:
+            zip_file = zipfile.ZipFile(self._zip_filename)
+            zip_file.extractall(self._unzipped_dirname)
+        except zipfile.BadZipfile:
+            raise LoadSubjectsFromDatabaseError("The request is incorrect or has no results.")
+        
+        self._filenames = []
+        dirname = os.path.join(self._unzipped_dirname, "brainomics_data")
+        subject_dirs = os.listdir(dirname)
+        for subject_name in subject_dirs:
+            filename = os.path.join(self._files_directory, subject_name + ".nii.gz")
+            shutil.move(os.path.join(dirname, subject_name, "raw_T1_raw_anat.nii.gz"), filename)
+            self._filenames.append(filename)
+    
+        if os.path.isdir(self._unzipped_dirname):
+            shutil.rmtree(self._unzipped_dirname)
+ 
+
+class LoadSubjectsFromDatabaseError(Exception):
+    pass        
+
 
 StudyEditorDialog._init_class()

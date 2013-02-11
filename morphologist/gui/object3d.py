@@ -5,6 +5,7 @@ class AbstractObject3D(object):
     
     def __init__(self):
         self._backend = Backend.objects_loader_backend()
+        self._friend_backend_object = None
         
     def reload(self):
         raise NotImplementedError("AbstractObject3D is an abstract class")
@@ -32,13 +33,13 @@ class Object3D(AbstractObject3D):
     @classmethod
     def from_filename(cls, filename):
         object3d = cls(_enable_init=True)
-        object3d._friend_backend_object = object3d._backend.load_backend_object(filename)
+        object3d._friend_backend_object = object3d._backend.load_object(filename)
         return object3d
     
     @classmethod    
     def from_fusion(cls, object1, object2, mode, rate):
         object3d = cls(_enable_init=True)
-        object3d._friend_backend_object = object3d._backend.create_backend_fusion_object(\
+        object3d._friend_backend_object = object3d._backend.create_fusion_object(\
                                                          object1._friend_backend_object, 
                                                          object2._friend_backend_object, 
                                                          mode, rate)
@@ -49,7 +50,7 @@ class Object3D(AbstractObject3D):
     
     def shallow_copy(self):
         object_copy = Object3D(_enable_init=True)
-        object_copy._friend_backend_object = self._backend.shallow_copy_backend_object(self._friend_backend_object)
+        object_copy._friend_backend_object = self._backend.shallow_copy_object(self._friend_backend_object)
         return object_copy
         
     def get_center_position(self):
@@ -61,10 +62,10 @@ class PointObject(AbstractObject3D):
     def __init__(self, coordinates):
         super(PointObject, self).__init__()
         self._coordinates = coordinates
-        self._friend_backend_object = self._backend.create_backend_point_object(coordinates)
+        self._friend_backend_object = self._backend.create_point_object(coordinates)
     
     def reload(self):
-        self._friend_backend_object = self._backend.create_backend_point_object(self._coordinates)
+        self._friend_backend_object = self._backend.create_point_object(self._coordinates)
         
     def get_center_position(self):
         return self._coordinates
@@ -139,13 +140,17 @@ class APCObject(GroupObject):
 
     def set_ih_color(self, rgba_color):
         self._ih_object.set_color(rgba_color)
-
-
+    
+    
 class View(object):
-      
-    def __init__(self, parent=None):
+    AXIAL = "Axial"
+    SAGITTAL = "Sagittal"
+    CORONAL = "Coronal"
+    THREE_D = "3D"
+    
+    def __init__(self, parent, view_type=AXIAL):
         self._backend = Backend.display_backend()
-        self._backend_view = self._backend.create_backend_view(parent)
+        self._backend_view = self._backend.create_view(parent, view_type)
         
     def add_object(self, object):
         object._friend_accept_visitor(self)

@@ -1,31 +1,57 @@
 import copy
 import os
+import shutil
+
+from morphologist.utils import OrderedDict
 
 
 class Analysis(object):
-
     PARAMETER_TEMPLATES = []
     param_template_map = {}
 
-
     def __init__(self):
-        self._steps = []
-        self.input_params = InputParameters(file_param_names=[])
-        self.output_params = OutputParameters(file_param_names=[])
+        self._init_steps()
+        self._init_named_steps()
+        self.inputs = InputParameters(file_param_names=[])
+        self.outputs = OutputParameters(file_param_names=[])
 
+    def _init_steps(self):
+        raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redifined.") 
+
+    def _init_named_steps(self):
+        self._named_steps = OrderedDict()
+        for i, step in enumerate(self._steps):
+            step_id = "%d_%s" % (i, step.name)
+            self._named_steps[step_id] = step
+
+    def step_from_name(self, name):
+        return self._named_steps[name]
+
+    def clear_steps(self, stepnames):
+        for stepname in stepnames:
+            step = self.step_from_name(stepname)
+            step.outputs.clear()
+
+    def remaining_commands_to_run(self):
+        self.propagate_parameters()
+        for step_id, step in self._named_steps.items():
+            # skip finished steps
+            if step.has_all_results():
+                continue
+            command = step.get_command()
+            yield command, step_id
 
     @classmethod
-    def import_data(cls, parameter_template, filename, groupname, subjectname, outputdir):
-        return filename
+    def import_data(cls, parameter_template, subject, outputdir):
+        return subject.filename
 
-    def set_parameters(self, parameter_template, groupname, subjectname, input_filename, outputdir):
+    def set_parameters(self, parameter_template, subject, outputdir):
         if parameter_template not in self.PARAMETER_TEMPLATES:
             raise UnknownParameterTemplate(parameter_template)
 
         param_template_instance = self.param_template_map[parameter_template]
-        self.input_params = param_template_instance.get_input_params(input_filename)
-        self.output_params = param_template_instance.get_output_params(groupname, subjectname, outputdir)
-
+        self.inputs = param_template_instance.get_inputs(subject)
+        self.outputs = param_template_instance.get_outputs(subject, outputdir)
 
     def get_command_list(self):
         self._check_parameter_values_filled()
@@ -35,58 +61,48 @@ class Analysis(object):
             command_list.append(step.get_command())
         return command_list
 
-
     def propagate_parameters(self):
         raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redifined.") 
  
-
     def _check_parameter_values_filled(self):
         missing_parameters = []
-        missing_parameters.extend(self.input_params.list_missing_parameter_values())  
-        missing_parameters.extend(self.output_params.list_missing_parameter_values())
+        missing_parameters.extend(self.inputs.list_missing_parameter_values())  
+        missing_parameters.extend(self.outputs.list_missing_parameter_values())
         if missing_parameters:
             separator = " ,"
             message = separator.join(missing_parameters)
             raise MissingParameterValueError(message)
 
-
-    def list_existing_output_files(self):
-        return self.output_params.list_existing_files()
-
-
-    def list_missing_output_files(self):
-        return self.output_params.list_missing_files()
-
-
     def clear_output_files(self):
-        for param_name in self.output_params.list_file_parameter_names():
-            out_file_path = self.output_params.get_value(param_name)
-            if os.path.isfile(out_file_path):
-                os.remove(out_file_path)
+        self.outputs.clear()
 
 
 class ParameterTemplate(object):
     
     @classmethod
-    def get_empty_input_params(cls):
+    def get_empty_inputs(cls):
         raise NotImplementedError("ParameterTemplate is an abstract class")
 
     @classmethod
-    def get_empty_output_params(cls):
+    def get_empty_outputs(cls):
         raise NotImplementedError("ParameterTemplate is an abstract class")
 
     @classmethod
-    def get_input_params(cls, input_filename):
+    def get_inputs(cls, subject):
         raise NotImplementedError("ParameterTemplate is an abstract class")
 
     @classmethod
-    def get_output_params(cls, groupname, subjectname, outputdir):
+    def get_outputs(cls, subject, outputdir):
         raise NotImplementedError("ParameterTemplate is an abstract class")
     
     @classmethod
-    def create_outputdirs(cls, groupname, subjectname, outputdir):
+    def create_outputdirs(cls, subject, outputdir):
         raise NotImplementedError("ParameterTemplate is an abstract class")
     
+    @classmethod
+    def get_subjects(cls, directory):
+        raise NotImplementedError("ParameterTemplate is an abstract class")
+
 
 class UnknownParameterTemplate(Exception):
     pass
@@ -126,8 +142,7 @@ class Parameters(object):
     def set_value(self, name, value):
         if not name in self._parameter_names:
             raise UnknownParameterName(name)
-        return setattr(self, name, value)
-
+        setattr(self, name, value)
 
     def list_missing_parameter_values(self):
         missing_values = []
@@ -136,27 +151,26 @@ class Parameters(object):
                 missing_values.append(name)
         return missing_values
 
-    def list_missing_files(self):
-        missing_files = []
-        for name in self._file_param_names:
-            file_name = getattr(self, name)
-            if not os.path.isfile(file_name):
-                missing_files.append(file_name)
-        return missing_files
-
-    def list_existing_files(self):
+    def some_file_exists(self):
         existing_files = [] 
         for name in self._file_param_names:
             file_name = getattr(self, name)
-            if os.path.isfile(file_name):
-                existing_files.append(file_name)
-        return existing_files
+            if os.path.isfile(file_name) or os.path.isdir(file_name):
+                return True
+        return False
+
+    def all_file_exists(self):
+        for name in self._file_param_names:
+            file_name = getattr(self, name)
+            if not os.path.isfile(file_name) and not os.path.isdir(file_name):
+                return False
+        return True
 
     def list_parameters_with_existing_files(self):
         existing_files = {}
         for name in self._file_param_names:
             file_name = getattr(self, name)
-            if os.path.isfile(file_name):
+            if os.path.isfile(file_name) or os.path.isdir(file_name):
                 existing_files[name] = file_name
         return existing_files
 
@@ -190,7 +204,14 @@ class UnknownParameterName(Exception):
     pass
 
 class OutputParameters(Parameters):
-    pass
+
+    def clear(self):
+        for param_name in self.list_file_parameter_names():
+            filename = self.get_value(param_name)
+            if os.path.isfile(filename):
+                os.remove(filename)
+            elif os.path.isdir(filename):
+                shutil.rmtree(filename)
 
 class InputParameters(Parameters):
     pass
