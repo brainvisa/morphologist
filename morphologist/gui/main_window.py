@@ -69,6 +69,8 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
 
     @QtCore.Slot()
     def on_action_new_study_triggered(self):
+        msg = 'Stop current running analysis and create a new study ?'
+        if self._runner_still_running_after_stopping_asked_to_user(msg): return
         study = self._create_study()
         self.study_editor_widget_window = StudyEditorDialog(study, parent=self,
                                             enable_brainomics_db=self.enable_brainomics_db)
@@ -104,6 +106,8 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
     # this slot is automagically connected
     @QtCore.Slot()
     def on_action_open_study_triggered(self):
+        msg = 'Stop current running analysis and open a study ?'
+        if self._runner_still_running_after_stopping_asked_to_user(msg): return
         backup_filename = QtGui.QFileDialog.getOpenFileName(self.ui,
                                 caption="Open a study", directory="", 
                                 options=QtGui.QFileDialog.DontUseNativeDialog)
@@ -115,6 +119,19 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
                                           "Cannot load the study", "%s" %(e))
             else:
                 self.set_study(study) 
+
+    def _runner_still_running_after_stopping_asked_to_user(self,
+                        msg='Stop current running analysis ?'):
+        if self.runner.is_running():
+            title = 'Analyses are currently running'
+            answer = QtGui.QMessageBox.question(self, title, msg,
+                QtGui.QMessageBox.Yes, QtGui.QMessageBox.Cancel)
+            if answer == QtGui.QMessageBox.Yes:
+                self.runner.stop()
+                return False
+            else:
+                return True
+        return False
 
     # this slot is automagically connected
     @QtCore.Slot()
