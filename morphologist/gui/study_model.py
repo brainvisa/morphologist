@@ -64,7 +64,7 @@ class LazyStudyModel(QtCore.QObject):
         elif self.runner.has_not_started():
             has_changed = self._update_output_files_status_for_one_subject_if_needed(subject)
         else:
-            if self.runner.has_failed(subject):
+            if self.runner.has_failed(subject, update_status=False):
                 has_changed = self._update_one_status_for_one_subject_if_needed(\
                                                 subject, "last run failed")
             else:
