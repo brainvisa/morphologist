@@ -1,6 +1,7 @@
 import os
 
 import anatomist.direct.api as ana
+from soma import aims
 
 from morphologist.gui.qt_backend import QtCore
 from morphologist.backends import Backend
@@ -105,17 +106,15 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
     
     @classmethod
     def create_point_object(cls, coordinates):
-        cross_mesh = os.path.join(cls.anatomist.anatomistSharedPath(), 
+        cross_name = os.path.join(cls.anatomist.anatomistSharedPath(), 
                                   "cursors", "cross.mesh")
-        point_object = cls.anatomist.loadObject(cross_mesh, forceReload=True)
-        referential = cls.anatomist.createReferential()
-        point_object.assignReferential(referential)
-        cls.anatomist.createTransformation(coordinates + [ 1, 0, 0,
-                                                            0, 1, 0,
-                                                            0, 0, 1 ], 
-                                            referential, 
-                                            cls.anatomist.centralRef)
-        return point_object
+        cross_mesh = aims.read(cross_name)
+        motion = aims.Motion()
+        motion.setTranslation(coordinates)
+        aims.SurfaceManip.meshTransform(cross_mesh, motion)
+        cross_object = cls.anatomist.toAObject(cross_mesh)
+        cross_object.releaseAppRef()
+        return cross_object
 
     @classmethod
     def _load_sulci_color_map(cls):
