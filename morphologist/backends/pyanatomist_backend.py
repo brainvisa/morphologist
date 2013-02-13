@@ -7,7 +7,7 @@ from morphologist.gui.qt_backend import QtCore
 from morphologist.backends import Backend
 from morphologist.backends.mixins import DisplayManagerMixin, \
                                          ObjectsManagerMixin, LoadObjectError, \
-                                         ColorMap
+                                         ColorMap, ViewType
 
 
 class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
@@ -64,6 +64,10 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         window.setWindowFlags(QtCore.Qt.Widget)
         awindow = cls.anatomist.AWindow(cls.anatomist, window)
         parent.layout().addWidget(awindow.getInternalRep())
+        if view_type == ViewType.THREE_D:
+            awindow.camera(zoom=1.5, 
+                           view_quaternion=[0.558559238910675,0.141287177801132,\
+                                            0.196735754609108,0.793312430381775])
         return awindow
 
 ### objects loader backend    

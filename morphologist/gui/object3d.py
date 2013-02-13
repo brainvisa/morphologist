@@ -143,12 +143,8 @@ class APCObject(GroupObject):
     
     
 class View(object):
-    AXIAL = "Axial"
-    SAGITTAL = "Sagittal"
-    CORONAL = "Coronal"
-    THREE_D = "3D"
     
-    def __init__(self, parent, view_type=AXIAL):
+    def __init__(self, parent, view_type):
         self._backend = Backend.display_backend()
         self._backend_view = self._backend.create_view(parent, view_type)
         

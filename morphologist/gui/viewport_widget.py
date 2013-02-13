@@ -2,7 +2,7 @@ import os
 
 from morphologist_common import histo_analysis_widget
 
-from morphologist.backends.mixins import LoadObjectError, ColorMap
+from morphologist.backends.mixins import LoadObjectError, ColorMap, ViewType
 from morphologist.gui.object3d import Object3D, APCObject, View
 from morphologist.gui.qt_backend import QtCore, QtGui, loadUi 
 from morphologist.gui import ui_directory 
@@ -164,13 +164,13 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         self.ui.view8_label.setToolTip("Labeled sulci on white surface")
 
         for view_name, view_hook, view_type in \
-                [(self.RAW_MRI_ACPC, self.ui.view1_hook, View.AXIAL), 
-                 (self.BIAS_CORRECTED, self.ui.view2_hook, View.AXIAL),
-                 (self.BRAIN_MASK, self.ui.view4_hook, View.AXIAL), 
-                 (self.SPLIT_MASK, self.ui.view5_hook, View.AXIAL),
-                 (self.GREY_WHITE, self.ui.view6_hook, View.AXIAL),
-                 (self.GREY_SURFACE, self.ui.view7_hook, View.AXIAL), 
-                 (self.WHITE_SURFACE_SULCI, self.ui.view8_hook, View.THREE_D)]:
+                [(self.RAW_MRI_ACPC, self.ui.view1_hook, ViewType.AXIAL), 
+                 (self.BIAS_CORRECTED, self.ui.view2_hook, ViewType.AXIAL),
+                 (self.BRAIN_MASK, self.ui.view4_hook, ViewType.AXIAL), 
+                 (self.SPLIT_MASK, self.ui.view5_hook, ViewType.AXIAL),
+                 (self.GREY_WHITE, self.ui.view6_hook, ViewType.AXIAL),
+                 (self.GREY_SURFACE, self.ui.view7_hook, ViewType.THREE_D), 
+                 (self.WHITE_SURFACE_SULCI, self.ui.view8_hook, ViewType.THREE_D)]:
             layout = QtGui.QVBoxLayout(view_hook)
             layout.setMargin(0)
             layout.setSpacing(0)
