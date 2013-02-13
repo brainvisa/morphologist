@@ -152,7 +152,6 @@ class Parameters(object):
         return missing_values
 
     def some_file_exists(self):
-        existing_files = [] 
         for name in self._file_param_names:
             file_name = getattr(self, name)
             if os.path.isfile(file_name) or os.path.isdir(file_name):
