@@ -170,6 +170,13 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
 
     def _window_title(self):
         return "Morphologist - %s" % self.study.name
+    
+    def closeEvent(self, event):
+        msg = 'Stop current running analysis and quit ?'
+        if self._runner_still_running_after_stopping_asked_to_user(msg): 
+            event.ignore()
+        else:
+            event.accept()
 
 
 def create_main_window(study_file=None, mock=False, enable_brainomics_db=False):
