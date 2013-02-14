@@ -323,7 +323,7 @@
            <item>
             <widget class="QPushButton" name="edit_subjects_name_button">
              <property name="enabled">
-              <bool>true</bool>
+              <bool>false</bool>
              </property>
              <property name="text">
               <string>Edit subjects name</string>
@@ -333,7 +333,7 @@
            <item>
             <widget class="QPushButton" name="edit_subjects_group_button">
              <property name="enabled">
-              <bool>true</bool>
+              <bool>false</bool>
              </property>
              <property name="text">
               <string>Edit subjects group</string>
@@ -343,10 +343,13 @@
            <item>
             <widget class="QPushButton" name="remove_subjects_button">
              <property name="enabled">
-              <bool>true</bool>
+              <bool>false</bool>
              </property>
              <property name="text">
               <string>Remove subjects</string>
+             </property>
+             <property name="shortcut">
+              <string>Del</string>
              </property>
             </widget>
            </item>

@@ -69,6 +69,7 @@ class StudyEditorDialog(QtGui.QDialog):
 
         tablewidget_header = self.ui.subjects_tablewidget.horizontalHeader()
         tablewidget_header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.ui.subjects_tablewidget.itemSelectionChanged.connect(self.on_subjects_selection_changed)
         
         self._init_subjects_from_study_dialog()
         self._subject_from_db_dialog = None
@@ -184,7 +185,16 @@ class StudyEditorDialog(QtGui.QDialog):
                                       "Cannot find subjects in this directory.")
         else:
             self.add_subjects(subjects)
-    
+ 
+    @QtCore.Slot()
+    def on_subjects_selection_changed(self):
+        enable = False
+        if self.ui.subjects_tablewidget.selectedItems():
+            enable=True
+        self.ui.edit_subjects_name_button.setEnabled(enable)
+        self.ui.edit_subjects_group_button.setEnabled(enable)
+        self.ui.remove_subjects_button.setEnabled(enable)
+           
     # this slot is automagically connected
     @QtCore.Slot()
     def on_edit_subjects_name_button_clicked(self):
@@ -434,7 +444,7 @@ class SubjectsFromDatabaseDialog(QtGui.QDialog):
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         error = None
         try:
-            self.load(self.ui.server_url_lineEdit.text(), 
+            self.load(self.ui.server_url_field.text(), 
                       self.ui.rql_request_lineEdit.text())
         except LoadSubjectsFromDatabaseError, e:
             error = "Cannot load files from the database: \n%s" % unicode(e)
@@ -448,7 +458,7 @@ class SubjectsFromDatabaseDialog(QtGui.QDialog):
             self.accept()
 
     def set_server_url(self, server_url):
-        self.ui.server_url_lineEdit.setText(server_url)
+        self.ui.server_url_field.setText(server_url)
 
     def set_rql_request(self, rql_request):
         self.ui.rql_request_lineEdit.setText(rql_request)
