@@ -3,11 +3,14 @@ import os
 import tempfile
 import shutil
 
+
 RIGHT = 'right'
 LEFT = 'left'
 
+
 class SulciError(Exception):
     pass
+
 
 class Sulci(object):
          

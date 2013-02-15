@@ -4,6 +4,7 @@ import unittest
 from morphologist.gui.qt_backend import QtCore, QtGui
 from morphologist import settings
 
+
 class TestGuiBase(unittest.TestCase):
     _widgets_kept_alive = []
 

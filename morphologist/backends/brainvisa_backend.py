@@ -2,6 +2,7 @@ from soma import aims
 
 from morphologist.formats import Format, FormatsManager
 
+
 class BrainvisaFormatsManager(FormatsManager):
     _intra_analysis_acceptable_formats = set(['FLOAT', 'U8', 'ULONG', 'DOUBLE',
                                              'CDOUBLE', 'S16', 'LONG', 'S32',

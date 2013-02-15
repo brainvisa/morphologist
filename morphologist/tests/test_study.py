@@ -5,6 +5,7 @@ import filecmp
 from morphologist.study import SubjectExistsError
 from morphologist.tests.study import MockStudyTestCase
 
+
 class TestStudy(unittest.TestCase):
 
     def setUp(self):

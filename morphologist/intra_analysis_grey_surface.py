@@ -4,11 +4,14 @@ import tempfile
 
 from morphologist.intra_analysis_surface import Surface
 
+
 RIGHT = 'right'
 LEFT = 'left'
 
+
 class GreySurfaceError(Exception):
     pass
+
 
 class GreySurface(object):
          

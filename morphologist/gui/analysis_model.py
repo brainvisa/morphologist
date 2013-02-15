@@ -1,7 +1,7 @@
 import os
 import hashlib
 
-from .qt_backend import QtCore
+from morphologist.gui.qt_backend import QtCore
 
 
 class LazyAnalysisModel(QtCore.QObject):

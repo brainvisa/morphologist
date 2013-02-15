@@ -1,17 +1,17 @@
 import os
 
-from .qt_backend import QtCore, QtGui, loadUi 
+from morphologist.gui.qt_backend import QtCore, QtGui, loadUi 
 from morphologist.gui import ui_directory 
 from morphologist.intra_analysis_study import IntraAnalysisStudy
 from morphologist.study import StudySerializationError
-from .study_editor_widget import StudyEditorDialog
+from morphologist.gui.study_editor_widget import StudyEditorDialog
 from morphologist.runner import SomaWorkflowRunner
-from .study_model import LazyStudyModel
+from morphologist.gui.study_model import LazyStudyModel
 from morphologist.gui.analysis_model import LazyAnalysisModel
-from .viewport_widget import IntraAnalysisViewportModel,\
+from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
                              IntraAnalysisViewportView
-from .subjects_widget import SubjectsTableModel, SubjectsTableView
-from .runner_widget import RunnerView
+from morphologist.gui.subjects_widget import SubjectsTableModel, SubjectsTableView
+from morphologist.gui.runner_widget import RunnerView
 from morphologist.analysis import ImportationError
 
 

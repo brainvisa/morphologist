@@ -1,6 +1,6 @@
 import os
 
-from .qt_backend import QtCore, QtGui, loadUi 
+from morphologist.gui.qt_backend import QtCore, QtGui, loadUi 
 from morphologist.gui import ui_directory 
 from morphologist.runner import MissingInputFileError
 

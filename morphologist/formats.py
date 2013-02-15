@@ -1,9 +1,11 @@
-from . import settings
+from morphologist import settings
+
 
 class Format(object):
     def __init__(self, name):
         self.name = name
         self.extensions = []
+
 
 class FormatsManager(object):
     _formats = []

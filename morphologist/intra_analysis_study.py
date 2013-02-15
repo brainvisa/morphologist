@@ -1,6 +1,7 @@
 from morphologist.study import Study
 from morphologist.intra_analysis import IntraAnalysis
 
+
 class IntraAnalysisStudy(Study):
 
     @staticmethod

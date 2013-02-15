@@ -7,11 +7,14 @@ import shutil
 import brainvisa.axon
 from brainvisa.configuration import neuroConfig
 
+
 RIGHT = 'right'
 LEFT = 'left'
 
+
 class SulciLabellingError(Exception):
     pass
+
 
 class SulciLabelling(object):
          

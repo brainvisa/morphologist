@@ -1,4 +1,4 @@
-from .qt_backend import QtCore
+from morphologist.gui.qt_backend import QtCore
 
 
 class LazyStudyModel(QtCore.QObject):

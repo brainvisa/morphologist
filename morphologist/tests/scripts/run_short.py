@@ -8,6 +8,7 @@ from morphologist.tests.intra_analysis.test_study import TestBrainvisaTemplateSt
 
 from morphologist.tests.test_runner import TestThreadRunner, TestSomaWorkflowRunner
 
+
 if __name__=='__main__':
 
     suite = unittest.TestLoader().loadTestsFromTestCase(TestStudy)
