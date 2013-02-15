@@ -1,8 +1,8 @@
 import os, sys
 import unittest
 
-from morphologist.gui.qt_backend import QtGui, QtCore, QtTest
-from morphologist.gui.study_editor_widget import StudyEditorDialog
+from morphologist.core.gui.qt_backend import QtGui, QtCore, QtTest
+from morphologist.core.gui.study_editor_widget import StudyEditorDialog
 from morphologist.tests.gui import TestGui
 from morphologist.tests.intra_analysis.study import IntraAnalysisStudyTestCase
 

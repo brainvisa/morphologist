@@ -2,9 +2,9 @@ import os
 
 from morphologist_common import histo_analysis_widget
 
-from morphologist.backends.mixins import LoadObjectError, ColorMap, ViewType
-from morphologist.gui.object3d import Object3D, APCObject, View
-from morphologist.gui.qt_backend import QtCore, QtGui, loadUi 
+from morphologist.core.backends.mixins import LoadObjectError, ColorMap, ViewType
+from morphologist.core.gui.object3d import Object3D, APCObject, View
+from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
 from morphologist.gui import ui_directory 
 from morphologist.intra_analysis import IntraAnalysis
 

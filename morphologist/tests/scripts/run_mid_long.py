@@ -1,7 +1,7 @@
 import unittest
 
 from morphologist.tests.intra_analysis.test_runner_mock_analysis import TestMockIntraAnalysisSomaWorkflowRunner
-from morphologist.tests.test_object3d import TestObject3D
+from morphologist.core.tests.test_object3d import TestObject3D
 
 
 if __name__=='__main__':

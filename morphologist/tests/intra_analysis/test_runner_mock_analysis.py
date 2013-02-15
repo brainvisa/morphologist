@@ -2,7 +2,7 @@ import sys
 import optparse
 import unittest
 
-from morphologist.tests.test_runner import TestSomaWorkflowRunner
+from morphologist.core.tests.test_runner import TestSomaWorkflowRunner
 from morphologist.tests.intra_analysis.study import MockIntraAnalysisStudyTestCase, MockIntraAnalysisStudyTestCaseBvParamTemplate
 
 

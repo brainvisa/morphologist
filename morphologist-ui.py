@@ -1,7 +1,7 @@
 import sys
 import optparse
 
-from morphologist.gui.qt_backend import QtGui
+from morphologist.core.gui.qt_backend import QtGui
 from morphologist.gui.main_window import create_main_window
 
 

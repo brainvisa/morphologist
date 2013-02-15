@@ -1,12 +1,12 @@
 import unittest
 
-from morphologist.tests.test_study import TestStudy
-from morphologist.tests.test_analysis import TestAnalysis
+from morphologist.core.tests.test_study import TestStudy
+from morphologist.core.tests.test_analysis import TestAnalysis
 
 from morphologist.tests.intra_analysis.test_analysis import TestIntraAnalysis
 from morphologist.tests.intra_analysis.test_study import TestBrainvisaTemplateStudy, TestDefaultTemplateStudy
 
-from morphologist.tests.test_runner import TestThreadRunner, TestSomaWorkflowRunner
+from morphologist.core.tests.test_runner import TestSomaWorkflowRunner#, TestThreadRunner
 
 
 if __name__=='__main__':

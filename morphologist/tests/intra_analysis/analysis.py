@@ -1,10 +1,10 @@
 import os
 import getpass
 
-from morphologist.study import Subject
+from morphologist.core.study import Subject
 from morphologist.intra_analysis import IntraAnalysis
-from morphologist.tests.analysis import AnalysisTestCase
-from morphologist.tests import reset_directory
+from morphologist.core.tests.analysis import AnalysisTestCase
+from morphologist.core.tests import reset_directory
 
 
 class IntraAnalysisTestCase(AnalysisTestCase):

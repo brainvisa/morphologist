@@ -10,14 +10,14 @@ from brainvisa.processes import defaultContext
 from brainvisa.configuration import neuroConfig
 from brainvisa.data import neuroHierarchy
 
-from morphologist.study import Subject
-from morphologist.intra_analysis_steps import ImageImportation, \
+from morphologist.core.study import Subject
+from morphologist.intra_analysis.steps import ImageImportation, \
     SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation,\
     SplitBrain, GreyWhite, Grey, WhiteSurface, GreySurface, Sulci, SulciLabelling
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate, \
                                         IntraAnalysis    
-from morphologist.intra_analysis_graph_comparison import same_graphs
-import morphologist.intra_analysis_constants as constants
+from morphologist.intra_analysis.graph_comparison import same_graphs
+from morphologist.intra_analysis import constants
 
 
 class TestIntraAnalysisSteps(unittest.TestCase):

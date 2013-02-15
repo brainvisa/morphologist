@@ -1,6 +1,6 @@
 import unittest
 
-from morphologist.tests.test_study import TestStudy
+from morphologist.core.tests.test_study import TestStudy
 from morphologist.tests.intra_analysis.study import IntraAnalysisStudyTestCaseBvParamTemplate, IntraAnalysisStudyTestCase
 
 

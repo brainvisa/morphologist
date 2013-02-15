@@ -1,8 +1,8 @@
 import types
 import unittest
 
-from morphologist.gui.qt_backend import QtCore, QtGui
-from morphologist import settings
+from morphologist.core.gui.qt_backend import QtCore, QtGui
+from morphologist.core import settings
 
 
 class TestGuiBase(unittest.TestCase):
