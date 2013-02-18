@@ -37,7 +37,7 @@ class SpatialNormalization(Step):
         return ['commissure_coordinates', 'talairach_transformation']
 
     def get_command(self):
-        command = ['python', '-m', 'morphologist.intra_analysis.normalization', 
+        command = ['python', '-m', 'morphologist.intra_analysis.commands.normalization', 
                    self.inputs.mri, 
                    self.outputs.commissure_coordinates, 
                    self.outputs.talairach_transformation]
@@ -279,7 +279,7 @@ class WhiteSurface(Step):
         return ['white_surface']
  
     def get_command(self):
-        command = ['python', '-m', 'morphologist.intra_analysis.surface', 
+        command = ['python', '-m', 'morphologist.intra_analysis.commands.surface', 
                    self.inputs.grey,
                    self.outputs.white_surface]
         return command
@@ -301,7 +301,7 @@ class GreySurface(Step):
         return ['grey_surface']
  
     def get_command(self):
-        command = ['python', '-m', 'morphologist.intra_analysis.grey_surface',
+        command = ['python', '-m', 'morphologist.intra_analysis.commands.grey_surface',
                    self.inputs.corrected_mri,
                    self.inputs.split_mask,
                    self.inputs.grey,
@@ -330,7 +330,7 @@ class Sulci(Step):
         return ['sulci', 'sulci_data']
 
     def get_command(self):
-        command = ['python', '-m', 'morphologist.intra_analysis.sulci',
+        command = ['python', '-m', 'morphologist.intra_analysis.commands.sulci',
                    self.inputs.corrected_mri,
                    self.inputs.split_mask,
                    self.inputs.grey,
@@ -360,7 +360,7 @@ class SulciLabelling(Step):
         return ['labeled_sulci', 'labeled_sulci_data']
 
     def get_command(self):
-        command = ['python', '-m', 'morphologist.intra_analysis.sulci_labelling',
+        command = ['python', '-m', 'morphologist.intra_analysis.commands.sulci_labelling',
                    self.inputs.sulci,
                    self.outputs.labeled_sulci,
                    self.inputs.side]

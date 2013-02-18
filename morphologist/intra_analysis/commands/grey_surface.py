@@ -2,7 +2,7 @@ from optparse import OptionParser
 import os
 import tempfile
 
-from morphologist.intra_analysis.surface import Surface
+from morphologist.intra_analysis.commands.surface import Surface
 
 
 RIGHT = 'right'

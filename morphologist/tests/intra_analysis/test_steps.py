@@ -16,7 +16,7 @@ from morphologist.intra_analysis.steps import ImageImportation, \
     SplitBrain, GreyWhite, Grey, WhiteSurface, GreySurface, Sulci, SulciLabelling
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate, \
                                         IntraAnalysis    
-from morphologist.intra_analysis.graph_comparison import same_graphs
+from morphologist.tests.utils.graph_comparison import same_graphs
 from morphologist.intra_analysis import constants
 
 
