@@ -356,13 +356,14 @@ class  SomaWorkflowRunner(Runner):
             status = Runner.FAILED
         elif sw_status == sw.constants.DONE:
             status = Runner.SUCCESS
-        elif sw_status in [sw.constants.RUNNING, sw.constants.NOT_SUBMITTED]:
+        elif sw_status in [sw.constants.RUNNING, sw.constants.NOT_SUBMITTED, 
+                           sw.constants.QUEUED_ACTIVE, sw.constants.SUBMISSION_PENDING]:
             status = Runner.RUNNING
         elif sw_status in [sw.constants.WARNING, sw.constants.UNDETERMINED]:
             status = Runner.UNKNOWN
-        else: # QUEUED_ACTIVE, SYSTEM_ON_HOLD, USER_ON_HOLD,
+        else: # SYSTEM_ON_HOLD, USER_ON_HOLD,
               # USER_SYSTEM_ON_HOLD, SYSTEM_SUSPENDED, USER_SUSPENDED,
-              # USER_SYSTEM_SUSPENDED, SUBMISSION_PENDING
+              # USER_SYSTEM_SUSPENDED
             status = Runner.UNKNOWN
         return status
             
