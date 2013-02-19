@@ -1,6 +1,7 @@
 from optparse import OptionParser
 import os
 import uuid
+import tempfile
 
 import brainvisa.axon
 from brainvisa.processes import defaultContext
@@ -19,17 +20,12 @@ class SPMNormalization(object):
         neuroConfig.logFileName = ''
         brainvisa.axon.initializeProcesses()
         
-        transformations_directory = os.path.dirname(talairach_transformation)
         mri_name = os.path.basename(mri)
         mri_name = mri_name.split(".")[0]
-        mri_path = os.path.dirname(mri)
-        talairach_mni_transform = os.path.join(transformations_directory, 
-                                               "RawT1_%s_TO_Talairach-MNI.trm" % mri_name)
-        spm_transformation = os.path.join(mri_path, "%s_sn.mat" % mri_name)
-        normalized_mri =  os.path.join(mri_path, "normalized_SPM_%s.nii" 
-                                       % mri_name)
-        mri_referential = os.path.join(transformations_directory, 
-                                           "RawT1-%s.referential" % mri_name)
+        talairach_mni_transform = tempfile.NamedTemporaryFile(suffix="RawT1_%s_TO_Talairach-MNI.trm" % mri_name)
+        spm_transformation = tempfile.NamedTemporaryFile(suffix="%s_sn.mat" % mri_name)
+        normalized_mri = tempfile.NamedTemporaryFile(suffix= "normalized_SPM_%s.nii" % mri_name)
+        mri_referential = tempfile.NamedTemporaryFile(suffix="RawT1-%s.referential" % mri_name)
         try:
             configuration = Application().configuration
             spm_path = configuration.SPM.spm8_standalone_path
@@ -41,11 +37,11 @@ class SPMNormalization(object):
                                            "templates", "T1.nii")
             
             defaultContext().runProcess("SPMnormalizationPipeline", mri, 
-                                        talairach_mni_transform, 
-                                        spm_transformation, normalized_mri, 
+                                        talairach_mni_transform.name, 
+                                        spm_transformation.name, normalized_mri.name, 
                                         spm_t1_template)
             
-            mri_referential_file = open(mri_referential, "w")
+            mri_referential_file = open(mri_referential.name, "w")
             mri_referential_file.write("attributes = {'uuid' : '%s'}" 
                                        % cls._get_referential_uuid(mri))
             mri_referential_file.close()
@@ -61,20 +57,25 @@ class SPMNormalization(object):
                                                  "Talairach-AC_PC-Anatomist.referential")
             
             defaultContext().runProcess("TalairachTransformationFromNormalization", 
-                                        talairach_mni_transform, 
+                                        talairach_mni_transform.name, 
                                         talairach_transformation, 
                                         commissure_coordinates, 
-                                        mri, mri_referential, 
+                                        mri, mri_referential.name, 
                                         normalized_referential,
                                         tr_acpc_to_normalized, 
                                         acpc_referential)
             
             brainvisa.axon.cleanup()
         finally:
-            for temp_filename in (talairach_mni_transform, spm_transformation, 
+            for temp_file in (talairach_mni_transform, spm_transformation, 
                                   normalized_mri, mri_referential):
+                temp_file.close()
+                temp_filename = temp_file.name
                 if os.path.exists(temp_filename):
                     os.remove(temp_filename)
+                temp_filename_minf = temp_filename + ".minf"
+                if os.path.exists(temp_filename_minf):
+                    os.remove(temp_filename_minf)
         return neuroConfig.exitValue
   
     @staticmethod
