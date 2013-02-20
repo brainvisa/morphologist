@@ -271,6 +271,8 @@ class  SomaWorkflowRunner(Runner):
         if self._workflow_id is None:
             status = Runner.NOT_STARTED
         elif subject is None and stepname is None:
+            if update_status:
+                self._update_jobs_status()
             status = self._get_workflow_status()
         elif subject is not None and stepname is None:
             status = self._get_subject_status(subject.id(), update_status)
@@ -310,16 +312,22 @@ class  SomaWorkflowRunner(Runner):
         return status
     
     def _get_subject_status(self, subjectid, update_status=True):
-        status=Runner.SUCCESS
-        jobs_status=self._get_jobs_status(update_status)
-        for job_id in self._jobid_to_step[subjectid]:
-            job_status = jobs_status[job_id] 
-            if job_status in [Runner.RUNNING, Runner.FAILED]:
-                status = job_status
-                break
-            elif job_status == Runner.UNKNOWN:
-                status = job_status
+        status = Runner.NOT_STARTED
+        subject_jobs = self._get_subject_jobs(subjectid)
+        if subject_jobs:
+            jobs_status=self._get_jobs_status(update_status)
+            status = Runner.SUCCESS
+            for job_id in subject_jobs:
+                job_status = jobs_status[job_id] 
+                if job_status in [Runner.RUNNING, Runner.FAILED]:
+                    status = job_status
+                    break
+                elif job_status == Runner.UNKNOWN:
+                    status = job_status
         return status
+        
+    def _get_subject_jobs(self, subjectid):
+        return self._jobid_to_step.get(subjectid, [])
         
     def _get_jobs_status(self, update_status=True):
         if update_status or self._cached_jobs_status is None:
