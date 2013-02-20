@@ -8,33 +8,28 @@ class LazyStudyModel(QtCore.QObject):
     status_changed = QtCore.pyqtSignal()
     runner_status_changed = QtCore.pyqtSignal(bool) 
 
-    def __init__(self, study=None, runner=None, parent=None):
+    def __init__(self, study, runner, parent=None):
         super(LazyStudyModel, self).__init__(parent)
-        self.study = None
-        self.runner = None
-        self._subjects_row_index_to_id = [] # row index
-        self._status = []                   # row index
-
+        self._init_study_and_runner(study, runner)
+        self._update_all_status()
         self._update_interval = 2 # in seconds
         self._timer = QtCore.QTimer(self)
         self._timer.setInterval(self._update_interval * 1000)
-        if study is not None and runner is not None:
-            self.set_study_and_runner(study, runner)
+        self._timer.timeout.connect(self._update_all_status)
         self._timer.start()
 
-    def set_study_and_runner(self, study, runner):
-        if self.runner is None:
-            self.runner = runner
-            self._timer.timeout.connect(self._update_all_status)
-        else:
-            self.runner = runner
+    def _init_study_and_runner(self, study, runner):
+        self.runner = runner
         self.study = study
-        self._subjects_row_index_to_id = []
-        self._status = []
+        self._subjects_row_index_to_id = [] # row index
+        self._status = []                   # row index
         for subject_id, subject in self.study.subjects.iteritems():
             self._subjects_row_index_to_id.append(subject_id)
             self._status.append(self.DEFAULT_STATUS)
         self._runner_is_running = False
+    
+    def set_study_and_runner(self, study, runner):
+        self._init_study_and_runner(study, runner)
         self._update_all_status()
         self.changed.emit()
 

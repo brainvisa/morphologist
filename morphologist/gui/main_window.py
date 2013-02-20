@@ -22,16 +22,20 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         super(IntraAnalysisWindow, self).__init__()
         self.ui = loadUi(self.uifile, self)
 
-        self.study = None
-        self.runner = None
-        self.study_model = LazyStudyModel()
+        self.study = self._create_study(study_file)
+        self.runner = self._create_runner(self.study)
+        self.study_model = LazyStudyModel(self.study, self.runner)
         self.analysis_model = LazyAnalysisModel()
+        
+        self.viewport_model = IntraAnalysisViewportModel(self.analysis_model)
+        self.viewport_view = IntraAnalysisViewportView(self.viewport_model, 
+                                                       self.ui.viewport_frame)
+
         self.study_tablemodel = SubjectsTableModel(self.study_model)
         self.study_selection_model = QtGui.QItemSelectionModel(self.study_tablemodel)
+        self.study_selection_model.currentChanged.connect(self.on_selection_changed)
  
-        self.study_view = SubjectsTableView()
-        self.study_view.set_model(self.study_tablemodel)
-        self.study_view.set_selection_model(self.study_selection_model)
+        self.study_view = SubjectsTableView(self.study_tablemodel,self.study_selection_model)
         self.ui.study_widget_dock.setWidget(self.study_view)
         
         self.setCorner(QtCore.Qt.TopRightCorner, QtCore.Qt.RightDockWidgetArea)
@@ -39,24 +43,12 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self.setCorner(QtCore.Qt.TopLeftCorner, QtCore.Qt.LeftDockWidgetArea)
         self.setCorner(QtCore.Qt.BottomLeftCorner, QtCore.Qt.LeftDockWidgetArea)
 
-        self.viewport_model = IntraAnalysisViewportModel(self.analysis_model)
-        self.viewport_view = IntraAnalysisViewportView(self.viewport_model, 
-                                                       self.ui.viewport_frame)
-
-        self.runner_view = RunnerView()
-        self.runner_view.set_model(self.study_model)
+        self.runner_view = RunnerView(self.study_model)
         self.ui.runner_widget_dock.setWidget(self.runner_view)
         
         self.study_editor_widget_window = None
         self.enable_brainomics_db = enable_brainomics_db
-
-        self._init_qt_connections()
-
-        self.set_study(self._create_study(study_file))
-
-    def _init_qt_connections(self):
-        self.study_selection_model.currentChanged.connect(self.on_selection_changed)
-
+        
     def _create_study(self, study_file=None):
         if study_file:
             study = IntraAnalysisStudy.from_file(study_file)

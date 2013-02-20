@@ -8,26 +8,16 @@ from morphologist.core.runner import MissingInputFileError
 class RunnerView(QtGui.QWidget):
     uifile = os.path.join(ui_directory, 'runner_widget.ui')
     
-    def __init__(self, parent=None):
+    def __init__(self, model, parent=None):
         super(RunnerView, self).__init__(parent)
         self.ui = loadUi(self.uifile, self)
-        self._runner_model = None
-        self._disable_all_buttons()
+        self._init_model(model)
 
-    def _disable_all_buttons(self):
-        self.ui.run_button.setEnabled(False)
-        self.ui.stop_button.setEnabled(False)
-        self.ui.erase_button.setEnabled(False)
-
-    def set_model(self, model):
-        if self._runner_model is not None:
-            self._runner_model.runner_status_changed.disconnect(\
-                                    self.on_runner_status_changed)
-            self._runner_model.changed.disconnect(self.on_model_changed)
+    def _init_model(self, model):
         self._runner_model = model
-        self._runner_model.runner_status_changed.connect(\
-                            self.on_runner_status_changed)
+        self._runner_model.runner_status_changed.connect(self.on_runner_status_changed)
         self._runner_model.changed.connect(self.on_model_changed)
+        self.on_model_changed()
 
     @QtCore.Slot()
     def on_model_changed(self):

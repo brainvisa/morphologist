@@ -76,13 +76,20 @@ class SubjectsTableView(QtGui.QWidget):
             border: 0px
         }''' 
 
-    def __init__(self, parent=None):
+    def __init__(self, model, selection_model, parent=None):
         super(SubjectsTableView, self).__init__(parent)
         self.ui = loadUi(self.uifile, self)
         self._tableview = self.ui.subjects_tableview
-        self._tablemodel = None
+        self._init_models(model, selection_model)
         self._init_widget()
 
+    def _init_models(self, model, selection_model):
+        self._tablemodel = model
+        self._tableview.setModel(model)
+        self._tableview.setSelectionModel(selection_model)
+        self._tablemodel.modelReset.connect(self.on_modelReset)
+        self.on_modelReset()
+        
     def _init_widget(self):
         header = self._tableview.horizontalHeader()
         # FIXME : stylesheet has been disable and should stay disable until
@@ -94,13 +101,3 @@ class SubjectsTableView(QtGui.QWidget):
     def on_modelReset(self):
         self._tableview.selectRow(0)
         
-    def set_model(self, model):
-        if self._tablemodel is not None:
-            self._tablemodel.modelReset.disconnect(self.on_modelReset)
-        self._tablemodel = model
-        self._tableview.setModel(model)
-        self._tablemodel.modelReset.connect(self.on_modelReset)
-        self.on_modelReset()
-
-    def set_selection_model(self, selection_model):
-        self._tableview.setSelectionModel(selection_model)
