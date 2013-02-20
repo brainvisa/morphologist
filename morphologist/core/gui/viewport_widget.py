@@ -11,10 +11,20 @@ class AnalysisViewportModel(QtCore.QObject):
     changed = QtCore.pyqtSignal()
     parameter_changed = QtCore.pyqtSignal(list)
 
+    class LoadCallback(object):
+        def __init__(self, viewport_model, parameter_name):
+            self._viewport_model = viewport_model
+            self._parameter_name = parameter_name
+
+        def object_loaded(self, object3d):
+            self._viewport_model._observed_object_loaded(self._parameter_name,
+                object3d, self)
+
     def __init__(self, model):
         super(AnalysisViewportModel, self).__init__()
         self._init_model(model)
         self._init_3d_objects()
+        self._load_callbacks = set()
 
     def _init_model(self, model):
         self._analysis_model = model
@@ -39,8 +49,8 @@ class AnalysisViewportModel(QtCore.QObject):
         for parameter_name, filename in changed_parameters.iteritems():
             if parameter_name in self.observed_objects.keys():
                 self._update_observed_objects(parameter_name, filename)
-                updated_parameters.append(parameter_name)
-        self.parameter_changed.emit(updated_parameters)
+                #updated_parameters.append(parameter_name)
+        #self.parameter_changed.emit(updated_parameters)
         
     def _update_observed_objects(self, parameter_name, filename):
         object3d = self.observed_objects[parameter_name]
@@ -51,16 +61,30 @@ class AnalysisViewportModel(QtCore.QObject):
                 object3d = None
         else:
             try:
-                object3d = self.load_object(parameter_name, filename)
+                callback = AnalysisViewportModel.LoadCallback(self,
+                    parameter_name)
+                self._load_callbacks.add( callback )
+                self.load_object_async(parameter_name, filename,
+                    callback.object_loaded)
             except LoadObjectError:
                 object3d = None
+        #self.observed_objects[parameter_name] = object3d
+
+    def _observed_object_loaded(self, parameter_name, object3d, callback):
         self.observed_objects[parameter_name] = object3d
+        self._load_callbacks.remove(callback)
+        self.parameter_changed.emit([parameter_name])
 
     @staticmethod
     def load_object(parameter_name, filename):
         _ = parameter_name
         return Object3D.from_filename(filename)
-    
+
+    @staticmethod
+    def load_object_async(parameter_name, filename, callback):
+        _ = parameter_name
+        Object3D.from_filename_async(filename, callback)
+
     def _remove_useless_parameters(self, changed_parameters):
         pass
 

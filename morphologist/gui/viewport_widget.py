@@ -47,6 +47,19 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
             obj = Object3D.from_filename(filename) 
         return obj
 
+    @staticmethod
+    def load_object_async(parameter_name, filename, callback):
+        _ = parameter_name
+        obj = None
+        if (parameter_name == IntraAnalysis.COMMISSURE_COORDINATES):
+            obj = APCObject(filename)
+        elif (parameter_name == IntraAnalysis.HISTO_ANALYSIS):
+            obj = histo_analysis_widget.load_histo_data(filename)
+        else:
+            Object3D.from_filename_async(filename, callback)
+            return
+        callback(obj)
+
     def _remove_useless_parameters(self, changed_parameters):
         for sulci, labelled_sulci in [(IntraAnalysisParameterNames.LEFT_SULCI,
                                        IntraAnalysisParameterNames.LEFT_LABELED_SULCI), 

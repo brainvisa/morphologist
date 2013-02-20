@@ -30,14 +30,29 @@ class Object3D(AbstractObject3D):
         super(Object3D, self).__init__()
         if not _enable_init:
             raise Exception("Default constructor not allowed, use from_* static methods instead.")
+        self._load_callback = None
      
     @classmethod
     def from_filename(cls, filename):
         object3d = cls(_enable_init=True)
         object3d._friend_backend_object = object3d._backend.load_object(filename)
         return object3d
-    
-    @classmethod    
+
+    @classmethod
+    def from_filename_async(cls, filename, callback):
+        object3d = cls(_enable_init=True)
+        object3d._load_callback = callback
+        object3d._backend.load_object_async(filename, object3d._object_loaded)
+
+    def _object_loaded(self, aobject, filename):
+        if not aobject:
+          raise LoadObjectError(str(filename))
+        self._friend_backend_object = aobject
+        callback = self._load_callback
+        self._load_callback = None
+        callback(self)
+
+    @classmethod
     def from_fusion(cls, object1, object2, mode, rate):
         object3d = cls(_enable_init=True)
         object3d._friend_backend_object = object3d._backend.create_fusion_object(\

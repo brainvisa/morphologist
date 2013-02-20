@@ -143,7 +143,11 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         if aobject.getInternalRep() == None:
             raise LoadObjectError(str(filename))
         return aobject
-    
+
+    @classmethod
+    def load_object_async(cls, filename, callback):
+        cls.anatomist.loadObject(filename, asyncCallback=callback)
+
     @classmethod
     def create_point_object(cls, coordinates):
         cross_name = os.path.join(cls.anatomist.anatomistSharedPath(), 
