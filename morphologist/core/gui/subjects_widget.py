@@ -40,9 +40,11 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
         row, column = index.row(), index.column()
         if role == QtCore.Qt.DisplayRole:
             if column == SubjectsTableModel.GROUPNAME_COL:
-                return self._study_model.get_subject(row).groupname
+                subject = self._study_model.get_subject(row)
+                return subject.groupname
             if column == SubjectsTableModel.SUBJECTNAME_COL:
-                return self._study_model.get_subject(row).subjectname
+                subject = self._study_model.get_subject(row)
+                return subject.name
             if column == SubjectsTableModel.SUBJECTSTATUS_COL:
                 return self._study_model.get_status(row)
 

@@ -302,14 +302,13 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
     
     @classmethod
     def get_mri_path(cls, subject, directory):
-        return os.path.join(directory, subject.groupname, subject.subjectname, 
-                            cls.MODALITY, cls.ACQUISITION, subject.subjectname + ".nii")
+        return os.path.join(directory, subject.groupname, subject.name, 
+                            cls.MODALITY, cls.ACQUISITION, subject.name + ".nii")
 
     @classmethod
     def get_outputs(cls, subject, outputdir):
-        subjectname = subject.subjectname
-        default_acquisition_path = os.path.join(outputdir, subject.groupname, subjectname, 
-                                                cls.MODALITY, cls.ACQUISITION)
+        default_acquisition_path = os.path.join(outputdir, subject.groupname,
+                                subject.name, cls.MODALITY, cls.ACQUISITION)
         registration_path = os.path.join(default_acquisition_path, cls.REGISTRATION)
         default_analysis_path = os.path.join(default_acquisition_path, cls.ANALYSIS) 
           
@@ -322,62 +321,62 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
  
         parameters = OutputParameters(cls.output_file_param_names)
         parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(default_acquisition_path, 
-                                                   "%s.APC" % subjectname)
+                                                   "%s.APC" % subject.name)
         parameters[IntraAnalysis.TALAIRACH_TRANSFORMATION] = os.path.join(registration_path, 
                                                          "RawT1-%s_%s_TO_Talairach-ACPC.trm" 
-                                                         % (subjectname, cls.ACQUISITION))
+                                                         % (subject.name, cls.ACQUISITION))
         parameters[IntraAnalysis.HFILTERED] = os.path.join(default_analysis_path, 
-                                            "hfiltered_%s.nii" % subjectname)
+                                            "hfiltered_%s.nii" % subject.name)
         parameters[IntraAnalysis.WHITE_RIDGES] = os.path.join(default_analysis_path, 
-                                            "raw_whiteridge_%s.nii" % subjectname)
+                                            "raw_whiteridge_%s.nii" % subject.name)
         parameters[IntraAnalysis.REFINED_WHITE_RIDGES] = os.path.join(default_analysis_path, 
-                                            "whiteridge_%s.nii" % subjectname)
+                                            "whiteridge_%s.nii" % subject.name)
         parameters[IntraAnalysis.EDGES] = os.path.join(default_analysis_path, 
-                                            "edges_%s.nii" % subjectname)
+                                            "edges_%s.nii" % subject.name)
         parameters[IntraAnalysis.CORRECTED_MRI] = os.path.join(default_analysis_path, 
-                                            "nobias_%s.nii" % subjectname)
+                                            "nobias_%s.nii" % subject.name)
         parameters[IntraAnalysis.VARIANCE] = os.path.join(default_analysis_path, 
-                                            "variance_%s.nii" % subjectname)
+                                            "variance_%s.nii" % subject.name)
         parameters[IntraAnalysis.HISTO_ANALYSIS] = os.path.join(default_analysis_path, 
-                                            "nobias_%s.han" % subjectname)
+                                            "nobias_%s.han" % subject.name)
         parameters[IntraAnalysis.HISTOGRAM] = os.path.join(default_analysis_path, 
-                                            "nobias_%s.his" % subjectname)
+                                            "nobias_%s.his" % subject.name)
         parameters[IntraAnalysis.BRAIN_MASK] = os.path.join(segmentation_path, 
-                                            "brain_%s.nii" % subjectname)
+                                            "brain_%s.nii" % subject.name)
         parameters[IntraAnalysis.SPLIT_MASK] = os.path.join(segmentation_path, 
-                                            "voronoi_%s.nii" % subjectname)
+                                            "voronoi_%s.nii" % subject.name)
         parameters[IntraAnalysis.LEFT_GREY_WHITE] = os.path.join(\
-                        segmentation_path, "Lgrey_white_%s.nii" % subjectname)
+                        segmentation_path, "Lgrey_white_%s.nii" % subject.name)
         parameters[IntraAnalysis.RIGHT_GREY_WHITE] = os.path.join(\
-                        segmentation_path, "Rgrey_white_%s.nii" % subjectname)
+                        segmentation_path, "Rgrey_white_%s.nii" % subject.name)
         parameters[IntraAnalysis.LEFT_GREY] = os.path.join(\
-                        segmentation_path, "Lcortex_%s.nii" % subjectname)
+                        segmentation_path, "Lcortex_%s.nii" % subject.name)
         parameters[IntraAnalysis.RIGHT_GREY] = os.path.join(\
-                        segmentation_path, "Rcortex_%s.nii" % subjectname)
+                        segmentation_path, "Rcortex_%s.nii" % subject.name)
         parameters[IntraAnalysis.LEFT_GREY_SURFACE] = os.path.join(\
-                        surface_path, "%s_Lhemi.gii" % subjectname)
+                        surface_path, "%s_Lhemi.gii" % subject.name)
         parameters[IntraAnalysis.RIGHT_GREY_SURFACE] = os.path.join(\
-                        surface_path, "%s_Rhemi.gii" % subjectname)
+                        surface_path, "%s_Rhemi.gii" % subject.name)
         parameters[IntraAnalysis.LEFT_WHITE_SURFACE] = os.path.join(\
-                        surface_path, "%s_Lwhite.gii" % subjectname)
+                        surface_path, "%s_Lwhite.gii" % subject.name)
         parameters[IntraAnalysis.RIGHT_WHITE_SURFACE] = os.path.join(\
-                        surface_path, "%s_Rwhite.gii" % subjectname)
+                        surface_path, "%s_Rwhite.gii" % subject.name)
         parameters[IntraAnalysis.LEFT_SULCI] = os.path.join(\
-                        folds_path, "L%s.arg" % subjectname)
+                        folds_path, "L%s.arg" % subject.name)
         parameters[IntraAnalysis.RIGHT_SULCI] = os.path.join(\
-                        folds_path, "R%s.arg" % subjectname)
+                        folds_path, "R%s.arg" % subject.name)
         parameters[IntraAnalysis.LEFT_SULCI_DATA] = os.path.join(\
-                        folds_path, "L%s.data" % subjectname)
+                        folds_path, "L%s.data" % subject.name)
         parameters[IntraAnalysis.RIGHT_SULCI_DATA] = os.path.join(\
-                        folds_path, "R%s.data" % subjectname)
+                        folds_path, "R%s.data" % subject.name)
         parameters[IntraAnalysis.LEFT_LABELED_SULCI] = os.path.join(\
-                        session_auto_path, "L%s_default_session_auto.arg" % subjectname)
+                        session_auto_path, "L%s_default_session_auto.arg" % subject.name)
         parameters[IntraAnalysis.RIGHT_LABELED_SULCI] = os.path.join(\
-                        session_auto_path, "R%s_default_session_auto.arg" % subjectname)
+                        session_auto_path, "R%s_default_session_auto.arg" % subject.name)
         parameters[IntraAnalysis.LEFT_LABELED_SULCI_DATA] = os.path.join(\
-                        session_auto_path, "L%s_default_session_auto.data" % subjectname)
+                        session_auto_path, "L%s_default_session_auto.data" % subject.name)
         parameters[IntraAnalysis.RIGHT_LABELED_SULCI_DATA] = os.path.join(\
-                        session_auto_path, "R%s_default_session_auto.data" % subjectname)
+                        session_auto_path, "R%s_default_session_auto.data" % subject.name)
 
 
         return parameters
@@ -387,7 +386,7 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         group_path = os.path.join(outputdir, subject.groupname)
         create_directory_if_missing(group_path)
         
-        subject_path = os.path.join(group_path, subject.subjectname)
+        subject_path = os.path.join(group_path, subject.name)
         create_directory_if_missing(subject_path)
         
         t1mri_path = os.path.join(subject_path, cls.MODALITY)
@@ -438,72 +437,71 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
 
     @classmethod
     def get_mri_path(cls, subject, directory):
-        return os.path.join(directory, subject.groupname, subject.subjectname, 
-                            subject.subjectname + ".nii")
+        return os.path.join(directory, subject.groupname, subject.name, 
+                            subject.name + ".nii")
 
     @classmethod
     def get_outputs(cls, subject, outputdir):
         parameters = OutputParameters(cls.output_file_param_names)
 
-        subjectname = subject.subjectname
-        subject_path = os.path.join(outputdir, subject.groupname, subjectname)
+        subject_path = os.path.join(outputdir, subject.groupname, subject.name)
         parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(subject_path, 
-                                                         "%s.APC" %subjectname)
+                                                         "%s.APC" %subject.name)
         parameters[IntraAnalysis.TALAIRACH_TRANSFORMATION] = os.path.join(subject_path,
                                                             "RawT1-%s_TO_Talairach-ACPC.trm" 
-                                                            % subjectname)
+                                                            % subject.name)
         parameters[IntraAnalysis.HFILTERED] = os.path.join(subject_path, 
-                                            "hfiltered_%s.nii" % subjectname)
+                                            "hfiltered_%s.nii" % subject.name)
         parameters[IntraAnalysis.WHITE_RIDGES] = os.path.join(subject_path, 
-                                            "raw_whiteridge_%s.nii" % subjectname)
+                                            "raw_whiteridge_%s.nii" % subject.name)
         parameters[IntraAnalysis.REFINED_WHITE_RIDGES] = os.path.join(subject_path, 
-                                            "refined_whiteridge_%s.nii" % subjectname)
+                                            "refined_whiteridge_%s.nii" % subject.name)
         parameters[IntraAnalysis.EDGES] = os.path.join(subject_path, 
-                                            "edges_%s.nii" % subjectname)
+                                            "edges_%s.nii" % subject.name)
         parameters[IntraAnalysis.CORRECTED_MRI] = os.path.join(subject_path, 
-                                            "nobias_%s.nii" % subjectname)
+                                            "nobias_%s.nii" % subject.name)
         parameters[IntraAnalysis.VARIANCE] = os.path.join(subject_path, 
-                                            "variance_%s.nii" % subjectname)
+                                            "variance_%s.nii" % subject.name)
         parameters[IntraAnalysis.HISTO_ANALYSIS] = os.path.join(subject_path, 
-                                            "nobias_%s.han" % subjectname)
+                                            "nobias_%s.han" % subject.name)
         parameters[IntraAnalysis.HISTOGRAM] = os.path.join(subject_path, 
-                                            "nobias_%s.his" % subjectname)
+                                            "nobias_%s.his" % subject.name)
         parameters[IntraAnalysis.BRAIN_MASK] = os.path.join(subject_path, 
-                                            "brain_%s.nii" % subjectname)
+                                            "brain_%s.nii" % subject.name)
         parameters[IntraAnalysis.SPLIT_MASK] = os.path.join(subject_path, 
-                                            "voronoi_%s.nii" % subjectname)
+                                            "voronoi_%s.nii" % subject.name)
         parameters[IntraAnalysis.LEFT_GREY_WHITE] = os.path.join(\
-                subject_path, "left_grey_white_%s.nii" % subjectname)
+                subject_path, "left_grey_white_%s.nii" % subject.name)
         parameters[IntraAnalysis.RIGHT_GREY_WHITE] = os.path.join(\
-                subject_path, "right_grey_white_%s.nii" % subjectname)
+                subject_path, "right_grey_white_%s.nii" % subject.name)
         parameters[IntraAnalysis.LEFT_GREY] = os.path.join(\
-                subject_path, "left_grey_%s.nii" % subjectname)
+                subject_path, "left_grey_%s.nii" % subject.name)
         parameters[IntraAnalysis.RIGHT_GREY] = os.path.join(\
-                subject_path, "right_grey_%s.nii" % subjectname)
+                subject_path, "right_grey_%s.nii" % subject.name)
         parameters[IntraAnalysis.LEFT_GREY_SURFACE] = os.path.join(\
-                        subject_path, "left_grey_surface_%s.gii" % subjectname)
+                subject_path, "left_grey_surface_%s.gii" % subject.name)
         parameters[IntraAnalysis.RIGHT_GREY_SURFACE] = os.path.join(\
-                        subject_path, "right_grey_surface_%s.gii" % subjectname)
+                subject_path, "right_grey_surface_%s.gii" % subject.name)
         parameters[IntraAnalysis.LEFT_WHITE_SURFACE] = os.path.join(\
-                subject_path, "left_white_surface_%s.gii" % subjectname)
+                subject_path, "left_white_surface_%s.gii" % subject.name)
         parameters[IntraAnalysis.RIGHT_WHITE_SURFACE] = os.path.join(\
-                subject_path, "right_white_surface_%s.gii" % subjectname)
+                subject_path, "right_white_surface_%s.gii" % subject.name)
         parameters[IntraAnalysis.LEFT_SULCI] = os.path.join(\
-                subject_path, "left_sulci_%s.arg" % subjectname)        
+                subject_path, "left_sulci_%s.arg" % subject.name)
         parameters[IntraAnalysis.RIGHT_SULCI] = os.path.join(\
-                subject_path, "right_sulci_%s.arg" % subjectname)        
+                subject_path, "right_sulci_%s.arg" % subject.name)
         parameters[IntraAnalysis.LEFT_SULCI_DATA] = os.path.join(\
-                subject_path, "left_sulci_%s.data" % subjectname)        
+                subject_path, "left_sulci_%s.data" % subject.name)
         parameters[IntraAnalysis.RIGHT_SULCI_DATA] = os.path.join(\
-                subject_path, "right_sulci_%s.data" % subjectname)        
+                subject_path, "right_sulci_%s.data" % subject.name)
         parameters[IntraAnalysis.LEFT_LABELED_SULCI] = os.path.join(\
-                subject_path, "left_labeled_sulci_%s.arg" % subjectname)        
+                subject_path, "left_labeled_sulci_%s.arg" % subject.name)
         parameters[IntraAnalysis.RIGHT_LABELED_SULCI] = os.path.join(\
-                subject_path, "right_labeled_sulci_%s.arg" % subjectname) 
+                subject_path, "right_labeled_sulci_%s.arg" % subject.name) 
         parameters[IntraAnalysis.LEFT_LABELED_SULCI_DATA] = os.path.join(\
-                subject_path, "left_labeled_sulci_%s.data" % subjectname)
+                subject_path, "left_labeled_sulci_%s.data" % subject.name)
         parameters[IntraAnalysis.RIGHT_LABELED_SULCI_DATA] = os.path.join(\
-                subject_path, "right_labeled_sulci_%s.data" % subjectname) 
+                subject_path, "right_labeled_sulci_%s.data" % subject.name) 
 
         return parameters
 
@@ -511,7 +509,7 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
     def create_outputdirs(cls, subject, outputdir):
         group_path = os.path.join(outputdir, subject.groupname)
         create_directory_if_missing(group_path)
-        subject_path = os.path.join(group_path, subject.subjectname)
+        subject_path = os.path.join(group_path, subject.name)
         create_directory_if_missing(subject_path)    
 
     @classmethod

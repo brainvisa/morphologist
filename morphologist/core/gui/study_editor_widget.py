@@ -326,7 +326,7 @@ class StudyEditorDialog(QtGui.QDialog):
         self.ui.subjects_tablewidget.insertRow(new_row)
         if subject.groupname is not None:
             self._fill_groupname(new_row, subject.groupname)
-        self._fill_subjectname(new_row, subject.subjectname)
+        self._fill_subjectname(new_row, subject.name)
         self._fill_filename(new_row, subject.filename)
         
     def _fill_groupname(self, subject_index, groupname):

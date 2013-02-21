@@ -73,20 +73,19 @@ class MockAnalysis(Analysis):
         self._steps[2].outputs.output_2 = self.outputs.output_6
  
     def set_parameters(self, parameter_template, subject, outputdir):
-        subjectname = subject.subjectname
-        self.inputs.input_1 = self._generate_in_file_path(subjectname, "in1", outputdir)
-        self.inputs.input_2 = self._generate_in_file_path(subjectname, "in2", outputdir)
+        self.inputs.input_1 = self._generate_in_file_path(subject.name, "in1", outputdir)
+        self.inputs.input_2 = self._generate_in_file_path(subject.name, "in2", outputdir)
         self.inputs.input_3 = 1.2 
         self.inputs.input_4 = 2.3 
-        self.inputs.input_5 = self._generate_in_file_path(subjectname, "in5", outputdir)
+        self.inputs.input_5 = self._generate_in_file_path(subject.name, "in5", outputdir)
         self.inputs.input_6 = 4.6 
 
-        self.outputs.output_1 = self._generate_out_file_path(subjectname, "out1", outputdir)
-        self.outputs.output_2 = self._generate_out_file_path(subjectname, "out2", outputdir)
-        self.outputs.output_3 = self._generate_out_file_path(subjectname, "out3", outputdir)
-        self.outputs.output_4 = self._generate_out_file_path(subjectname, "out4", outputdir)
-        self.outputs.output_5 = self._generate_out_file_path(subjectname, "out5", outputdir)
-        self.outputs.output_6 = self._generate_out_file_path(subjectname, "out6", outputdir)
+        self.outputs.output_1 = self._generate_out_file_path(subject.name, "out1", outputdir)
+        self.outputs.output_2 = self._generate_out_file_path(subject.name, "out2", outputdir)
+        self.outputs.output_3 = self._generate_out_file_path(subject.name, "out3", outputdir)
+        self.outputs.output_4 = self._generate_out_file_path(subject.name, "out4", outputdir)
+        self.outputs.output_5 = self._generate_out_file_path(subject.name, "out5", outputdir)
+        self.outputs.output_6 = self._generate_out_file_path(subject.name, "out6", outputdir)
 
         
     def _generate_in_file_path(self, prefix, filename, outputdir):
