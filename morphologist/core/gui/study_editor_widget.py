@@ -12,7 +12,7 @@ from morphologist.core.formats import FormatsManager
 
 class StudyEditorDialog(QtGui.QDialog):
     on_apply_cancel_buttons_clicked_map = {}
-    default_group = Study.DEFAULT_GROUP
+    default_group = Subject.DEFAULT_GROUP
     group_column_width = 100
     GROUPNAME_COL = 0
     SUBJECTNAME_COL = 1

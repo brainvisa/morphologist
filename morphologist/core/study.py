@@ -5,6 +5,7 @@ from morphologist.core.analysis import InputParameters, OutputParameters, Import
 
 
 class Subject(object):
+    DEFAULT_GROUP = "group1"
     
     def __init__(self, groupname, subjectname, filename):
         self.groupname = groupname
@@ -43,7 +44,6 @@ class Subject(object):
 
 
 class Study(object):
-    DEFAULT_GROUP = "group1"
     default_outputdir = os.path.join(os.path.expanduser("~"),
                                 'morphologist/studies/study')
     
@@ -142,7 +142,7 @@ class Study(object):
         if subjectname is None:
             subjectname = self.define_subjectname_from_filename(filename)
         if groupname is None:
-            groupname = self.DEFAULT_GROUP
+            groupname = Subject.DEFAULT_GROUP
         subject = Subject(groupname, subjectname, filename)
         self.add_subject(subject)
         
