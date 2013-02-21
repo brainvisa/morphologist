@@ -428,7 +428,7 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
             if match:
                 groupname = match.group(1)
                 subjectname = match.group(2)
-                subject = Subject(groupname, subjectname, filename)
+                subject = Subject(subjectname, groupname, filename)
                 subjects.append(subject)
         return subjects
            
@@ -524,7 +524,7 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
             if match:
                 groupname = match.group(1)
                 subjectname = match.group(2)
-                subject = Subject(groupname, subjectname, filename)
+                subject = Subject(subjectname, groupname, filename)
                 subjects.append(subject)
         return subjects
 

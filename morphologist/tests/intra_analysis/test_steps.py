@@ -24,7 +24,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
     
     def setUp(self):
         self.subjectname = "hyperion"
-        self.group = "test"
+        self.groupname = "test"
         self.bv_db_directory = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/bv_database"
         self.output_directory = "/tmp/morphologist_test_steps"
         self.raw_mri = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/raw_irm/%s.nii" % self.subjectname
@@ -33,7 +33,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
             shutil.rmtree(self.output_directory)
         os.makedirs(self.output_directory)
   
-        subject = Subject(self.group, self.subjectname, self.raw_mri)
+        subject = Subject(self.subjectname, self.groupname, self.raw_mri)
         self.ref_outputs = BrainvisaIntraAnalysisParameterTemplate.get_outputs(subject, self.bv_db_directory)
         self.test_outputs = BrainvisaIntraAnalysisParameterTemplate.get_outputs(subject, self.output_directory)
         
@@ -56,7 +56,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
                                                settings=database_settings )
         neuroHierarchy.databases.add(database)
         t1mri = {"_database" : database.name, '_format' : 'NIFTI-1 image', 
-                "protocol" : self.group, "subject" : self.subjectname}
+                "protocol" : self.groupname, "subject" : self.subjectname}
         defaultContext().runProcess('ImportT1MRI', self.raw_mri, t1mri)
 
         pipeline=brainvisa.processes.getProcessInstance("morphologist")

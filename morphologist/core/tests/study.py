@@ -1,3 +1,4 @@
+from morphologist.core.study import Subject
 from morphologist.core.tests.mocks.study import MockStudy
 from morphologist.core.tests import reset_directory, remove_file
 
@@ -20,9 +21,9 @@ class AbstractStudyTestCase(object):
         raise NotImplementedError('AbstractStudyTestCase is an abstract class')
 
     def add_subjects(self):
-        for filename, subjectname, groupname in zip(self.filenames,
-                                self.subjectnames, self.groupnames):
-            subject = Subject(groupname, subjectname, filename)
+        for subjectname, groupname, filename in zip(self.subjectnames,
+                                    self.groupnames, self.filenames):
+            subject = Subject(subjectname, groupname, filename)
             self.study.add_subject(subject)
 
     def parameter_template(self):

@@ -350,7 +350,7 @@ class StudyEditorDialog(QtGui.QDialog):
         groupname = tablewidget.item(subject_index, self.GROUPNAME_COL).text()
         subjectname = tablewidget.item(subject_index, self.SUBJECTNAME_COL).text()
         filename = tablewidget.item(subject_index, self.FILENAME_COL).text()
-        return Subject(groupname, subjectname, filename)
+        return Subject(subjectname, groupname, filename)
 
 
 class SelectSubjectsDialog(QtGui.QFileDialog):

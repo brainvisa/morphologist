@@ -8,7 +8,7 @@ from morphologist.core.analysis import InputParameters, OutputParameters, Import
 class Subject(object):
     DEFAULT_GROUP = "group1"
     
-    def __init__(self, groupname, name, filename):
+    def __init__(self, name, groupname, filename):
         self.name = name 
         self.groupname = groupname
         self.filename = filename
@@ -16,7 +16,7 @@ class Subject(object):
     @classmethod
     def from_filename(cls, filename, groupname=DEFAULT_GROUP):
         subjectname = cls._define_subjectname_from_filename(filename)
-        return cls(groupname, subjectname, filename)
+        return cls(subjectname, groupname, filename)
 
     @staticmethod
     def _define_subjectname_from_filename(filename):
@@ -40,15 +40,15 @@ class Subject(object):
 
     def serialize(self):
         serialized = {}
-        serialized['filename'] = self.filename
-        serialized['groupname'] = self.groupname
         serialized['subjectname'] = self.name
+        serialized['groupname'] = self.groupname
+        serialized['filename'] = self.filename
         return serialized
 
     @classmethod
     def unserialize(cls, serialized):
-        subject = cls(groupname=serialized['groupname'],
-                      name=serialized['subjectname'], 
+        subject = cls(name=serialized['subjectname'], 
+                      groupname=serialized['groupname'],
                       filename=serialized['filename'])
         return subject
 

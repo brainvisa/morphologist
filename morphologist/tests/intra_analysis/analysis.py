@@ -26,12 +26,12 @@ class IntraAnalysisTestCase(AnalysisTestCase):
 
     def set_analysis_parameters(self):
         subjectname = "hyperion"
-        group = "group1"
+        groupname = "group1"
         
-        image_path = os.path.join('/neurospin', 'lnao', 'Panabase', 
-                                'cati-dev-prod', 'morphologist', 'raw_irm', subjectname + ".nii")
+        filename = os.path.join('/neurospin', 'lnao', 'Panabase',
+            'cati-dev-prod', 'morphologist', 'raw_irm', subjectname + ".nii")
          
-        subject = Subject(group, subjectname, image_path)
+        subject = Subject(subjectname, groupname, filename)
         self.analysis.set_parameters(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE,
                                      subject=subject, outputdir=self.outputdir) 
         IntraAnalysis.create_outputdirs(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE,
