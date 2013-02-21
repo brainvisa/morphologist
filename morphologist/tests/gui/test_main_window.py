@@ -61,9 +61,8 @@ class TestStudyWidget(TestGui):
         
     def _assert_subjects_exist(self, study):
         for filename in self.test_case.filenames:
-            subject = Subject(Subject.DEFAULT_GROUP, 
-                              Study.define_subjectname_from_filename(filename), 
-                              filename)
+            subject = Subject.from_filename(filename)
+            subject.groupname = Subject.DEFAULT_GROUP
             self.assert_(subject in study.subjects)
             subject_index = study.subjects.index(subject)
             study_subject = study.subjects[subject_index]

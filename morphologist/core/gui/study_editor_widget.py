@@ -96,8 +96,8 @@ class StudyEditorDialog(QtGui.QDialog):
                                                      
     def add_subjects_from_filenames(self, filenames, groupname=default_group):
         for filename in filenames:
-            subjectname = Study.define_subjectname_from_filename(filename)
-            self._add_subject(Subject(groupname, subjectname, filename))
+            subject = Subject.from_filename(filename, groupname)
+            self._add_subject(subject)
 
     def add_subjects(self, subjects):
         for subject in subjects:

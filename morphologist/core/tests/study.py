@@ -22,7 +22,8 @@ class AbstractStudyTestCase(object):
     def add_subjects(self):
         for filename, subjectname, groupname in zip(self.filenames,
                                 self.subjectnames, self.groupnames):
-            self.study.add_subject_from_file(filename, subjectname, groupname)
+            subject = Subject(groupname, subjectname, filename)
+            self.study.add_subject(subject)
 
     def parameter_template(self):
         raise NotImplementedError('AbstractStudyTestCase is an abstract class')

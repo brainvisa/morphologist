@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import collections
+import os
 
 from ordered_dict import OrderedDict
 
@@ -168,3 +169,10 @@ class Graph(object):
                 if not marks[dep]:
                     queue.append(dep)
                     marks[dep] = True
+
+
+def remove_all_extensions(filename):
+    name, ext = os.path.splitext(os.path.basename(filename))
+    while (ext != ""):
+        name, ext = os.path.splitext(name)
+    return name

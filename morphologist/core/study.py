@@ -1,6 +1,7 @@
 import os
 import json
 
+from morphologist.core.utils import remove_all_extensions
 from morphologist.core.analysis import InputParameters, OutputParameters, ImportationError
 
 
@@ -11,7 +12,16 @@ class Subject(object):
         self.name = name 
         self.groupname = groupname
         self.filename = filename
-        
+
+    @classmethod
+    def from_filename(cls, filename, groupname=DEFAULT_GROUP):
+        subjectname = cls._define_subjectname_from_filename(filename)
+        return cls(groupname, subjectname, filename)
+
+    @staticmethod
+    def _define_subjectname_from_filename(filename):
+        return remove_all_extensions(filename)
+ 
     def id(self):
         return self.groupname + "-" + self.name
         
@@ -27,7 +37,7 @@ class Subject(object):
     
     def __cmp__(self, other):
         return cmp(self.id(), other.id())
-        
+
     def serialize(self):
         serialized = {}
         serialized['filename'] = self.filename
@@ -128,23 +138,11 @@ class Study(object):
             serialized['outputs'][subject_id] = analysis.outputs.serialize()
         return serialized 
 
-    @staticmethod
-    def define_subjectname_from_filename(filename):
-        return remove_all_extensions(filename)
-
     def add_subject(self, subject):
         if subject in self.subjects:
             raise SubjectExistsError(subject)
         self.subjects.append(subject)
         self.analyses[subject.id()] = self._create_analysis()
-        
-    def add_subject_from_file(self, filename, subjectname=None, groupname=None):
-        if subjectname is None:
-            subjectname = self.define_subjectname_from_filename(filename)
-        if groupname is None:
-            groupname = Subject.DEFAULT_GROUP
-        subject = Subject(groupname, subjectname, filename)
-        self.add_subject(subject)
         
     @staticmethod
     def _create_analysis():
@@ -199,13 +197,6 @@ class Study(object):
         s += 'outputdir :' + str(self.outputdir) + '\n'
         s += 'subjects :' + repr(self.subjects) + '\n'
         return s
-
-
-def remove_all_extensions(filename):
-    name, ext = os.path.splitext(os.path.basename(filename))
-    while (ext != ""):
-        name, ext = os.path.splitext(name)
-    return name
 
 
 class StudySerializationError(Exception):
