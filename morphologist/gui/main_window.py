@@ -67,10 +67,11 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
         study = self._create_study()
         self.study_editor_widget_window = StudyEditorDialog(study, parent=self,
-                                            enable_brainomics_db=self.enable_brainomics_db)
+                            mode=StudyEditorDialog.NEW_STUDY,
+                            enable_brainomics_db=self.enable_brainomics_db)
         self.study_editor_widget_window.ui.accepted.connect(self.on_new_study_dialog_accepted)
         self.study_editor_widget_window.ui.show()
-        
+       
     @QtCore.Slot()
     def on_new_study_dialog_accepted(self):
         dialog = self.study_editor_widget_window
@@ -99,6 +100,50 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
                                        title, msg, QtGui.QMessageBox.Ok, self)
             msgbox.show()
 
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_action_edit_study_triggered(self):
+        msg = 'Stop current running analysis and edit the current study ?'
+        if self._runner_still_running_after_stopping_asked_to_user(msg): return
+        self.study_editor_widget_window = StudyEditorDialog(self.study,
+                    parent=self,
+                    mode=StudyEditorDialog.EDIT_STUDY,
+                    enable_brainomics_db=self.enable_brainomics_db)
+        self.study_editor_widget_window.ui.accepted.connect(self.on_edit_study_dialog_accepted)
+        self.study_editor_widget_window.ui.show()
+ 
+    @QtCore.Slot()
+    def on_edit_study_dialog_accepted(self):
+        pass
+#        study = self.study_editor_widget_window.study
+#        if study.has_subjects():
+#            parameter_template = self.study_editor_widget_window.parameter_template
+#            self._try_import_data_into_study(study, parameter_template)
+#            study.parameter_template = parameter_template
+#            study.set_analysis_parameters()
+#        self.set_study(study)
+#        self._try_save_to_backup_file()
+#        self.study_editor_widget_window = None
+
+    def _try_import_data_into_study(self, study, parameter_template):
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        try:
+            study.import_data(parameter_template)
+        except ImportationError, e:
+            QtGui.QApplication.restoreOverrideCursor()
+            title = "Cannot import some images"
+            msg = "%s" %(e)
+            QtGui.QMessageBox.critical(self, title, msg)
+        else:
+            QtGui.QApplication.restoreOverrideCursor()
+        if study.has_subjects():
+            title = "Images importation"
+            msg = "The images have been imported in %s directory." % \
+                                                        study.outputdir
+            msgbox = QtGui.QMessageBox(QtGui.QMessageBox.Information,
+                                       title, msg, QtGui.QMessageBox.Ok, self)
+            msgbox.show()
+ 
     # this slot is automagically connected
     @QtCore.Slot()
     def on_action_open_study_triggered(self):
