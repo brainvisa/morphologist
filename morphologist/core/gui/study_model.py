@@ -68,14 +68,11 @@ class LazyStudyModel(QtCore.QObject):
         if self.runner.is_running(subject, update_status=False):
             has_changed = self._update_one_status_for_one_subject_if_needed(\
                                                 row_index, "is running")
-        elif self.runner.has_not_started():
-            has_changed = self._update_output_files_status_for_one_subject_if_needed(row_index)
-        else:
-            if self.runner.has_failed(subject, update_status=False):
-                has_changed = self._update_one_status_for_one_subject_if_needed(\
+        elif self.runner.has_failed(subject, update_status=False):
+            has_changed = self._update_one_status_for_one_subject_if_needed(\
                                                 row_index, "last run failed")
-            else:
-                has_changed = self._update_output_files_status_for_one_subject_if_needed(row_index)
+        else:
+            has_changed = self._update_output_files_status_for_one_subject_if_needed(row_index)
         return has_changed
 
     def _update_output_files_status_for_one_subject_if_needed(self, row_index):

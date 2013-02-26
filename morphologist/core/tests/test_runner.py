@@ -89,7 +89,7 @@ class TestRunner(unittest.TestCase):
                         self.study.has_all_results())
 
     def assert_output_files_exist_only_for_succeed_steps(self):
-        step_status = self.runner.steps_status()
+        step_status = self.runner.get_steps_status()
         for step_status_for_subject in step_status.itervalues():
             for (step, status) in step_status_for_subject.itervalues():
                 if status == Runner.SUCCESS:

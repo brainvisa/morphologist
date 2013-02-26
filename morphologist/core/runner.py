@@ -21,6 +21,7 @@ from morphologist.core.utils import BidiMap, Graph
 
 class Runner(object):
     ''' Abstract class '''
+    NOT_STARTED = 'not started'
     FAILED = 'failed'
     SUCCESS = 'success'
     RUNNING = 'running'
@@ -30,9 +31,6 @@ class Runner(object):
         super(Runner, self).__init__()
         self._study = study
 
-    def has_not_started(self):
-        raise NotImplementedError("Runner is an abstract class.")
-
     def run(self):
         raise NotImplementedError("Runner is an abstract class.")
     
@@ -41,14 +39,17 @@ class Runner(object):
     
     def wait(self, subject=None, stepname=None):
         raise NotImplementedError("Runner is an abstract class.")
-
-    def has_failed(self, subject=None, stepname=None):
+    
+    def has_failed(self, subject=None, stepname=None, update_status=True):
         raise NotImplementedError("Runner is an abstract class.")
 
     def stop(self, subject=None, stepname=None):
         raise NotImplementedError("Runner is an abstract class.")
 
-    def steps_status(self):
+    def get_status(self, subject=None, stepname=None, update_status=True):
+        raise NotImplementedError("Runner is an abstract class.")
+    
+    def get_steps_status(self):
         raise NotImplementedError("Runner is an abstract class.")
 
     def _check_input_files(self):
@@ -149,15 +150,11 @@ class  SomaWorkflowRunner(Runner):
         self._workflow_id = None
         self._jobid_to_step = {} # subjectid -> (job_id -> step)
         self._cached_jobs_status = None
-        self._cached_failed_jobs = None
         
     def _delete_old_workflows(self):        
         for (workflow_id, (name, _)) in self._workflow_controller.workflows().iteritems():
             if name is not None and name.endswith(self.WORKFLOW_NAME_SUFFIX):
                 self._workflow_controller.delete_workflow(workflow_id)
-
-    def has_not_started(self):
-        return self._workflow_id is None
           
     def run(self):
         self._init_internal_parameters()
@@ -223,35 +220,8 @@ class  SomaWorkflowRunner(Runner):
         return self._study.name + " " + self.WORKFLOW_NAME_SUFFIX
             
     def is_running(self, subject=None, stepname=None, update_status=True):
-        running = False
-        if self._workflow_id is not None:
-            running = self._workflow_is_running(subject,
-                                   stepname, update_status)
-        return running
-
-    def _workflow_is_running(self, subject=None, stepname=None,
-                                                update_status=True):
-        if subject is None and stepname is None:
-            self._get_jobs_status(update_status)
-            status = self._workflow_controller.workflow_status(self._workflow_id)
-            running = (status == sw.constants.WORKFLOW_IN_PROGRESS)
-        elif subject is not None:
-            if stepname is None:
-                running = self._subject_is_running(subject.id(), update_status)
-            else:
-                raise NotImplementedError
-        else:
-            raise NotImplementedError
-        return running
-    
-    def _subject_is_running(self, subjectid, update_status=True):
-        jobs_status = self._get_jobs_status(update_status)
-        running = False
-        for job_id in self._jobid_to_step[subjectid]:
-            if jobs_status[job_id] == Runner.RUNNING:
-                running = True
-                break
-        return running
+        status = self.get_status(subject, stepname, update_status)
+        return status == Runner.RUNNING
             
     def wait(self, subject=None, stepname=None):
         if subject is None and stepname is None:
@@ -269,31 +239,8 @@ class  SomaWorkflowRunner(Runner):
         self._workflow_controller.wait_job([job_id])
         
     def has_failed(self, subject=None, stepname=None, update_status=True):
-        has_failed = None
-        if self.has_not_started():
-            raise RuntimeError("Runner has not been started.")
-        if subject is None and stepname is None:
-            has_failed = (len(Helper.list_failed_jobs(self._workflow_id, 
-                                      self._workflow_controller, 
-                                      include_aborted_jobs=True, 
-                                      include_user_killed_jobs=True)) != 0)
-        elif subject is not None:
-            if stepname is None:
-                has_failed = self._subject_has_failed(subject.id(), update_status)
-            else:
-                raise NotImplementedError
-        else:
-            raise NotImplementedError
-        return has_failed
-
-    def _subject_has_failed(self, subjectid, update_status=True):
-        jobs_status = self._get_jobs_status(update_status)
-        failed = False
-        for job_id in self._jobid_to_step[subjectid]:
-            if jobs_status[job_id] == Runner.FAILED:
-                failed = True
-                break
-        return failed
+        status = self.get_status(subject, stepname, update_status)
+        return status == Runner.FAILED
 
     def stop(self, subject=None, stepname=None):
         if not self.is_running():
@@ -320,7 +267,18 @@ class  SomaWorkflowRunner(Runner):
             analysis = self._study.analyses[subjectid]
             analysis.clear_results(stepnames)
 
-    def steps_status(self):
+    def get_status(self, subject=None, stepname=None, update_status=True):
+        if self._workflow_id is None:
+            status = Runner.NOT_STARTED
+        elif subject is None and stepname is None:
+            status = self._get_workflow_status()
+        elif subject is not None and stepname is None:
+            status = self._get_subject_status(subject.id(), update_status)
+        else:
+            raise NotImplementedError
+        return status
+    
+    def get_steps_status(self):
         steps_status = {}
         jobs_status = self._get_jobs_status()
         engine_workflow = self._workflow_controller.workflow(self._workflow_id)
@@ -335,10 +293,40 @@ class  SomaWorkflowRunner(Runner):
                 job_status = jobs_status[job_id]
                 steps_status[subjectid][stepname] = (step, job_status)
         return steps_status
-
+           
+    def _get_workflow_status(self):
+        sw_status = self._workflow_controller.workflow_status(self._workflow_id)
+        if (sw_status in [sw.constants.WORKFLOW_IN_PROGRESS, sw.constants.WORKFLOW_NOT_STARTED]):
+            status = Runner.RUNNING
+        else:
+            has_failed = (len(Helper.list_failed_jobs(self._workflow_id, 
+                                                      self._workflow_controller, 
+                                                      include_aborted_jobs=True, 
+                                                      include_user_killed_jobs=True)) != 0)
+            if has_failed:
+                status = Runner.FAILED
+            else:
+                status = Runner.SUCCESS
+        return status
+    
+    def _get_subject_status(self, subjectid, update_status=True):
+        status=Runner.SUCCESS
+        jobs_status=self._get_jobs_status(update_status)
+        for job_id in self._jobid_to_step[subjectid]:
+            job_status = jobs_status[job_id] 
+            if job_status in [Runner.RUNNING, Runner.FAILED]:
+                status = job_status
+                break
+            elif job_status == Runner.UNKNOWN:
+                status = job_status
+        return status
+        
     def _get_jobs_status(self, update_status=True):
-        if not update_status and self._cached_jobs_status is not None:
-            return self._cached_jobs_status
+        if update_status or self._cached_jobs_status is None:
+            self._update_jobs_status()
+        return self._cached_jobs_status
+        
+    def _update_jobs_status(self):
         jobs_status = {} # job_id -> status
         job_info_seq, _, _, _ = self._workflow_controller.workflow_elements_status(self._workflow_id)
         for job_id, sw_status, _, exit_info, _ in job_info_seq:
@@ -346,8 +334,7 @@ class  SomaWorkflowRunner(Runner):
             status = self._sw_status_to_runner_status(sw_status, exit_value)
             jobs_status[job_id] = status
         self._cached_jobs_status = jobs_status
-        return jobs_status
-
+        
     def _sw_status_to_runner_status(self, sw_status, exit_value):
         if sw_status in [sw.constants.FAILED,
                          sw.constants.DELETE_PENDING,
@@ -361,19 +348,17 @@ class  SomaWorkflowRunner(Runner):
             status = Runner.RUNNING
         elif sw_status in [sw.constants.WARNING, sw.constants.UNDETERMINED]:
             status = Runner.UNKNOWN
-        else: # SYSTEM_ON_HOLD, USER_ON_HOLD,
-              # USER_SYSTEM_ON_HOLD, SYSTEM_SUSPENDED, USER_SUSPENDED,
-              # USER_SYSTEM_SUSPENDED
+        else: 
+            # SYSTEM_ON_HOLD, USER_ON_HOLD,
+            # USER_SYSTEM_ON_HOLD, SYSTEM_SUSPENDED, USER_SUSPENDED,
+            # USER_SYSTEM_SUSPENDED
             status = Runner.UNKNOWN
         return status
             
-    def _get_failed_jobs(self, update_cache=True):
-        if not update_cache and self._cached_failed_jobs is not None:
-            return self._cached_failed_jobs
+    def _get_failed_jobs(self):
         exit_info_by_job = self._sw_exit_info_by_job()
         dep_graph = self._sw_dep_graph(exit_info_by_job)
         failed_jobs = self._sw_really_failed_jobs_from_dep_graph(dep_graph)
-        self._cached_failed_jobs = failed_jobs
         return failed_jobs
 
     def _sw_exit_info_by_job(self):
