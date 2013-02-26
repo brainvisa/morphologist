@@ -49,7 +49,8 @@ class StudyEditorDialog(QtGui.QDialog):
     def __init__(self, study, parent=None, enable_brainomics_db=False):
         super(StudyEditorDialog, self).__init__(parent)
         self.study = study
-        self.parameter_template = study.analysis_cls().PARAMETER_TEMPLATES[0]
+        self.parameter_template = None
+        self._default_parameter_template = study.analysis_cls().PARAMETER_TEMPLATES[0]
         self._lineEdit_lock = False
         uifile = os.path.join(ui_directory, 'study_editor_widget.ui')
         self.ui = loadUi(uifile, self)
@@ -57,41 +58,47 @@ class StudyEditorDialog(QtGui.QDialog):
         cancel_id = QtGui.QDialogButtonBox.Cancel
         self.ui.apply_button = self.ui.apply_cancel_buttons.button(apply_id)
         self.ui.cancel_button = self.ui.apply_cancel_buttons.button(cancel_id)
-
-        # TODO : fill tablewidget model with the study content
-        self.ui.studyname_lineEdit.setText(self.study.name)
-        self.ui.outputdir_lineEdit.setText(self.study.outputdir)
-        self.ui.backup_filename_lineEdit.setText(self.study.backup_filename)
-        for param_template_name in self.study.analysis_cls().PARAMETER_TEMPLATES:
-            self.ui.parameter_template_combobox.addItem(param_template_name)
-            if param_template_name == self.parameter_template:
-                self.ui.parameter_template_combobox.setCurrentIndex(self.ui.parameter_template_combobox.count()-1)
+        self._create_parameter_template_combobox()
 
         tablewidget_header = self.ui.subjects_tablewidget.horizontalHeader()
         tablewidget_header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
         self.ui.subjects_tablewidget.itemSelectionChanged.connect(self.on_subjects_selection_changed)
         
+        self._init_ui_from_study()
         self._init_subjects_from_study_dialog()
-        self._subject_from_db_dialog = None
+        self._init_db_dialog(enable_brainomics_db)
+       
+    def _create_parameter_template_combobox(self):
+        for param_template_name in self.study.analysis_cls().PARAMETER_TEMPLATES:
+            self.ui.parameter_template_combobox.addItem(param_template_name)
+            if param_template_name == self._default_parameter_template:
+                self.ui.parameter_template_combobox.setCurrentIndex(self.ui.parameter_template_combobox.count()-1)
+
+    def _init_ui_from_study(self):
+        # TODO : fill tablewidget model with the study content
+        self.ui.studyname_lineEdit.setText(self.study.name)
+        self.ui.outputdir_lineEdit.setText(self.study.outputdir)
+        self.ui.backup_filename_lineEdit.setText(self.study.backup_filename)
+        for subject in self.study.subjects.itervalues():
+            self._add_subject(subject)
+
+    def _init_db_dialog(self, enable_brainomics_db):
         if enable_brainomics_db:
             self.ui.add_subjects_from_database_button.setEnabled(True)
-            self._init_db_dialog()
+            self._subject_from_db_dialog = SubjectsFromDatabaseDialog(self.ui)
+            self._subject_from_db_dialog.set_group(self.default_group)
+            self._subject_from_db_dialog.set_server_url("http://neurospin-cubicweb.intra.cea.fr:8080")
+            self._subject_from_db_dialog.set_rql_request('''Any X WHERE X is Scan, X type "raw T1", X concerns A, A age 25''')
+            self._subject_from_db_dialog.accepted.connect(self.on_subject_from_db_dialog_accepted)
         else:
             self.ui.add_subjects_from_database_button.hide()    
-
-    def _init_db_dialog(self):
-        self._subject_from_db_dialog = SubjectsFromDatabaseDialog(self.ui)
-        self._subject_from_db_dialog.set_group(self.default_group)
-        self._subject_from_db_dialog.set_server_url("http://neurospin-cubicweb.intra.cea.fr:8080")
-        self._subject_from_db_dialog.set_rql_request('''Any X WHERE X is Scan, X type "raw T1", X concerns A, A age 25''')
-        self._subject_from_db_dialog.accepted.connect(self.on_subject_from_db_dialog_accepted)
              
     def _init_subjects_from_study_dialog(self):
         outputdir = self.study.outputdir
         parameter_templates = self.study.analysis_cls().PARAMETER_TEMPLATES
-        selected_template = self.parameter_template
-        self._subjects_from_study_dialog = SelectStudyDirectoryDialog(self.ui, outputdir, 
-                                            parameter_templates, selected_template)
+        selected_template = self._default_parameter_template
+        self._subjects_from_study_dialog = SelectStudyDirectoryDialog(self.ui,
+                            outputdir, parameter_templates, selected_template)
         self._subjects_from_study_dialog.accepted.connect(self.on_subjects_from_study_dialog_accepted)
                                                      
     def add_subjects_from_filenames(self, filenames, groupname=default_group):
@@ -102,6 +109,14 @@ class StudyEditorDialog(QtGui.QDialog):
     def add_subjects(self, subjects):
         for subject in subjects:
             self._add_subject(subject)
+
+    def _add_subject(self, subject):
+        new_row = self.ui.subjects_tablewidget.rowCount()
+        self.ui.subjects_tablewidget.insertRow(new_row)
+        if subject.groupname is not None:
+            self._fill_groupname(new_row, subject.groupname)
+        self._fill_subjectname(new_row, subject.name)
+        self._fill_filename(new_row, subject.filename)
         
     # this slot is automagically connected
     @QtCore.Slot("const QString &")
@@ -199,21 +214,21 @@ class StudyEditorDialog(QtGui.QDialog):
     @QtCore.Slot()
     def on_edit_subjects_name_button_clicked(self):
         subject, ok = QtGui.QInputDialog.getText(self, "Enter the subject name", "Subject name:")
-        if ok:
-            for selection_range in self.ui.subjects_tablewidget.selectedRanges():
-                for row in range(selection_range.topRow(), selection_range.bottomRow()+1):
-                    item = self.ui.subjects_tablewidget.item(row, self.SUBJECTNAME_COL)
-                    item.setText(subject)
+        if not ok: return
+        for selection_range in self.ui.subjects_tablewidget.selectedRanges():
+            for row in range(selection_range.topRow(), selection_range.bottomRow()+1):
+                item = self.ui.subjects_tablewidget.item(row, self.SUBJECTNAME_COL)
+                item.setText(subject)
     
     # this slot is automagically connected
     @QtCore.Slot()
     def on_edit_subjects_group_button_clicked(self): 
         group, ok = QtGui.QInputDialog.getText(self, "Enter the group name", "Group name:")
-        if ok:
-            for selection_range in self.ui.subjects_tablewidget.selectedRanges():
-                for row in range(selection_range.topRow(), selection_range.bottomRow()+1):
-                    item = self.ui.subjects_tablewidget.item(row, self.GROUPNAME_COL)
-                    item.setText(group)
+        if not ok: return
+        for selection_range in self.ui.subjects_tablewidget.selectedRanges():
+            for row in range(selection_range.topRow(), selection_range.bottomRow()+1):
+                item = self.ui.subjects_tablewidget.item(row, self.GROUPNAME_COL)
+                item.setText(group)
 
     # this slot is automagically connected
     @QtCore.Slot()
@@ -248,13 +263,14 @@ class StudyEditorDialog(QtGui.QDialog):
         outputdir = self.ui.outputdir_lineEdit.text()
         backup_filename = self.ui.backup_filename_lineEdit.text()
         subjects = []
-        for i in range(self.ui.subjects_tablewidget.rowCount()):
-            subjects.append(self._get_subject(i))
+        for subject_index in range(self.ui.subjects_tablewidget.rowCount()):
+            subjects.append(self._get_subject(subject_index))
             
         if self._check_study_consistency(outputdir, subjects, backup_filename): 
             self.study.name = studyname
             self.study.outputdir = outputdir
             self.study.backup_filename = backup_filename 
+            # TODO : update list of subject
             for subject in subjects:
                 self.study.add_subject(subject)
             self.parameter_template = self.ui.parameter_template_combobox.currentText()
@@ -320,15 +336,7 @@ class StudyEditorDialog(QtGui.QDialog):
                                        "identifier: \n %s" %(multiple_str))
             return False
         return True
-        
-    def _add_subject(self, subject):
-        new_row = self.ui.subjects_tablewidget.rowCount()
-        self.ui.subjects_tablewidget.insertRow(new_row)
-        if subject.groupname is not None:
-            self._fill_groupname(new_row, subject.groupname)
-        self._fill_subjectname(new_row, subject.name)
-        self._fill_filename(new_row, subject.filename)
-        
+               
     def _fill_groupname(self, subject_index, groupname):
         groupname_item = QtGui.QTableWidgetItem(groupname)
         self.ui.subjects_tablewidget.setItem(subject_index,

@@ -63,9 +63,9 @@ class TestStudyWidget(TestGui):
         for filename in self.test_case.filenames:
             subject = Subject.from_filename(filename)
             subject.groupname = Subject.DEFAULT_GROUP
-            self.assert_(subject in study.subjects)
-            subject_index = study.subjects.index(subject)
-            study_subject = study.subjects[subject_index]
+            subject_id = subject.id()
+            self.assert_(subject_id in study.subjects)
+            study_subject = study.subjects[subject_id]
             self.assert_(os.path.exists(study_subject.filename))
             self.assert_(study_subject.filename.startswith(self.test_case.outputdir))
 

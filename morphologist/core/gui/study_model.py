@@ -1,7 +1,9 @@
 from morphologist.core.gui.qt_backend import QtCore
+from morphologist.core.runner import Runner
 
 
 class LazyStudyModel(QtCore.QObject):
+    DEFAULT_STATUS = ''
     changed = QtCore.pyqtSignal()
     status_changed = QtCore.pyqtSignal()
     runner_status_changed = QtCore.pyqtSignal(bool) 
@@ -10,8 +12,8 @@ class LazyStudyModel(QtCore.QObject):
         super(LazyStudyModel, self).__init__(parent)
         self.study = None
         self.runner = None
-        self._subjects = []
-        self._status = {}
+        self._subjects_row_index_to_id = [] # row index
+        self._status = []                   # row index
 
         self._update_interval = 2 # in seconds
         self._timer = QtCore.QTimer(self)
@@ -27,22 +29,25 @@ class LazyStudyModel(QtCore.QObject):
         else:
             self.runner = runner
         self.study = study
-        self._subjects = self.study.subjects
-        self._subjects.sort()
-        self._status = {}
+        self._subjects_row_index_to_id = []
+        self._status = []
+        for subject_id, subject in self.study.subjects.iteritems():
+            self._subjects_row_index_to_id.append(subject_id)
+            self._status.append(self.DEFAULT_STATUS)
         self._runner_is_running = False
         self._update_all_status()
         self.changed.emit()
 
-    def get_status(self, index):
-        subject = self._subjects[index]
-        return self._status[subject]
+    def get_status(self, row_index):
+        return self._status[row_index]
 
-    def get_subject(self, index):
-        return self._subjects[index]
+    def get_subject(self, row_index):
+        subject_id = self._subjects_row_index_to_id[row_index]
+        subject = self.study.subjects[subject_id]
+        return subject
 
     def subject_count(self):
-        return len(self._subjects)
+        return len(self._subjects_row_index_to_id)
 
     @QtCore.Slot()
     def _update_all_status(self):
@@ -51,44 +56,46 @@ class LazyStudyModel(QtCore.QObject):
         if new_runner_status != self._runner_is_running:
             self._runner_is_running = new_runner_status
             self.runner_status_changed.emit(self._runner_is_running)
-        for subject in self._subjects:
-            has_changed |= self._update_status_for_one_subject(subject) 
+        for row_index, _ in enumerate(self._subjects_row_index_to_id):
+            has_changed |= self._update_status_for_one_subject(row_index) 
         if has_changed:
             self.status_changed.emit()
 
-    def _update_status_for_one_subject(self, subject):
+    def _update_status_for_one_subject(self, row_index):
         has_changed = False
+        subject_id = self._subjects_row_index_to_id[row_index]
+        subject = self.study.subjects[subject_id]
         if self.runner.is_running(subject, update_status=False):
             has_changed = self._update_one_status_for_one_subject_if_needed(\
-                                                subject, "is running")
+                                                row_index, "is running")
         elif self.runner.has_not_started():
-            has_changed = self._update_output_files_status_for_one_subject_if_needed(subject)
+            has_changed = self._update_output_files_status_for_one_subject_if_needed(row_index)
         else:
             if self.runner.has_failed(subject, update_status=False):
                 has_changed = self._update_one_status_for_one_subject_if_needed(\
-                                                subject, "last run failed")
+                                                row_index, "last run failed")
             else:
-                has_changed = self._update_output_files_status_for_one_subject_if_needed(subject)
+                has_changed = self._update_output_files_status_for_one_subject_if_needed(row_index)
         return has_changed
 
-    def _update_output_files_status_for_one_subject_if_needed(self,
-                                                        subject):
-        analysis = self.study.analyses[subject.id()]
+    def _update_output_files_status_for_one_subject_if_needed(self, row_index):
+        subject_id = self._subjects_row_index_to_id[row_index]
+        analysis = self.study.analyses[subject_id]
         has_changed = False
         if not analysis.outputs.some_file_exists():
             has_changed = self._update_one_status_for_one_subject_if_needed(\
-                                                subject, "no output files")
+                                                row_index, "no output files")
         elif analysis.outputs.all_file_exists():
             has_changed = self._update_one_status_for_one_subject_if_needed(\
-                                            subject, "output files exist")
+                                            row_index, "output files exist")
         else:
             has_changed = self._update_one_status_for_one_subject_if_needed(\
-                                        subject, "some output files exist")
+                                        row_index, "some output files exist")
         return has_changed
 
-    def _update_one_status_for_one_subject_if_needed(self, subject, status):
+    def _update_one_status_for_one_subject_if_needed(self, row_index, status):
         has_changed = False 
-        if self._status.get(subject) != status:
-            self._status[subject] = status
+        if self._status[row_index] != status:
+            self._status[row_index] = status
             has_changed = True
         return has_changed

@@ -16,7 +16,8 @@ class TestStudy(unittest.TestCase):
         self.study = self.test_case.study
  
     def test_subject_exists_error(self):
-        existing_subject = self.study.subjects[0]
+        first_subject_id = next(self.study.subjects.iterkeys())
+        existing_subject = self.study.subjects[first_subject_id]
         
         self.assertRaises(SubjectExistsError, 
                           self.test_case.study_cls().add_subject,

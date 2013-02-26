@@ -54,8 +54,8 @@ class Runner(object):
     def _check_input_files(self):
         subjects_with_missing_inputs = []
 
-        for subject in self._study.subjects:
-            analysis = self._study.analyses[subject.id()]
+        for subject_id, subject in self._study.subjects.iteritems():
+            analysis = self._study.analyses[subject_id]
             if not analysis.inputs.all_file_exists():
                 subjects_with_missing_inputs.append(str(subject))
         if len(subjects_with_missing_inputs) != 0:
@@ -182,8 +182,8 @@ class  SomaWorkflowRunner(Runner):
         dependencies = []
         groups = []
         
-        for subject in self._study.subjects:
-            analysis = self._study.analyses[subject.id()]
+        for subject_id, subject in self._study.subjects.iteritems():
+            analysis = self._study.analyses[subject_id]
             subject_jobs = []
             previous_job = None
             
@@ -198,7 +198,7 @@ class  SomaWorkflowRunner(Runner):
             # skip finished analysis
             if len(subject_jobs) != 0:
                 group = Group(name=str(subject), elements=subject_jobs)
-                group.user_storage = subject.id()
+                group.user_storage = subject_id
                 groups.append(group)
             jobs.extend(subject_jobs)
         

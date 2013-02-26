@@ -9,9 +9,9 @@ class AbstractStudyTestCase(object):
         self.study = None
         self.studyname = None
         self.outputdir = None
-        self.filenames = None
         self.subjectnames = None
         self.groupnames = None
+        self.filenames = None
 
     def create_study(self):
         self.study = self.study_cls(self.studyname, self.outputdir)
@@ -95,10 +95,13 @@ class MockStudyTestCase(AbstractStudyTestCase):
         pass
 
     def step_to_wait_testcase_1(self):
-        return self.study.subjects[0], "0_step1"
+        first_subject_id = next(self.study.subjects.iterkeys())
+        return self.study.subjects[first_subject_id], "0_step1"
 
     def step_to_wait_testcase_2(self):
-        return self.study.subjects[0], "1_step2"
+        first_subject_id = next(self.study.subjects.iterkeys())
+        return self.study.subjects[first_subject_id], "1_step2"
 
     def step_to_wait_testcase_3(self):
-        return self.study.subjects[0], "2_step3"
+        first_subject_id = next(self.study.subjects.iterkeys())
+        return self.study.subjects[first_subject_id], "2_step3"

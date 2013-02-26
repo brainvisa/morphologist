@@ -1,7 +1,7 @@
 import os
 import json
 
-from morphologist.core.utils import remove_all_extensions
+from morphologist.core.utils import OrderedDict, remove_all_extensions
 from morphologist.core.analysis import InputParameters, OutputParameters, ImportationError
 
 
@@ -32,9 +32,6 @@ class Subject(object):
     def __str__(self):
         return self.id()
     
-    def __hash__(self):
-        return hash(self.id())
-    
     def __cmp__(self, other):
         return cmp(self.id(), other.id())
 
@@ -61,7 +58,7 @@ class Study(object):
         outputdir=default_outputdir, backup_filename=None):
         self.name = name
         self.outputdir = outputdir
-        self.subjects = []
+        self.subjects = OrderedDict()
         self.analyses = {}
         if backup_filename is None:
             backup_filename = self.default_backup_filename_from_outputdir(outputdir)
@@ -96,9 +93,9 @@ class Study(object):
         study = cls(name=serialized['name'],
                     outputdir=serialized['outputdir'])
         for serialized_subject in serialized['subjects']:
-            study.subjects.append(Subject.unserialize(serialized_subject))
-        for subject in study.subjects:
-            subject_id = subject.id()
+            subject = Subject.unserialize(serialized_subject)
+            study.subjects[subject.id()] = subject
+        for subject_id, subject in study.subjects.iteritems():
             if subject_id not in serialized['inputs']:
                 raise StudySerializationError("Cannot find input params"
                                          " for subject %s" % str(subject))
@@ -129,7 +126,7 @@ class Study(object):
         serialized['name'] = self.name
         serialized['outputdir'] = self.outputdir
         serialized['subjects'] = []
-        for subject in self.subjects:
+        for subject_id, subject in self.subjects.iteritems():
             serialized['subjects'].append(subject.serialize())
         serialized['inputs'] = {}
         serialized['outputs'] = {}
@@ -139,11 +136,12 @@ class Study(object):
         return serialized 
 
     def add_subject(self, subject):
-        if subject in self.subjects:
+        subject_id = subject.id()
+        if subject_id in self.subjects:
             raise SubjectExistsError(subject)
-        self.subjects.append(subject)
-        self.analyses[subject.id()] = self._create_analysis()
-        
+        self.subjects[subject_id] = subject
+        self.analyses[subject_id] = self._create_analysis()
+
     @staticmethod
     def _create_analysis():
         raise NotImplementedError("Study is an abstract class.")
@@ -153,25 +151,27 @@ class Study(object):
         raise NotImplementedError("Study is an abstract class")
 
     def set_analysis_parameters(self, parameter_template):
-        for subject in self.subjects:
-            self.analyses[subject.id()].set_parameters(parameter_template, subject,
-                                                  self.outputdir)
+        for subject_id, subject in self.subjects.iteritems():
+            self.analyses[subject_id].set_parameters(parameter_template,
+                                                subject, self.outputdir)
 
     def import_data(self, parameter_template):
-        subjects_failed = []
-        for subject in self.subjects:
+        subjects_id_importation_failed = []
+        for subject_id, subject in self.subjects.iteritems():
             try:
                 new_imgname = self.analysis_cls().import_data(parameter_template, 
                                                               subject, self.outputdir)
                 subject.filename = new_imgname
             except ImportationError:
-                subjects_failed.append(subject) 
-        if len(subjects_failed) > 0:
-            for subject in subjects_failed:
-                self.subjects.remove(subject)
-                del self.analyses[subject.id()]
-            raise ImportationError("The importation failed for the following subjects:\n%s."
-                                   % ", ".join([str(subject) for subject in subjects_failed]))
+                subjects_id_importation_failed.append(subject_id) 
+        if len(subjects_id_importation_failed) > 0:
+            repr_subjects = []
+            for subject_id in subjects_id_importation_failed:
+                repr_subjects.append(str(self.subjects[subject_id]))
+                del self.subjects[subject_id]
+                del self.analyses[subject_id]
+            raise ImportationError("The importation failed for the " +
+                    "following subjects:\n%s." % ", ".join(repr_subjects))
 
     def has_subjects(self):
         return len(self.subjects) != 0
