@@ -57,40 +57,35 @@ class LazyStudyModel(QtCore.QObject):
             self._runner_is_running = new_runner_status
             self.runner_status_changed.emit(self._runner_is_running)
         for row_index, _ in enumerate(self._subjects_row_index_to_id):
-            has_changed |= self._update_status_for_one_subject(row_index) 
+            has_changed |= self._update_subject_status(row_index) 
         if has_changed:
             self.status_changed.emit()
 
-    def _update_status_for_one_subject(self, row_index):
+    def _update_subject_status(self, row_index):
         has_changed = False
         subject_id = self._subjects_row_index_to_id[row_index]
         subject = self.study.subjects[subject_id]
         if self.runner.is_running(subject, update_status=False):
-            has_changed = self._update_one_status_for_one_subject_if_needed(\
-                                                row_index, "is running")
+            has_changed = self._update_subject_status_if_needed(row_index, "is running")
         elif self.runner.has_failed(subject, update_status=False):
-            has_changed = self._update_one_status_for_one_subject_if_needed(\
-                                                row_index, "last run failed")
+            has_changed = self._update_subject_status_if_needed(row_index, "last run failed")
         else:
-            has_changed = self._update_output_files_status_for_one_subject_if_needed(row_index)
+            has_changed = self._update_subject_output_files_status_if_needed(row_index)
         return has_changed
 
-    def _update_output_files_status_for_one_subject_if_needed(self, row_index):
+    def _update_subject_output_files_status_if_needed(self, row_index):
         subject_id = self._subjects_row_index_to_id[row_index]
         analysis = self.study.analyses[subject_id]
         has_changed = False
         if not analysis.outputs.some_file_exists():
-            has_changed = self._update_one_status_for_one_subject_if_needed(\
-                                                row_index, "no output files")
+            has_changed = self._update_subject_status_if_needed(row_index, "no output files")
         elif analysis.outputs.all_file_exists():
-            has_changed = self._update_one_status_for_one_subject_if_needed(\
-                                            row_index, "output files exist")
+            has_changed = self._update_subject_status_if_needed(row_index, "output files exist")
         else:
-            has_changed = self._update_one_status_for_one_subject_if_needed(\
-                                        row_index, "some output files exist")
+            has_changed = self._update_subject_status_if_needed(row_index, "some output files exist")
         return has_changed
 
-    def _update_one_status_for_one_subject_if_needed(self, row_index, status):
+    def _update_subject_status_if_needed(self, row_index, status):
         has_changed = False 
         if self._status[row_index] != status:
             self._status[row_index] = status
