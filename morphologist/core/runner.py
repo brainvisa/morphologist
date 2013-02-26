@@ -311,7 +311,6 @@ class  SomaWorkflowRunner(Runner):
     def _workflow_stop(self):
         self._workflow_controller.stop_workflow(self._workflow_id)
         failed_jobs = self._get_failed_jobs()
-        workflow = self._workflow_controller.workflow(self._workflow_id)
         failed_jobs_by_subject = {}
         for job_data in failed_jobs:
             subjectid = job_data.groupname
@@ -319,7 +318,7 @@ class  SomaWorkflowRunner(Runner):
             failed_jobs_by_subject.setdefault(subjectid, []).append(stepname)
         for subjectid, stepnames in failed_jobs_by_subject.items():
             analysis = self._study.analyses[subjectid]
-            analysis.clear_steps(stepnames)
+            analysis.clear_results(stepnames)
 
     def steps_status(self):
         steps_status = {}

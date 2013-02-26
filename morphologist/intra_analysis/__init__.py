@@ -3,7 +3,7 @@ import glob
 import re
 
 from morphologist.core.study import Subject
-from morphologist.core.analysis import Analysis, InputParameters, OutputParameters, \
+from morphologist.core.analysis import Analysis, Parameters, \
                                   ImportationError, ParameterTemplate
 from morphologist.intra_analysis.steps import ImageImportation, \
     BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
@@ -230,7 +230,7 @@ class IntraAnalysis(Analysis):
     def create_outputdirs(cls, parameter_template, subject, directory):
         param_template_instance = cls.param_template_map[parameter_template]
         param_template_instance.create_outputdirs(subject, directory)
-
+                
 
 class IntraAnalysisParameterTemplate(ParameterTemplate):
     input_file_param_names = [IntraAnalysis.MRI]
@@ -266,12 +266,12 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
 
     @classmethod
     def get_empty_inputs(cls):
-        return InputParameters(cls.input_file_param_names,
+        return IntraAnalysisParameters(cls.input_file_param_names,
                                cls.input_other_param_names)
 
     @classmethod
     def get_empty_outputs(cls):
-        return OutputParameters(cls.output_file_param_names)
+        return IntraAnalysisParameters(cls.output_file_param_names)
     
     @classmethod
     def get_mri_path(cls, subject, directory):
@@ -281,7 +281,7 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
     def get_inputs(cls, subject):
         # input_filename should be in cls.get_mri_path()
         # TODO raise an exception if it not the case ?
-        parameters = InputParameters(cls.input_file_param_names,
+        parameters = IntraAnalysisParameters(cls.input_file_param_names,
                                      cls.input_other_param_names)
         parameters[IntraAnalysis.MRI] = subject.filename
         parameters[IntraAnalysis.EROSION_SIZE] = 1.8
@@ -319,7 +319,7 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
   
         session_auto_path = os.path.join(folds_path, cls.SESSION_AUTO)
  
-        parameters = OutputParameters(cls.output_file_param_names)
+        parameters = IntraAnalysisParameters(cls.output_file_param_names)
         parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(default_acquisition_path, 
                                                    "%s.APC" % subject.name)
         parameters[IntraAnalysis.TALAIRACH_TRANSFORMATION] = os.path.join(registration_path, 
@@ -442,7 +442,7 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
 
     @classmethod
     def get_outputs(cls, subject, outputdir):
-        parameters = OutputParameters(cls.output_file_param_names)
+        parameters = IntraAnalysisParameters(cls.output_file_param_names)
 
         subject_path = os.path.join(outputdir, subject.groupname, subject.name)
         parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(subject_path, 
@@ -527,6 +527,16 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                 subject = Subject(subjectname, groupname, filename)
                 subjects.append(subject)
         return subjects
+
+
+class IntraAnalysisParameters(Parameters):
+    
+    @classmethod
+    def _clear_file(cls, filename):
+        super(IntraAnalysisParameters, cls)._clear_file(filename)
+        minf_filename = filename + ".minf"
+        if os.path.exists(minf_filename):
+            os.remove(minf_filename)
 
 
 def create_directory_if_missing(dir_path):

@@ -36,7 +36,7 @@ class IntraAnalysisTestCase(AnalysisTestCase):
                                      subject=subject, outputdir=self.outputdir) 
         IntraAnalysis.create_outputdirs(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE,
                                         subject, self.outputdir)
-        self.analysis.clear_output_files() 
+        self.analysis.clear_results() 
 
     def delete_some_parameter_values(self):
         self.analysis.outputs.edges = None

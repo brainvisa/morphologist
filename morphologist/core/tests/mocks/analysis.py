@@ -1,7 +1,7 @@
 import os
 
 from morphologist.core.steps import Step
-from morphologist.core.analysis import Analysis, InputParameters, OutputParameters
+from morphologist.core.analysis import Analysis, Parameters
 
 
 class MockStep(Step):
@@ -34,18 +34,18 @@ class MockAnalysis(Analysis):
 
     def __init__(self):
         super(MockAnalysis, self).__init__() 
-        self.inputs = InputParameters(file_param_names=['input_1',
-                                                        'input_2',
-                                                        'input_5'],
-                                            other_param_names=['input_3',
-                                                               'input_4',
-                                                               'input_6'])
-        self.outputs = OutputParameters(file_param_names=['output_1',
-                                                          'output_2',
-                                                          'output_3',
-                                                          'output_4',
-                                                          'output_5',
-                                                          'output_6'])
+        self.inputs = Parameters(file_param_names=['input_1',
+                                                    'input_2',
+                                                    'input_5'],
+                                 other_param_names=['input_3',
+                                                    'input_4',
+                                                    'input_6'])
+        self.outputs = Parameters(file_param_names=['output_1',
+                                                    'output_2',
+                                                    'output_3',
+                                                    'output_4',
+                                                    'output_5',
+                                                    'output_6'])
 
     def _init_steps(self):
         step1 = MockStep('step1')

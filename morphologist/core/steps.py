@@ -1,6 +1,6 @@
 import os
 
-from morphologist.core.analysis import InputParameters, OutputParameters
+from morphologist.core.analysis import Parameters
 
 
 class Step(object):
@@ -9,8 +9,8 @@ class Step(object):
     def __init__(self):
         file_inputs, other_inputs = self._get_inputs()
         file_outputs = self._get_outputs()
-        self.inputs = InputParameters(file_inputs, other_inputs)
-        self.outputs = OutputParameters(file_outputs)
+        self.inputs = Parameters(file_inputs, other_inputs)
+        self.outputs = Parameters(file_outputs)
         self.name = 'unnamed step'
 
     def run(self):

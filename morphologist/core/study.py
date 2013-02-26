@@ -2,7 +2,7 @@ import os
 import json
 
 from morphologist.core.utils import OrderedDict, remove_all_extensions
-from morphologist.core.analysis import InputParameters, OutputParameters, ImportationError
+from morphologist.core.analysis import Parameters, ImportationError
 
 
 class Subject(object):
@@ -104,8 +104,8 @@ class Study(object):
                                          " for subject %s" % str(subject))
             serialized_inputs = serialized['inputs'][subject_id] 
             serialized_outputs = serialized['outputs'][subject_id]
-            inputs = InputParameters.unserialize(serialized_inputs) 
-            outputs = OutputParameters.unserialize(serialized_outputs)
+            inputs = Parameters.unserialize(serialized_inputs) 
+            outputs = Parameters.unserialize(serialized_outputs)
             analysis = cls._create_analysis()
             analysis.inputs = inputs
             analysis.outputs = outputs
@@ -190,7 +190,7 @@ class Study(object):
 
     def clear_results(self):
         for analysis in self.analyses.itervalues():
-            analysis.clear_output_files()
+            analysis.clear_results()
 
     def __repr__(self):
         s = 'name :' + str(self.name) + '\n'

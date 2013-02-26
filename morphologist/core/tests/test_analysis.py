@@ -1,6 +1,6 @@
 import unittest
 
-from morphologist.core.analysis import InputParameters 
+from morphologist.core.analysis import Parameters 
 from morphologist.core.analysis import MissingParameterValueError, UnknownParameterName
 from morphologist.core.tests.analysis import MockAnalysisTestCase
 
@@ -27,15 +27,15 @@ class TestAnalysis(unittest.TestCase):
         wrong_parameter_name = self.test_case.get_wrong_parameter_name()
 
         self.assertRaises(UnknownParameterName, 
-                          InputParameters.get_value, 
+                          Parameters.get_value, 
                           self.analysis.inputs, wrong_parameter_name)
 
-    def test_clear_output_files(self):
+    def test_clear_results(self):
         self.test_case.set_analysis_parameters()
         self.test_case.create_some_output_files()
         
         self.assertTrue(self.analysis.outputs.some_file_exists())
-        self.analysis.clear_output_files()
+        self.analysis.clear_results()
         self.assertTrue(not self.analysis.outputs.some_file_exists())
 
     def test_step_id(self):

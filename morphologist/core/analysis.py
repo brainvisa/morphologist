@@ -12,8 +12,8 @@ class Analysis(object):
     def __init__(self):
         self._init_steps()
         self._init_named_steps()
-        self.inputs = InputParameters(file_param_names=[])
-        self.outputs = OutputParameters(file_param_names=[])
+        self.inputs = Parameters(file_param_names=[])
+        self.outputs = Parameters(file_param_names=[])
 
     def _init_steps(self):
         raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redifined.") 
@@ -26,11 +26,6 @@ class Analysis(object):
 
     def step_from_name(self, name):
         return self._named_steps[name]
-
-    def clear_steps(self, stepnames):
-        for stepname in stepnames:
-            step = self.step_from_name(stepname)
-            step.outputs.clear()
 
     def remaining_commands_to_run(self):
         self.propagate_parameters()
@@ -62,7 +57,7 @@ class Analysis(object):
         return command_list
 
     def propagate_parameters(self):
-        raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redifined.") 
+        raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redefined.") 
  
     def _check_parameter_values_filled(self):
         missing_parameters = []
@@ -73,10 +68,15 @@ class Analysis(object):
             message = separator.join(missing_parameters)
             raise MissingParameterValueError(message)
 
-    def clear_output_files(self):
-        self.outputs.clear()
-
-
+    def clear_results(self, stepnames=None):
+        if stepnames:
+            for stepname in stepnames:
+                step = self.step_from_name(stepname)
+                step.outputs.clear_files()
+        else:
+            self.outputs.clear_files()
+                
+                
 class ParameterTemplate(object):
     
     @classmethod
@@ -176,6 +176,18 @@ class Parameters(object):
     def list_file_parameter_names(self):
         return self._file_param_names
 
+    def clear_files(self):
+        for param_name in self.list_file_parameter_names():
+            filename = self.get_value(param_name)
+            self._clear_file(filename)
+                
+    @classmethod
+    def _clear_file(cls, filename):
+        if os.path.isfile(filename):
+            os.remove(filename)
+        elif os.path.isdir(filename):
+            shutil.rmtree(filename)
+                     
     @classmethod
     def unserialize(cls, serialized):
         file_param_names = serialized['file_param_names']
@@ -201,18 +213,3 @@ class Parameters(object):
     
 class UnknownParameterName(Exception):
     pass
-
-class OutputParameters(Parameters):
-
-    def clear(self):
-        for param_name in self.list_file_parameter_names():
-            filename = self.get_value(param_name)
-            if os.path.isfile(filename):
-                os.remove(filename)
-            elif os.path.isdir(filename):
-                shutil.rmtree(filename)
-
-class InputParameters(Parameters):
-    pass
-
-
