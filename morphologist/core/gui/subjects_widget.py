@@ -138,9 +138,9 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
         
     @QtCore.Slot()                
     def on_study_model_status_changed(self):
-        self._update_all_index()
+        self._update_subject_status_column()
 
-    def _update_all_index(self):
+    def _update_subject_status_column(self):
         top_left = self.index(0, SubjectsTableModel.SUBJECTSTATUS_COL,
                               QtCore.QModelIndex())
         bottom_right = self.index(self.rowCount(),
