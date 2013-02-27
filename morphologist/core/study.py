@@ -50,6 +50,9 @@ class Subject(object):
                       filename=serialized['filename'])
         return subject
 
+    def copy(self):
+        return Subject(self.name, self.groupname, self.filename)
+
 
 class Study(object):
     default_outputdir = os.path.join(os.path.expanduser("~"),

@@ -172,7 +172,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QTableWidget" name="subjects_tablewidget">
+      <widget class="QTableView" name="subjects_tableview">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
          <horstretch>0</horstretch>
@@ -185,15 +185,6 @@
          <height>0</height>
         </size>
        </property>
-       <property name="editTriggers">
-        <set>QAbstractItemView::NoEditTriggers</set>
-       </property>
-       <property name="alternatingRowColors">
-        <bool>false</bool>
-       </property>
-       <property name="selectionMode">
-        <enum>QAbstractItemView::ExtendedSelection</enum>
-       </property>
        <property name="selectionBehavior">
         <enum>QAbstractItemView::SelectRows</enum>
        </property>
@@ -203,12 +194,6 @@
        <property name="sortingEnabled">
         <bool>true</bool>
        </property>
-       <property name="cornerButtonEnabled">
-        <bool>false</bool>
-       </property>
-       <attribute name="horizontalHeaderVisible">
-        <bool>true</bool>
-       </attribute>
        <attribute name="horizontalHeaderHighlightSections">
         <bool>false</bool>
        </attribute>
@@ -227,30 +212,12 @@
        <attribute name="horizontalHeaderStretchLastSection">
         <bool>true</bool>
        </attribute>
-       <attribute name="horizontalHeaderVisible">
-        <bool>true</bool>
-       </attribute>
        <attribute name="horizontalHeaderHighlightSections">
         <bool>false</bool>
        </attribute>
        <attribute name="verticalHeaderHighlightSections">
         <bool>false</bool>
        </attribute>
-       <column>
-        <property name="text">
-         <string>Group</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Name</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Filename</string>
-        </property>
-       </column>
       </widget>
      </item>
      <item>
