@@ -11,7 +11,6 @@ class LazyStudyModel(QtCore.QObject):
     def __init__(self, study, runner, parent=None):
         super(LazyStudyModel, self).__init__(parent)
         self._init_study_and_runner(study, runner)
-        self._update_all_status()
         self._update_interval = 2 # in seconds
         self._timer = QtCore.QTimer(self)
         self._timer.setInterval(self._update_interval * 1000)
@@ -27,10 +26,10 @@ class LazyStudyModel(QtCore.QObject):
             self._subjects_row_index_to_id.append(subject_id)
             self._status.append(self.DEFAULT_STATUS)
         self._runner_is_running = False
+        self._update_all_status()
     
     def set_study_and_runner(self, study, runner):
         self._init_study_and_runner(study, runner)
-        self._update_all_status()
         self.changed.emit()
 
     def get_status(self, row_index):
