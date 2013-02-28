@@ -178,13 +178,15 @@ class Study(object):
 
     def has_some_results(self):
         for analysis in self.analyses.itervalues():
-            if analysis.outputs.some_file_exists():
+            if analysis.has_some_results():
                 return True
         return False
 
-    def has_all_results(self):
+    def has_all_results(self, subject_id=None):
+        if subject_id:
+            return self.analyses[subject_id].has_all_results()
         for analysis in self.analyses.itervalues():
-            if not analysis.outputs.all_file_exists():
+            if not analysis.has_all_results():
                 return False
         return True
 

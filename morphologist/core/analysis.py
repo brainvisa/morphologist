@@ -16,7 +16,7 @@ class Analysis(object):
         self.outputs = Parameters(file_param_names=[])
 
     def _init_steps(self):
-        raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redifined.") 
+        raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redefined.") 
 
     def _init_named_steps(self):
         self._named_steps = OrderedDict()
@@ -68,6 +68,12 @@ class Analysis(object):
             message = separator.join(missing_parameters)
             raise MissingParameterValueError(message)
 
+    def has_some_results(self):
+        return self.outputs.some_file_exists()
+        
+    def has_all_results(self):
+        return self.outputs.all_file_exists()
+            
     def clear_results(self, stepnames=None):
         if stepnames:
             for stepname in stepnames:

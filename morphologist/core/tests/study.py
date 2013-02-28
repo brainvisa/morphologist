@@ -49,6 +49,10 @@ class AbstractStudyTestCase(object):
 
     def step_to_wait_testcase_3(self):
         raise NotImplementedError("AbstractStudyTestCase is an abstract class")
+    
+    def get_a_subject_id(self):
+        first_subject_id = next(self.study.subjects.iterkeys())
+        return first_subject_id
 
 
 class MockStudyTestCase(AbstractStudyTestCase):
@@ -95,13 +99,14 @@ class MockStudyTestCase(AbstractStudyTestCase):
         pass
 
     def step_to_wait_testcase_1(self):
-        first_subject_id = next(self.study.subjects.iterkeys())
-        return self.study.subjects[first_subject_id], "0_step1"
+        subject_id = self.get_a_subject_id()
+        return subject_id, "0_step1"
 
     def step_to_wait_testcase_2(self):
-        first_subject_id = next(self.study.subjects.iterkeys())
-        return self.study.subjects[first_subject_id], "1_step2"
+        subject_id = self.get_a_subject_id()
+        return subject_id, "1_step2"
 
     def step_to_wait_testcase_3(self):
-        first_subject_id = next(self.study.subjects.iterkeys())
-        return self.study.subjects[first_subject_id], "2_step3"
+        subject_id = self.get_a_subject_id()
+        return subject_id, "2_step3"
+
