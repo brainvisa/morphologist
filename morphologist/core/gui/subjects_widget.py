@@ -5,10 +5,11 @@ from morphologist.core.gui import ui_directory
 
 
 class SubjectsTableModel(QtCore.QAbstractTableModel):
-    GROUPNAME_COL = 0
-    SUBJECTNAME_COL = 1 
-    SUBJECTSTATUS_COL = 2
-    header = ['group', 'name', 'status']
+    SELECTION_COL = 0
+    GROUPNAME_COL = 1
+    SUBJECTNAME_COL = 2 
+    SUBJECTSTATUS_COL = 3
+    header = ['', 'group', 'name', 'status']
 
     def __init__(self, study_model, parent=None):
         super(SubjectsTableModel, self).__init__(parent)
@@ -27,27 +28,43 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
         return self._study_model.subject_count()
 
     def columnCount(self, parent=QtCore.QModelIndex()):
-        return 3
+        return 4
 
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         if role == QtCore.Qt.DisplayRole:
-            if orientation == QtCore.Qt.Vertical:
-                return
-            elif orientation == QtCore.Qt.Horizontal:
-                return self.header[section]
+            return self.header[section]
 
     def data(self, index, role=QtCore.Qt.DisplayRole):
         row, column = index.row(), index.column()
         if role == QtCore.Qt.DisplayRole:
+            subject = self._study_model.get_subject(row)
             if column == SubjectsTableModel.GROUPNAME_COL:
-                subject = self._study_model.get_subject(row)
                 return subject.groupname
             if column == SubjectsTableModel.SUBJECTNAME_COL:
-                subject = self._study_model.get_subject(row)
                 return subject.name
             if column == SubjectsTableModel.SUBJECTSTATUS_COL:
                 return self._study_model.get_status(row)
+        elif role == QtCore.Qt.CheckStateRole:
+            if column == self.SELECTION_COL:
+                if self._study_model.is_selected_subject(row):
+                    return QtCore.Qt.Checked
+                return QtCore.Qt.Unchecked
 
+    def setData(self, index, value, role=QtCore.Qt.EditRole):
+        row, column = index.row(), index.column()
+        if role == QtCore.Qt.CheckStateRole and column == self.SELECTION_COL:
+            selected = (value == QtCore.Qt.Checked)
+            self._study_model.set_selected_subject(row, selected)
+            return True
+        return False
+             
+    def flags(self, index):
+        column = index.column()
+        flags = super(SubjectsTableModel, self).flags(index)
+        if column == self.SELECTION_COL:
+            flags |= QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsUserCheckable
+        return flags
+        
     @QtCore.Slot()                
     def on_study_model_status_changed(self):
         self._update_all_index()
