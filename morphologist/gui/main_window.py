@@ -33,7 +33,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
 
         self.study_tablemodel = SubjectsTableModel(self.study_model)
         self.study_selection_model = QtGui.QItemSelectionModel(self.study_tablemodel)
-        self.study_selection_model.currentChanged.connect(self.on_selection_changed)
+        self.study_selection_model.currentRowChanged.connect(self.on_selection_changed)
  
         self.study_view = SubjectsTableView(self.study_tablemodel,self.study_selection_model)
         self.ui.study_widget_dock.setWidget(self.study_view)
