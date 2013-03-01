@@ -42,7 +42,8 @@ class RunnerView(QtGui.QWidget):
     def _run_analyses(self):
         run = False
         try:
-            self._runner_model.runner.run()
+            selected_subjects_ids = self._runner_model.get_selected_subjects_ids()
+            self._runner_model.runner.run(selected_subjects_ids)
             run = True
         except MissingInputFileError, e:
             QtGui.QMessageBox.critical(self, "Run analysis error", 

@@ -1,5 +1,4 @@
 from morphologist.core.gui.qt_backend import QtCore
-from morphologist.core.runner import Runner
 
 
 class LazyStudyModel(QtCore.QObject):
@@ -22,11 +21,12 @@ class LazyStudyModel(QtCore.QObject):
         self.study = study
         self._subjects_row_index_to_id = [] # row index
         self._status = []                   # row index
-        for subject_id, subject in self.study.subjects.iteritems():
+        for subject_id, _ in self.study.subjects.iteritems():
             self._subjects_row_index_to_id.append(subject_id)
             self._status.append(self.DEFAULT_STATUS)
         self._runner_is_running = False
         self._update_all_status()
+        self._selected_subjects_indexes = []
     
     def set_study_and_runner(self, study, runner):
         self._init_study_and_runner(study, runner)
@@ -40,6 +40,12 @@ class LazyStudyModel(QtCore.QObject):
         subject = self.study.subjects[subject_id]
         return subject
 
+    def get_selected_subjects_ids(self):
+        selected_subjects_ids = []
+        for index in self._selected_subjects_indexes:
+            selected_subjects_ids.append(self._subjects_row_index_to_id[index])
+        return selected_subjects_ids
+        
     def subject_count(self):
         return len(self._subjects_row_index_to_id)
 
@@ -58,10 +64,9 @@ class LazyStudyModel(QtCore.QObject):
     def _update_subject_status(self, row_index):
         has_changed = False
         subject_id = self._subjects_row_index_to_id[row_index]
-        subject = self.study.subjects[subject_id]
-        if self.runner.is_running(subject, update_status=False):
+        if self.runner.is_running(subject_id, update_status=False):
             has_changed = self._update_subject_status_if_needed(row_index, "is running")
-        elif self.runner.has_failed(subject, update_status=False):
+        elif self.runner.has_failed(subject_id, update_status=False):
             has_changed = self._update_subject_status_if_needed(row_index, "last run failed")
         else:
             has_changed = self._update_subject_output_files_status_if_needed(row_index)
