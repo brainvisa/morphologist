@@ -6,6 +6,9 @@ class LazyStudyModel(QtCore.QObject):
     changed = QtCore.pyqtSignal()
     status_changed = QtCore.pyqtSignal()
     runner_status_changed = QtCore.pyqtSignal(bool)
+    current_subject_changed = QtCore.pyqtSignal()
+    subject_selection_changed = QtCore.pyqtSignal(int)
+
 
     def __init__(self, study, runner, parent=None):
         super(LazyStudyModel, self).__init__(parent)
@@ -22,10 +25,12 @@ class LazyStudyModel(QtCore.QObject):
         self._subjects_row_index_to_id = [] # row index
         self._status = []                   # row index
         self._selected_subjects = [] # row index
+        self._current_subject_index = None
         for subject_id, _ in self.study.subjects.iteritems():
             self._subjects_row_index_to_id.append(subject_id)
             self._status.append(self.DEFAULT_STATUS)
             self._selected_subjects.append(False)
+        self.set_current_subject_index(0)
         self._runner_is_running = False
         self._update_all_status()
     
@@ -50,10 +55,24 @@ class LazyStudyModel(QtCore.QObject):
  
     def set_selected_subject(self, row_index, selected):
         self._selected_subjects[row_index] = selected
+        self.subject_selection_changed.emit(row_index)
             
     def is_selected_subject(self, row_index):
         return self._selected_subjects[row_index]
-               
+      
+    def get_current_subject_id(self):
+        if self._subjects_row_index_to_id:
+            return self._subjects_row_index_to_id[self._current_subject_index]
+        return None
+                 
+    def get_current_subject_index(self):
+        return self._current_subject_index
+    
+    def set_current_subject_index(self, row_index):
+        if row_index != self._current_subject_index:
+            self._current_subject_index = row_index
+            self.current_subject_changed.emit()
+        
     def subject_count(self):
         return len(self._subjects_row_index_to_id)
 

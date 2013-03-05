@@ -10,7 +10,7 @@ from morphologist.core.gui.study_model import LazyStudyModel
 from morphologist.core.gui.analysis_model import LazyAnalysisModel
 from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
                              IntraAnalysisViewportView
-from morphologist.core.gui.subjects_widget import SubjectsTableModel, SubjectsTableView
+from morphologist.core.gui.subjects_widget import SubjectsWidget
 from morphologist.core.gui.runner_widget import RunnerView
 from morphologist.core.analysis import ImportationError
 
@@ -30,12 +30,8 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self.viewport_model = IntraAnalysisViewportModel(self.analysis_model)
         self.viewport_view = IntraAnalysisViewportView(self.viewport_model, 
                                                        self.ui.viewport_frame)
-
-        self.study_tablemodel = SubjectsTableModel(self.study_model)
-        self.study_selection_model = QtGui.QItemSelectionModel(self.study_tablemodel)
-        self.study_selection_model.currentRowChanged.connect(self.on_selection_changed)
  
-        self.study_view = SubjectsTableView(self.study_tablemodel,self.study_selection_model)
+        self.study_view = SubjectsWidget(self.study_model)
         self.ui.study_widget_dock.setWidget(self.study_view)
         
         self.setCorner(QtCore.Qt.TopRightCorner, QtCore.Qt.RightDockWidgetArea)
@@ -48,6 +44,9 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         
         self.study_editor_widget_window = None
         self.enable_brainomics_db = enable_brainomics_db
+        
+        self.study_model.current_subject_changed.connect(self.on_current_subject_changed)
+        self.on_current_subject_changed()
         
     def _create_study(self, study_file=None):
         if study_file:
@@ -146,11 +145,12 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         except StudySerializationError, e:
             QtGui.QMessageBox.critical(self, "Cannot save the study", "%s" %(e))
 
-    @QtCore.Slot("const QModelIndex &", "const QModelIndex &")
-    def on_selection_changed(self, current, previous):
-        subject = self.study_tablemodel.subject_from_row_index(current.row())
-        analysis = self.study.analyses[subject.id()]
-        self.analysis_model.set_analysis(analysis)
+    @QtCore.Slot()
+    def on_current_subject_changed(self):
+        subject_id = self.study_model.get_current_subject_id()
+        if subject_id:
+            analysis = self.study.analyses[subject_id]
+            self.analysis_model.set_analysis(analysis)
 
     def set_study(self, study):
         self.study = study
