@@ -33,13 +33,14 @@ class SubjectsTableView(QtGui.QTableView):
         header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
         self.verticalHeader().setVisible(False)
         self.setItemDelegate(SubjectsItemDelegate())
-        #self.setStyleSheet("QTableView {selection-background-color: yellow}")
 
     def selectionCommand(self, index, event):
         row, column = index.row(), index.column()
         table_model = self.model()
         if column != table_model.SELECTION_COL:
             self._study_model.set_current_subject_index(row)
+            return QtGui.QItemSelectionModel.NoUpdate
+        elif self._study_model.runner_is_running():
             return QtGui.QItemSelectionModel.NoUpdate
         flags = super(SubjectsTableView, self).selectionCommand(index, event)
         if flags & QtGui.QItemSelectionModel.Clear and flags & QtGui.QItemSelectionModel.Select:

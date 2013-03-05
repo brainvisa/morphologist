@@ -38,6 +38,9 @@ class LazyStudyModel(QtCore.QObject):
         self._init_study_and_runner(study, runner)
         self.changed.emit()
 
+    def runner_is_running(self):
+        return self._runner_is_running
+    
     def get_status(self, row_index):
         return self._status[row_index]
 
@@ -60,6 +63,24 @@ class LazyStudyModel(QtCore.QObject):
     def is_selected_subject(self, row_index):
         return self._selected_subjects[row_index]
       
+    def selected_subjects_have_all_results(self):
+        all_results = True
+        for index, subject_id in enumerate(self._subjects_row_index_to_id):
+            if self._selected_subjects[index]:
+                if not self.study.has_all_results(subject_id):
+                    all_results = False
+                    break
+        return all_results
+    
+    def selected_subjects_have_some_results(self):
+        some_results = False
+        for index, subject_id in enumerate(self._subjects_row_index_to_id):
+            if self._selected_subjects[index]:
+                if self.study.has_some_results(subject_id):
+                    some_results = True
+                    break
+        return some_results
+            
     def get_current_subject_id(self):
         if self._subjects_row_index_to_id:
             return self._subjects_row_index_to_id[self._current_subject_index]

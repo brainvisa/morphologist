@@ -176,7 +176,9 @@ class Study(object):
     def has_subjects(self):
         return len(self.subjects) != 0
 
-    def has_some_results(self):
+    def has_some_results(self, subject_id=None):
+        if subject_id:
+            return self.analyses[subject_id].has_some_results()
         for analysis in self.analyses.itervalues():
             if analysis.has_some_results():
                 return True
@@ -190,8 +192,11 @@ class Study(object):
                 return False
         return True
 
-    def clear_results(self):
-        for analysis in self.analyses.itervalues():
+    def clear_results(self, subjects_ids=None):
+        if not subjects_ids:
+            subjects_ids = self.subjects
+        for subject_id in subjects_ids:
+            analysis = self.analyses[subject_id]
             analysis.clear_results()
 
     def __repr__(self):
