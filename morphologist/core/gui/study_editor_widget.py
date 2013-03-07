@@ -267,6 +267,11 @@ class StudyConfigItemModel(QtCore.QAbstractItemModel):
             self.status_changed.emit(self._status)
         return True
 
+    def set_data(self, col, value):
+        row = 0
+        index = self.index(row, col)
+        return self.setData(index, value)
+
     def _invalid_value(self, value):
         return value == ''
 
@@ -430,7 +435,8 @@ class StudyEditorDialog(QtGui.QDialog):
         selected_template = self._default_parameter_template
         self._subjects_from_study_dialog = SelectStudyDirectoryDialog(self.ui,
                             outputdir, parameter_templates, selected_template)
-        self._subjects_from_study_dialog.accepted.connect(self.on_subjects_from_study_dialog_accepted)
+        self._subjects_from_study_dialog.accepted.connect(\
+            self.on_subjects_from_study_dialog_accepted)
 
      # this slot is automagically connected
     @QtCore.Slot("bool")
@@ -445,16 +451,27 @@ class StudyEditorDialog(QtGui.QDialog):
     @QtCore.Slot()
     def on_outputdir_button_clicked(self):
         caption = 'Select study output directory'
-        outputdir = self.ui.outputdir_lineEdit.text()
-        if outputdir != '':
-            default_directory = outputdir
-        else:
+        default_directory = self._study_config.outputdir
+        if default_directory == '':
             default_directory = os.getcwd()
         selected_directory = QtGui.QFileDialog.getExistingDirectory(self.ui,
                                                 caption, default_directory) 
         if selected_directory != '':
-            # FIXME
-            self.ui.outputdir_lineEdit.setText(selected_directory)
+            self._study_config_item_model.set_data(\
+                StudyConfigItemModel.OUTPUTDIR_COL, selected_directory)
+
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_backup_filename_button_clicked(self):
+        caption = 'Select study backup filename'
+        default_filename = self._study_config.backup_filename
+        if default_filename == '':
+            default_filename = os.path.join(os.getcwd(), 'study.json')
+        selected_filename = QtGui.QFileDialog.getSaveFileName(self.ui,
+                                                caption, default_filename) 
+        if selected_filename != '':
+            self._study_config_item_model.set_data(\
+                StudyConfigItemModel.BACKUP_FILENAME_COL, selected_filename)
 
     # this slot is automagically connected
     @QtCore.Slot()
