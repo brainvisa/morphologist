@@ -1,5 +1,5 @@
 from morphologist.core.gui.qt_backend import QtCore
-
+from morphologist.core.constants import ALL_SUBJECTS
 
 class LazyStudyModel(QtCore.QObject):
     DEFAULT_STATUS = ''
@@ -22,14 +22,14 @@ class LazyStudyModel(QtCore.QObject):
     def _init_study_and_runner(self, study, runner):
         self.runner = runner
         self.study = study
-        self._subjects_row_index_to_id = [] # row index
-        self._status = []                   # row index
-        self._selected_subjects = [] # row index
+        self._subjects_row_index_to_id = [] # row index -> id
+        self._status = []                   # row index -> status
+        self._are_selected_subjects = []    # row index -> is_selected
         self._current_subject_index = None
         for subject_id, _ in self.study.subjects.iteritems():
             self._subjects_row_index_to_id.append(subject_id)
             self._status.append(self.DEFAULT_STATUS)
-            self._selected_subjects.append(False)
+            self._are_selected_subjects.append(False)
         self.set_current_subject_index(0)
         self._runner_is_running = False
         self._update_all_status()
@@ -38,6 +38,7 @@ class LazyStudyModel(QtCore.QObject):
         self._init_study_and_runner(study, runner)
         self.changed.emit()
 
+    @property
     def runner_is_running(self):
         return self._runner_is_running
     
@@ -49,37 +50,21 @@ class LazyStudyModel(QtCore.QObject):
         subject = self.study.subjects[subject_id]
         return subject
 
-    def get_selected_subjects_ids(self):
-        selected_subjects_ids = []
+    def get_selected_subject_ids(self):
+        selected_subject_ids = []
         for index, subject_id in enumerate(self._subjects_row_index_to_id):
-            if self._selected_subjects[index]:
-                selected_subjects_ids.append(subject_id)
-        return selected_subjects_ids
+            if self._are_selected_subjects[index]:
+                selected_subject_ids.append(subject_id)
+        if not selected_subject_ids:
+            selected_subject_ids = ALL_SUBJECTS
+        return selected_subject_ids
  
     def set_selected_subject(self, row_index, selected):
-        self._selected_subjects[row_index] = selected
+        self._are_selected_subjects[row_index] = selected
         self.subject_selection_changed.emit(row_index)
             
     def is_selected_subject(self, row_index):
-        return self._selected_subjects[row_index]
-      
-    def selected_subjects_have_all_results(self):
-        all_results = True
-        for index, subject_id in enumerate(self._subjects_row_index_to_id):
-            if self._selected_subjects[index]:
-                if not self.study.has_all_results(subject_id):
-                    all_results = False
-                    break
-        return all_results
-    
-    def selected_subjects_have_some_results(self):
-        some_results = False
-        for index, subject_id in enumerate(self._subjects_row_index_to_id):
-            if self._selected_subjects[index]:
-                if self.study.has_some_results(subject_id):
-                    some_results = True
-                    break
-        return some_results
+        return self._are_selected_subjects[row_index]
             
     def get_current_subject_id(self):
         if self._subjects_row_index_to_id:

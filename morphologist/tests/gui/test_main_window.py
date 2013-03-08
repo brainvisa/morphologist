@@ -35,7 +35,7 @@ class TestStudyWidget(TestGui):
         self.keep_widget_alive(main_window)
         main_window.set_study(self.test_case.study)
         main_window.show()
-        model = main_window.study_tablemodel
+        model = main_window.study_view.tableview.model()
         subjectnames = [model.data(model.index(i, model.SUBJECTNAME_COL)) \
                         for i in range(model.rowCount())]
         

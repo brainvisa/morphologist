@@ -37,15 +37,6 @@
   <attribute name="verticalHeaderVisible">
    <bool>false</bool>
   </attribute>
-  <attribute name="verticalHeaderHighlightSections">
-   <bool>false</bool>
-  </attribute>
-  <attribute name="verticalHeaderVisible">
-   <bool>false</bool>
-  </attribute>
-  <attribute name="verticalHeaderHighlightSections">
-   <bool>false</bool>
-  </attribute>
  </widget>
  <resources/>
  <connections/>

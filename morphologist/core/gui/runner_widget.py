@@ -32,8 +32,9 @@ class RunnerView(QtGui.QWidget):
         else:
             self._set_not_running_state()
 
+    @QtCore.Slot(int)
     def on_subject_selection_changed(self, index):
-        if self._runner_model.get_selected_subjects_ids():
+        if self._runner_model.get_selected_subject_ids():
             self._set_selected_subjects_state()
         else:
             self._set_all_subjects_state()
@@ -57,8 +58,8 @@ class RunnerView(QtGui.QWidget):
     def _run_analyses(self):
         run = False
         try:
-            selected_subjects_ids = self._runner_model.get_selected_subjects_ids()
-            self._runner_model.runner.run(selected_subjects_ids)
+            selected_subject_ids = self._runner_model.get_selected_subject_ids()
+            self._runner_model.runner.run(selected_subject_ids)
             run = True
         except MissingInputFileError, e:
             QtGui.QMessageBox.critical(self, "Run analysis error", 
@@ -73,10 +74,11 @@ class RunnerView(QtGui.QWidget):
         self._set_not_running_state()
 
     # this slot is automagically connected
+    @QtCore.Slot()
     def on_erase_button_clicked(self):
         assert(self._runner_model is not None)
-        selected_subjects_ids = self._runner_model.get_selected_subjects_ids()
-        self._runner_model.study.clear_results(selected_subjects_ids)
+        selected_subject_ids = self._runner_model.get_selected_subject_ids()
+        self._runner_model.study.clear_results(selected_subject_ids)
         # XXX: this buttun could remain enabled if some files are added manually
         self._set_not_running_state()
 
@@ -91,23 +93,15 @@ class RunnerView(QtGui.QWidget):
         self._set_erase_button_if_needed()
 
     def _set_run_button_if_needed(self):
-        selected_subjects_ids = self._runner_model.get_selected_subjects_ids() 
-        if selected_subjects_ids:
-            has_subjects = True
-            missing_results = not self._runner_model.selected_subjects_have_all_results()
-        else:
-            has_subjects = self._runner_model.study.has_subjects()
-            missing_results = not self._runner_model.study.has_all_results()
-
+        selected_subject_ids = self._runner_model.get_selected_subject_ids()
+        has_subjects = self._runner_model.study.has_subjects()
+        missing_results = not self._runner_model.study.has_all_results(selected_subject_ids)
         enable_run_button = has_subjects and missing_results
         self.ui.run_button.setEnabled(enable_run_button)
 
     def _set_erase_button_if_needed(self):
-        selected_subjects_ids = self._runner_model.get_selected_subjects_ids() 
-        if selected_subjects_ids:
-            enable_erase_button = self._runner_model.selected_subjects_have_some_results()
-        else:
-            enable_erase_button = self._runner_model.study.has_some_results()
+        selected_subject_ids = self._runner_model.get_selected_subject_ids() 
+        enable_erase_button = self._runner_model.study.has_some_results(selected_subject_ids)
         self.ui.erase_button.setEnabled(enable_erase_button)
 
 

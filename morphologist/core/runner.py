@@ -7,6 +7,7 @@ import soma.workflow as sw
 from soma.workflow.client import WorkflowController, Helper, Workflow, Job, Group
 
 from morphologist.core.utils import BidiMap, Graph
+from morphologist.core.constants import ALL_SUBJECTS
 
 
 # XXX:
@@ -31,7 +32,7 @@ class Runner(object):
         super(Runner, self).__init__()
         self._study = study
 
-    def run(self, selected_subjects_ids=None):
+    def run(self, subject_ids=ALL_SUBJECTS):
         raise NotImplementedError("Runner is an abstract class.")
     
     def is_running(self, subject_id=None, stepname=None, update_status=True):
@@ -52,11 +53,9 @@ class Runner(object):
     def get_steps_status(self):
         raise NotImplementedError("Runner is an abstract class.")
 
-    def _check_input_files(self, selected_subjects_ids=None):
+    def _check_input_files(self, subject_ids):
         subjects_with_missing_inputs = []
-        if not selected_subjects_ids:
-            selected_subjects_ids = self._study.subjects
-        for subject_id in selected_subjects_ids:
+        for subject_id in subject_ids:
             analysis = self._study.analyses[subject_id]
             if not analysis.inputs.all_file_exists():
                 subject = self._study.subjects[subject_id]
@@ -100,7 +99,7 @@ class ThreadRunner(Runner):
                 self._last_run_failed = True
                 break
 
-    def run(self, selected_subjects_ids=None):
+    def run(self, subject_ids=ALL_SUBJECTS):
         self._check_input_files()
         if not self._execution_thread.is_alive():
             self._execution_thread.setDaemon(True)
@@ -158,10 +157,12 @@ class  SomaWorkflowRunner(Runner):
             if name is not None and name.endswith(self.WORKFLOW_NAME_SUFFIX):
                 self._workflow_controller.delete_workflow(workflow_id)
           
-    def run(self, selected_subjects_ids=None):
+    def run(self, subject_ids=ALL_SUBJECTS):
         self._init_internal_parameters()
-        self._check_input_files(selected_subjects_ids)
-        workflow = self._create_workflow(selected_subjects_ids)
+        if subject_ids == ALL_SUBJECTS:
+            subject_ids = self._study.subjects
+        self._check_input_files(subject_ids)
+        workflow = self._create_workflow(subject_ids)
         if self._workflow_id is not None:
             self._workflow_controller.delete_workflow(self._workflow_id)
         self._workflow_id = self._workflow_controller.submit_workflow(workflow, name=workflow.name)
@@ -176,14 +177,12 @@ class  SomaWorkflowRunner(Runner):
             status = self._workflow_controller.workflow_status(self._workflow_id)
             try_count -= 1
 
-    def _create_workflow(self, selected_subjects_ids=None):
+    def _create_workflow(self, subject_ids):
         jobs = []
         dependencies = []
         groups = []
         
-        if not selected_subjects_ids:
-            selected_subjects_ids = self._study.subjects
-        for subject_id in selected_subjects_ids:
+        for subject_id in subject_ids:
             analysis = self._study.analyses[subject_id]
             subject = self._study.subjects[subject_id]
             subject_jobs = []

@@ -9,9 +9,15 @@ class SubjectsWidget(QtGui.QWidget):
     def __init__(self, model, parent=None):
         super(SubjectsWidget, self).__init__(parent)
         self._tableview = SubjectsTableView(model, self)
+        tablemodel = SubjectsTableModel(model)
+        self._tableview.setModel(tablemodel)
         layout = QtGui.QVBoxLayout()
         layout.addWidget(self._tableview)
         self.setLayout(layout)       
+        
+    @property
+    def tableview(self):
+        return self._tableview
         
         
 class SubjectsTableView(QtGui.QTableView):
@@ -20,12 +26,7 @@ class SubjectsTableView(QtGui.QTableView):
     def __init__(self, model, parent=None):
         super(SubjectsTableView, self).__init__(parent)
         self._init_widget()
-        self._init_model(model)
-        
-    def _init_model(self, model):
         self._study_model = model
-        self._tablemodel = SubjectsTableModel(model)
-        self.setModel(self._tablemodel)
         
     def _init_widget(self):
         self.ui = loadUi(self.uifile, self)
@@ -34,13 +35,14 @@ class SubjectsTableView(QtGui.QTableView):
         self.verticalHeader().setVisible(False)
         self.setItemDelegate(SubjectsItemDelegate())
 
+    # overrided Qt method
     def selectionCommand(self, index, event):
         row, column = index.row(), index.column()
         table_model = self.model()
         if column != table_model.SELECTION_COL:
             self._study_model.set_current_subject_index(row)
             return QtGui.QItemSelectionModel.NoUpdate
-        elif self._study_model.runner_is_running():
+        elif self._study_model.runner_is_running:
             return QtGui.QItemSelectionModel.NoUpdate
         flags = super(SubjectsTableView, self).selectionCommand(index, event)
         if flags & QtGui.QItemSelectionModel.Clear and flags & QtGui.QItemSelectionModel.Select:
@@ -49,7 +51,8 @@ class SubjectsTableView(QtGui.QTableView):
         else:
             flags &= ~QtGui.QItemSelectionModel.Clear
         return flags
-        
+  
+    # overrided Qt method      
     def selectionChanged(self, selected, deselected):
         self._set_selected_indexes(selected.indexes(), True)
         self._set_selected_indexes(deselected.indexes(), False)
@@ -62,6 +65,7 @@ class SubjectsTableView(QtGui.QTableView):
          
 class SubjectsItemDelegate(QtGui.QStyledItemDelegate):
     
+    # overrided Qt method
     def paint(self, painter, option, index):
         option.state = option.state & ~QtGui.QStyle.State_Selected
         super(SubjectsItemDelegate, self).paint(painter, option, index)
@@ -89,16 +93,20 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
     def subject_from_row_index(self, index):
         return self._study_model.get_subject(index)
 
+    # overrided Qt method
     def rowCount(self, parent=QtCore.QModelIndex()):
         return self._study_model.subject_count()
 
+    # overrided Qt method
     def columnCount(self, parent=QtCore.QModelIndex()):
         return 4
-
+    
+    # overrided Qt method
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         if role == QtCore.Qt.DisplayRole and orientation == QtCore.Qt.Horizontal:
             return self.header[section]
-
+    
+    # overrided Qt method
     def data(self, index, role=QtCore.Qt.DisplayRole):
         row, column = index.row(), index.column()
         if role == QtCore.Qt.DisplayRole:
@@ -119,7 +127,8 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
                 if self._study_model.is_selected_subject(row):
                     return QtCore.Qt.Checked
                 return QtCore.Qt.Unchecked
-             
+    
+    # overrided Qt method         
     def flags(self, index):
         column = index.column()
         flags = super(SubjectsTableModel, self).flags(index)

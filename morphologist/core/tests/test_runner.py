@@ -34,12 +34,12 @@ class TestRunner(unittest.TestCase):
     def test_run_selected_subjects(self):
         self.study.clear_results()
         selected_subject_id = self.test_case.get_a_subject_id()
-        self.runner.run(selected_subjects_ids=[selected_subject_id])
+        self.runner.run(subject_ids=[selected_subject_id])
         
         for subject_id in self.study.subjects:
             if subject_id == selected_subject_id:
                 self.assert_(self.runner.is_running(subject_id) or \
-                             self.study.has_all_results(subject_id))
+                             self.study.has_all_results([subject_id]))
             else:
                 self.assert_(not self.runner.is_running(subject_id))
         

@@ -3,6 +3,7 @@ import json
 
 from morphologist.core.utils import OrderedDict, remove_all_extensions
 from morphologist.core.analysis import Parameters, ImportationError
+from morphologist.core.constants import ALL_SUBJECTS
 
 
 class Subject(object):
@@ -176,26 +177,28 @@ class Study(object):
     def has_subjects(self):
         return len(self.subjects) != 0
 
-    def has_some_results(self, subject_id=None):
-        if subject_id:
-            return self.analyses[subject_id].has_some_results()
-        for analysis in self.analyses.itervalues():
+    def has_some_results(self, subject_ids=ALL_SUBJECTS):
+        if subject_ids == ALL_SUBJECTS:
+            subject_ids = self.subjects
+        for subject_id in subject_ids:
+            analysis = self.analyses[subject_id]
             if analysis.has_some_results():
                 return True
         return False
 
-    def has_all_results(self, subject_id=None):
-        if subject_id:
-            return self.analyses[subject_id].has_all_results()
-        for analysis in self.analyses.itervalues():
+    def has_all_results(self, subject_ids=ALL_SUBJECTS):
+        if subject_ids == ALL_SUBJECTS:
+            subject_ids = self.subjects
+        for subject_id in subject_ids:
+            analysis = self.analyses[subject_id]
             if not analysis.has_all_results():
                 return False
         return True
 
-    def clear_results(self, subjects_ids=None):
-        if not subjects_ids:
-            subjects_ids = self.subjects
-        for subject_id in subjects_ids:
+    def clear_results(self, subject_ids=ALL_SUBJECTS):
+        if subject_ids == ALL_SUBJECTS:
+            subject_ids = self.subjects
+        for subject_id in subject_ids:
             analysis = self.analyses[subject_id]
             analysis.clear_results()
 
