@@ -58,15 +58,18 @@ class Study(object):
     default_outputdir = os.path.join(os.path.expanduser("~"),
                                 'morphologist/studies/study')
     
-    def __init__(self, name="undefined study",
-        outputdir=default_outputdir, backup_filename=None):
+    def __init__(self, name="undefined study", outputdir=default_outputdir,
+                            backup_filename=None, parameter_template=None):
         self.name = name
         self.outputdir = outputdir
         self.subjects = OrderedDict()
-        self.analyses = {}
+        if parameter_template is None:
+            parameter_template = self.analysis_cls().PARAMETER_TEMPLATES[0]
+        self.parameter_template = parameter_template
         if backup_filename is None:
             backup_filename = self.default_backup_filename_from_outputdir(outputdir)
         self.backup_filename = backup_filename
+        self.analyses = {}
 
     @staticmethod
     def default_backup_filename_from_outputdir(outputdir):
@@ -154,17 +157,18 @@ class Study(object):
     def analysis_cls():
         raise NotImplementedError("Study is an abstract class")
 
-    def set_analysis_parameters(self, parameter_template):
+    def set_analysis_parameters(self):
         for subject_id, subject in self.subjects.iteritems():
-            self.analyses[subject_id].set_parameters(parameter_template,
+            self.analyses[subject_id].set_parameters(self.parameter_template,
                                                 subject, self.outputdir)
 
-    def import_data(self, parameter_template):
+    def import_data(self):
         subjects_id_importation_failed = []
         for subject_id, subject in self.subjects.iteritems():
             try:
-                new_imgname = self.analysis_cls().import_data(parameter_template, 
-                                                              subject, self.outputdir)
+                new_imgname = self.analysis_cls().import_data(\
+                                        self.parameter_template, 
+                                        subject, self.outputdir)
                 subject.filename = new_imgname
             except ImportationError:
                 subjects_id_importation_failed.append(subject_id) 

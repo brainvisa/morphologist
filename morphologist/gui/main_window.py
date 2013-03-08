@@ -91,7 +91,8 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
                                    QtGui.QMessageBox.Ok, self)
                 msgbox.show()
                 
-            study.set_analysis_parameters(parameter_template)
+            study.parameter_template = parameter_template
+            study.set_analysis_parameters()
         self.set_study(study)
         self._try_save_to_backup_file()
         self.study_editor_widget_window = None

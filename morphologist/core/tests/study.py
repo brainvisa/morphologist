@@ -30,7 +30,8 @@ class AbstractStudyTestCase(object):
         raise NotImplementedError('AbstractStudyTestCase is an abstract class')
 
     def set_parameters(self):
-        self.study.set_analysis_parameters(parameter_template=self.parameter_template())
+        self.study.parameter_template = self.parameter_template()
+        self.study.set_analysis_parameters()
 
     def delete_some_input_files(self):
         raise NotImplementedError("AbstractStudyTestCase is an abstract class")
