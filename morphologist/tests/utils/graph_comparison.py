@@ -98,7 +98,8 @@ def _same_edge(ref_edge, test_edge, verbose):
         if key not in test_edge:
             if verbose: print repr(key) + " not in test_edge"
             return False  
-        if key not in ['aims_cortical', 'aims_junction', 'aims_plidepassage']:
+        if key not in ['aims_cortical', 'aims_junction', 'aims_plidepassage', 
+                       'cortical_label', 'junction_label', 'plidepassage_label']:
             # XXX ref_edge and test_edge should be compared directly
             if str(ref_edge[key]) != str(test_edge[key]):
                 if verbose:
