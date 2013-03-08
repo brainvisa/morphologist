@@ -190,12 +190,41 @@ class SubjectsEditorTableModel(QtCore.QAbstractTableModel):
 
 
 class StudyConfig(object):
+    # check status to build a study
+    STUDY_CONFIG_VALID = 0x0
+    OUTPUTDIR_NOT_EXISTS = 0x1
+    OUTPUTDIR_NOT_EMPTY = 0x2
+    BACKUP_FILENAME_DIR_NOT_EXISTS = 0x4
+    BACKUP_FILENAME_EXISTS = 0x8
     
     def __init__(self, study):
         self.name = study.name
         self.outputdir = study.outputdir
         self.backup_filename = study.backup_filename 
         self.parameter_template = study.analysis_cls().PARAMETER_TEMPLATES[0]
+
+    # FIXME: find a better name ?
+    def check_study_consistency(self):
+        status = self._check_valid_outputdir()
+        status |= self._check_valid_backup_filename()
+        return status
+
+    def _check_valid_outputdir(self):
+        status = StudyConfig.STUDY_CONFIG_VALID
+        if not os.path.exists(self.outputdir):
+            status |= StudyConfig.OUTPUTDIR_NOT_EXISTS
+        elif len(os.listdir(self.outputdir)) != 0:
+            status |= StudyConfig.OUTPUTDIR_NOT_EMPTY
+        return status
+            
+    def _check_valid_backup_filename(self):
+        status = StudyConfig.STUDY_CONFIG_VALID
+        backup_filename_directory = os.path.dirname(self.backup_filename)
+        if not os.path.exists(backup_filename_directory):
+            status |= StudyConfig.BACKUP_FILENAME_DIR_NOT_EXISTS
+        elif os.path.exists(self.backup_filename):
+            status |= StudyConfig.BACKUP_FILENAME_EXISTS
+        return status
 
 
 class StudyConfigItemModel(QtCore.QAbstractItemModel):
@@ -555,11 +584,12 @@ class StudyEditorDialog(QtGui.QDialog):
         self.on_apply_cancel_buttons_clicked_map[role](self)
 
     def on_apply_button_clicked(self):
-        studyname = self.ui.studyname_lineEdit.text()
-        outputdir = self.ui.outputdir_lineEdit.text()
-        backup_filename = self.ui.backup_filename_lineEdit.text()
+        studyname = self._study_config.name
+        outputdir = self._study_config.outputdir
+        backup_filename = self._study_config.backup_filename
             
-        if self._check_study_consistency(outputdir, backup_filename): 
+        # FIXME : remove study assignments
+        if self._check_study_consistency(): 
             self.study.name = studyname
             self.study.outputdir = outputdir
             self.study.backup_filename = backup_filename 
@@ -577,49 +607,31 @@ class StudyEditorDialog(QtGui.QDialog):
         self._tablemodel.add_subjects_from_filenames(filenames,
                                                     self.default_group)
 
-    def _check_study_consistency(self, outputdir, backup_filename):
-        consistency = self._check_valid_outputdir(outputdir)
-        if not consistency: return False
-        consistency = self._check_valid_backup_filename(backup_filename)
-        if not consistency: return False
-        consistency = self._check_duplicated_subjects()
-        if not consistency: return False
-        return True
-        
-    def _check_valid_outputdir(self, outputdir):
-        consistency = True
-        msg = ""
-        if not os.path.exists(outputdir):
-            consistency = False
-            msg = "The output directory '%s' does not exist." % outputdir
-        elif len(os.listdir(outputdir)) != 0:
-            consistency = False
-            msg = "The output directory '%s' is not empty." % outputdir
-        if not consistency:
-            QtGui.QMessageBox.critical(self, "Study consistency error", msg)
-        return consistency
-            
-    def _check_valid_backup_filename(self, backup_filename):
-        consistency = True
+    def _check_study_consistency(self):
+        outputdir = self._study_config.outputdir
+        backup_filename = self._study_config.backup_filename
         backup_filename_directory = os.path.dirname(backup_filename)
-        if not os.path.exists(backup_filename_directory):
-            consistency = False
+        status = self._study_config.check_study_consistency()
+        if status == StudyConfig.STUDY_CONFIG_VALID:
+            if self._subjects_editor_model.check_study_consistency():
+                QtGui.QMessageBox.critical(self, "Study consistency error",
+                    "Some subjects have the same identifier")
+                return False
+            return True
+        elif status & StudyConfig.OUTPUTDIR_NOT_EXISTS:
+            msg = "The output directory '%s' does not exist." % outputdir
+        elif status & StudyConfig.OUTPUTDIR_NOT_EMPTY:
+            msg = "The output directory '%s' is not empty." % outputdir
+        elif status & StudyConfig.BACKUP_FILENAME_DIR_NOT_EXISTS:
             msg = "The backup filename directory '%s' does not exist." % \
-                                                backup_filename_directory 
-        elif os.path.exists(backup_filename):
-            consistency = False
+                                                backup_filename_directory
+        elif status & StudyConfig.BACKUP_FILENAME_EXISTS:
             msg = "The backup filename already '%s' exists." % backup_filename
-        if not consistency:
-            QtGui.QMessageBox.critical(self, "Study consistency error", msg)
-        return consistency
+        else:
+            assert(0)
+        QtGui.QMessageBox.critical(self, "Study consistency error", msg)
+        return False
         
-    def _check_duplicated_subjects(self):
-        if self._subjects_editor_model.check_study_consistency():
-            QtGui.QMessageBox.critical(self, "Study consistency error",
-                                "Some subjects have the same identifier")
-            return False
-        return True
-               
 
 class SelectSubjectsDialog(QtGui.QFileDialog):
     
