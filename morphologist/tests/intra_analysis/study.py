@@ -37,10 +37,6 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
     def parameter_template(self):
         return IntraAnalysis.DEFAULT_PARAM_TEMPLATE 
 
-    def create_study(self):
-        self.study = IntraAnalysisStudy(self.studyname, self.outputdir)
-        return self.study
-
     def delete_some_input_files(self):
         parameter_names = [IntraAnalysis.MRI]
         for name in parameter_names:
@@ -84,10 +80,6 @@ class MockIntraAnalysisStudyTestCase(IntraAnalysisStudyTestCase):
     def study_cls(self):
         return MockIntraAnalysisStudy
 
-    def create_study(self):
-        self.study = MockIntraAnalysisStudy(self.studyname, self.outputdir)
-        return self.study
-
 
 class IntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
     '''
@@ -105,12 +97,8 @@ class MockIntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
     -> Mock intra analysis
     '''
 
-    def get_study_cls(self):
+    def study_cls(self):
         return MockIntraAnalysisStudy
-
-    def create_study(self):
-        self.study = MockIntraAnalysisStudy(self.studyname, self.outputdir)
-        return self.study
 
     def parameter_template(self):
         return IntraAnalysis.BRAINVISA_PARAM_TEMPLATE 

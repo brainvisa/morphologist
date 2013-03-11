@@ -3,33 +3,7 @@ import os
 from morphologist.core.steps import Step
 from morphologist.core.analysis import Analysis, Parameters
 
-
-class MockStep(Step):
-
-    def __init__(self, name):
-        super(MockStep, self).__init__()
-        self.time_to_sleep = 0
-        self.name = name
-
-    def _get_authorized_attributes(self):
-        return Step._get_authorized_attributes(self) + ['time_to_sleep']
-
-    def _get_inputs(self):
-        file_inputs = ['input_1', 'input_2', 'input_3']
-        other_inputs = []
-        return file_inputs, other_inputs  
-
-    def _get_outputs(self):               
-        return ['output_1', 'output_2']
-
-    def get_command(self):
-        command = ['python', '-m',
-                   'morphologist.core.tests.mocks.analysis',
-                    str(self.time_to_sleep),
-                    self.outputs.output_1, self.outputs.output_2]
-        return command
-
-
+        
 class MockAnalysis(Analysis):
     DUMMY_TEMPLATE = "dummy"
     PARAMETER_TEMPLATES = [DUMMY_TEMPLATE]
@@ -106,17 +80,69 @@ class MockAnalysis(Analysis):
         return os.path.join(outputdir, filename)
 
 
+class MockStep(Step):
+
+    def __init__(self, name):
+        super(MockStep, self).__init__()
+        self.time_to_sleep = 0
+        self.name = name
+
+    def _get_authorized_attributes(self):
+        return Step._get_authorized_attributes(self) + ['time_to_sleep']
+
+    def _get_inputs(self):
+        file_inputs = ['input_1', 'input_2', 'input_3']
+        other_inputs = []
+        return file_inputs, other_inputs  
+
+    def _get_outputs(self):               
+        return ['output_1', 'output_2']
+
+    def get_command(self):
+        command = ['python', '-m',
+                   'morphologist.core.tests.mocks.analysis',
+                    str(self.time_to_sleep),
+                    self.outputs.output_1, self.outputs.output_2]
+        return command
+
+
+class MockFailedAnalysis(MockAnalysis):
+    
+    def _init_steps(self):
+        step1 = MockStep('step1')
+        step2 = MockFailedStep('failed_step2')
+        step3 = MockStep('step3')
+        self._steps = [step1, step2, step3] 
+
+
+class MockFailedStep(MockStep):
+                    
+    def get_command(self):
+        command = super(MockFailedStep, self).get_command()
+        command.append("--fail")
+        return command
+     
+
 def main():
     import sys
     import time
-
-    time_to_sleep = int(sys.argv[1])
-    args = sys.argv[2:]
-
+    import optparse
+    
+    parser = optparse.OptionParser()
+    parser.add_option('-f', '--fail', action='store_true',
+                      dest="fail", default=False, 
+                      help="Execute only this test function.")
+    options, args = parser.parse_args(sys.argv)
+    
+    time_to_sleep = int(args[1])
+    args = args[2:]
+    
     for filename in args:
         fd = open(filename, "w")
         fd.close()
     time.sleep(time_to_sleep)
-
+    
+    if options.fail:
+        sys.exit(1)
 
 if __name__ == '__main__' : main()

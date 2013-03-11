@@ -22,7 +22,15 @@ class TestRunner(unittest.TestCase):
     
     def create_test_case(self):
         return MockStudyTestCase()
-    
+   
+   
+    def tearDown(self):
+        if self.runner.is_running():
+            self.runner.stop()
+            
+            
+class TestRunnerOnSuccessStudy(TestRunner):
+     
     def test_run_all_subjects(self):
         self.study.clear_results()
         self.runner.run()
@@ -110,19 +118,18 @@ class TestRunner(unittest.TestCase):
                     self.assertTrue(0)
         
     def tearDown(self):
-        if self.runner.is_running():
-            self.runner.stop()
+        super(TestRunnerOnSuccessStudy, self).tearDown()
         #some input files are removed in test_missing_input_file_error:
         self.test_case.restore_input_files() 
 
 
-class TestSomaWorkflowRunner(TestRunner):
+class TestSomaWorkflowRunner(TestRunnerOnSuccessStudy):
 
     def create_runner(self, study):
         return SomaWorkflowRunner(study)
 
 
-class TestThreadRunner(TestRunner):
+class TestThreadRunner(TestRunnerOnSuccessStudy):
 
     def create_runner(self, study):
         return ThreadRunner(study)

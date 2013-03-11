@@ -1,5 +1,5 @@
 from morphologist.core.study import Subject
-from morphologist.core.tests.mocks.study import MockStudy
+from morphologist.core.tests.mocks.study import MockStudy, MockFailedStudy
 from morphologist.core.tests import reset_directory, remove_file
 
 
@@ -14,7 +14,7 @@ class AbstractStudyTestCase(object):
         self.filenames = None
 
     def create_study(self):
-        self.study = self.study_cls(self.studyname, self.outputdir,
+        self.study = self.study_cls()(self.studyname, self.outputdir,
                         parameter_template=self.parameter_template())
         return self.study
 
@@ -71,10 +71,6 @@ class MockStudyTestCase(AbstractStudyTestCase):
     def study_cls(self):
         return MockStudy
 
-    def create_study(self):
-        self.study = MockStudy(self.studyname, self.outputdir)
-        return self.study
-
     def parameter_template(self):
         return 'foo'
 
@@ -108,3 +104,13 @@ class MockStudyTestCase(AbstractStudyTestCase):
         subject_id = self.get_a_subject_id()
         return subject_id, "2_step3"
 
+
+class MockFailedStudyTestCase(MockStudyTestCase):
+
+    def __init__(self):
+        super(MockFailedStudyTestCase, self).__init__()
+        self.failed_step_id = "1_failed_step2"
+    
+    def study_cls(self):
+        return MockFailedStudy
+    
