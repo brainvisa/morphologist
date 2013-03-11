@@ -1,6 +1,7 @@
 from morphologist.core.gui.qt_backend import QtCore
 from morphologist.core.constants import ALL_SUBJECTS
 
+
 class LazyStudyModel(QtCore.QObject):
     DEFAULT_STATUS = ''
     changed = QtCore.pyqtSignal()
@@ -100,7 +101,9 @@ class LazyStudyModel(QtCore.QObject):
         if self.runner.is_running(subject_id, update_status=False):
             has_changed = self._update_subject_status_if_needed(row_index, "is running")
         elif self.runner.has_failed(subject_id, update_status=False):
-            has_changed = self._update_subject_status_if_needed(row_index, "last run failed")
+            step_id = self.runner.get_failed_step_id(subject_id)
+            step_name = self.study.analyses[subject_id].step_from_name(step_id).name
+            has_changed = self._update_subject_status_if_needed(row_index, "failed at %s" % step_name)
         else:
             has_changed = self._update_subject_output_files_status_if_needed(row_index)
         return has_changed
