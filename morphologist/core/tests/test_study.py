@@ -12,7 +12,6 @@ class TestStudy(unittest.TestCase):
         self.test_case = self.create_test_case()
         self.test_case.create_study()
         self.test_case.add_subjects()
-        self.test_case.set_parameters() 
         self.study = self.test_case.study
  
     def test_subject_exists_error(self):

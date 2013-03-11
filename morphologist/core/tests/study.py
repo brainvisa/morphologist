@@ -14,7 +14,8 @@ class AbstractStudyTestCase(object):
         self.filenames = None
 
     def create_study(self):
-        self.study = self.study_cls(self.studyname, self.outputdir)
+        self.study = self.study_cls(self.studyname, self.outputdir,
+                        parameter_template=self.parameter_template())
         return self.study
 
     def study_cls(self):
@@ -28,10 +29,6 @@ class AbstractStudyTestCase(object):
 
     def parameter_template(self):
         raise NotImplementedError('AbstractStudyTestCase is an abstract class')
-
-    def set_parameters(self):
-        self.study.parameter_template = self.parameter_template()
-        self.study.set_analysis_parameters()
 
     def delete_some_input_files(self):
         raise NotImplementedError("AbstractStudyTestCase is an abstract class")

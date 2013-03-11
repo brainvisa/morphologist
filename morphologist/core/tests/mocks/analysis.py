@@ -31,6 +31,8 @@ class MockStep(Step):
 
 
 class MockAnalysis(Analysis):
+    DUMMY_TEMPLATE = "dummy"
+    PARAMETER_TEMPLATES = [DUMMY_TEMPLATE]
 
     def __init__(self):
         super(MockAnalysis, self).__init__() 

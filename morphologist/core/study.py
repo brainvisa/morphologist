@@ -148,6 +148,19 @@ class Study(object):
             raise SubjectExistsError(subject)
         self.subjects[subject_id] = subject
         self.analyses[subject_id] = self._create_analysis()
+        self.analyses[subject_id].set_parameters(self.parameter_template,
+                                                subject, self.outputdir)
+        try:
+            new_imgname = self.analysis_cls().import_data(\
+                                        self.parameter_template, 
+                                        subject, self.outputdir)
+        except ImportationError:
+            del self.subjects[subject_id]
+            del self.analyses[subject_id]
+            raise ImportationError("Importation failed for the " +
+                        "following subject: %s." % str(subject))
+        else:
+            subject.filename = new_imgname
 
     @staticmethod
     def _create_analysis():
@@ -156,30 +169,6 @@ class Study(object):
     @staticmethod
     def analysis_cls():
         raise NotImplementedError("Study is an abstract class")
-
-    def set_analysis_parameters(self):
-        for subject_id, subject in self.subjects.iteritems():
-            self.analyses[subject_id].set_parameters(self.parameter_template,
-                                                subject, self.outputdir)
-
-    def import_data(self):
-        subjects_id_importation_failed = []
-        for subject_id, subject in self.subjects.iteritems():
-            try:
-                new_imgname = self.analysis_cls().import_data(\
-                                        self.parameter_template, 
-                                        subject, self.outputdir)
-                subject.filename = new_imgname
-            except ImportationError:
-                subjects_id_importation_failed.append(subject_id) 
-        if len(subjects_id_importation_failed) > 0:
-            repr_subjects = []
-            for subject_id in subjects_id_importation_failed:
-                repr_subjects.append(str(self.subjects[subject_id]))
-                del self.subjects[subject_id]
-                del self.analyses[subject_id]
-            raise ImportationError("The importation failed for the " +
-                    "following subjects:\n%s." % ", ".join(repr_subjects))
 
     def has_subjects(self):
         return len(self.subjects) != 0

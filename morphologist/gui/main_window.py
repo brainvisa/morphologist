@@ -60,6 +60,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
     def _create_runner(self, study):
         return SomaWorkflowRunner(study)
 
+    # this slot is automagically connected
     @QtCore.Slot()
     def on_action_new_study_triggered(self):
         msg = 'Stop current running analysis and create a new study ?'
@@ -67,35 +68,36 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         study = self._create_study()
         self.study_editor_widget_window = StudyEditorDialog(study, parent=self,
                                             enable_brainomics_db=self.enable_brainomics_db)
-        self.study_editor_widget_window.ui.accepted.connect(self.on_study_dialog_accepted)
+        self.study_editor_widget_window.ui.accepted.connect(self.on_new_study_dialog_accepted)
         self.study_editor_widget_window.ui.show()
         
     @QtCore.Slot()
-    def on_study_dialog_accepted(self):
-        study = self.study_editor_widget_window.study
-        parameter_template = self.study_editor_widget_window.parameter_template
-        if study.has_subjects():
-            QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
-            try:
-                study.import_data(parameter_template)
-            except ImportationError, e:
-                QtGui.QApplication.restoreOverrideCursor()
-                QtGui.QMessageBox.critical(self, 
-                                          "Cannot import some images", "%s" %(e)) 
-            else:
-                QtGui.QApplication.restoreOverrideCursor()
-            if study.has_subjects():
-                msg = "The images have been imported in %s directory." % study.outputdir
-                msgbox = QtGui.QMessageBox(QtGui.QMessageBox.Information,
-                                   "Images importation", msg,
-                                   QtGui.QMessageBox.Ok, self)
-                msgbox.show()
-                
-            study.parameter_template = parameter_template
-            study.set_analysis_parameters()
-        self.set_study(study)
+    def on_new_study_dialog_accepted(self):
+        dialog = self.study_editor_widget_window
+        self._try_update_study(dialog.study_editor)
+        self.set_study(dialog.study_editor.study)
         self._try_save_to_backup_file()
         self.study_editor_widget_window = None
+
+    def _try_update_study(self, study_editor):
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        study = study_editor.study
+        try:
+            study_editor.update_study()
+        except ImportationError, e:
+            QtGui.QApplication.restoreOverrideCursor()
+            title = "Cannot import some images"
+            msg = "%s" %(e)
+            QtGui.QMessageBox.critical(self, title, msg)
+        else:
+            QtGui.QApplication.restoreOverrideCursor()
+        if study.has_subjects():
+            title = "Images importation"
+            msg = "The images have been imported in %s directory." % \
+                                                        study.outputdir
+            msgbox = QtGui.QMessageBox(QtGui.QMessageBox.Information,
+                                       title, msg, QtGui.QMessageBox.Ok, self)
+            msgbox.show()
 
     # this slot is automagically connected
     @QtCore.Slot()
