@@ -25,6 +25,7 @@ class Runner(object):
     NOT_STARTED = 'not started'
     FAILED = 'failed'
     SUCCESS = 'success'
+    KILLED_BY_USER = 'killed_by_user'
     RUNNING = 'running'
     UNKNOWN = 'unknown'
     
@@ -306,8 +307,9 @@ class  SomaWorkflowRunner(Runner):
             jobs_status=self._get_jobs_status(update_status)
             status = Runner.SUCCESS
             for job_id in subject_jobs:
-                job_status = jobs_status[job_id] 
-                if job_status in [Runner.RUNNING, Runner.FAILED]:
+                job_status = jobs_status[job_id]
+                # XXX hypothesis: the workflow is linear for a subject (no branch)
+                if job_status in [Runner.RUNNING, Runner.FAILED, Runner.KILLED_BY_USER]:
                     status = job_status
                     break
                 elif job_status == Runner.UNKNOWN:
@@ -327,16 +329,19 @@ class  SomaWorkflowRunner(Runner):
         job_info_seq, _, _, _ = self._workflow_controller.workflow_elements_status(self._workflow_id)
         for job_id, sw_status, _, exit_info, _ in job_info_seq:
             exit_status, exit_value, _, _ = exit_info
-            status = self._sw_status_to_runner_status(sw_status, exit_value)
+            status = self._sw_status_to_runner_status(sw_status, exit_status, exit_value)
             jobs_status[job_id] = status
         self._cached_jobs_status = jobs_status
         
-    def _sw_status_to_runner_status(self, sw_status, exit_value):
+    def _sw_status_to_runner_status(self, sw_status, exit_status, exit_value):
         if sw_status in [sw.constants.FAILED,
                          sw.constants.DELETE_PENDING,
                          sw.constants.KILL_PENDING] or \
             (exit_value is not None and exit_value != 0):
-            status = Runner.FAILED
+            if exit_status == sw.constants.USER_KILLED:
+                status = Runner.KILLED_BY_USER
+            else:
+                status = Runner.FAILED
         elif sw_status == sw.constants.DONE:
             status = Runner.SUCCESS
         elif sw_status in [sw.constants.RUNNING, sw.constants.NOT_SUBMITTED, 
