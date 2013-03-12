@@ -91,7 +91,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         shutil.copy(bv_white_ridges, raw_white_ridges) 
         shutil.copy(bv_white_ridges + ".minf", raw_white_ridges + ".minf") 
         
-        print "* Then until Grey/White surface"
+        print "* Then run the rest of the pipeline"
         nodes.child('PrepareSubject').setSelected(0)
         nodes.child('BiasCorrection').setSelected(0)
         nodes.child('HistoAnalysis').setSelected(1)
@@ -288,8 +288,6 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         self._assert_same_results([IntraAnalysis.LEFT_SULCI],
                                   same_graphs) 
 
-
-
     def test_sulci_right(self):
         right_sulci = Sulci(constants.RIGHT)
          
@@ -319,7 +317,6 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         self._assert_same_results([IntraAnalysis.LEFT_LABELED_SULCI],
                                    self._same_graphs) 
 
-
     def test_sulci_labelling_right(self):
         right_sulci_labelling = SulciLabelling(constants.RIGHT)
     
@@ -331,7 +328,6 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         self._assert_same_results([IntraAnalysis.RIGHT_LABELED_SULCI],
                                    self._same_graphs) 
 
-
     def _assert_same_results(self, results, comparison_function):
         for parameter_name in results:
             f_ref = self.ref_outputs[parameter_name]
@@ -342,12 +338,10 @@ class TestIntraAnalysisSteps(unittest.TestCase):
                          % os.path.basename(f_ref))
             # the check of minf files is disabled for the moment because we do not use these files
             #self._assert_same_minf_files(file_ref+".minf", file_test+".minf")
- 
 
     def _same_files(self, file_ref, file_test):
         return filecmp.cmp(file_ref, file_test) 
             
-
     def _same_graphs(self, file_ref, file_test):
         return same_graphs(file_ref, file_test, verbose=True)
 
