@@ -43,7 +43,9 @@ class StudyEditorDialog(QtGui.QDialog):
         self.ui.subjects_tableview.setModel(self._subjects_tablemodel)
         tablewidget_header = self.ui.subjects_tableview.horizontalHeader()
         tablewidget_header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        self._selection_model = self.ui.subjects_tableview.selectionModel()
+        self._selection_model = SubjectsEditorSelectionModel(\
+                                    self._subjects_tablemodel)
+        self.ui.subjects_tableview.setSelectionModel(self._selection_model)
         self._selection_model.selectionChanged.connect(self.on_subjects_selection_changed)
 
         self._study_properties_editor_widget = StudyPropertiesEditorWidget(\
@@ -132,10 +134,11 @@ class StudyEditorDialog(QtGui.QDialog):
  
     @QtCore.Slot("const QItemSelection &", "const QItemSelection &")
     def on_subjects_selection_changed(self, selected, deselected):
-        enable = bool(len(self._selection_model.selectedRows()))
-        self.ui.edit_subjects_name_button.setEnabled(enable)
-        self.ui.edit_subjects_group_button.setEnabled(enable)
-        self.ui.remove_subjects_button.setEnabled(enable)
+        enable_rename = self._selection_model.has_any_new_selected_subjects()
+        enable_remove = bool(self._selection_model.selectedRows())
+        self.ui.edit_subjects_name_button.setEnabled(enable_rename)
+        self.ui.edit_subjects_group_button.setEnabled(enable_rename)
+        self.ui.remove_subjects_button.setEnabled(enable_remove)
            
     # this slot is automagically connected
     @QtCore.Slot()
@@ -143,7 +146,8 @@ class StudyEditorDialog(QtGui.QDialog):
         subjectname, ok = QtGui.QInputDialog.getText(self, 
                 "Enter the subject name", "Subject name:")
         if not ok: return
-        rows = [index.row() for index in self._selection_model.selectedRows()]
+        rows = [index.row() for index in \
+                self._selection_model.new_selected_subjects_rows()]
         self._subjects_tablemodel.rename_subjects_name_from_rows(subjectname, rows)
     
     # this slot is automagically connected
@@ -152,7 +156,8 @@ class StudyEditorDialog(QtGui.QDialog):
         groupname, ok = QtGui.QInputDialog.getText(self,
                 "Enter the group name", "Group name:")
         if not ok: return
-        rows = [index.row() for index in self._selection_model.selectedRows()]
+        rows = [index.row() for index in \
+                self._selection_model.new_selected_subjects_rows()]
         self._subjects_tablemodel.rename_subjects_groupname_from_rows(groupname, rows)
 
     # this slot is automagically connected
@@ -381,7 +386,7 @@ class StudyPropertiesEditorItemDelegate(QtGui.QItemDelegate):
         if value != editor.property(property):
             editor.setProperty(property, value)
         if model.is_data_colorable(index):
-            color = model.data(index, QtCore.Qt.BackgroundRole)
+            bg_color = model.data(index, QtCore.Qt.BackgroundRole)
             style_sheet = '''
             QLineEdit { 
                 background-color: %s;
@@ -397,7 +402,7 @@ class StudyPropertiesEditorItemDelegate(QtGui.QItemDelegate):
                 padding: 2px;
                 margin: 1px;
             }
-        ''' % tuple([color.name()] * 2)
+        ''' % tuple([bg_color.name()] * 2)
             editor.setStyleSheet(style_sheet)
  
 
@@ -531,6 +536,25 @@ class StudyPropertiesEditor(object):
         return status
 
 
+class SubjectsEditorSelectionModel(QtGui.QItemSelectionModel):
+
+    def __init__(self, model, parent=None):
+        super(SubjectsEditorSelectionModel, self).__init__(model, parent)
+
+    def new_selected_subjects_rows(self, column=0):
+        model = self.model()
+        model_index_list = [index for index in self.selectedRows(column) \
+                                if model.is_ith_subject_new(index.row())]
+        return model_index_list
+
+    def has_any_new_selected_subjects(self, column=0):
+        model = self.model()
+        for index in self.selectedRows(column):
+            if model.is_ith_subject_new(index.row()):
+                return True
+        return False
+
+
 class SubjectsEditorTableModel(QtCore.QAbstractTableModel):
     GROUPNAME_COL = 0
     SUBJECTNAME_COL = 1
@@ -569,8 +593,10 @@ class SubjectsEditorTableModel(QtCore.QAbstractTableModel):
         elif role == QtCore.Qt.BackgroundRole:
             if self._subjects_editor.is_ith_subject_duplicated(row):
                 return QtGui.QColor("#ffaaaa")
-            elif self._subjects_editor.is_ith_subject_new(row):
-                return QtGui.QColor("#ccccff")
+        elif role == QtCore.Qt.ForegroundRole:
+            if not self._subjects_editor.is_ith_subject_new(row):
+                return QtGui.QApplication.palette().color(\
+                    QtGui.QPalette.Disabled, QtGui.QPalette.Text)
 
     def removeRows(self, start_row, count, parent=QtCore.QModelIndex()):
         end_row = start_row + count - 1
@@ -612,6 +638,9 @@ class SubjectsEditorTableModel(QtCore.QAbstractTableModel):
         start_index = self.index(start_row, self.SUBJECTNAME_COL)
         end_index = self.index(end_row, self.SUBJECTNAME_COL)
         self.dataChanged.emit(start_index, end_index)
+
+    def is_ith_subject_new(self, row):
+        return self._subjects_editor.is_ith_subject_new(row)
     
     def rename_subjects_groupname_from_rows(self, groupname, rows):
         start_row = numpy.min(rows)
@@ -701,7 +730,7 @@ class SubjectsEditor(object):
         return self._similar_subjects_n[subject_id] != 1
 
     def is_ith_subject_new(self, index):
-        return self._subjects_origin[index] is not None
+        return self._subjects_origin[index] is None
 
     def rename_ith_subject_name(self, row, name):
         subject = self._subjects[row] 
