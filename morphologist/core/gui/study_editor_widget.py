@@ -16,6 +16,9 @@ from morphologist.core.analysis import ImportationError
 class StudyEditorDialog(QtGui.QDialog):
     NEW_STUDY = 0
     EDIT_STUDY = 1
+    window_title_from_mode = [\
+        "Create a new study",
+        "Edit current study"]
     on_apply_cancel_buttons_clicked_map = {}
     default_group = Subject.DEFAULT_GROUP
     group_column_width = 100
@@ -33,6 +36,7 @@ class StudyEditorDialog(QtGui.QDialog):
         super(StudyEditorDialog, self).__init__(parent)
         self._init_ui()
         self.study_editor = StudyEditor(study)
+        self._set_window_title(mode)
         self._dialog_mode = mode # FIXME : usefull ?
         self._default_parameter_template = study.analysis_cls().PARAMETER_TEMPLATES[0]
 
@@ -85,6 +89,9 @@ class StudyEditorDialog(QtGui.QDialog):
                             outputdir, parameter_templates, selected_template)
         self._subjects_from_study_dialog.accepted.connect(\
             self.on_subjects_from_study_dialog_accepted)
+
+    def _set_window_title(self, mode):
+        self.setWindowTitle(self.window_title_from_mode[mode])
        
     @QtCore.Slot("const QModelIndex &", "int", "int")
     def on_subjects_tablemodel_rows_changed(self):
