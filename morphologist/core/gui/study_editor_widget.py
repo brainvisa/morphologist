@@ -13,9 +13,76 @@ from morphologist.core.formats import FormatsManager
 from morphologist.core.analysis import ImportationError
 
 
-class StudyEditorDialog(QtGui.QDialog):
+class StudyEditor(object):
+    # study edition mode
     NEW_STUDY = 0
     EDIT_STUDY = 1
+    # update policy
+    ON_SUBJECT_REMOVED_DELETE_FILES = 0
+    ON_SUBJECT_REMOVED_DO_NOTHING = 1
+
+    def __init__(self, study, mode=NEW_STUDY,
+        subject_removed_policy=ON_SUBJECT_REMOVED_DO_NOTHING):
+        self.study = study
+        self._subjects_editor = SubjectsEditor(study)
+        self._study_properties_editor = StudyPropertiesEditor(study)
+        self.mode = mode
+        self.subject_removed_policy = subject_removed_policy
+
+    @property
+    def subjects_editor(self):
+        return self._subjects_editor
+
+    @property
+    def study_properties_editor(self):
+        return self._study_properties_editor
+
+    def update_study(self):
+        self._update_properties()
+        self._update_subjects()
+
+    def _update_properties(self):
+        study = self.study
+        study_properties_editor = self.study_properties_editor
+
+        study.name = study_properties_editor.name
+        study.outputdir = study_properties_editor.outputdir
+        study.backup_filename = study_properties_editor.backup_filename 
+        study.parameter_template = study_properties_editor.parameter_template
+
+    def _update_subjects(self):
+        # XXX: operations order is important
+        print "new =", self._subjects_editor.added_subjects()
+        print "del =", self._subjects_editor.removed_subjects()
+        print "ren =", self._subjects_editor.renamed_subjects()
+
+        for subject in self._subjects_editor.removed_subjects():
+            self._on_subject_removed(subject)
+
+        if len(self._subjects_editor.renamed_subjects()):
+            assert(0) # existing subjects can't be renamed from GUI
+ 
+        subjects_importation_failed = []
+        for subject in self._subjects_editor.added_subjects():
+            try:
+                self.study.add_subject(subject)
+            except ImportationError, e:
+                subjects_importation_failed.append(subject)
+        if subjects_importation_failed:
+            str_subjects = []
+            for subject in subjects_importation_failed:
+                str_subjects.append(str(subject))
+            raise ImportationError("The importation failed for the " + \
+                "following subjects:\n%s." % ", ".join(str_subjects))
+
+    def _on_subject_removed(self, subject):
+        if self.subject_removed_policy == StudyEditor.ON_SUBJECT_REMOVED_DELETE_FILES:
+            pass # TODO
+        elif self.subject_removed_policy == StudyEditor.ON_SUBJECT_REMOVED_DO_NOTHING:
+            self.study.remove_subject_from_id(subject.id())
+
+
+class StudyEditorDialog(QtGui.QDialog):
     window_title_from_mode = [\
         "Create a new study",
         "Edit current study"]
@@ -31,13 +98,12 @@ class StudyEditorDialog(QtGui.QDialog):
         role_map[apply_role] = cls.on_apply_button_clicked
         role_map[reject_role] = cls.on_cancel_button_clicked
 
-    def __init__(self, study, parent=None, mode=NEW_STUDY,
+    def __init__(self, study, parent=None, editor_mode=StudyEditor.NEW_STUDY,
                         enable_brainomics_db=False):
         super(StudyEditorDialog, self).__init__(parent)
         self._init_ui()
-        self.study_editor = StudyEditor(study)
-        self._set_window_title(mode)
-        self._dialog_mode = mode # FIXME : usefull ?
+        self.study_editor = StudyEditor(study, editor_mode)
+        self._set_window_title(editor_mode)
         self._default_parameter_template = study.analysis_cls().PARAMETER_TEMPLATES[0]
 
         self._subjects_tablemodel = SubjectsEditorTableModel(\
@@ -53,7 +119,8 @@ class StudyEditorDialog(QtGui.QDialog):
         self._selection_model.selectionChanged.connect(self.on_subjects_selection_changed)
 
         self._study_properties_editor_widget = StudyPropertiesEditorWidget(\
-                    self.study_editor.study_properties_editor, self, mode)
+                                    self.study_editor.study_properties_editor,
+                                    self, editor_mode)
 
         # FIXME : expose/duplicate signal to config_widget level
         #      or split model/view ?
@@ -195,8 +262,12 @@ class StudyEditorDialog(QtGui.QDialog):
         self.on_apply_cancel_buttons_clicked_map[role](self)
 
     def on_apply_button_clicked(self):
-        if self._check_study_consistency(): 
-            self.ui.accept()
+        if not self._check_study_consistency():
+            return
+
+        if self.study_editor.subjects_editor.removed_subjects():
+            self.study_editor.subject_removed_policy = StudyEditor.ON_SUBJECT_REMOVED_DO_NOTHING
+        self.ui.accept()
 
     def on_cancel_button_clicked(self):
         self.ui.reject()
@@ -212,9 +283,10 @@ class StudyEditorDialog(QtGui.QDialog):
         outputdir = study_properties_editor.outputdir
         backup_filename = study_properties_editor.backup_filename
         backup_filename_directory = os.path.dirname(backup_filename)
-        status = study_properties_editor.check_study_consistency()
+        editor_mode = self.study_editor.mode
+        status = study_properties_editor.check_study_consistency(editor_mode)
         if status == StudyPropertiesEditor.STUDY_CONFIG_VALID:
-            if subjects_editor.check_study_consistency():
+            if subjects_editor.check_study_consistency(editor_mode):
                 QtGui.QMessageBox.critical(self, "Study consistency error",
                     "Some subjects have the same identifier")
                 return False
@@ -234,66 +306,20 @@ class StudyEditorDialog(QtGui.QDialog):
         return False
 
 
-class StudyEditor(object):
-
-    def __init__(self, study):
-        self.study = study
-        self.subjects_editor = SubjectsEditor(study)
-        self.study_properties_editor = StudyPropertiesEditor(study)
-
-    def update_study(self):
-        self._update_properties()
-        self._update_subjects()
-
-    def _update_properties(self):
-        study = self.study
-        study_properties_editor = self.study_properties_editor
-
-        study.name = study_properties_editor.name
-        study.outputdir = study_properties_editor.outputdir
-        study.backup_filename = study_properties_editor.backup_filename 
-        study.parameter_template = study_properties_editor.parameter_template
-
-    def _update_subjects(self):
-        # XXX: operations order is important
-        print "new =", self.subjects_editor.added_subjects()
-        print "del =", self.subjects_editor.removed_subjects()
-        print "ren =", self.subjects_editor.renamed_subjects()
-
-        for subject in self.subjects_editor.removed_subjects():
-            self.study.remove_subject_from_id(subject.id())
-
-        if len(self.subjects_editor.renamed_subjects()):
-            assert(0) # existing subjects can't be renamed from GUI
- 
-        subjects_importation_failed = []
-        for subject in self.subjects_editor.added_subjects():
-            try:
-                self.study.add_subject(subject)
-            except ImportationError, e:
-                subjects_importation_failed.append(subject)
-        if subjects_importation_failed:
-            str_subjects = []
-            for subject in subjects_importation_failed:
-                str_subjects.append(str(subject))
-            raise ImportationError("The importation failed for the " + \
-                "following subjects:\n%s." % ", ".join(str_subjects))
-       
-
 class StudyPropertiesEditorWidget(QtGui.QWidget):
 
     def __init__(self, study_properties_editor, parent=None,
-                mode=StudyEditorDialog.NEW_STUDY):
+                editor_mode=StudyEditor.NEW_STUDY):
         super(StudyPropertiesEditorWidget, self).__init__(parent)
         self._study_properties_editor = study_properties_editor
         self._item_model = StudyPropertiesEditorItemModel(study_properties_editor, self)
         self._item_delegate = StudyPropertiesEditorItemDelegate(self)
-        self._init_ui(parent, mode)
+        self._init_ui(parent, editor_mode)
         self._init_mapper()
         self.ui.link_button.toggled.connect(self.on_link_button_toggled)
     
     # FIXME: better: move those widgets in a separate .ui
-    def _init_ui(self, parent, mode):
+    def _init_ui(self, parent, editor_mode):
         # create dummy ui attribute
         self.ui = type('dummy UI', (QtGui.QWidget,), {})()
         self.ui.studyname_lineEdit = parent.ui.studyname_lineEdit
@@ -303,7 +329,7 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self.ui.backup_filename_button = parent.ui.backup_filename_button
         self.ui.link_button = parent.ui.link_button
         self.ui.parameter_template_combobox = parent.ui.parameter_template_combobox
-        if mode == StudyEditorDialog.EDIT_STUDY:
+        if editor_mode == StudyEditor.EDIT_STUDY:
             self.ui.outputdir_lineEdit.setEnabled(False)
             self.ui.outputdir_button.setEnabled(False)
             self.ui.backup_filename_lineEdit.setEnabled(False)
@@ -519,10 +545,12 @@ class StudyPropertiesEditor(object):
     def analysis_cls(self):
         return self._analysis_cls
 
-    # FIXME: find a better name ?
-    def check_study_consistency(self):
-        status = self._check_valid_outputdir()
-        status |= self._check_valid_backup_filename()
+    def check_study_consistency(self, editor_mode):
+        if editor_mode == StudyEditor.NEW_STUDY:
+            status = self._check_valid_outputdir()
+            status |= self._check_valid_backup_filename()
+        elif editor_mode == StudyEditor.EDIT_STUDY:
+            status = StudyPropertiesEditor.STUDY_CONFIG_VALID
         return status
 
     def _check_valid_outputdir(self):
@@ -757,9 +785,10 @@ class SubjectsEditor(object):
         self._similar_subjects_n.setdefault(new_subject_id, 0)
         self._similar_subjects_n[new_subject_id] += 1
 
-    # FIXME: find a better name ?
-    def check_study_consistency(self):
-        return self._is_some_subjects_duplicated()
+    def check_study_consistency(self, editor_mode):
+        if editor_mode in [StudyEditor.NEW_STUDY, StudyEditor.EDIT_STUDY]:
+            return self._is_some_subjects_duplicated()
+        assert(0)
 
     def _is_some_subjects_duplicated(self):
         for n in self._similar_subjects_n.values():

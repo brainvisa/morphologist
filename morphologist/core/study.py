@@ -162,6 +162,10 @@ class Study(object):
         else:
             subject.filename = new_imgname
 
+    def remove_subject_from_id(self, subject_id):
+        del self.subjects[subject_id]
+        del self.analyses[subject_id]
+
     @staticmethod
     def _create_analysis():
         raise NotImplementedError("Study is an abstract class.")
