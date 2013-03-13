@@ -41,6 +41,8 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
 
         self.runner_view = RunnerView(self.study_model)
         self.ui.runner_widget_dock.setWidget(self.runner_view)
+
+        self.setWindowTitle(self._window_title())
         
         self.study_editor_widget_window = None
         self.enable_brainomics_db = enable_brainomics_db
