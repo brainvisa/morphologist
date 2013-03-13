@@ -52,10 +52,6 @@ class StudyEditor(object):
 
     def _update_subjects(self):
         # XXX: operations order is important
-        print "new =", self._subjects_editor.added_subjects()
-        print "del =", self._subjects_editor.removed_subjects()
-        print "ren =", self._subjects_editor.renamed_subjects()
-
         for subject in self._subjects_editor.removed_subjects():
             self._on_subject_removed(subject)
 
@@ -77,7 +73,7 @@ class StudyEditor(object):
 
     def _on_subject_removed(self, subject):
         if self.subject_removed_policy == StudyEditor.ON_SUBJECT_REMOVED_DELETE_FILES:
-            pass # TODO
+            self.study.remove_subject_and_files_from_id(subject.id())
         elif self.subject_removed_policy == StudyEditor.ON_SUBJECT_REMOVED_DO_NOTHING:
             self.study.remove_subject_from_id(subject.id())
 
@@ -266,7 +262,18 @@ class StudyEditorDialog(QtGui.QDialog):
             return
 
         if self.study_editor.subjects_editor.removed_subjects():
-            self.study_editor.subject_removed_policy = StudyEditor.ON_SUBJECT_REMOVED_DO_NOTHING
+            title = 'Removed subjects from a study'
+            msg = 'Delete all files linked to removed subjects?'
+            answer = QtGui.QMessageBox.question(self, title, msg,
+                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No \
+                | QtGui.QMessageBox.Cancel, QtGui.QMessageBox.Cancel)
+            if answer == QtGui.QMessageBox.Yes:
+                subject_removed_policy = StudyEditor.ON_SUBJECT_REMOVED_DELETE_FILES
+            elif answer == QtGui.QMessageBox.No:
+                subject_removed_policy = StudyEditor.ON_SUBJECT_REMOVED_DO_NOTHING
+            else:
+                return
+            self.study_editor.subject_removed_policy = subject_removed_policy
         self.ui.accept()
 
     def on_cancel_button_clicked(self):

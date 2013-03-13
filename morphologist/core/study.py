@@ -162,6 +162,12 @@ class Study(object):
         else:
             subject.filename = new_imgname
 
+    def remove_subject_and_files_from_id(self, subject_id):
+        subject = self.subjects[subject_id]
+        self.analyses[subject_id].remove_dirs(self.parameter_template,
+                                            subject, self.outputdir)
+        self.remove_subject_from_id(subject_id)
+
     def remove_subject_from_id(self, subject_id):
         del self.subjects[subject_id]
         del self.analyses[subject_id]

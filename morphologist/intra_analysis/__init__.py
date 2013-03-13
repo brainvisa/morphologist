@@ -1,6 +1,7 @@
 import os
 import glob
 import re
+import shutil
 
 from morphologist.core.study import Subject
 from morphologist.core.analysis import Analysis, Parameters, \
@@ -103,7 +104,6 @@ class IntraAnalysis(Analysis):
 
     @classmethod
     def import_data(cls, parameter_template, subject, outputdir):
-
         import_step = ImageImportation()
         import_step.inputs.input = subject.filename
         import_step.outputs.output = cls.get_mri_path(parameter_template, subject, outputdir)
@@ -230,7 +230,12 @@ class IntraAnalysis(Analysis):
     def create_outputdirs(cls, parameter_template, subject, directory):
         param_template_instance = cls.param_template_map[parameter_template]
         param_template_instance.create_outputdirs(subject, directory)
-                
+
+    @classmethod
+    def remove_dirs(cls, parameter_template, subject, outputdir):
+        param_template_instance = cls.param_template_map[parameter_template]
+        param_template_instance.remove_dirs(subject, outputdir)
+
 
 class IntraAnalysisParameterTemplate(ParameterTemplate):
     input_file_param_names = [IntraAnalysis.MRI]
@@ -417,6 +422,13 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         create_directory_if_missing(session_auto_path)
 
     @classmethod
+    def remove_dirs(cls, subject, outputdir):
+        group_path = os.path.join(outputdir, subject.groupname)
+        subject_path = os.path.join(group_path, subject.name)
+        shutil.rmtree(subject_path)
+
+
+    @classmethod
     def get_subjects(cls, directory):
         subjects = []
         glob_pattern = os.path.join(directory, "*", "*", cls.MODALITY, "*", "*.*")
@@ -511,6 +523,12 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         create_directory_if_missing(group_path)
         subject_path = os.path.join(group_path, subject.name)
         create_directory_if_missing(subject_path)    
+
+    @classmethod
+    def remove_dirs(cls, subject, outputdir):
+        group_path = os.path.join(outputdir, subject.groupname)
+        subject_path = os.path.join(group_path, subject.name)
+        shutil.rmtree(subject_path)
 
     @classmethod
     def get_subjects(cls, directory):
