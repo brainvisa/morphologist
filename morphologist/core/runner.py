@@ -298,17 +298,17 @@ class  SomaWorkflowRunner(Runner):
                 step_ids.append(subject_jobs[job_id])
         return step_ids
            
-    def get_status(self, subject_id=None, stepname=None, update_status=True):
+    def get_status(self, subject_id=None, step_id=None, update_status=True):
         if self._workflow_id is None:
             status = Runner.NOT_STARTED
-        elif subject_id is None and stepname is None:
+        elif subject_id is None and step_id is None:
             if update_status:
                 self._update_jobs_status()
             status = self._get_workflow_status()
-        elif subject_id is not None and stepname is None:
+        elif subject_id is not None and step_id is None:
             status = self._get_subject_status(subject_id, update_status)
         else:
-            raise NotImplementedError
+            status = self._get_step_status(subject_id, step_id, update_status)
         return status
                
     def _get_workflow_status(self):
@@ -342,6 +342,15 @@ class  SomaWorkflowRunner(Runner):
                     status = job_status
         return status
         
+    def _get_step_status(self, subject_id, step_id, update_status=True):
+        status = Runner.NOT_STARTED
+        subject_jobs = self._get_subject_jobs(subject_id)
+        if subject_jobs:
+            job_id = subject_jobs[step_id, "stepname"]
+            jobs_status=self._get_jobs_status(update_status)
+            status = jobs_status[job_id]       
+        return status
+    
     def _get_subject_jobs(self, subject_id):
         return self._jobid_to_step.get(subject_id, [])
         
@@ -383,19 +392,3 @@ class  SomaWorkflowRunner(Runner):
             # USER_SYSTEM_SUSPENDED
             status = Runner.UNKNOWN
         return status
-
-    def get_steps_status(self):
-        steps_status = {}
-        jobs_status = self._get_jobs_status()
-        engine_workflow = self._workflow_controller.workflow(self._workflow_id)
-        for group in engine_workflow.groups:
-            subjectid = group.user_storage
-            steps_status[subjectid] = {}
-            for job in group.elements:
-                job_id = engine_workflow.job_mapping[job].job_id
-                stepname = self._jobid_to_step[subjectid][job_id]
-                analysis = self._study.analyses[subjectid]
-                step = analysis.step_from_name(stepname)
-                job_status = jobs_status[job_id]
-                steps_status[subjectid][stepname] = (step, job_status)
-        return steps_status
