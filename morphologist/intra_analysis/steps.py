@@ -27,6 +27,8 @@ class SpatialNormalization(Step):
     def __init__(self):
         super(SpatialNormalization, self).__init__()
         self.name = 'normalization'
+        self.description = "Spatial normalization using SPM8 standalone."
+        self.help_message = "You should check your SPM installation."
 
     def _get_inputs(self):
         file_inputs = ['mri']
@@ -50,6 +52,8 @@ class BiasCorrection(Step):
         super(BiasCorrection, self).__init__()
         self.name = 'bias_correction'
         self.inputs.fix_random_seed = False
+        self.description = "Bias correction using VipT1BiasCorrection."
+        self.help_message = "You should check your BrainVISA installation."
 
     def _get_inputs(self):
         file_inputs = ['mri', 'commissure_coordinates']
@@ -93,6 +97,8 @@ class HistogramAnalysis(Step):
         super(HistogramAnalysis, self).__init__()
         self.name = 'histogram_analysis'
         self.inputs.fix_random_seed = False
+        self.description = "Histogram analysis using VipHistoAnalysis."
+        self.help_message = "You should check your BrainVISA installation."
 
     def _get_inputs(self):
         file_inputs = ['corrected_mri', 'hfiltered', 'white_ridges']
@@ -123,6 +129,8 @@ class BrainSegmentation(Step):
         self.name = 'brain_segmentation'
         self.inputs.erosion_size = 1.8
         self.inputs.fix_random_seed = False
+        self.description = "Brain segmentation using VipGetBrain."
+        self.help_message = "You should check your BrainVISA installation."
 
     def _get_inputs(self):
         file_inputs = ['corrected_mri', 'commissure_coordinates',
@@ -162,6 +170,8 @@ class SplitBrain(Step):
         self.name = 'split_brain'
         self.inputs.bary_factor = 0.6
         self.inputs.fix_random_seed = False
+        self.description = "Split brain using VipSplitBrain."
+        self.help_message = "You should check your BrainVISA installation."
 
     def _get_inputs(self):
         file_inputs = ['corrected_mri', 'commissure_coordinates',
@@ -203,6 +213,8 @@ class GreyWhite(Step):
         self.name = 'grey_white'
         self.inputs.side = side
         self.inputs.fix_random_seed = False
+        self.description = "Grey and white matter segmentation using VipGreyWhiteClassif."
+        self.help_message = "You should check your BrainVISA installation."
 
     def _get_inputs(self):
         file_inputs = ['corrected_mri', 'commissure_coordinates',
@@ -241,6 +253,8 @@ class Grey(Step):
         super(Grey, self).__init__()
         self.name = 'grey'
         self.inputs.fix_random_seed = False
+        self.description = "Grey mask computation using VipHomotopic."
+        self.help_message = "You should check your BrainVISA installation."
 
     def _get_inputs(self):
         file_inputs = ['corrected_mri', 'histo_analysis', 'grey_white']
@@ -269,6 +283,8 @@ class WhiteSurface(Step):
     def __init__(self):
         super(WhiteSurface, self).__init__()
         self.name = 'white_surface'
+        self.description = "White surface using morphologist.intra_analysis.commands.surface."
+        self.help_message = "You should check your BrainVISA installation."
 
     def _get_inputs(self):
         file_inputs = ['grey']
@@ -291,6 +307,8 @@ class GreySurface(Step):
         super(GreySurface, self).__init__()
         self.name = 'grey_surface'
         self.inputs.side = side
+        self.description = "White surface using morphologist.intra_analysis.commands.grey_surface."
+        self.help_message = "You should check your BrainVISA installation."
 
     def _get_inputs(self):
         file_inputs = ['corrected_mri', 'split_mask', 'grey']
@@ -317,6 +335,8 @@ class Sulci(Step):
         super(Sulci, self).__init__()
         self.name = 'sulci'
         self.inputs.side = side
+        self.description = "Sulci extraction using morphologist.intra_analysis.commands.sulci."
+        self.help_message = "You should check your BrainVISA installation."
 
     def _get_inputs(self):
         file_inputs = ['corrected_mri', 'split_mask', 'grey',
@@ -350,6 +370,8 @@ class SulciLabelling(Step):
         super(SulciLabelling, self).__init__()
         self.name = 'sulci_labelling'
         self.inputs.side = side
+        self.description = "Sulci labelling using morphologist.intra_analysis.commands.sulci_labelling."
+        self.help_message = "You should check your BrainVISA installation."
 
     def _get_inputs(self):
         file_inputs = ['sulci']

@@ -123,6 +123,9 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
                 return subject.name
             if column == SubjectsTableModel.SUBJECTSTATUS_COL:
                 return self._study_model.get_status(row)
+        elif role == QtCore.Qt.ToolTipRole:
+            if column == SubjectsTableModel.SUBJECTSTATUS_COL:
+                return self._study_model.get_status_tooltip(row)
         elif role == QtCore.Qt.BackgroundRole:
             if row == self._study_model.get_current_subject_index():
                 return QtGui.QApplication.palette().highlight()

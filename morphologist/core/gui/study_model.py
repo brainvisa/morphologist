@@ -25,11 +25,13 @@ class LazyStudyModel(QtCore.QObject):
         self.study = study
         self._subjects_row_index_to_id = [] # row index -> id
         self._status = []                   # row index -> status
+        self._status_tooltips = []
         self._are_selected_subjects = []    # row index -> is_selected
         self._current_subject_index = None
         for subject_id, _ in self.study.subjects.iteritems():
             self._subjects_row_index_to_id.append(subject_id)
             self._status.append(self.DEFAULT_STATUS)
+            self._status_tooltips.append(None)
             self._are_selected_subjects.append(False)
         self.set_current_subject_index(0)
         self._runner_is_running = False
@@ -46,6 +48,9 @@ class LazyStudyModel(QtCore.QObject):
     def get_status(self, row_index):
         return self._status[row_index]
 
+    def get_status_tooltip(self, row_index):
+        return self._status_tooltips[row_index]
+    
     def get_subject(self, row_index):
         subject_id = self._subjects_row_index_to_id[row_index]
         subject = self.study.subjects[subject_id]
@@ -103,8 +108,11 @@ class LazyStudyModel(QtCore.QObject):
         elif self.runner.has_failed(subject_id, update_status=False):
             step_ids = self.runner.get_failed_step_ids(subject_id, update_status=False)
             step_id = step_ids[0]
-            step_name = self.study.analyses[subject_id].step_from_id(step_id).name
-            has_changed = self._update_subject_status_if_needed(row_index, "failed at %s" % step_name)
+            step = self.study.analyses[subject_id].step_from_id(step_id)
+            tooltip = "%s\n\n%s" % (step.description, step.help_message)
+            has_changed = self._update_subject_status_if_needed(row_index, 
+                                                                "failed at %s" % step.name, 
+                                                                tooltip)
         else:
             has_changed = self._update_subject_output_files_status_if_needed(row_index)
         return has_changed
@@ -121,9 +129,10 @@ class LazyStudyModel(QtCore.QObject):
             has_changed = self._update_subject_status_if_needed(row_index, "some output files exist")
         return has_changed
 
-    def _update_subject_status_if_needed(self, row_index, status):
+    def _update_subject_status_if_needed(self, row_index, status, tooltip=None):
         has_changed = False 
         if self._status[row_index] != status:
             self._status[row_index] = status
+            self._status_tooltips[row_index] = tooltip
             has_changed = True
         return has_changed
