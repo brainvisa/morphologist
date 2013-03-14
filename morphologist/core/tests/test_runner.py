@@ -25,49 +25,47 @@ class TestRunner(unittest.TestCase):
    
    
     def tearDown(self):
-        if self.runner.is_running():
+        if self.runner.is_running(update_status=False):
             self.runner.stop()
+        self.study.clear_results()
             
             
 class TestRunnerOnSuccessStudy(TestRunner):
      
     def test_run_all_subjects(self):
-        self.study.clear_results()
         self.runner.run()
         
-        self.assert_(self.runner.is_running() or self.study.has_all_results())
+        self.assert_(self.runner.is_running(update_status=False) or self.study.has_all_results())
         
     def test_run_selected_subjects(self):
-        self.study.clear_results()
         selected_subject_id = self.test_case.get_a_subject_id()
         self.runner.run(subject_ids=[selected_subject_id])
         
+        update_status=True
         for subject_id in self.study.subjects:
             if subject_id == selected_subject_id:
-                self.assert_(self.runner.is_running(subject_id) or \
+                self.assert_(self.runner.is_running(subject_id, update_status=update_status) or \
                              self.study.has_all_results([subject_id]))
             else:
-                self.assert_(not self.runner.is_running(subject_id))
+                self.assert_(not self.runner.is_running(subject_id, update_status=update_status))
+            update_status = False
         
     def test_has_run(self):
-        self.study.clear_results()
         self.runner.run()
         self.runner.wait()
         
-        self.assert_(not self.runner.is_running())
-        self.assert_(not self.runner.has_failed())
+        self.assert_(not self.runner.is_running(update_status=False))
+        self.assert_(not self.runner.has_failed(update_status=False))
         self.assert_output_files_exist()
         
     def test_stop(self):
-        self.study.clear_results()
         self.runner.run()
         time.sleep(1)
         self.runner.stop()
     
-        self.assert_(not self.runner.is_running())
+        self.assert_(not self.runner.is_running(update_status=False))
 
     def test_clear_state_after_immediate_interruption(self):
-        self.study.clear_results()
         self.runner.run()
         self.runner.stop()
        
@@ -85,16 +83,13 @@ class TestRunnerOnSuccessStudy(TestRunner):
         subject_id, stepname = self.test_case.step_to_wait_testcase_3()
         self._test_clear_state_after_waiting_a_given_step(subject_id, stepname)
 
-    def _test_clear_state_after_waiting_a_given_step(self,
-                                    subject_id, stepname):
-        self.study.clear_results()
+    def _test_clear_state_after_waiting_a_given_step(self, subject_id, stepname):
         self.runner.run()
         self.runner.wait(subject_id, stepname)
         if self.runner.is_running(): self.runner.stop()
         self.assert_output_files_exist_only_for_succeed_steps_after_stop()
  
     def test_missing_input_file_error(self):
-        self.study.clear_results()
         self.test_case.delete_some_input_files()
 
         self.assertRaises(MissingInputFileError, self.runner.run)
@@ -112,7 +107,7 @@ class TestRunnerOnSuccessStudy(TestRunner):
             for (step, status) in step_status_for_subject.itervalues():
                 if status == Runner.SUCCESS:
                     self.assertTrue(step.outputs.all_file_exists())
-                elif status in Runner.KILLED_BY_USER:
+                elif status == Runner.KILLED_BY_USER:
                     self.assertTrue(not step.outputs.some_file_exists())
                 else:
                     self.assertTrue(0)
