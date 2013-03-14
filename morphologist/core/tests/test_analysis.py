@@ -39,7 +39,7 @@ class TestAnalysis(unittest.TestCase):
         self.assertTrue(not self.analysis.outputs.some_file_exists())
 
     def test_step_id(self):
-        self.assertEqual(len(self.analysis._named_steps),
+        self.assertEqual(len(self.analysis._step_ids),
                          len(self.analysis._steps))
         
     def tearDown(self):

@@ -36,25 +36,22 @@ class Runner(object):
     def run(self, subject_ids=ALL_SUBJECTS):
         raise NotImplementedError("Runner is an abstract class.")
     
-    def is_running(self, subject_id=None, stepname=None, update_status=True):
+    def is_running(self, subject_id=None, step_id=None, update_status=True):
         raise NotImplementedError("Runner is an abstract class.")
     
-    def wait(self, subject_id=None, stepname=None):
+    def wait(self, subject_id=None, step_id=None):
         raise NotImplementedError("Runner is an abstract class.")
     
-    def has_failed(self, subject_id=None, stepname=None, update_status=True):
+    def has_failed(self, subject_id=None, step_id=None, update_status=True):
         raise NotImplementedError("Runner is an abstract class.")
 
     def get_failed_step_ids(self, subject_id, update_status=True):
         raise NotImplementedError("Runner is an abstract class.")
     
-    def stop(self, subject_id=None, stepname=None):
+    def stop(self, subject_id=None, step_id=None):
         raise NotImplementedError("Runner is an abstract class.")
 
-    def get_status(self, subject_id=None, stepname=None, update_status=True):
-        raise NotImplementedError("Runner is an abstract class.")
-    
-    def get_steps_status(self):
+    def get_status(self, subject_id=None, step_id=None, update_status=True):
         raise NotImplementedError("Runner is an abstract class.")
 
     def _check_input_files(self, subject_ids):
@@ -109,24 +106,24 @@ class ThreadRunner(Runner):
             self._execution_thread.setDaemon(True)
             self._execution_thread.start()
     
-    def is_running(self, subject_id=None, stepname=None, update_status=True):
+    def is_running(self, subject_id=None, step_id=None, update_status=True):
         _ = subject_id
-        _ = stepname
+        _ = step_id
         return self._execution_thread.is_alive() 
     
-    def wait(self, subject_id=None, stepname=None):
+    def wait(self, subject_id=None, step_id=None):
         _ = subject_id
-        _ = stepname
+        _ = step_id
         self._execution_thread.join()
         
-    def has_failed(self, subject_id=None, stepname=None):
+    def has_failed(self, subject_id=None, step_id=None):
         _ = subject_id
-        _ = stepname
+        _ = step_id
         return self._last_run_failed
 
-    def stop(self, subject_id=None, stepname=None):
+    def stop(self, subject_id=None, step_id=None):
         _ = subject_id
-        _ = stepname
+        _ = step_id
         with self._lock:
             self._interruption = True
         self._execution_thread.join()
@@ -217,7 +214,7 @@ class  SomaWorkflowRunner(Runner):
         workflow = self._workflow_controller.workflow(self._workflow_id)
         for group in workflow.groups:
             subjectid = group.user_storage
-            self._jobid_to_step[subjectid] = BidiMap('job_id', 'stepname')
+            self._jobid_to_step[subjectid] = BidiMap('job_id', 'step_id')
             job_list = group.elements 
             for job in job_list:
                 job_id = workflow.job_mapping[job].job_id
@@ -227,27 +224,27 @@ class  SomaWorkflowRunner(Runner):
     def _define_workflow_name(self): 
         return self._study.name + " " + self.WORKFLOW_NAME_SUFFIX
             
-    def is_running(self, subject_id=None, stepname=None, update_status=True):
-        status = self.get_status(subject_id, stepname, update_status)
+    def is_running(self, subject_id=None, step_id=None, update_status=True):
+        status = self.get_status(subject_id, step_id, update_status)
         return status == Runner.RUNNING
             
-    def wait(self, subject_id=None, stepname=None):
-        if subject_id is None and stepname is None:
+    def wait(self, subject_id=None, step_id=None):
+        if subject_id is None and step_id is None:
             Helper.wait_workflow(self._workflow_id, self._workflow_controller)
         elif subject_id is not None:
-            if stepname is None:
+            if step_id is None:
                 raise NotImplementedError
             else:
-                self._step_wait(subject_id, stepname)
+                self._step_wait(subject_id, step_id)
         else:
             raise NotImplementedError
 
-    def _step_wait(self, subject_id, stepname):
-        job_id = self._jobid_to_step[subject_id][stepname, 'stepname']
+    def _step_wait(self, subject_id, step_id):
+        job_id = self._jobid_to_step[subject_id][step_id, 'step_id']
         self._workflow_controller.wait_job([job_id])
         
-    def has_failed(self, subject_id=None, stepname=None, update_status=True):
-        status = self.get_status(subject_id, stepname, update_status)
+    def has_failed(self, subject_id=None, step_id=None, update_status=True):
+        status = self.get_status(subject_id, step_id, update_status)
         return status == Runner.FAILED
 
     def get_failed_step_ids(self, subject_id, update_status=True):
@@ -258,13 +255,13 @@ class  SomaWorkflowRunner(Runner):
             raise ValueError("No failed step for the subject %s." % subject_id)
         return failed_step_ids
 
-    def stop(self, subject_id=None, stepname=None):
+    def stop(self, subject_id=None, step_id=None):
         if not self.is_running():
             raise RuntimeError("Runner is not running.")
-        if subject_id is None and stepname is None:
+        if subject_id is None and step_id is None:
             self._workflow_stop()
         elif subject_id is not None:
-            if stepname is None:
+            if step_id is None:
                 raise NotImplementedError
             else:
                 raise NotImplementedError
@@ -346,7 +343,7 @@ class  SomaWorkflowRunner(Runner):
         status = Runner.NOT_STARTED
         subject_jobs = self._get_subject_jobs(subject_id)
         if subject_jobs:
-            job_id = subject_jobs[step_id, "stepname"]
+            job_id = subject_jobs[step_id, "step_id"]
             jobs_status=self._get_jobs_status(update_status)
             status = jobs_status[job_id]       
         return status

@@ -11,25 +11,25 @@ class Analysis(object):
 
     def __init__(self):
         self._init_steps()
-        self._init_named_steps()
+        self._init_step_ids()
         self.inputs = Parameters(file_param_names=[])
         self.outputs = Parameters(file_param_names=[])
 
     def _init_steps(self):
         raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redefined.") 
 
-    def _init_named_steps(self):
-        self._named_steps = OrderedDict()
+    def _init_step_ids(self):
+        self._step_ids = OrderedDict()
         for i, step in enumerate(self._steps):
             step_id = "%d_%s" % (i, step.name)
-            self._named_steps[step_id] = step
+            self._step_ids[step_id] = step
 
-    def step_from_name(self, name):
-        return self._named_steps[name]
+    def step_from_id(self, step_id):
+        return self._step_ids[step_id]
 
     def remaining_commands_to_run(self):
         self.propagate_parameters()
-        for step_id, step in self._named_steps.items():
+        for step_id, step in self._step_ids.items():
             # skip finished steps
             if step.has_all_results():
                 continue
@@ -37,7 +37,7 @@ class Analysis(object):
             yield command, step_id
         
     def iter_steps(self):
-        return self._named_steps.iteritems()
+        return self._step_ids.iteritems()
     
     @classmethod
     def import_data(cls, parameter_template, subject, outputdir):
@@ -77,10 +77,10 @@ class Analysis(object):
     def has_all_results(self):
         return self.outputs.all_file_exists()
             
-    def clear_results(self, stepnames=None):
-        if stepnames:
-            for stepname in stepnames:
-                step = self.step_from_name(stepname)
+    def clear_results(self, step_ids=None):
+        if step_ids:
+            for step_id in step_ids:
+                step = self.step_from_id(step_id)
                 step.outputs.clear_files()
         else:
             self.outputs.clear_files()
