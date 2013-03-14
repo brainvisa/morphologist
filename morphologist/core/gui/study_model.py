@@ -101,7 +101,8 @@ class LazyStudyModel(QtCore.QObject):
         if self.runner.is_running(subject_id, update_status=False):
             has_changed = self._update_subject_status_if_needed(row_index, "is running")
         elif self.runner.has_failed(subject_id, update_status=False):
-            step_id = self.runner.get_failed_step_id(subject_id)
+            step_ids = self.runner.get_failed_step_ids(subject_id, update_status=False)
+            step_id = step_ids[0]
             step_name = self.study.analyses[subject_id].step_from_name(step_id).name
             has_changed = self._update_subject_status_if_needed(row_index, "failed at %s" % step_name)
         else:

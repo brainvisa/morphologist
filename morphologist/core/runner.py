@@ -6,7 +6,7 @@ import threading
 import soma.workflow as sw
 from soma.workflow.client import WorkflowController, Helper, Workflow, Job, Group
 
-from morphologist.core.utils import BidiMap, Graph
+from morphologist.core.utils import BidiMap
 from morphologist.core.constants import ALL_SUBJECTS
 
 
@@ -45,7 +45,7 @@ class Runner(object):
     def has_failed(self, subject_id=None, stepname=None, update_status=True):
         raise NotImplementedError("Runner is an abstract class.")
 
-    def get_failed_step_id(self, subject_id, update_failed_steps=True):
+    def get_failed_step_ids(self, subject_id, update_status=True):
         raise NotImplementedError("Runner is an abstract class.")
     
     def stop(self, subject_id=None, stepname=None):
@@ -155,8 +155,6 @@ class  SomaWorkflowRunner(Runner):
         self._workflow_id = None
         self._jobid_to_step = {} # subjectid -> (job_id -> step)
         self._cached_jobs_status = None
-        self._cached_exit_info_by_job = None
-        self._cached_failed_steps = None
         
     def _delete_old_workflows(self):        
         for (workflow_id, (name, _)) in self._workflow_controller.workflows().iteritems():
@@ -252,35 +250,14 @@ class  SomaWorkflowRunner(Runner):
         status = self.get_status(subject_id, stepname, update_status)
         return status == Runner.FAILED
 
-    def get_failed_step_id(self, subject_id, update_failed_steps=True):
-        failed_steps = self._get_failed_steps(update_failed_steps)
-        step_ids = failed_steps.get(subject_id, None)
-        if not step_ids:
-            raise ValueError("No failed step for the subject %s." % subject_id)
-        else:
-            step_id = step_ids[0]
-        return step_id
-        
-    def _get_failed_steps(self, update_failed_steps=True):
-        if update_failed_steps or self._cached_failed_steps is None:
-            self._update_failed_steps()
-        return self._cached_failed_steps
-    
-    def _update_failed_steps(self):
-        failed_steps = {}
-        dep_graph = self._sw_dep_graph(self._get_exit_info_by_job())
-        failed_jobs = self._sw_really_failed_jobs_from_dep_graph(dep_graph)
-        for job_data in failed_jobs:
-            subjectid = job_data.groupname
-            stepname = self._jobid_to_step[subjectid][job_data.job_id]
-            failed_steps.setdefault(subjectid, []).append(stepname)
-        self._cached_failed_steps = failed_steps
-        
-    def _get_exit_info_by_job(self, update_status=True):
-        if update_status or self._cached_exit_info_by_job is None:
+    def get_failed_step_ids(self, subject_id, update_status=True):
+        if update_status:
             self._update_jobs_status()
-        return self._cached_exit_info_by_job
-    
+        failed_step_ids = self._get_subject_filtered_step_ids(subject_id, [Runner.FAILED])
+        if not failed_step_ids:
+            raise ValueError("No failed step for the subject %s." % subject_id)
+        return failed_step_ids
+
     def stop(self, subject_id=None, stepname=None):
         if not self.is_running():
             raise RuntimeError("Runner is not running.")
@@ -296,11 +273,31 @@ class  SomaWorkflowRunner(Runner):
 
     def _workflow_stop(self):
         self._workflow_controller.stop_workflow(self._workflow_id)
-        failed_steps = self._get_failed_steps()
-        for subjectid, stepnames in failed_steps.items():
-            analysis = self._study.analyses[subjectid]
-            analysis.clear_results(stepnames)
+        interrupted_status = [Runner.FAILED, Runner.KILLED_BY_USER]
+        interrupted_step_ids = self._get_filtered_step_ids(interrupted_status)
+        for subject_id, step_ids in interrupted_step_ids.iteritems():
+            analysis = self._study.analyses[subject_id]
+            analysis.clear_results(step_ids)
 
+    def _get_filtered_step_ids(self, status_list, update_status = True):
+        if update_status:
+            self._update_jobs_status()
+        filtered_step_ids_by_subject_id = {}
+        for subject_id in self._jobid_to_step:
+            interrupted_step_ids = self._get_subject_filtered_step_ids(subject_id, status_list)
+            filtered_step_ids_by_subject_id[subject_id] = interrupted_step_ids
+        return filtered_step_ids_by_subject_id       
+             
+    def _get_subject_filtered_step_ids(self, subject_id, status_list):
+        step_ids = []
+        subject_jobs = self._get_subject_jobs(subject_id)
+        jobs_status=self._get_jobs_status(update_status=False)
+        for job_id in subject_jobs:
+            job_status = jobs_status[job_id]
+            if job_status in status_list:
+                step_ids.append(subject_jobs[job_id])
+        return step_ids
+           
     def get_status(self, subject_id=None, stepname=None, update_status=True):
         if self._workflow_id is None:
             status = Runner.NOT_STARTED
@@ -355,15 +352,12 @@ class  SomaWorkflowRunner(Runner):
         
     def _update_jobs_status(self):
         jobs_status = {} # job_id -> status
-        exit_info_by_job = {} # job_id -> (exit status, exit value)
         job_info_seq, _, _, _ = self._workflow_controller.workflow_elements_status(self._workflow_id)
         for job_id, sw_status, _, exit_info, _ in job_info_seq:
             exit_status, exit_value, _, _ = exit_info
             status = self._sw_status_to_runner_status(sw_status, exit_status, exit_value)
             jobs_status[job_id] = status
-            exit_info_by_job[job_id] = (exit_status, exit_value)
         self._cached_jobs_status = jobs_status
-        self._cached_exit_info_by_job = exit_info_by_job
         
     def _sw_status_to_runner_status(self, sw_status, exit_status, exit_value):
         if sw_status in [sw.constants.FAILED,
@@ -372,6 +366,8 @@ class  SomaWorkflowRunner(Runner):
             (exit_value is not None and exit_value != 0):
             if exit_status == sw.constants.USER_KILLED:
                 status = Runner.KILLED_BY_USER
+            elif exit_status == sw.constants.EXIT_ABORTED:
+                status = Runner.NOT_STARTED
             else:
                 status = Runner.FAILED
         elif sw_status == sw.constants.DONE:
@@ -403,45 +399,3 @@ class  SomaWorkflowRunner(Runner):
                 job_status = jobs_status[job_id]
                 steps_status[subjectid][stepname] = (step, job_status)
         return steps_status
-
-    def _sw_exit_info_by_job(self):
-        exit_info_by_job = {}
-        job_info_seq, _, _, _  = self._workflow_controller.workflow_elements_status(self._workflow_id)
-        for job_id, status, _, exit_info, _ in job_info_seq: 
-            exit_status, exit_value, _, _ = exit_info
-            exit_info_by_job[job_id] = (exit_status, exit_value)
-        return exit_info_by_job
-
-    def _sw_dep_graph(self, exit_info_by_job):
-        workflow = self._workflow_controller.workflow(self._workflow_id)
-        dep_graph = Graph.from_soma_workflow(workflow)
-        for data in dep_graph:
-            if data is None: continue
-            exit_status, exit_value = exit_info_by_job[data.job_id]
-            data.success = (exit_status == sw.constants.FINISHED_REGULARLY \
-                            and exit_value == 0)
-        return dep_graph
-
-    @staticmethod
-    def _sw_really_failed_jobs_from_dep_graph(dep_graph):
-        def func(graph, node, extra_data):
-            data = graph.data(node)
-            if data is not None and data.success: return False
-            deps = graph.dependencies(node)
-            continue_graph_coverage = True
-            failed_node = True
-            for dep in deps:
-                data = graph.data(dep)
-                if not data.success:
-                    failed_node = False
-            if failed_node: # skip root node
-                if node != 0:
-                    data = graph.data(node)
-                    extra_data['failed_jobs'].append(data)
-                continue_graph_coverage = False
-            return continue_graph_coverage
-                
-        failed_jobs = []
-        func_extra_data = {'failed_jobs' : failed_jobs}
-        dep_graph.breadth_first_coverage(func, func_extra_data)
-        return failed_jobs
