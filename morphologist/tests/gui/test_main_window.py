@@ -29,7 +29,6 @@ class TestStudyWidget(TestGui):
     def test_start_main_window(self):
         self.test_case.create_study()
         self.test_case.add_subjects()
-        self.test_case.set_parameters()
         self.test_case.study.clear_results()
         main_window = create_main_window()
         self.keep_widget_alive(main_window)
