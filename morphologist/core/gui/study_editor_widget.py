@@ -217,12 +217,8 @@ class StudyEditorDialog(QtGui.QDialog):
     # this slot is automagically connected
     @QtCore.Slot()
     def on_remove_subjects_button_clicked(self):
-        range_list = []
-        for selection_range in self._selection_model.selection():
-            start_row = selection_range.top()
-            count = selection_range.bottom() - start_row + 1
-            range_list.append((start_row, count))
-        self._subjects_tablemodel.remove_subjects_from_range_list(range_list)
+        selection = self._selection_model.selection()
+        self._subjects_tablemodel.remove_subjects_from_selection(selection)
     
     # this slot is automagically connected
     @QtCore.Slot()
@@ -710,7 +706,12 @@ class SubjectsEditorTableModel(QtCore.QAbstractTableModel):
         end_index = self.index(end_row, self.GROUPNAME_COL)
         self.dataChanged.emit(start_index, end_index)
 
-    def remove_subjects_from_range_list(self, range_list):
+    def remove_subjects_from_selection(self, selection):
+        range_list = []
+        for selection_range in selection:
+            start_row = selection_range.top()
+            count = selection_range.bottom() - start_row + 1
+            range_list.append((start_row, count))
         # remove rows from bottom to top to avoid changing the rows indexes
         range_list.sort(reverse=True)
         for start_row, count in range_list:
