@@ -37,10 +37,11 @@ class StudyEditor(object):
     def study_properties_editor(self):
         return self._study_properties_editor
 
-    def update_study(self):
+    def create_updated_study(self):
         self._study_properties_editor.update_study(self.study)
         self._subjects_editor.update_study(self.study, \
                                 self.study_update_policy)
+        return self.study
 
 
 class StudyEditorDialog(QtGui.QDialog):
@@ -118,7 +119,27 @@ class StudyEditorDialog(QtGui.QDialog):
 
     def _set_window_title(self, mode):
         self.setWindowTitle(self.window_title_from_mode[mode])
-       
+
+    def create_updated_study(self):
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        try:
+            study = self.study_editor.create_updated_study()
+        except ImportationError, e:
+            QtGui.QApplication.restoreOverrideCursor()
+            title = "Cannot import some images"
+            msg = "%s" %(e)
+            QtGui.QMessageBox.critical(self, title, msg)
+        else:
+            QtGui.QApplication.restoreOverrideCursor()
+        if self.study_editor.subjects_editor.has_imported_some_subjects():
+            title = "Images importation"
+            msg = "The images have been imported in %s directory." % \
+                                                        study.outputdir
+            msgbox = QtGui.QMessageBox(QtGui.QMessageBox.Information,
+                                       title, msg, QtGui.QMessageBox.Ok, self)
+            msgbox.show()
+        return study
+ 
     @QtCore.Slot("const QModelIndex &", "int", "int")
     def on_subjects_tablemodel_rows_changed(self):
         self._on_table_model_changed()
