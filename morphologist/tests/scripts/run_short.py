@@ -6,9 +6,6 @@ from morphologist.core.tests.test_analysis import TestAnalysis
 from morphologist.tests.intra_analysis.test_analysis import TestIntraAnalysis
 from morphologist.tests.intra_analysis.test_study import TestBrainvisaTemplateStudy, TestDefaultTemplateStudy
 
-from morphologist.core.tests.test_runner import TestSomaWorkflowRunner #, TestThreadRunner
-from morphologist.core.tests.test_runner_on_failed_study import TestRunnerOnFailedStudy 
-
 
 if __name__=='__main__':
 
@@ -22,8 +19,7 @@ if __name__=='__main__':
 
     # XXX: commented because ThreadRunner does not work anymore
     # suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestThreadRunner))
-    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestSomaWorkflowRunner))
-    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestRunnerOnFailedStudy))
+
 
     unittest.TextTestRunner(verbosity=2).run(suite)
 
