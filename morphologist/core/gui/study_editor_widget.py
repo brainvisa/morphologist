@@ -734,12 +734,12 @@ class SubjectsEditor(object):
     def is_ith_subject_new(self, index):
         return self._subjects_origin[index] is None
 
-    def rename_ith_subject_name(self, row, name):
-        subject = self._subjects[row] 
+    def rename_ith_subject_name(self, index, name):
+        subject = self._subjects[index] 
         self._update_subject_field(subject, "name", name)
 
-    def rename_ith_subject_groupname(self, row, name):
-        subject = self._subjects[row] 
+    def rename_ith_subject_groupname(self, index, name):
+        subject = self._subjects[index] 
         self._update_subject_field(subject, "groupname", name)
 
     def _update_subject_field(self, subject, attrib, value):
