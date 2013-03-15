@@ -784,7 +784,7 @@ class SubjectsEditor(object):
             subject = self._subjects[index]
             subject_origin = self._subjects_origin[index]
             if subject_origin is None: continue
-            if subject.id() != subject_origin.id():
+            if subject != subject_origin:
                 renamed_subjects.append((subject_origin, subject))
         return renamed_subjects
 

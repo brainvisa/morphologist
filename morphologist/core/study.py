@@ -33,8 +33,16 @@ class Subject(object):
     def __str__(self):
         return self.id()
     
-    def __cmp__(self, other):
-        return cmp(self.id(), other.id())
+    def __eq__(self, other):
+        for attr in ['name', 'groupname', 'filename']:
+            value = self.__getattribute__(attr)
+            other_value = other.__getattribute__(attr)
+            if value != other_value:
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def serialize(self):
         serialized = {}
