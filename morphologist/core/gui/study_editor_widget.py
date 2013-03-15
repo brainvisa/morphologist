@@ -83,10 +83,8 @@ class StudyEditorDialog(QtGui.QDialog):
                                     self.study_editor.study_properties_editor,
                                     self, editor_mode)
 
-        # FIXME : expose/duplicate signal to config_widget level
-        #      or split model/view ?
-        self._study_properties_editor_widget._item_model.status_changed.connect(self.on_study_properties_editor_item_status_changed)
-       
+        self._study_properties_editor_widget.validity_changed.connect(self.on_study_properties_editor_validity_changed)
+
         self._init_subjects_from_study_dialog(study)
         self._init_db_dialog(enable_brainomics_db)
 
@@ -137,7 +135,7 @@ class StudyEditorDialog(QtGui.QDialog):
                                            dummy_item_selection)
                                           
     @QtCore.Slot("bool")
-    def on_study_properties_editor_item_status_changed(self, valid):
+    def on_study_properties_editor_validity_changed(self, valid):
         self.ui.apply_button.setEnabled(valid)
 
     # this slot is automagically connected
@@ -265,9 +263,9 @@ class StudyEditorDialog(QtGui.QDialog):
         backup_filename = study_properties_editor.backup_filename
         backup_filename_directory = os.path.dirname(backup_filename)
         editor_mode = self.study_editor.mode
-        status = study_properties_editor.check_study_consistency(editor_mode)
-        if status == StudyPropertiesEditor.STUDY_CONFIG_VALID:
-            if subjects_editor.check_study_consistency(editor_mode):
+        status = study_properties_editor.get_consistency_status(editor_mode)
+        if status == StudyPropertiesEditor.STUDY_PROPERTIES_VALID:
+            if subjects_editor.are_some_subjects_duplicated():
                 QtGui.QMessageBox.critical(self, "Study consistency error",
                     "Some subjects have the same identifier")
                 return False
@@ -288,6 +286,7 @@ class StudyEditorDialog(QtGui.QDialog):
 
 
 class StudyPropertiesEditorWidget(QtGui.QWidget):
+    validity_changed = QtCore.pyqtSignal(bool)
 
     def __init__(self, study_properties_editor, parent=None,
                 editor_mode=StudyEditor.NEW_STUDY):
@@ -298,6 +297,7 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self._init_ui(parent, editor_mode)
         self._init_mapper()
         self.ui.link_button.toggled.connect(self.on_link_button_toggled)
+        self._item_model.status_changed.connect(self.on_item_model_status_changed)
     
     # FIXME: better: move those widgets in a separate .ui
     def _init_ui(self, parent, editor_mode):
@@ -342,6 +342,10 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self.ui.outputdir_button.clicked.connect(self.on_outputdir_button_clicked)
         self.ui.backup_filename_button.clicked.connect(self.on_backup_filename_button_clicked)
         self._mapper.toFirst()
+
+    @QtCore.Slot("bool")
+    def on_item_model_status_changed(self, status):
+        self.validity_changed.emit(status)
 
     @QtCore.Slot("bool")
     def on_link_button_toggled(self, checked):
@@ -508,7 +512,7 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
 
 class StudyPropertiesEditor(object):
     # check status to build a study
-    STUDY_CONFIG_VALID = 0x0
+    STUDY_PROPERTIES_VALID = 0x0
     OUTPUTDIR_NOT_EXISTS = 0x1
     OUTPUTDIR_NOT_EMPTY = 0x2
     BACKUP_FILENAME_DIR_NOT_EXISTS = 0x4
@@ -532,24 +536,24 @@ class StudyPropertiesEditor(object):
         study.backup_filename = self.backup_filename 
         study.parameter_template = self.parameter_template
 
-    def check_study_consistency(self, editor_mode):
+    def get_consistency_status(self, editor_mode):
         if editor_mode == StudyEditor.NEW_STUDY:
-            status = self._check_valid_outputdir()
-            status |= self._check_valid_backup_filename()
+            status = self._outputdir_consistency_status()
+            status |= self._backup_filename_consistency_status()
         elif editor_mode == StudyEditor.EDIT_STUDY:
-            status = StudyPropertiesEditor.STUDY_CONFIG_VALID
+            status = StudyPropertiesEditor.STUDY_PROPERTIES_VALID
         return status
 
-    def _check_valid_outputdir(self):
-        status = StudyPropertiesEditor.STUDY_CONFIG_VALID
+    def _outputdir_consistency_status(self):
+        status = StudyPropertiesEditor.STUDY_PROPERTIES_VALID
         if not os.path.exists(self.outputdir):
             status |= StudyPropertiesEditor.OUTPUTDIR_NOT_EXISTS
         elif len(os.listdir(self.outputdir)) != 0:
             status |= StudyPropertiesEditor.OUTPUTDIR_NOT_EMPTY
         return status
             
-    def _check_valid_backup_filename(self):
-        status = StudyPropertiesEditor.STUDY_CONFIG_VALID
+    def _backup_filename_consistency_status(self):
+        status = StudyPropertiesEditor.STUDY_PROPERTIES_VALID
         backup_filename_directory = os.path.dirname(self.backup_filename)
         if not os.path.exists(backup_filename_directory):
             status |= StudyPropertiesEditor.BACKUP_FILENAME_DIR_NOT_EXISTS
@@ -806,12 +810,7 @@ class SubjectsEditor(object):
         else:
             assert(0)
 
-    def check_study_consistency(self, editor_mode):
-        if editor_mode in [StudyEditor.NEW_STUDY, StudyEditor.EDIT_STUDY]:
-            return self._is_some_subjects_duplicated()
-        assert(0)
-
-    def _is_some_subjects_duplicated(self):
+    def are_some_subjects_duplicated(self):
         for n in self._similar_subjects_n.values():
             if n != 1: return True
         return False
