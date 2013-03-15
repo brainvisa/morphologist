@@ -655,8 +655,8 @@ class SubjectsEditorTableModel(QtCore.QAbstractTableModel):
         start_row = numpy.min(rows)
         end_row = numpy.min(rows)
         for row in rows:
-            subject = self._subjects_editor.rename_ith_subject_name(row,
-                                                        subjectname)
+            subject = self._subjects_editor.update_ith_subject_property(row,
+                                                        "name", subjectname)
         start_index = self.index(start_row, self.SUBJECTNAME_COL)
         end_index = self.index(end_row, self.SUBJECTNAME_COL)
         self.dataChanged.emit(start_index, end_index)
@@ -668,8 +668,8 @@ class SubjectsEditorTableModel(QtCore.QAbstractTableModel):
         start_row = numpy.min(rows)
         end_row = numpy.min(rows)
         for row in rows:
-            subject = self._subjects_editor.rename_ith_subject_groupname(row,
-                                                        groupname)
+            subject = self._subjects_editor.update_ith_subject_property(row,
+                                                    "groupname", groupname)
         start_index = self.index(start_row, self.GROUPNAME_COL)
         end_index = self.index(end_row, self.GROUPNAME_COL)
         self.dataChanged.emit(start_index, end_index)
@@ -734,17 +734,10 @@ class SubjectsEditor(object):
     def is_ith_subject_new(self, index):
         return self._subjects_origin[index] is None
 
-    def rename_ith_subject_name(self, index, name):
+    def update_ith_subject_property(self, index, property, value):
         subject = self._subjects[index] 
-        self._update_subject_field(subject, "name", name)
-
-    def rename_ith_subject_groupname(self, index, name):
-        subject = self._subjects[index] 
-        self._update_subject_field(subject, "groupname", name)
-
-    def _update_subject_field(self, subject, attrib, value):
         old_subject_id = subject.id()
-        subject.__setattr__(attrib, value)
+        subject.__setattr__(property, value)
         new_subject_id = subject.id()
         self._similar_subjects_n[old_subject_id] -= 1
         if self._similar_subjects_n[old_subject_id] == 0:
