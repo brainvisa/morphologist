@@ -112,8 +112,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
             QtGui.QMessageBox.critical(self, title, msg)
         else:
             QtGui.QApplication.restoreOverrideCursor()
-        if study_editor.subjects_editor.added_subjects() and \
-            study.has_subjects():
+        if study_editor.subjects_editor.has_imported_some_subjects():
             title = "Images importation"
             msg = "The images have been imported in %s directory." % \
                                                         study.outputdir

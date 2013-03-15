@@ -22,12 +22,12 @@ class StudyEditor(object):
     ON_SUBJECT_REMOVED_DO_NOTHING = 1
 
     def __init__(self, study, mode=NEW_STUDY,
-        subject_removed_policy=ON_SUBJECT_REMOVED_DO_NOTHING):
+        study_update_policy=ON_SUBJECT_REMOVED_DO_NOTHING):
         self.study = study
-        self._subjects_editor = SubjectsEditor(study)
+        self.study_update_policy = study_update_policy 
         self._study_properties_editor = StudyPropertiesEditor(study)
+        self._subjects_editor = SubjectsEditor(study)
         self.mode = mode
-        self.subject_removed_policy = subject_removed_policy
 
     @property
     def subjects_editor(self):
@@ -38,44 +38,9 @@ class StudyEditor(object):
         return self._study_properties_editor
 
     def update_study(self):
-        self._update_properties()
-        self._update_subjects()
-
-    def _update_properties(self):
-        study = self.study
-        study_properties_editor = self.study_properties_editor
-
-        study.name = study_properties_editor.name
-        study.outputdir = study_properties_editor.outputdir
-        study.backup_filename = study_properties_editor.backup_filename 
-        study.parameter_template = study_properties_editor.parameter_template
-
-    def _update_subjects(self):
-        # XXX: operations order is important
-        for subject in self._subjects_editor.removed_subjects():
-            self._on_subject_removed(subject)
-
-        if len(self._subjects_editor.renamed_subjects()):
-            assert(0) # existing subjects can't be renamed from GUI
- 
-        subjects_importation_failed = []
-        for subject in self._subjects_editor.added_subjects():
-            try:
-                self.study.add_subject(subject)
-            except ImportationError, e:
-                subjects_importation_failed.append(subject)
-        if subjects_importation_failed:
-            str_subjects = []
-            for subject in subjects_importation_failed:
-                str_subjects.append(str(subject))
-            raise ImportationError("The importation failed for the " + \
-                "following subjects:\n%s." % ", ".join(str_subjects))
-
-    def _on_subject_removed(self, subject):
-        if self.subject_removed_policy == StudyEditor.ON_SUBJECT_REMOVED_DELETE_FILES:
-            self.study.remove_subject_and_files_from_id(subject.id())
-        elif self.subject_removed_policy == StudyEditor.ON_SUBJECT_REMOVED_DO_NOTHING:
-            self.study.remove_subject_from_id(subject.id())
+        self._study_properties_editor.update_study(self.study)
+        self._subjects_editor.update_study(self.study, \
+                                self.study_update_policy)
 
 
 class StudyEditorDialog(QtGui.QDialog):
@@ -261,7 +226,7 @@ class StudyEditorDialog(QtGui.QDialog):
         if not self._check_study_consistency():
             return
 
-        if self.study_editor.subjects_editor.removed_subjects():
+        if self.study_editor.subjects_editor.has_subjects_to_be_removed():
             title = 'Removed subjects from a study'
             msg = 'The following subjects will be removed from the current ' +\
                 'study.\nDo you want to removed associated files?'
@@ -275,14 +240,14 @@ class StudyEditorDialog(QtGui.QDialog):
             msgbox.exec_()
             answer = msgbox.clickedButton()
             if answer == yes_button:
-                subject_removed_policy = StudyEditor.ON_SUBJECT_REMOVED_DELETE_FILES
+                study_update_policy = StudyEditor.ON_SUBJECT_REMOVED_DELETE_FILES
             elif answer == no_button:
-                subject_removed_policy = StudyEditor.ON_SUBJECT_REMOVED_DO_NOTHING
+                study_update_policy = StudyEditor.ON_SUBJECT_REMOVED_DO_NOTHING
             elif answer == cancel_button:
                 return
             else:
                 assert(0)
-            self.study_editor.subject_removed_policy = subject_removed_policy
+            self.study_editor.study_update_policy = study_update_policy
         self.ui.accept()
 
     def on_cancel_button_clicked(self):
@@ -561,6 +526,12 @@ class StudyPropertiesEditor(object):
     def analysis_cls(self):
         return self._analysis_cls
 
+    def update_study(self, study):
+        study.name = self.name
+        study.outputdir = self.outputdir
+        study.backup_filename = self.backup_filename 
+        study.parameter_template = self.parameter_template
+
     def check_study_consistency(self, editor_mode):
         if editor_mode == StudyEditor.NEW_STUDY:
             status = self._check_valid_outputdir()
@@ -711,12 +682,14 @@ class SubjectsEditorTableModel(QtCore.QAbstractTableModel):
 
 
 class SubjectsEditor(object):
-    
+   
     def __init__(self, study):
         self._subjects_origin = []
         self._subjects = []
         self._removed_subjects = []
         self._similar_subjects_n = {}
+        # FIXME: store this information in ImportationError
+        self._has_imported_some_subjects = False
         for subject_id, subject in study.subjects.iteritems():
             subject_copy = subject.copy()
             self._subjects.append(subject_copy)
@@ -753,28 +726,6 @@ class SubjectsEditor(object):
         self._similar_subjects_n.setdefault(subject_id, 0)
         self._similar_subjects_n[subject_id] += 1
 
-    def added_subjects(self):
-        _added_subjects = []
-        for index, _ in enumerate(self):
-            subject = self._subjects[index]
-            subject_origin = self._subjects_origin[index]
-            if subject_origin is None:
-                _added_subjects.append(subject)
-        return _added_subjects
-
-    def removed_subjects(self):
-        return self._removed_subjects
-
-    def renamed_subjects(self):
-        _renamed_subjects = []
-        for index, _ in enumerate(self):
-            subject = self._subjects[index]
-            subject_origin = self._subjects_origin[index]
-            if subject_origin is None: continue
-            if subject.id() != subject_origin.id():
-                _renamed_subjects.append((subject_origin, subject))
-        return _renamed_subjects
-
     def is_ith_subject_duplicated(self, index):
         subject = self._subjects[index]
         subject_id = subject.id()
@@ -800,6 +751,64 @@ class SubjectsEditor(object):
             del self._similar_subjects_n[old_subject_id]
         self._similar_subjects_n.setdefault(new_subject_id, 0)
         self._similar_subjects_n[new_subject_id] += 1
+
+    def update_study(self, study, study_update_policy):
+        # XXX: operations order is important : del, rename, add
+        for subject in self._removed_subjects:
+            self._removed_subjects_from_study(study,
+                        subject, study_update_policy)
+
+        if len(self._renamed_subjects()):
+            assert(0) # existing subjects can't be renamed from GUI
+ 
+        subjects_importation_failed = []
+        for subject in self._added_subjects():
+            try:
+                study.add_subject(subject)
+            except ImportationError, e:
+                subjects_importation_failed.append(subject)
+            else:
+                self._has_imported_some_subjects = True
+        if subjects_importation_failed:
+            str_subjects = []
+            for subject in subjects_importation_failed:
+                str_subjects.append(str(subject))
+            raise ImportationError("The importation failed for the " + \
+                "following subjects:\n%s." % ", ".join(str_subjects))
+
+    def _added_subjects(self):
+        added_subjects = []
+        for index, _ in enumerate(self):
+            subject = self._subjects[index]
+            subject_origin = self._subjects_origin[index]
+            if subject_origin is None:
+                added_subjects.append(subject)
+        return added_subjects
+
+    def _renamed_subjects(self):
+        renamed_subjects = []
+        for index, _ in enumerate(self):
+            subject = self._subjects[index]
+            subject_origin = self._subjects_origin[index]
+            if subject_origin is None: continue
+            if subject.id() != subject_origin.id():
+                renamed_subjects.append((subject_origin, subject))
+        return renamed_subjects
+
+    def has_subjects_to_be_removed(self):
+        return len(self._removed_subjects)
+
+    # FIXME: store this information in ImportationError
+    def has_imported_some_subjects(self):
+        return self._has_imported_some_subjects
+
+    def _removed_subjects_from_study(self, study, subject, study_update_policy):
+        if study_update_policy == StudyEditor.ON_SUBJECT_REMOVED_DELETE_FILES:
+            study.remove_subject_and_files_from_id(subject.id())
+        elif study_update_policy == StudyEditor.ON_SUBJECT_REMOVED_DO_NOTHING:
+            study.remove_subject_from_id(subject.id())
+        else:
+            assert(0)
 
     def check_study_consistency(self, editor_mode):
         if editor_mode in [StudyEditor.NEW_STUDY, StudyEditor.EDIT_STUDY]:
