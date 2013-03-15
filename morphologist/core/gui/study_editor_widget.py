@@ -383,6 +383,7 @@ class StudyPropertiesEditorWidgetMapper(QtGui.QDataWidgetMapper):
     def __init__(self, parent=None):
         super(StudyPropertiesEditorWidgetMapper, self).__init__(parent)
  
+    # overrided Qt method
     def submit(self):
         obj = self.sender()
         delegate = self.itemDelegate()
@@ -396,6 +397,7 @@ class StudyPropertiesEditorItemDelegate(QtGui.QItemDelegate):
     def __init__(self, parent=None):
         super(StudyPropertiesEditorItemDelegate, self).__init__(parent)
         
+    # overrided Qt method
     def setEditorData(self, editor, index):
         model = index.model()
         value = model.data(index, QtCore.Qt.EditRole)
@@ -439,18 +441,23 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
         self._is_edited = False
         self._status = True # ok si 3 first attributes != ''
 
+    # overrided Qt method
     def columnCount(self):
         return 4
 
+    # overrided Qt method
     def rowCount(self, parent=QtCore.QModelIndex()):
         return 1
 
+    # overrided Qt method
     def index(self, row, column, parent=QtCore.QModelIndex()):
         return self.createIndex(row, column, self)
 
+    # overrided Qt method
     def parent(self, index=QtCore.QModelIndex()):
         return QtCore.QModelIndex()
 
+    # overrided Qt method
     def data(self, index, role=QtCore.Qt.DisplayRole):
         column = index.column()
         value = self._study_properties_editor.__getattribute__(self.attributes[column])
@@ -464,11 +471,7 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
                 else:
                     return QtGui.QColor('white')
 
-    def is_data_colorable(self, index):
-        column = index.column()
-        return column in [self.NAME_COL, self.OUTPUTDIR_COL,
-                                    self.BACKUP_FILENAME_COL]
-
+    # overrided Qt method
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         self._is_edited = True
         column = index.column() 
@@ -497,6 +500,11 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
         if old_status != self._status:
             self.status_changed.emit(self._status)
         return True
+
+    def is_data_colorable(self, index):
+        column = index.column()
+        return column in [self.NAME_COL, self.OUTPUTDIR_COL,
+                                    self.BACKUP_FILENAME_COL]
 
     def set_data(self, col, value):
         row = 0
@@ -592,13 +600,15 @@ class SubjectsEditorTableModel(QtCore.QAbstractTableModel):
         self._subjects_editor = subjects_editor
         self.reset()
 
-    # QT methods
+    # overrided Qt method
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self._subjects_editor)
 
+    # overrided Qt method
     def columnCount(self, parent=QtCore.QModelIndex()):
         return 3
 
+    # overrided Qt method
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Vertical:
@@ -606,6 +616,7 @@ class SubjectsEditorTableModel(QtCore.QAbstractTableModel):
             elif orientation == QtCore.Qt.Horizontal:
                 return self.header[section]
 
+    # overrided Qt method
     def data(self, index, role=QtCore.Qt.DisplayRole):
         row, column = index.row(), index.column()
         if role == QtCore.Qt.DisplayRole:
@@ -624,6 +635,7 @@ class SubjectsEditorTableModel(QtCore.QAbstractTableModel):
                 return QtGui.QApplication.palette().color(\
                     QtGui.QPalette.Disabled, QtGui.QPalette.Text)
 
+    # overrided Qt method
     def removeRows(self, start_row, count, parent=QtCore.QModelIndex()):
         end_row = start_row + count - 1
         self.beginRemoveRows(parent, start_row, end_row)
@@ -632,7 +644,6 @@ class SubjectsEditorTableModel(QtCore.QAbstractTableModel):
             del self._subjects_editor[row]
         self.endRemoveRows()
 
-    # additional methods
     def add_subjects_from_filenames(self, filenames, groupname):
         parent = QtCore.QModelIndex()
         start_index = self.rowCount()
