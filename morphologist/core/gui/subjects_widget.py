@@ -70,6 +70,12 @@ class SubjectsItemDelegate(QtGui.QStyledItemDelegate):
         option.state = option.state & ~QtGui.QStyle.State_Selected
         super(SubjectsItemDelegate, self).paint(painter, option, index)
             
+    # overrided Qt method
+    def editorEvent(self, event, model, option, index):
+        # With the default behaviour, a checkbox is always editable,
+        # so clicking on it does not update the selection (in Qt 4.8)
+        return False
+    
     
 class SubjectsTableModel(QtCore.QAbstractTableModel):
     SELECTION_COL = 0
@@ -133,7 +139,7 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
         column = index.column()
         flags = super(SubjectsTableModel, self).flags(index)
         if column == self.SELECTION_COL:
-            flags |= QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsUserCheckable
+            flags |= QtCore.Qt.ItemIsUserCheckable
         return flags
         
     @QtCore.Slot()                
