@@ -4,10 +4,12 @@ from morphologist.core import settings
 class Backend(object):
     DISPLAY_ROLE = 'display_backend'
     OBJECTS_LOADER_ROLE = 'objects_backend'
+    VECTOR_GRAPHICS_ROLE = 'vector_graphics_backend'
     _backend_instance = {}
     _backend_loading_info = {
         'pyanatomist' : ('morphologist.core.backends.pyanatomist_backend',
-                         'PyanatomistBackend')
+                                                    'PyanatomistBackend'),
+        'morphologist_common' : ('morphologist.core.backends.morphologist_common_backend', 'MorphologistCommonBackend')
     }
 
     @classmethod
@@ -15,16 +17,24 @@ class Backend(object):
         return cls.backend_from_role(cls.DISPLAY_ROLE)
 
     @classmethod
-    def select_display_backend(cls, backend_name):
-        cls.select_backend_from_role(cls.DISPLAY_ROLE)
-
-    @classmethod
     def objects_loader_backend(cls):
         return cls.backend_from_role(cls.OBJECTS_LOADER_ROLE)
 
     @classmethod
+    def vector_graphics_backend(cls):
+        return cls.backend_from_role(cls.VECTOR_GRAPHICS_ROLE)
+
+    @classmethod
+    def select_display_backend(cls, backend_name):
+        cls.select_backend_from_role(cls.DISPLAY_ROLE)
+
+    @classmethod
     def select_objects_loader_backend(cls, backend_name):
         cls.select_backend_from_role(cls.OBJECTS_LOADER_ROLE)
+
+    @classmethod
+    def select_vector_graphics_backend(cls, backend_name):
+        cls.select_backend_from_role(cls.VECTOR_GRAPHICS_ROLE)
 
     @classmethod
     def backend_from_role(cls, role):

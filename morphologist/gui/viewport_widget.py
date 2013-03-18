@@ -1,9 +1,8 @@
 import os
 
-from morphologist_common import histo_analysis_widget
-
 from morphologist.core.backends.mixins import ColorMap, ViewType
 from morphologist.core.gui.object3d import Object3D, APCObject, View
+from morphologist.core.gui.vector_graphics import Histogram, VectorView
 from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi
 from morphologist.core.gui.viewport_widget import AnalysisViewportModel
 from morphologist.gui import ui_directory 
@@ -41,7 +40,7 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
         if (parameter_name == IntraAnalysis.COMMISSURE_COORDINATES):
             obj = APCObject(filename)
         elif (parameter_name == IntraAnalysis.HISTO_ANALYSIS):
-            obj = histo_analysis_widget.load_histo_data(filename)
+            obj = Histogram.from_filename(filename)
         else:
             obj = Object3D.from_filename(filename) 
         return obj
@@ -57,6 +56,7 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
 
 class IntraAnalysisViewportView(QtGui.QWidget):
     uifile = os.path.join(ui_directory, 'viewport_widget.ui')
+    bg_color = [0., 0., 0., 1.]
     main_frame_style_sheet = '''
         #viewport_frame { background-color: white }
         #view1_frame, #view2_frame, #view3_frame, #view4_frame, #view5_frame, 
@@ -120,11 +120,11 @@ class IntraAnalysisViewportView(QtGui.QWidget):
             layout.setMargin(0)
             layout.setSpacing(0)
             view = View(view_hook, view_type)
-            view.set_bgcolor([0., 0., 0., 1.])
+            view.set_bgcolor(self.bg_color)
             self._views[view_name] = view
         QtGui.QVBoxLayout(self.ui.view3_hook)
-        view = histo_analysis_widget.create_histo_view(self.ui.view3_hook)
-        view.setPalette(QtGui.QPalette(QtGui.QColor(0, 0, 0)))
+        view = VectorView(self.ui.view3_hook)
+        view.set_bgcolor(self.bg_color)
         self._views[self.HISTO_ANALYSIS] = view
 
     @QtCore.Slot()
@@ -217,8 +217,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         view.clear()
         histo_analysis = self._viewport_model.observed_objects[IntraAnalysis.HISTO_ANALYSIS]
         if histo_analysis is not None:
-            view.set_histo_data(histo_analysis, nbins=100)
-            view.draw_histo()
+            view.add_object(histo_analysis)
 
     @QtCore.Slot()
     def update_brain_mask_view(self):

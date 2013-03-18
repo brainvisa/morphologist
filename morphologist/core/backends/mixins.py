@@ -43,6 +43,24 @@ class ObjectsManagerMixin(object):
         raise NotImplementedError("ObjectsLoaderMixin is an abstract class")
 
 
+class VectorGraphicsManagerMixin(object):
+
+    def create_view(self, parent):
+        raise NotImplementedError("VectorGraphicsManagerMixin is an abstract class")
+
+    def clear_view(self, backend_view):
+        raise NotImplementedError("VectorGraphicsManagerMixin is an abstract class")
+
+    def add_object_in_view(self, backend_object, backend_view):
+        raise NotImplementedError("VectorGraphicsManagerMixin is an abstract class")
+
+    def set_bgcolor_view(self, backend_view, color):
+        raise NotImplementedError("VectorGraphicsManagerMixin is an abstract class")
+
+    def load_histogram(self, filename):
+        raise NotImplementedError("VectorGraphicsManagerMixin is an abstract class")
+
+
 class LoadObjectError(Exception):
     pass
 

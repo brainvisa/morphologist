@@ -3,4 +3,5 @@ settings = {
     'formats_manager_backend' : 'brainvisa',
     'display_backend' : 'pyanatomist',
     'objects_backend' : 'pyanatomist',
+    'vector_graphics_backend' : 'morphologist_common',
 }
