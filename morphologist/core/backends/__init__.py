@@ -31,7 +31,7 @@ class Backend(object):
         try:
             instance = cls._backend_instance[role]
         except KeyError:
-            cls.select_backend_from_role(role, settings[cls.DISPLAY_ROLE])
+            cls.select_backend_from_role(role, settings[role])
             instance = cls._backend_instance[role]
         return instance
 
