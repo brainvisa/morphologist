@@ -1,4 +1,4 @@
-from morphologist.core import settings
+from morphologist.core.settings import settings
 
 
 class Backend(object):
@@ -41,7 +41,7 @@ class Backend(object):
         try:
             instance = cls._backend_instance[role]
         except KeyError:
-            cls.select_backend_from_role(role, settings[role])
+            cls.select_backend_from_role(role, settings['backend'][role])
             instance = cls._backend_instance[role]
         return instance
 

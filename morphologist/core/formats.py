@@ -1,4 +1,4 @@
-from morphologist.core import settings
+from morphologist.core.settings import settings
 
 
 class Format(object):
@@ -30,7 +30,7 @@ class FormatsManager(object):
     def formats_manager(cls):
         if cls._formats_manager_instance:
             return cls._formats_manager_instance
-        formats_manager_backend = settings['formats_manager_backend']
+        formats_manager_backend = settings['backend']['formats_manager_backend']
         backend_info = cls._formats_backend_modules[formats_manager_backend]
         modulename, classname = backend_info
         try:

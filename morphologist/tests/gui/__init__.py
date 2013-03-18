@@ -2,7 +2,7 @@ import types
 import unittest
 
 from morphologist.core.gui.qt_backend import QtCore, QtGui
-from morphologist.core import settings
+from morphologist.core.settings import settings
 
 
 class TestGuiBase(unittest.TestCase):
@@ -13,7 +13,7 @@ class TestGuiBase(unittest.TestCase):
         cls._widgets_kept_alive.append(widget)
         
 
-if settings['start_qt_event_loop_for_tests']:
+if settings['debug']['start_qt_event_loop_for_tests']:
     class TestGui(TestGuiBase):
 
         @staticmethod

@@ -1,6 +1,7 @@
 import sys
 import optparse
 
+from morphologist.core.settings import settings
 from morphologist.core.gui.qt_backend import QtGui
 from morphologist.gui.main_window import create_main_window
 
@@ -30,6 +31,10 @@ def main():
     parser = option_parser()
     options, args = parser.parse_args(sys.argv)
 
+    settings['application']['brainomics'] = options.brainomics
+    settings['debug']['mock'] = options.mock
+    if not settings['settings_validation']: return
+    
     qApp = QtGui.QApplication(sys.argv)
     main_window = create_main_window(options.study_file, options.mock, 
                                      options.brainomics)
