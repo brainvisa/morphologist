@@ -1,25 +1,29 @@
 import os
 
-from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
-from morphologist.gui import ui_directory 
-from morphologist.intra_analysis.study import IntraAnalysisStudy
+from morphologist.core.settings import settings
 from morphologist.core.study import StudySerializationError
+from morphologist.core.analysis import ImportationError
+from morphologist.core.runner import SomaWorkflowRunner
+
+from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
 from morphologist.core.gui.study_editor_widget import StudyEditorDialog, \
                                                             StudyEditor
-from morphologist.core.runner import SomaWorkflowRunner
 from morphologist.core.gui.study_model import LazyStudyModel
 from morphologist.core.gui.analysis_model import LazyAnalysisModel
-from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
-                             IntraAnalysisViewportView
 from morphologist.core.gui.subjects_widget import SubjectsWidget
 from morphologist.core.gui.runner_widget import RunnerView
-from morphologist.core.analysis import ImportationError
+
+from morphologist.intra_analysis.study import IntraAnalysisStudy
+
+from morphologist.gui import ui_directory 
+from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
+                             IntraAnalysisViewportView
 
 
 class IntraAnalysisWindow(QtGui.QMainWindow):
     uifile = os.path.join(ui_directory, 'main_window.ui')
 
-    def __init__(self, study_file=None, enable_brainomics_db=False):
+    def __init__(self, study_file=None):
         super(IntraAnalysisWindow, self).__init__()
         self.ui = loadUi(self.uifile, self)
 
@@ -46,7 +50,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self.setWindowTitle(self._window_title())
         
         self.study_editor_widget_window = None
-        self.enable_brainomics_db = enable_brainomics_db
+        self.enable_brainomics_db = settings['application']['brainomics']
         
         self.study_model.current_subject_changed.connect(self.on_current_subject_changed)
         self.on_current_subject_changed()
@@ -169,9 +173,9 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
             event.accept()
 
 
-def create_main_window(study_file=None, mock=False, enable_brainomics_db=False):
-    if not mock:
-        return IntraAnalysisWindow(study_file, enable_brainomics_db)
-    else:
+def create_main_window(study_file=None):
+    if settings['debug']['mock']:
         from morphologist.tests.intra_analysis.mocks.main_window import MockIntraAnalysisWindow
-        return MockIntraAnalysisWindow(study_file, enable_brainomics_db) 
+        return MockIntraAnalysisWindow(study_file) 
+    else:
+        return IntraAnalysisWindow(study_file)

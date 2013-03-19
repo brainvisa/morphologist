@@ -43,8 +43,7 @@ def main():
     if not settings['settings_validation']: return
     
     qApp = QtGui.QApplication(sys.argv)
-    main_window = create_main_window(options.study_file, options.mock, 
-                                     options.brainomics)
+    main_window = create_main_window(options.study_file)
     main_window.show()
     sys.exit(qApp.exec_())
 
