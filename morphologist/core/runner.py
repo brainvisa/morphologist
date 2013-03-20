@@ -342,7 +342,7 @@ class  SomaWorkflowRunner(Runner):
         subject_jobs = self._get_subject_jobs(subject_id)
         if subject_jobs:
             job_id = subject_jobs[step_id, "step_id"]
-            jobs_status=self._get_jobs_status(update_status)
+            jobs_status = self._get_jobs_status(update_status)
             status = jobs_status[job_id]       
         return status
     
