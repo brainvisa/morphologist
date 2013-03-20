@@ -25,7 +25,7 @@ class Runner(object):
     NOT_STARTED = 'not started'
     FAILED = 'failed'
     SUCCESS = 'success'
-    KILLED_BY_USER = 'killed_by_user'
+    STOPPED_BY_USER = 'stopped_by_user'
     RUNNING = 'running'
     UNKNOWN = 'unknown'
     
@@ -270,7 +270,7 @@ class  SomaWorkflowRunner(Runner):
 
     def _workflow_stop(self):
         self._workflow_controller.stop_workflow(self._workflow_id)
-        interrupted_status = [Runner.FAILED, Runner.KILLED_BY_USER]
+        interrupted_status = [Runner.FAILED, Runner.STOPPED_BY_USER]
         interrupted_step_ids = self._get_filtered_step_ids(interrupted_status)
         for subject_id, step_ids in interrupted_step_ids.iteritems():
             analysis = self._study.analyses[subject_id]
@@ -332,7 +332,7 @@ class  SomaWorkflowRunner(Runner):
             for job_id in subject_jobs:
                 job_status = jobs_status[job_id]
                 # XXX hypothesis: the workflow is linear for a subject (no branch)
-                if job_status in [Runner.RUNNING, Runner.FAILED, Runner.KILLED_BY_USER]:
+                if job_status in [Runner.RUNNING, Runner.FAILED, Runner.STOPPED_BY_USER]:
                     status = job_status
                     break
                 elif job_status == Runner.UNKNOWN:
@@ -371,7 +371,7 @@ class  SomaWorkflowRunner(Runner):
                          sw.constants.KILL_PENDING] or \
             (exit_value is not None and exit_value != 0):
             if exit_status == sw.constants.USER_KILLED:
-                status = Runner.KILLED_BY_USER
+                status = Runner.STOPPED_BY_USER
             elif exit_status == sw.constants.EXIT_ABORTED:
                 status = Runner.NOT_STARTED
             else:
