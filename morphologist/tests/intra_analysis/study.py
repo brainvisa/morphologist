@@ -1,11 +1,11 @@
 import os
 import getpass
 
-from morphologist.intra_analysis_study import IntraAnalysisStudy
-from morphologist.tests.study import AbstractStudyTestCase
+from morphologist.intra_analysis.study import IntraAnalysisStudy
+from morphologist.core.tests.study import AbstractStudyTestCase
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.tests.intra_analysis.mocks.study import MockIntraAnalysisStudy
-from morphologist.tests import reset_directory
+from morphologist.core.tests import reset_directory
 
 
 class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
@@ -37,10 +37,6 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
     def parameter_template(self):
         return IntraAnalysis.DEFAULT_PARAM_TEMPLATE 
 
-    def create_study(self):
-        self.study = IntraAnalysisStudy(self.studyname, self.outputdir)
-        return self.study
-
     def delete_some_input_files(self):
         parameter_names = [IntraAnalysis.MRI]
         for name in parameter_names:
@@ -63,13 +59,16 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
                 os.rename(file_name + "hide_for_test", file_name) 
 
     def step_to_wait_testcase_1(self):
-        return self.study.subjects[0], '0_normalization'
+        subject_id = self.get_a_subject_id()
+        return subject_id, '0_normalization'
 
     def step_to_wait_testcase_2(self):
-        return self.study.subjects[0], '2_histogram_analysis'
+        subject_id = self.get_a_subject_id()
+        return subject_id, '2_histogram_analysis'
 
     def step_to_wait_testcase_3(self):
-        return self.study.subjects[0], '13_sulci'
+        subject_id = self.get_a_subject_id()
+        return subject_id, '13_sulci'
 
 
 class MockIntraAnalysisStudyTestCase(IntraAnalysisStudyTestCase):
@@ -80,10 +79,6 @@ class MockIntraAnalysisStudyTestCase(IntraAnalysisStudyTestCase):
 
     def study_cls(self):
         return MockIntraAnalysisStudy
-
-    def create_study(self):
-        self.study = MockIntraAnalysisStudy(self.studyname, self.outputdir)
-        return self.study
 
 
 class IntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
@@ -102,12 +97,8 @@ class MockIntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
     -> Mock intra analysis
     '''
 
-    def get_study_cls(self):
+    def study_cls(self):
         return MockIntraAnalysisStudy
-
-    def create_study(self):
-        self.study = MockIntraAnalysisStudy(self.studyname, self.outputdir)
-        return self.study
 
     def parameter_template(self):
         return IntraAnalysis.BRAINVISA_PARAM_TEMPLATE 

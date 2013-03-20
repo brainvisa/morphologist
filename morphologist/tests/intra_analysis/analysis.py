@@ -1,10 +1,10 @@
 import os
 import getpass
 
-from morphologist.study import Subject
+from morphologist.core.study import Subject
 from morphologist.intra_analysis import IntraAnalysis
-from morphologist.tests.analysis import AnalysisTestCase
-from morphologist.tests import reset_directory
+from morphologist.core.tests.analysis import AnalysisTestCase
+from morphologist.core.tests import reset_directory
 
 
 class IntraAnalysisTestCase(AnalysisTestCase):
@@ -26,17 +26,17 @@ class IntraAnalysisTestCase(AnalysisTestCase):
 
     def set_analysis_parameters(self):
         subjectname = "hyperion"
-        group = "group1"
+        groupname = "group1"
         
-        image_path = os.path.join('/neurospin', 'lnao', 'Panabase', 
-                                'cati-dev-prod', 'morphologist', 'raw_irm', subjectname + ".nii")
+        filename = os.path.join('/neurospin', 'lnao', 'Panabase',
+            'cati-dev-prod', 'morphologist', 'raw_irm', subjectname + ".nii")
          
-        subject = Subject(group, subjectname, image_path)
+        subject = Subject(subjectname, groupname, filename)
         self.analysis.set_parameters(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE,
                                      subject=subject, outputdir=self.outputdir) 
         IntraAnalysis.create_outputdirs(IntraAnalysis.BRAINVISA_PARAM_TEMPLATE,
                                         subject, self.outputdir)
-        self.analysis.clear_output_files() 
+        self.analysis.clear_results() 
 
     def delete_some_parameter_values(self):
         self.analysis.outputs.edges = None

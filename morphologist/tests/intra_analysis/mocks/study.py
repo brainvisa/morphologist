@@ -1,4 +1,4 @@
-from morphologist.study import Study
+from morphologist.core.study import Study
 from morphologist.tests.intra_analysis.mocks.analysis import MockIntraAnalysis
 
 

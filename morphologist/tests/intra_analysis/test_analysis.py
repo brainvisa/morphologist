@@ -1,6 +1,6 @@
 import unittest
 
-from morphologist.tests.test_analysis import TestAnalysis
+from morphologist.core.tests.test_analysis import TestAnalysis
 from morphologist.tests.intra_analysis.analysis import IntraAnalysisTestCase
 
 
