@@ -104,7 +104,8 @@ class TestRunnerOnSuccessStudy(TestRunner):
     def assert_output_files_exist_only_for_succeed_steps_after_stop(self):
         for subject_id in self.study.subjects:
             analysis = self.study.analyses[subject_id]
-            for step_id, step in analysis.iter_steps():
+            #FIXME: _step_ids is private, only used in this test
+            for step_id, step in analysis._step_ids.iteritems():
                 status = self.runner.get_status(subject_id, step_id, update_status=False)
                 if status == Runner.SUCCESS:
                     self.assertTrue(step.outputs.all_file_exists())

@@ -35,9 +35,6 @@ class Analysis(object):
                 continue
             command = step.get_command()
             yield command, step_id
-        
-    def iter_steps(self):
-        return self._step_ids.iteritems()
     
     @classmethod
     def import_data(cls, parameter_template, subject, outputdir):
