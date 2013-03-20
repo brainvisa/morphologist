@@ -1,11 +1,5 @@
 from morphologist.core.backends import Backend
-
-
-# FIXME: move class
-class Visitable(object):
-
-    def _friend_accept_visitor(self, visitor):
-        raise NotImplementedError("Visitable is an abstract class")
+from morphologist.core.utils import Visitable
 
 
 class VectorObject(Visitable):
@@ -19,6 +13,7 @@ class VectorObject(Visitable):
         
     
 class Histogram(VectorObject):
+    
     def __init__(self, _enable_init=False):
         super(Histogram, self).__init__()
         if not _enable_init:

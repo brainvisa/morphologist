@@ -1,7 +1,8 @@
 from morphologist.core.backends import Backend
+from morphologist.core.utils import Visitable
 
 
-class AbstractObject3D(object):
+class AbstractObject3D(Visitable):
     
     def __init__(self):
         self._backend = Backend.objects_loader_backend()

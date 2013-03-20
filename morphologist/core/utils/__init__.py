@@ -171,6 +171,12 @@ class Graph(object):
                     marks[dep] = True
 
 
+class Visitable(object):
+
+    def _friend_accept_visitor(self, visitor):
+        raise NotImplementedError("Visitable is an abstract class")
+    
+
 def remove_all_extensions(filename):
     name, ext = os.path.splitext(os.path.basename(filename))
     while (ext != ""):
