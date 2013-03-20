@@ -1,0 +1,17 @@
+# main settings
+[application]
+# enable/disable brainomics options
+brainomics = boolean(default=False)
+# number of CPUs used for analyses (default: auto)
+CPUs = auto_or_integer(default='auto')
+# backend settings
+[backend]
+vector_graphics_backend = option(morphologist_common, default=morphologist_common)
+display_backend = option(pyanatomist, default=pyanatomist)
+objects_backend = option(pyanatomist, default=pyanatomist)
+formats_manager_backend = option(brainvisa, default=brainvisa)
+# debug settings
+[debug]
+start_qt_event_loop_for_tests = boolean(default=True)
+# use mocked analysis
+mock = boolean(default=False)

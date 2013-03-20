@@ -1,37 +1,42 @@
 import os
 
-from .qt_backend import QtCore, QtGui, loadUi 
+from morphologist.core.settings import settings
+from morphologist.core.study import StudySerializationError
+from morphologist.core.analysis import ImportationError
+from morphologist.core.runner import SomaWorkflowRunner
+
+from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
+from morphologist.core.gui.study_editor_widget import StudyEditorDialog, \
+                                                            StudyEditor
+from morphologist.core.gui.study_model import LazyStudyModel
+from morphologist.core.gui.analysis_model import LazyAnalysisModel
+from morphologist.core.gui.subjects_widget import SubjectsWidget
+from morphologist.core.gui.runner_widget import RunnerView
+
+from morphologist.intra_analysis.study import IntraAnalysisStudy
+
 from morphologist.gui import ui_directory 
-from morphologist.intra_analysis_study import IntraAnalysisStudy
-from morphologist.study import StudySerializationError
-from .study_editor_widget import StudyEditorDialog
-from morphologist.runner import SomaWorkflowRunner
-from .study_model import LazyStudyModel
-from morphologist.gui.analysis_model import LazyAnalysisModel
-from .viewport_widget import IntraAnalysisViewportModel,\
+from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
                              IntraAnalysisViewportView
-from .subjects_widget import SubjectsTableModel, SubjectsTableView
-from .runner_widget import RunnerView
-from morphologist.analysis import ImportationError
 
 
 class IntraAnalysisWindow(QtGui.QMainWindow):
     uifile = os.path.join(ui_directory, 'main_window.ui')
 
-    def __init__(self, study_file=None, enable_brainomics_db=False):
+    def __init__(self, study_file=None):
         super(IntraAnalysisWindow, self).__init__()
         self.ui = loadUi(self.uifile, self)
 
-        self.study = None
-        self.runner = None
-        self.study_model = LazyStudyModel()
+        self.study = self._create_study(study_file)
+        self.runner = self._create_runner(self.study)
+        self.study_model = LazyStudyModel(self.study, self.runner)
         self.analysis_model = LazyAnalysisModel()
-        self.study_tablemodel = SubjectsTableModel(self.study_model)
-        self.study_selection_model = QtGui.QItemSelectionModel(self.study_tablemodel)
+        
+        self.viewport_model = IntraAnalysisViewportModel(self.analysis_model)
+        self.viewport_view = IntraAnalysisViewportView(self.viewport_model, 
+                                                       self.ui.viewport_frame)
  
-        self.study_view = SubjectsTableView()
-        self.study_view.set_model(self.study_tablemodel)
-        self.study_view.set_selection_model(self.study_selection_model)
+        self.study_view = SubjectsWidget(self.study_model)
         self.ui.study_widget_dock.setWidget(self.study_view)
         
         self.setCorner(QtCore.Qt.TopRightCorner, QtCore.Qt.RightDockWidgetArea)
@@ -39,24 +44,17 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self.setCorner(QtCore.Qt.TopLeftCorner, QtCore.Qt.LeftDockWidgetArea)
         self.setCorner(QtCore.Qt.BottomLeftCorner, QtCore.Qt.LeftDockWidgetArea)
 
-        self.viewport_model = IntraAnalysisViewportModel(self.analysis_model)
-        self.viewport_view = IntraAnalysisViewportView(self.viewport_model, 
-                                                       self.ui.viewport_frame)
-
-        self.runner_view = RunnerView()
-        self.runner_view.set_model(self.study_model)
+        self.runner_view = RunnerView(self.study_model)
         self.ui.runner_widget_dock.setWidget(self.runner_view)
+
+        self.setWindowTitle(self._window_title())
         
         self.study_editor_widget_window = None
-        self.enable_brainomics_db = enable_brainomics_db
-
-        self._init_qt_connections()
-
-        self.set_study(self._create_study(study_file))
-
-    def _init_qt_connections(self):
-        self.study_selection_model.currentChanged.connect(self.on_selection_changed)
-
+        self.enable_brainomics_db = settings['application']['brainomics']
+        
+        self.study_model.current_subject_changed.connect(self.on_current_subject_changed)
+        self.on_current_subject_changed()
+        
     def _create_study(self, study_file=None):
         if study_file:
             study = IntraAnalysisStudy.from_file(study_file)
@@ -67,39 +65,34 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
     def _create_runner(self, study):
         return SomaWorkflowRunner(study)
 
+    # this slot is automagically connected
     @QtCore.Slot()
     def on_action_new_study_triggered(self):
         msg = 'Stop current running analysis and create a new study ?'
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
         study = self._create_study()
         self.study_editor_widget_window = StudyEditorDialog(study, parent=self,
-                                            enable_brainomics_db=self.enable_brainomics_db)
+                            editor_mode=StudyEditor.NEW_STUDY,
+                            enable_brainomics_db=self.enable_brainomics_db)
         self.study_editor_widget_window.ui.accepted.connect(self.on_study_dialog_accepted)
         self.study_editor_widget_window.ui.show()
-        
+       
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_action_edit_study_triggered(self):
+        msg = 'Stop current running analysis and edit the current study ?'
+        if self._runner_still_running_after_stopping_asked_to_user(msg): return
+        self.study_editor_widget_window = StudyEditorDialog(self.study,
+                    parent=self, editor_mode=StudyEditor.EDIT_STUDY,
+                    enable_brainomics_db=self.enable_brainomics_db)
+        self.study_editor_widget_window.ui.accepted.connect(self.on_study_dialog_accepted)
+        self.study_editor_widget_window.ui.show()
+
     @QtCore.Slot()
     def on_study_dialog_accepted(self):
-        study = self.study_editor_widget_window.study
-        parameter_template = self.study_editor_widget_window.parameter_template
-        if study.has_subjects():
-            QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
-            try:
-                study.import_data(parameter_template)
-            except ImportationError, e:
-                QtGui.QApplication.restoreOverrideCursor()
-                QtGui.QMessageBox.critical(self, 
-                                          "Cannot import some images", "%s" %(e)) 
-            else:
-                QtGui.QApplication.restoreOverrideCursor()
-            if study.has_subjects():
-                msg = "The images have been imported in %s directory." % study.outputdir
-                msgbox = QtGui.QMessageBox(QtGui.QMessageBox.Information,
-                                   "Images importation", msg,
-                                   QtGui.QMessageBox.Ok, self)
-                msgbox.show()
-                
-            study.set_analysis_parameters(parameter_template)
-        self.set_study(study)
+        dialog = self.study_editor_widget_window
+        study = dialog.create_updated_study()
+        self.set_study(dialog.study_editor.study)
         self._try_save_to_backup_file()
         self.study_editor_widget_window = None
 
@@ -154,11 +147,12 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         except StudySerializationError, e:
             QtGui.QMessageBox.critical(self, "Cannot save the study", "%s" %(e))
 
-    @QtCore.Slot("const QModelIndex &", "const QModelIndex &")
-    def on_selection_changed(self, current, previous):
-        subject = self.study_tablemodel.subject_from_row_index(current.row())
-        analysis = self.study.analyses[subject.id()]
-        self.analysis_model.set_analysis(analysis)
+    @QtCore.Slot()
+    def on_current_subject_changed(self):
+        subject_id = self.study_model.get_current_subject_id()
+        if subject_id:
+            analysis = self.study.analyses[subject_id]
+            self.analysis_model.set_analysis(analysis)
 
     def set_study(self, study):
         self.study = study
@@ -170,11 +164,18 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
 
     def _window_title(self):
         return "Morphologist - %s" % self.study.name
+    
+    def closeEvent(self, event):
+        msg = 'Stop current running analysis and quit ?'
+        if self._runner_still_running_after_stopping_asked_to_user(msg): 
+            event.ignore()
+        else:
+            event.accept()
 
 
-def create_main_window(study_file=None, mock=False, enable_brainomics_db=False):
-    if not mock:
-        return IntraAnalysisWindow(study_file, enable_brainomics_db)
-    else:
+def create_main_window(study_file=None):
+    if settings['debug']['mock']:
         from morphologist.tests.intra_analysis.mocks.main_window import MockIntraAnalysisWindow
-        return MockIntraAnalysisWindow(study_file, enable_brainomics_db) 
+        return MockIntraAnalysisWindow(study_file) 
+    else:
+        return IntraAnalysisWindow(study_file)

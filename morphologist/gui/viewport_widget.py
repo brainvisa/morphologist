@@ -1,70 +1,13 @@
 import os
 
-from morphologist_common import histo_analysis_widget
-
-from morphologist.backends.mixins import LoadObjectError, ColorMap
-from morphologist.gui.object3d import Object3D, APCObject, View
-from morphologist.gui.qt_backend import QtCore, QtGui, loadUi 
+from morphologist.core.backends.mixins import ColorMap, ViewType
+from morphologist.core.gui.object3d import Object3D, APCObject, View
+from morphologist.core.gui.vector_graphics import Histogram, VectorView
+from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi
+from morphologist.core.gui.viewport_widget import AnalysisViewportModel
 from morphologist.gui import ui_directory 
 from morphologist.intra_analysis import IntraAnalysis
 
-
-class AnalysisViewportModel(QtCore.QObject):
-    changed = QtCore.pyqtSignal()
-    parameter_changed = QtCore.pyqtSignal(list)
-
-    def __init__(self, model):
-        super(AnalysisViewportModel, self).__init__()
-        self._init_model(model)
-        self._init_3d_objects()
-
-    def _init_model(self, model):
-        self._analysis_model = model
-        self._analysis_model.changed.connect(self.on_analysis_model_changed)
-        self._analysis_model.files_changed.connect(\
-                self.on_analysis_model_files_changed)
-
-    def _init_3d_objects(self):
-        self.observed_objects = {}
-        raise NotImplementedError("SubjectwiseViewportModel is an abstract class")
-
-    @QtCore.Slot()
-    def on_analysis_model_changed(self):
-        # XXX : may need a cache ?
-        self._init_3d_objects()
-        self.changed.emit()
-
-    @QtCore.Slot(dict)
-    def on_analysis_model_files_changed(self, changed_parameters):
-        updated_parameters = []
-        self._remove_useless_parameters(changed_parameters)
-        for parameter_name, filename in changed_parameters.iteritems():
-            if parameter_name in self.observed_objects.keys():
-                self._update_observed_objects(parameter_name, filename)
-                updated_parameters.append(parameter_name)
-        self.parameter_changed.emit(updated_parameters)
-        
-    def _update_observed_objects(self, parameter_name, filename):
-        object3d = self.observed_objects[parameter_name]
-        if object3d is not None:
-            if os.path.exists(filename):
-                object3d.reload()
-            else:
-                object3d = None
-        else:
-            try:
-                object3d = self.load_object(parameter_name, filename)
-            except LoadObjectError:
-                object3d = None
-        self.observed_objects[parameter_name] = object3d
-
-    @staticmethod
-    def load_object(parameter_name, filename):
-        _ = parameter_name
-        return Object3D.from_filename(filename)
-    
-    def _remove_useless_parameters(self, changed_parameters):
-        pass
 
 class IntraAnalysisViewportModel(AnalysisViewportModel):
 
@@ -97,7 +40,7 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
         if (parameter_name == IntraAnalysis.COMMISSURE_COORDINATES):
             obj = APCObject(filename)
         elif (parameter_name == IntraAnalysis.HISTO_ANALYSIS):
-            obj = histo_analysis_widget.load_histo_data(filename)
+            obj = Histogram.from_filename(filename)
         else:
             obj = Object3D.from_filename(filename) 
         return obj
@@ -110,8 +53,10 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
                 if changed_parameters.get(sulci, None):
                     changed_parameters.pop(sulci)
 
+
 class IntraAnalysisViewportView(QtGui.QWidget):
     uifile = os.path.join(ui_directory, 'viewport_widget.ui')
+    bg_color = [0., 0., 0., 1.]
     main_frame_style_sheet = '''
         #viewport_frame { background-color: white }
         #view1_frame, #view2_frame, #view3_frame, #view4_frame, #view5_frame, 
@@ -164,22 +109,22 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         self.ui.view8_label.setToolTip("Labeled sulci on white surface")
 
         for view_name, view_hook, view_type in \
-                [(self.RAW_MRI_ACPC, self.ui.view1_hook, View.AXIAL), 
-                 (self.BIAS_CORRECTED, self.ui.view2_hook, View.AXIAL),
-                 (self.BRAIN_MASK, self.ui.view4_hook, View.AXIAL), 
-                 (self.SPLIT_MASK, self.ui.view5_hook, View.AXIAL),
-                 (self.GREY_WHITE, self.ui.view6_hook, View.AXIAL),
-                 (self.GREY_SURFACE, self.ui.view7_hook, View.AXIAL), 
-                 (self.WHITE_SURFACE_SULCI, self.ui.view8_hook, View.THREE_D)]:
+                [(self.RAW_MRI_ACPC, self.ui.view1_hook, ViewType.AXIAL), 
+                 (self.BIAS_CORRECTED, self.ui.view2_hook, ViewType.AXIAL),
+                 (self.BRAIN_MASK, self.ui.view4_hook, ViewType.AXIAL), 
+                 (self.SPLIT_MASK, self.ui.view5_hook, ViewType.AXIAL),
+                 (self.GREY_WHITE, self.ui.view6_hook, ViewType.AXIAL),
+                 (self.GREY_SURFACE, self.ui.view7_hook, ViewType.THREE_D), 
+                 (self.WHITE_SURFACE_SULCI, self.ui.view8_hook, ViewType.THREE_D)]:
             layout = QtGui.QVBoxLayout(view_hook)
             layout.setMargin(0)
             layout.setSpacing(0)
             view = View(view_hook, view_type)
-            view.set_bgcolor([0., 0., 0., 1.])
+            view.set_bgcolor(self.bg_color)
             self._views[view_name] = view
         QtGui.QVBoxLayout(self.ui.view3_hook)
-        view = histo_analysis_widget.create_histo_view(self.ui.view3_hook)
-        view.setPalette(QtGui.QPalette(QtGui.QColor(0, 0, 0)))
+        view = VectorView(self.ui.view3_hook)
+        view.set_bgcolor(self.bg_color)
         self._views[self.HISTO_ANALYSIS] = view
 
     @QtCore.Slot()
@@ -272,8 +217,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         view.clear()
         histo_analysis = self._viewport_model.observed_objects[IntraAnalysis.HISTO_ANALYSIS]
         if histo_analysis is not None:
-            view.set_histo_data(histo_analysis, nbins=100)
-            view.draw_histo()
+            view.add_object(histo_analysis)
 
     @QtCore.Slot()
     def update_brain_mask_view(self):

@@ -1,9 +1,9 @@
 import os
 
-from morphologist.intra_analysis_steps import SpatialNormalization, \
+from morphologist.intra_analysis.steps import SpatialNormalization, \
         BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
         GreyWhite, Grey, GreySurface, WhiteSurface, Sulci, SulciLabelling
-import morphologist.intra_analysis_constants as constants
+from morphologist.intra_analysis import constants
 
 
 # XXX: spurious information, not used by mock steps but however necessary

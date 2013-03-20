@@ -1,6 +1,6 @@
 import shutil
 
-from morphologist.study import Subject
+from morphologist.core.study import Subject
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate
 from morphologist.tests.intra_analysis.mocks.steps import MockSpatialNormalization, \
@@ -14,7 +14,7 @@ class MockIntraAnalysis(IntraAnalysis):
         super(MockIntraAnalysis, self).__init__()
 
     def _init_steps(self):
-        subject=Subject("test", "hyperion", None)
+        subject=Subject("hyperion", "test", None)
         ref_results = BrainvisaIntraAnalysisParameterTemplate.get_outputs(subject,
                         "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/bv_database")
         self._normalization = MockSpatialNormalization(ref_results[IntraAnalysis.COMMISSURE_COORDINATES], ref_results[IntraAnalysis.TALAIRACH_TRANSFORMATION])

@@ -10,21 +10,21 @@ from brainvisa.processes import defaultContext
 from brainvisa.configuration import neuroConfig
 from brainvisa.data import neuroHierarchy
 
-from morphologist.study import Subject
-from morphologist.intra_analysis_steps import ImageImportation, \
+from morphologist.core.study import Subject
+from morphologist.intra_analysis.steps import ImageImportation, \
     SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation,\
     SplitBrain, GreyWhite, Grey, WhiteSurface, GreySurface, Sulci, SulciLabelling
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate, \
                                         IntraAnalysis    
-from morphologist.intra_analysis_graph_comparison import same_graphs
-import morphologist.intra_analysis_constants as constants
+from morphologist.tests.utils.graph_comparison import same_graphs
+from morphologist.intra_analysis import constants
 
 
 class TestIntraAnalysisSteps(unittest.TestCase):
     
     def setUp(self):
         self.subjectname = "hyperion"
-        self.group = "test"
+        self.groupname = "test"
         self.bv_db_directory = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/bv_database"
         self.output_directory = "/tmp/morphologist_test_steps"
         self.raw_mri = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/raw_irm/%s.nii" % self.subjectname
@@ -33,7 +33,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
             shutil.rmtree(self.output_directory)
         os.makedirs(self.output_directory)
   
-        subject = Subject(self.group, self.subjectname, self.raw_mri)
+        subject = Subject(self.subjectname, self.groupname, self.raw_mri)
         self.ref_outputs = BrainvisaIntraAnalysisParameterTemplate.get_outputs(subject, self.bv_db_directory)
         self.test_outputs = BrainvisaIntraAnalysisParameterTemplate.get_outputs(subject, self.output_directory)
         
@@ -56,7 +56,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
                                                settings=database_settings )
         neuroHierarchy.databases.add(database)
         t1mri = {"_database" : database.name, '_format' : 'NIFTI-1 image', 
-                "protocol" : self.group, "subject" : self.subjectname}
+                "protocol" : self.groupname, "subject" : self.subjectname}
         defaultContext().runProcess('ImportT1MRI', self.raw_mri, t1mri)
 
         pipeline=brainvisa.processes.getProcessInstance("morphologist")
@@ -91,7 +91,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         shutil.copy(bv_white_ridges, raw_white_ridges) 
         shutil.copy(bv_white_ridges + ".minf", raw_white_ridges + ".minf") 
         
-        print "* Then until Grey/White surface"
+        print "* Then run the rest of the pipeline"
         nodes.child('PrepareSubject').setSelected(0)
         nodes.child('BiasCorrection').setSelected(0)
         nodes.child('HistoAnalysis').setSelected(1)
@@ -288,8 +288,6 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         self._assert_same_results([IntraAnalysis.LEFT_SULCI],
                                   same_graphs) 
 
-
-
     def test_sulci_right(self):
         right_sulci = Sulci(constants.RIGHT)
          
@@ -319,7 +317,6 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         self._assert_same_results([IntraAnalysis.LEFT_LABELED_SULCI],
                                    self._same_graphs) 
 
-
     def test_sulci_labelling_right(self):
         right_sulci_labelling = SulciLabelling(constants.RIGHT)
     
@@ -331,7 +328,6 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         self._assert_same_results([IntraAnalysis.RIGHT_LABELED_SULCI],
                                    self._same_graphs) 
 
-
     def _assert_same_results(self, results, comparison_function):
         for parameter_name in results:
             f_ref = self.ref_outputs[parameter_name]
@@ -342,12 +338,10 @@ class TestIntraAnalysisSteps(unittest.TestCase):
                          % os.path.basename(f_ref))
             # the check of minf files is disabled for the moment because we do not use these files
             #self._assert_same_minf_files(file_ref+".minf", file_test+".minf")
- 
 
     def _same_files(self, file_ref, file_test):
         return filecmp.cmp(file_ref, file_test) 
             
-
     def _same_graphs(self, file_ref, file_test):
         return same_graphs(file_ref, file_test, verbose=True)
 

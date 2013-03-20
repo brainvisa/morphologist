@@ -1,8 +1,8 @@
 import os, sys
 import unittest
 
-from morphologist.gui.qt_backend import QtGui, QtCore, QtTest
-from morphologist.gui.study_editor_widget import StudyEditorDialog
+from morphologist.core.gui.qt_backend import QtGui, QtCore, QtTest
+from morphologist.core.gui.study_editor_widget import StudyEditorDialog
 from morphologist.tests.gui import TestGui
 from morphologist.tests.intra_analysis.study import IntraAnalysisStudyTestCase
 
@@ -20,41 +20,45 @@ class TestStudyGui(TestGui):
         study_cls = self.test_case.study_cls()
         study = study_cls()
 
-        manage_subjects_window = StudyEditorDialog(study)
-        self.keep_widget_alive(manage_subjects_window)
-        manage_subjects_window.ui.show()
-        #FIXME: replace manage_subjects_window.ui by manage_subjects_window
-        self.action_define_new_study_content(manage_subjects_window.ui,
+        study_editor_dialog = StudyEditorDialog(study)
+        self.keep_widget_alive(study_editor_dialog)
+        study_editor_dialog.ui.show()
+        #FIXME: replace study_editor_dialog.ui by study_editor_dialog
+        self.action_define_new_study_content(study_editor_dialog.ui,
             self.test_case.studyname, self.test_case.outputdir,
             self.test_case.filenames)
-        manage_subjects_window.ui.close()
+        new_study = study_editor_dialog.create_updated_study()
+        study_editor_dialog.ui.close()
 
-        self._assert_study_is_conformed_to_test_case(study)
+        self._assert_study_is_conformed_to_test_case(new_study)
 
     @TestGui.start_qt_and_test
     def test_loading_study_for_modification(self):
         study = self.test_case.create_study()
 
-        manage_subjects_window = StudyEditorDialog(study)
-        self.keep_widget_alive(manage_subjects_window)
-        manage_subjects_window.ui.show()
-        manage_subjects_window.ui.close()
+        study_editor_dialog = StudyEditorDialog(study)
+        self.keep_widget_alive(study_editor_dialog)
+        study_editor_dialog.ui.show()
+        new_study = study_editor_dialog.create_updated_study()
+        study_editor_dialog.ui.close()
 
-        self._assert_study_is_conformed_to_test_case(study)
+        self._assert_study_is_conformed_to_test_case(new_study)
     
     @TestGui.start_qt_and_test        
     def test_changing_parameter_template(self):
         study = self.test_case.create_study()
         parameter_template = self.test_case.parameter_template()
-        study_editor_widget = StudyEditorDialog(study)
-        self._action_change_parameter_template(study_editor_widget, parameter_template)
+        study_editor_dialog = StudyEditorDialog(study)
+        self._action_change_parameter_template(study_editor_dialog, parameter_template)
         
-        self.assertEqual(study_editor_widget.parameter_template, parameter_template)
+        study_properties_editor = study_editor_dialog.study_editor.study_properties_editor
+        self.assertEqual(study_properties_editor.parameter_template,
+                                                parameter_template)
                 
     @staticmethod
-    def action_define_new_study_content(manage_subjects_window_ui,
+    def action_define_new_study_content(study_editor_dialog_ui,
                                         studyname, outputdir, filenames):
-        ui = manage_subjects_window_ui
+        ui = study_editor_dialog_ui
 
         # set studyname and output dir
         ui.studyname_lineEdit.setText(studyname)
@@ -78,8 +82,8 @@ class TestStudyGui(TestGui):
         QtTest.QTest.mouseClick(ui.apply_button, QtCore.Qt.LeftButton)
 
     @staticmethod
-    def _action_change_parameter_template(study_editor_widget, parameter_template):
-        ui = study_editor_widget.ui
+    def _action_change_parameter_template(study_editor_dialog, parameter_template):
+        ui = study_editor_dialog.ui
         item_index = ui.parameter_template_combobox.findText(parameter_template)
         ui.parameter_template_combobox.setCurrentIndex(item_index)
         QtTest.QTest.mouseClick(ui.apply_button, QtCore.Qt.LeftButton)

@@ -2,13 +2,13 @@ import sys
 import unittest
 import os
 
-from morphologist.study import Subject, Study
-from morphologist.gui.qt_backend import QtGui, QtCore, QtTest
+from morphologist.core.study import Subject, Study
+from morphologist.core.gui.qt_backend import QtGui, QtCore, QtTest
 from morphologist.gui.main_window import create_main_window
 from morphologist.tests.gui import TestGui
 from morphologist.tests.gui.test_study_editor_widget import TestStudyGui
 from morphologist.tests.intra_analysis.study import IntraAnalysisStudyTestCase
-from morphologist.tests.study import MockStudyTestCase
+from morphologist.core.tests.study import MockStudyTestCase
 
 
 class TestStudyWidget(TestGui):
@@ -29,13 +29,12 @@ class TestStudyWidget(TestGui):
     def test_start_main_window(self):
         self.test_case.create_study()
         self.test_case.add_subjects()
-        self.test_case.set_parameters()
         self.test_case.study.clear_results()
         main_window = create_main_window()
         self.keep_widget_alive(main_window)
         main_window.set_study(self.test_case.study)
         main_window.show()
-        model = main_window.study_tablemodel
+        model = main_window.study_view.tableview.model()
         subjectnames = [model.data(model.index(i, model.SUBJECTNAME_COL)) \
                         for i in range(model.rowCount())]
         
@@ -61,12 +60,11 @@ class TestStudyWidget(TestGui):
         
     def _assert_subjects_exist(self, study):
         for filename in self.test_case.filenames:
-            subject = Subject(Study.DEFAULT_GROUP, 
-                              Study.define_subjectname_from_filename(filename), 
-                              filename)
-            self.assert_(subject in study.subjects)
-            subject_index = study.subjects.index(subject)
-            study_subject = study.subjects[subject_index]
+            subject = Subject.from_filename(filename)
+            subject.groupname = Subject.DEFAULT_GROUP
+            subject_id = subject.id()
+            self.assert_(subject_id in study.subjects)
+            study_subject = study.subjects[subject_id]
             self.assert_(os.path.exists(study_subject.filename))
             self.assert_(study_subject.filename.startswith(self.test_case.outputdir))
 
