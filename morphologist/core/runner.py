@@ -251,8 +251,6 @@ class  SomaWorkflowRunner(Runner):
         if update_status:
             self._update_jobs_status()
         failed_step_ids = self._get_subject_filtered_step_ids(subject_id, [Runner.FAILED])
-        if not failed_step_ids:
-            raise ValueError("No failed step for the subject %s." % subject_id)
         return failed_step_ids
 
     def stop(self, subject_id=None, step_id=None):
