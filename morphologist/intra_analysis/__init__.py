@@ -6,6 +6,7 @@ import shutil
 from morphologist.core.study import Subject
 from morphologist.core.analysis import Analysis, Parameters, \
                                   ImportationError, ParameterTemplate
+from morphologist.core.utils import create_directory_if_missing, create_directories_if_missing
 from morphologist.intra_analysis.steps import ImageImportation, \
     BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
     GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface, Sulci, SulciLabelling
@@ -301,8 +302,7 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
     MODALITY = "t1mri"
     SEGMENTATION = "segmentation"
     SURFACE = "mesh"
-    FOLDS = "folds"
-    FOLDS_3_1 = "3.1"
+    FOLDS = os.path.join("folds", "3.1")
     SESSION_AUTO = "default_session_auto"
     
     @classmethod
@@ -320,7 +320,7 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         segmentation_path = os.path.join(default_analysis_path, cls.SEGMENTATION)
         surface_path = os.path.join(segmentation_path, cls.SURFACE)
 
-        folds_path = os.path.join(default_analysis_path, cls.FOLDS, cls.FOLDS_3_1)
+        folds_path = os.path.join(default_analysis_path, cls.FOLDS)
   
         session_auto_path = os.path.join(folds_path, cls.SESSION_AUTO)
  
@@ -413,12 +413,9 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         create_directory_if_missing(surface_path)
 
         folds_path = os.path.join(default_analysis_path, cls.FOLDS)
-        create_directory_if_missing(folds_path)
-  
-        folds_3_1_path = os.path.join(default_analysis_path, cls.FOLDS, cls.FOLDS_3_1)
-        create_directory_if_missing(folds_3_1_path)
- 
-        session_auto_path = os.path.join(folds_3_1_path, cls.SESSION_AUTO)
+        create_directories_if_missing(folds_path)
+   
+        session_auto_path = os.path.join(folds_path, cls.SESSION_AUTO)
         create_directory_if_missing(session_auto_path)
 
     @classmethod
@@ -555,11 +552,6 @@ class IntraAnalysisParameters(Parameters):
         minf_filename = filename + ".minf"
         if os.path.exists(minf_filename):
             os.remove(minf_filename)
-
-
-def create_directory_if_missing(dir_path):
-    if not os.path.isdir(dir_path):
-        os.mkdir(dir_path)
 
 
 IntraAnalysis._init_class()

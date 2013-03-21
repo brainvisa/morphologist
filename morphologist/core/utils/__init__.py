@@ -182,3 +182,13 @@ def remove_all_extensions(filename):
     while (ext != ""):
         name, ext = os.path.splitext(name)
     return name
+
+
+def create_directory_if_missing(dir_path):
+    if not os.path.isdir(dir_path):
+        os.mkdir(dir_path)
+
+
+def create_directories_if_missing(dir_path):
+    if not os.path.isdir(dir_path):
+        os.makedirs(dir_path)
