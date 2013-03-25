@@ -83,6 +83,15 @@ class Study(object):
             study.analyses[subject_id] = analysis
         return study
 
+    @classmethod
+    def from_organized_directory(cls, analysis_type, organized_directory, parameter_template_name):
+        new_study = cls(analysis_type, outputdir=organized_directory, parameter_template_name=parameter_template_name)
+        parameter_template = new_study.parameter_template
+        subjects = parameter_template.get_subjects(exact_match=True)
+        for subject in subjects:
+            new_study.add_subject(subject, import_data=False)
+        return new_study
+    
     def save_to_backup_file(self):
         serialized_study = self.serialize()
         try:
@@ -106,13 +115,17 @@ class Study(object):
             serialized['outputs'][subject_id] = analysis.outputs.serialize()
         return serialized 
 
-    def add_subject(self, subject):
+    def add_subject(self, subject, import_data=True):
         subject_id = subject.id()
         if subject_id in self.subjects:
             raise SubjectExistsError(subject)
         self.subjects[subject_id] = subject
         self.analyses[subject_id] = self._create_analysis()
         self.analyses[subject_id].set_parameters(subject)
+        if import_data:
+            self._import_subject(subject_id, subject)
+            
+    def _import_subject(self, subject_id, subject):
         try:
             new_imgname = self.analyses[subject_id].import_data(subject)
         except ImportationError:

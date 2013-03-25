@@ -165,7 +165,7 @@ class ParameterTemplate(object):
     def remove_dirs(self, subject):
         raise NotImplementedError("ParameterTemplate is an abstract class")
     
-    def get_subjects(self):
+    def get_subjects(self, exact_match=False):
         raise NotImplementedError("ParameterTemplate is an abstract class")
 
 

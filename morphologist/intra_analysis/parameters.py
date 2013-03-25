@@ -230,11 +230,17 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         subject_path = os.path.join(group_path, subject.name)
         shutil.rmtree(subject_path)
 
-    def get_subjects(self):
+    def get_subjects(self, exact_match=False):
         subjects = []
-        glob_pattern = os.path.join(self._base_directory, "*", "*", self.MODALITY, "*", "*.*")
         any_dir = "([^/]+)"
-        regexp=re.compile("^"+os.path.join(self._base_directory, any_dir, any_dir, self.MODALITY,
+        if exact_match:
+            glob_pattern = os.path.join(self._base_directory, "*", "*", self.MODALITY, self.ACQUISITION, "*.nii")
+            regexp=re.compile("^"+os.path.join(self._base_directory, any_dir, any_dir, self.MODALITY,
+                                           self.ACQUISITION, "\\2\.(?:nii)$"))
+
+        else:
+            glob_pattern = os.path.join(self._base_directory, "*", "*", self.MODALITY, "*", "*.*")
+            regexp=re.compile("^"+os.path.join(self._base_directory, any_dir, any_dir, self.MODALITY,
                                            any_dir, "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$"))
         for filename in glob.iglob(glob_pattern):
             match=regexp.match(filename)
@@ -328,11 +334,16 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         subject_path = os.path.join(group_path, subject.name)
         shutil.rmtree(subject_path)
 
-    def get_subjects(self):
+    def get_subjects(self, exact_match=False):
         subjects = []
-        glob_pattern = os.path.join(self._base_directory, "*", "*", "*.*")
         any_dir = "([^/]+)"
-        regexp=re.compile("^"+os.path.join(self._base_directory, any_dir, any_dir, 
+        if exact_match:
+            glob_pattern = os.path.join(self._base_directory, "*", "*", "*.nii")
+            regexp=re.compile("^"+os.path.join(self._base_directory, any_dir, any_dir, 
+                                           "\\2\.(?:nii)$"))          
+        else:
+            glob_pattern = os.path.join(self._base_directory, "*", "*", "*.*")
+            regexp=re.compile("^"+os.path.join(self._base_directory, any_dir, any_dir, 
                                            "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$"))
         for filename in glob.iglob(glob_pattern):
             match=regexp.match(filename)

@@ -18,6 +18,10 @@ class TestStudy(unittest.TestCase):
                                self.test_case.groupnames[0], 
                                self.test_case.filenames[0]) 
  
+    def create_test_case(self):
+        test_case = MockStudyTestCase()
+        return test_case
+    
     def test_subject_exists_error(self):
         self.study.add_subject(self.subject)
         
@@ -59,9 +63,21 @@ class TestStudy(unittest.TestCase):
         
         self.assert_(not self.study.has_subjects())
         
-    def create_test_case(self):
-        test_case = MockStudyTestCase()
-        return test_case
+    def test_create_study_from_organized_directory(self):
+        self.test_case.add_subjects()
+        new_study = Study.from_organized_directory(self.study.analysis_type, 
+                                                   self.study.outputdir, 
+                                                   self.test_case.parameter_template_name())
+        self._assert_same_studies(new_study, self.study)
+    
+    def _assert_same_studies(self, study_a, study_b):
+        self.assert_(study_a.outputdir == study_b.outputdir)
+        self.assert_(type(study_a.parameter_template) == type(study_b.parameter_template))
+        self.assert_(len(study_a.subjects) == len(study_b.subjects))
+
+        for subject_id, subject_a in study_a.subjects.iteritems():
+            subject_b = study_b.subjects[subject_id]
+            self.assert_(subject_a == subject_b)
 
 
 if __name__=='__main__':
