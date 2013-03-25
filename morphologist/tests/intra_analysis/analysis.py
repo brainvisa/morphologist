@@ -1,7 +1,7 @@
 import os
 import getpass
 
-from morphologist.core.study import Subject
+from morphologist.core.subject import Subject
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.core.tests.analysis import AnalysisTestCase
 from morphologist.core.tests import reset_directory

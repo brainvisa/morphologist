@@ -2,13 +2,13 @@ import sys
 import unittest
 import os
 
-from morphologist.core.study import Subject, Study
+from morphologist.core.subject import Subject
 from morphologist.core.gui.qt_backend import QtGui, QtCore, QtTest
+from morphologist.core.tests.study import MockStudyTestCase
 from morphologist.gui.main_window import create_main_window
 from morphologist.tests.gui import TestGui
 from morphologist.tests.gui.test_study_editor_widget import TestStudyGui
 from morphologist.tests.intra_analysis.study import IntraAnalysisStudyTestCase
-from morphologist.core.tests.study import MockStudyTestCase
 
 
 class TestStudyWidget(TestGui):

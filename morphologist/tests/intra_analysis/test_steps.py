@@ -10,7 +10,7 @@ from brainvisa.processes import defaultContext
 from brainvisa.configuration import neuroConfig
 from brainvisa.data import neuroHierarchy
 
-from morphologist.core.study import Subject
+from morphologist.core.subject import Subject
 from morphologist.intra_analysis.steps import ImageImportation, \
     SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation,\
     SplitBrain, GreyWhite, Grey, WhiteSurface, GreySurface, Sulci, SulciLabelling

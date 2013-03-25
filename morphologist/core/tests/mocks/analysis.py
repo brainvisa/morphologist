@@ -62,7 +62,6 @@ class MockAnalysis(Analysis):
         self.outputs.output_4 = self._generate_out_file_path(subject.name, "out4", outputdir)
         self.outputs.output_5 = self._generate_out_file_path(subject.name, "out5", outputdir)
         self.outputs.output_6 = self._generate_out_file_path(subject.name, "out6", outputdir)
-
         
     def _generate_in_file_path(self, prefix, filename, outputdir):
         file_path = self._generate_file_path(prefix + '_' + filename, outputdir)

@@ -3,7 +3,7 @@ import glob
 import re
 import shutil
 
-from morphologist.core.study import Subject
+from morphologist.core.subject import Subject
 from morphologist.core.analysis import Analysis, Parameters, \
                                   ImportationError, ParameterTemplate
 from morphologist.core.utils import create_directory_if_missing, create_directories_if_missing

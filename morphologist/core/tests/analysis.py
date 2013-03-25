@@ -1,6 +1,6 @@
 import os
 
-from morphologist.core.study import Subject
+from morphologist.core.subject import Subject
 from morphologist.core.tests.mocks.analysis import MockAnalysis
 from morphologist.core.tests import reset_directory
 

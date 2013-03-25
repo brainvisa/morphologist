@@ -1,4 +1,4 @@
-from morphologist.core.study import Subject
+from morphologist.core.subject import Subject
 from morphologist.core.tests.mocks.study import MockStudy, MockFailedStudy
 from morphologist.core.tests import reset_directory, remove_file
 

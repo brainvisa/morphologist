@@ -9,7 +9,8 @@ from collections import namedtuple
 from morphologist.core.settings import settings
 from morphologist.core.gui.qt_backend import QtGui, QtCore, loadUi
 from morphologist.core.gui import ui_directory
-from morphologist.core.study import Study, Subject
+from morphologist.core.study import Study
+from morphologist.core.subject import Subject
 from morphologist.core.formats import FormatsManager
 from morphologist.core.analysis import ImportationError
 

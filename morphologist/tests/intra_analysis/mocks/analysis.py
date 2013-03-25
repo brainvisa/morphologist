@@ -1,6 +1,6 @@
 import shutil
 
-from morphologist.core.study import Subject
+from morphologist.core.subject import Subject
 from morphologist.intra_analysis import IntraAnalysis
 from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate
 from morphologist.tests.intra_analysis.mocks.steps import MockSpatialNormalization, \
