@@ -67,7 +67,17 @@ class Analysis(object):
             separator = " ,"
             message = separator.join(missing_parameters)
             raise MissingParameterValueError(message)
+    
+    @classmethod
+    def create_outputdirs(cls, parameter_template, subject, directory):
+        param_template_instance = cls.param_template_map[parameter_template]
+        param_template_instance.create_outputdirs(subject, directory)
 
+    @classmethod
+    def remove_dirs(cls, parameter_template, subject, outputdir):
+        param_template_instance = cls.param_template_map[parameter_template]
+        param_template_instance.remove_dirs(subject, outputdir)
+        
     def has_some_results(self):
         return self.outputs.some_file_exists()
         
@@ -103,6 +113,10 @@ class ParameterTemplate(object):
     
     @classmethod
     def create_outputdirs(cls, subject, outputdir):
+        raise NotImplementedError("ParameterTemplate is an abstract class")
+    
+    @classmethod
+    def remove_dirs(cls, subject, outputdir):
         raise NotImplementedError("ParameterTemplate is an abstract class")
     
     @classmethod

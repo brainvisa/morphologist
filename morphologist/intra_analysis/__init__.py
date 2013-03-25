@@ -226,16 +226,6 @@ class IntraAnalysis(Analysis):
     def get_mri_path(cls, parameter_template, subject, directory):
         param_template_instance = cls.param_template_map[parameter_template]
         return param_template_instance.get_mri_path(subject, directory)
-    
-    @classmethod
-    def create_outputdirs(cls, parameter_template, subject, directory):
-        param_template_instance = cls.param_template_map[parameter_template]
-        param_template_instance.create_outputdirs(subject, directory)
-
-    @classmethod
-    def remove_dirs(cls, parameter_template, subject, outputdir):
-        param_template_instance = cls.param_template_map[parameter_template]
-        param_template_instance.remove_dirs(subject, outputdir)
 
 
 class IntraAnalysisParameterTemplate(ParameterTemplate):
