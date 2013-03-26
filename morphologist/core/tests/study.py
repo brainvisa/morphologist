@@ -1,5 +1,6 @@
 from morphologist.core.subject import Subject
 from morphologist.core.tests.mocks.study import MockStudy, MockFailedStudy
+from morphologist.core.tests.mocks.analysis import MockAnalysis
 from morphologist.core.tests import reset_directory, remove_file
 
 
@@ -64,7 +65,7 @@ class MockStudyTestCase(AbstractStudyTestCase):
         self.studyname = 'mock_study'
         self.outputdir = '/tmp/morphologist_output_mock_study_test_case'
         self.subjectnames = ['bla', 'blabla', 'blablabla'] 
-        self.filenames = ['foo'] * len(self.subjectnames)
+        self.filenames = ['/tmp/morphologist_output_mock_study_test_case/foo'] * len(self.subjectnames)
         self.groupnames = ['group1'] * len(self.subjectnames)
         reset_directory(self.outputdir)
 
@@ -72,7 +73,7 @@ class MockStudyTestCase(AbstractStudyTestCase):
         return MockStudy
 
     def parameter_template(self):
-        return 'foo'
+        return MockAnalysis.DUMMY_TEMPLATE
 
     def delete_some_input_files(self):
         parameter_names = ['input_2', 'input_5']
