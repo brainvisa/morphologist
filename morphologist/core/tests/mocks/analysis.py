@@ -21,16 +21,19 @@ class MockParameterTemplate(ParameterTemplate):
     @classmethod
     def get_empty_outputs(cls):
         return Parameters(file_param_names=cls.output_file_param_names)
-
+    
     @classmethod
-    def get_inputs(cls, subject):
+    def get_subject_filename(cls, subject, outputdir):
+        return cls._generate_in_file_path(subject.name, "in1", outputdir)
+    
+    @classmethod
+    def get_inputs(cls, subject, outputdir):
         inputs = cls.get_empty_inputs()
-        inputdir = os.path.dirname(subject.filename)
-        inputs.input_1 = cls._generate_in_file_path(subject.name, "in1", inputdir)
-        inputs.input_2 = cls._generate_in_file_path(subject.name, "in2", inputdir)
+        inputs.input_1 = cls.get_subject_filename(subject, outputdir)
+        inputs.input_2 = cls._generate_in_file_path(subject.name, "in2", outputdir)
         inputs.input_3 = 1.2 
         inputs.input_4 = 2.3 
-        inputs.input_5 = cls._generate_in_file_path(subject.name, "in5", inputdir)
+        inputs.input_5 = cls._generate_in_file_path(subject.name, "in5", outputdir)
         inputs.input_6 = 4.6
         return inputs 
 
@@ -98,7 +101,11 @@ class MockAnalysis(Analysis):
         step2 = MockStep('step2')
         step3 = MockStep('step3')
         self._steps = [step1, step2, step3] 
-
+    
+    @classmethod
+    def import_data(cls, parameter_template, subject, outputdir):
+        return cls.get_subject_filename(parameter_template, subject, outputdir)
+        
     def propagate_parameters(self):
         self._steps[0].inputs.input_1 = self.inputs.input_1
         self._steps[0].inputs.input_2 = self.inputs.input_2

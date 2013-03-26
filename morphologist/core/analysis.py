@@ -16,7 +16,7 @@ class Analysis(object):
         self.outputs = Parameters(file_param_names=[])
 
     def _init_steps(self):
-        raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redefined.") 
+        raise NotImplementedError("Analysis is an Abstract class.") 
 
     def _init_step_ids(self):
         self._step_ids = OrderedDict()
@@ -37,15 +37,18 @@ class Analysis(object):
             yield command, step_id
     
     @classmethod
-    def import_data(cls, parameter_template, subject, outputdir):
-        return subject.filename
+    def import_data(cls, parameter_template, subject, outputdir):        
+        new_subject_filename = cls.get_subject_filename(parameter_template, subject, outputdir)
+        cls.create_outputdirs(parameter_template, subject, outputdir)
+        shutil.copy(subject.filename, new_subject_filename)
+        return new_subject_filename
 
     def set_parameters(self, parameter_template, subject, outputdir):
         if parameter_template not in self.PARAMETER_TEMPLATES:
             raise UnknownParameterTemplate(parameter_template)
 
         param_template_instance = self.param_template_map[parameter_template]
-        self.inputs = param_template_instance.get_inputs(subject)
+        self.inputs = param_template_instance.get_inputs(subject, outputdir)
         self.outputs = param_template_instance.get_outputs(subject, outputdir)
 
     def get_command_list(self):
@@ -67,7 +70,12 @@ class Analysis(object):
             separator = " ,"
             message = separator.join(missing_parameters)
             raise MissingParameterValueError(message)
-    
+
+    @classmethod
+    def get_subject_filename(cls, parameter_template, subject, directory):
+        param_template_instance = cls.param_template_map[parameter_template]
+        return param_template_instance.get_subject_filename(subject, directory)
+            
     @classmethod
     def create_outputdirs(cls, parameter_template, subject, directory):
         param_template_instance = cls.param_template_map[parameter_template]
@@ -102,9 +110,13 @@ class ParameterTemplate(object):
     @classmethod
     def get_empty_outputs(cls):
         raise NotImplementedError("ParameterTemplate is an abstract class")
-
+    
     @classmethod
-    def get_inputs(cls, subject):
+    def get_subject_filename(cls):
+        raise NotImplementedError("ParameterTemplate is an abstract class")
+        
+    @classmethod
+    def get_inputs(cls, subject, outputdir):
         raise NotImplementedError("ParameterTemplate is an abstract class")
 
     @classmethod

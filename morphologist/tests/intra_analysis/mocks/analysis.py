@@ -78,7 +78,7 @@ class MockIntraAnalysis(IntraAnalysis):
 
     @classmethod
     def import_data(cls, parameter_template, subject, outputdir):
-        target_filename = cls.get_mri_path(parameter_template, subject, outputdir)
+        target_filename = cls.get_subject_filename(parameter_template, subject, outputdir)
         cls.create_outputdirs(parameter_template, subject, outputdir)
         source_filename = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/raw_irm/hyperion.nii"
         shutil.copy(source_filename, target_filename)

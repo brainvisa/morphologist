@@ -107,7 +107,7 @@ class IntraAnalysis(Analysis):
     def import_data(cls, parameter_template, subject, outputdir):
         import_step = ImageImportation()
         import_step.inputs.input = subject.filename
-        import_step.outputs.output = cls.get_mri_path(parameter_template, subject, outputdir)
+        import_step.outputs.output = cls.get_subject_filename(parameter_template, subject, outputdir)
         cls.create_outputdirs(parameter_template, subject, outputdir)
         if import_step.run() != 0:
             raise ImportationError("The importation failed for the subject %s."
@@ -222,12 +222,6 @@ class IntraAnalysis(Analysis):
         self._right_sulci_labelling.outputs.labeled_sulci_data = self.outputs[IntraAnalysis.RIGHT_LABELED_SULCI_DATA]
 
 
-    @classmethod
-    def get_mri_path(cls, parameter_template, subject, directory):
-        param_template_instance = cls.param_template_map[parameter_template]
-        return param_template_instance.get_mri_path(subject, directory)
-
-
 class IntraAnalysisParameterTemplate(ParameterTemplate):
     input_file_param_names = [IntraAnalysis.MRI]
     input_other_param_names = [IntraAnalysis.EROSION_SIZE, IntraAnalysis.BARY_FACTOR]
@@ -270,16 +264,10 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
         return IntraAnalysisParameters(cls.output_file_param_names)
     
     @classmethod
-    def get_mri_path(cls, subject, directory):
-        raise Exception("IntraAnalysisParameterTemplate is an Abstract class.")
-    
-    @classmethod
-    def get_inputs(cls, subject):
-        # input_filename should be in cls.get_mri_path()
-        # TODO raise an exception if it not the case ?
+    def get_inputs(cls, subject, outputdir):
         parameters = IntraAnalysisParameters(cls.input_file_param_names,
                                      cls.input_other_param_names)
-        parameters[IntraAnalysis.MRI] = subject.filename
+        parameters[IntraAnalysis.MRI] = cls.get_subject_filename(subject, outputdir)
         parameters[IntraAnalysis.EROSION_SIZE] = 1.8
         parameters[IntraAnalysis.BARY_FACTOR] = 0.6
         return parameters
@@ -296,7 +284,7 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
     SESSION_AUTO = "default_session_auto"
     
     @classmethod
-    def get_mri_path(cls, subject, directory):
+    def get_subject_filename(cls, subject, directory):
         return os.path.join(directory, subject.groupname, subject.name, 
                             cls.MODALITY, cls.ACQUISITION, subject.name + ".nii")
 
@@ -435,7 +423,7 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
 class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
 
     @classmethod
-    def get_mri_path(cls, subject, directory):
+    def get_subject_filename(cls, subject, directory):
         return os.path.join(directory, subject.groupname, subject.name, 
                             subject.name + ".nii")
 
