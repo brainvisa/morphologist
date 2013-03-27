@@ -4,6 +4,7 @@ import filecmp
 
 from morphologist.core.study import SubjectExistsError
 from morphologist.core.subject import Subject
+from morphologist.core.study import Study
 from morphologist.core.tests.study import MockStudyTestCase
 
 
@@ -33,7 +34,7 @@ class TestStudy(unittest.TestCase):
         if os.path.isfile(studyfilepath2): os.remove(studyfilepath2)
         self.study.save_to_backup_file()
         
-        loaded_study = self.test_case.study_cls().from_file(studyfilepath)
+        loaded_study = Study.from_file(studyfilepath)
         loaded_study.backup_filename = studyfilepath2
         loaded_study.save_to_backup_file()
 

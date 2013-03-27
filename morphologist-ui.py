@@ -44,7 +44,7 @@ def main():
     if not settings.are_valid(): return
     
     qApp = QtGui.QApplication(sys.argv)
-    main_window = create_main_window(options.study_file)
+    main_window = create_main_window(analysis_type="IntraAnalysis", study_file=options.study_file)
     main_window.show()
     sys.exit(qApp.exec_())
 

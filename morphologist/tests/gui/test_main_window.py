@@ -30,7 +30,7 @@ class TestStudyWidget(TestGui):
         self.test_case.create_study()
         self.test_case.add_subjects()
         self.test_case.study.clear_results()
-        main_window = create_main_window()
+        main_window = create_main_window(self.test_case.analysis_type)
         self.keep_widget_alive(main_window)
         main_window.set_study(self.test_case.study)
         main_window.show()
@@ -43,7 +43,7 @@ class TestStudyWidget(TestGui):
 
     @TestGui.start_qt_and_test
     def test_create_new_study(self):
-        main_window = create_main_window()
+        main_window = create_main_window(self.test_case.analysis_type)
         self.keep_widget_alive(main_window)
         main_window.show()
         QtTest.QTest.keyClicks(main_window, "n", QtCore.Qt.ControlModifier, 10 )

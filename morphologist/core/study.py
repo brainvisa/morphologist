@@ -2,7 +2,7 @@ import os
 import json
 
 from morphologist.core.utils import OrderedDict
-from morphologist.core.analysis import Parameters, ImportationError
+from morphologist.core.analysis import AnalysisFactory, Parameters, ImportationError
 from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.subject import Subject
 
@@ -11,8 +11,10 @@ class Study(object):
     default_outputdir = os.path.join(os.path.expanduser("~"),
                                 'morphologist/studies/study')
     
-    def __init__(self, name="undefined study", outputdir=default_outputdir,
-                            backup_filename=None, parameter_template=None):
+    def __init__(self, analysis_type, name="undefined study", 
+                 outputdir=default_outputdir, backup_filename=None, 
+                 parameter_template=None):
+        self.analysis_type = analysis_type # string : name of the analysis class
         self.name = name
         self.outputdir = outputdir
         self.subjects = OrderedDict()
@@ -24,6 +26,12 @@ class Study(object):
         self.backup_filename = backup_filename
         self.analyses = {}
 
+    def analysis_cls(self):
+        return AnalysisFactory.get_analysis_cls(self.analysis_type)
+    
+    def _create_analysis(self):
+        return AnalysisFactory.create_analysis(self.analysis_type)
+        
     @staticmethod
     def default_backup_filename_from_outputdir(outputdir):
         return os.path.join(outputdir, 'study.json')
@@ -50,7 +58,8 @@ class Study(object):
 
     @classmethod
     def unserialize(cls, serialized):
-        study = cls(name=serialized['name'],
+        study = cls(analysis_type=serialized['analysis_type'], 
+                    name=serialized['name'],
                     outputdir=serialized['outputdir'])
         for serialized_subject in serialized['subjects']:
             subject = Subject.unserialize(serialized_subject)
@@ -66,10 +75,9 @@ class Study(object):
             serialized_outputs = serialized['outputs'][subject_id]
             inputs = Parameters.unserialize(serialized_inputs) 
             outputs = Parameters.unserialize(serialized_outputs)
-            analysis = cls._create_analysis()
+            analysis = study._create_analysis()
             analysis.inputs = inputs
             analysis.outputs = outputs
-            # TODO => check if the parameters are compatibles with the analysis ?
             study.analyses[subject_id] = analysis
         return study
 
@@ -83,6 +91,7 @@ class Study(object):
   
     def serialize(self):
         serialized = {}
+        serialized['analysis_type'] = self.analysis_type
         serialized['name'] = self.name
         serialized['outputdir'] = self.outputdir
         serialized['subjects'] = []
@@ -124,14 +133,6 @@ class Study(object):
     def remove_subject_from_id(self, subject_id):
         del self.subjects[subject_id]
         del self.analyses[subject_id]
-
-    @staticmethod
-    def _create_analysis():
-        raise NotImplementedError("Study is an abstract class.")
-  
-    @staticmethod
-    def analysis_cls():
-        raise NotImplementedError("Study is an abstract class")
 
     def has_subjects(self):
         return len(self.subjects) != 0

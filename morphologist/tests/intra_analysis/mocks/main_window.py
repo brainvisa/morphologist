@@ -1,16 +1,11 @@
-from morphologist.gui.main_window import IntraAnalysisWindow
-from morphologist.tests.intra_analysis.mocks.study import MockIntraAnalysisStudy 
+from morphologist.gui.main_window import MainWindow
 
 
-class MockIntraAnalysisWindow(IntraAnalysisWindow):
-
-    def _create_study(self, study_file=None):
-        if study_file:
-            study = MockIntraAnalysisStudy.from_file(study_file)
-            return study
-        else:
-            return MockIntraAnalysisStudy()
-
-
+class MockMainWindow(MainWindow):
+    
+    def __init__(self, analysis_type, study_file=None):
+        super(MockMainWindow, self).__init__(analysis_type="Mock"+analysis_type, 
+                                             study_file=study_file)
+        
     def _window_title(self):
         return "Morphologist - %s --- MOCK MODE ---" % self.study.name

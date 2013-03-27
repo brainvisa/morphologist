@@ -1,10 +1,9 @@
 import os
 import getpass
 
-from morphologist.intra_analysis.study import IntraAnalysisStudy
 from morphologist.core.tests.study import AbstractStudyTestCase
 from morphologist.intra_analysis import IntraAnalysis
-from morphologist.tests.intra_analysis.mocks.study import MockIntraAnalysisStudy
+from morphologist.tests.intra_analysis.mocks.analysis import MockIntraAnalysis
 from morphologist.core.tests import reset_directory
 
 
@@ -16,6 +15,7 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
 
     def __init__(self):
         super(IntraAnalysisStudyTestCase, self).__init__()
+        self.analysis_type = "IntraAnalysis"
         self.studyname = "study with param template: " + self.parameter_template() 
         self.outputdir = os.path.join('/neurospin', 'tmp',  
                                       'cati-dev-prod', 'morphologist', 
@@ -30,9 +30,6 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
         self.groupnames = ['group 1', 'group 2', 'group 3', 'group 4']
         
         reset_directory(self.outputdir)
-
-    def study_cls(self):
-        return IntraAnalysisStudy
 
     def parameter_template(self):
         return IntraAnalysis.DEFAULT_PARAM_TEMPLATE 
@@ -77,8 +74,9 @@ class MockIntraAnalysisStudyTestCase(IntraAnalysisStudyTestCase):
     -> Default parameter template
     '''
 
-    def study_cls(self):
-        return MockIntraAnalysisStudy
+    def __init__(self):
+        super(MockIntraAnalysisStudyTestCase, self).__init__()
+        self.analysis_type = "MockIntraAnalysis"
 
 
 class IntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
@@ -97,8 +95,9 @@ class MockIntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
     -> Mock intra analysis
     '''
 
-    def study_cls(self):
-        return MockIntraAnalysisStudy
+    def __init__(self):
+        super(MockIntraAnalysisStudyTestCaseBvParamTemplate, self).__init__()
+        self.analysis_type = "MockIntraAnalysis"
 
     def parameter_template(self):
         return IntraAnalysis.BRAINVISA_PARAM_TEMPLATE 

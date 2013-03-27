@@ -17,8 +17,7 @@ class TestStudyGui(TestGui):
 
     @TestGui.start_qt_and_test
     def test_defining_new_content_for_an_empty_study(self):
-        study_cls = self.test_case.study_cls()
-        study = study_cls()
+        study = self.test_case.create_study()
 
         study_editor_dialog = StudyEditorDialog(study)
         self.keep_widget_alive(study_editor_dialog)

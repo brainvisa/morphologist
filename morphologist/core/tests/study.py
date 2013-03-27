@@ -1,6 +1,6 @@
 from morphologist.core.subject import Subject
-from morphologist.core.tests.mocks.study import MockStudy, MockFailedStudy
-from morphologist.core.tests.mocks.analysis import MockAnalysis
+from morphologist.core.study import Study
+from morphologist.core.tests.mocks.analysis import MockAnalysis, MockFailedAnalysis
 from morphologist.core.tests import reset_directory, remove_file
 
 
@@ -8,6 +8,7 @@ class AbstractStudyTestCase(object):
 
     def __init__(self):
         self.study = None
+        self.analysis_type = None
         self.studyname = None
         self.outputdir = None
         self.subjectnames = None
@@ -15,12 +16,10 @@ class AbstractStudyTestCase(object):
         self.filenames = None
 
     def create_study(self):
-        self.study = self.study_cls()(self.studyname, self.outputdir,
-                        parameter_template=self.parameter_template())
+        self.study = Study(analysis_type=self.analysis_type, name=self.studyname, 
+                           outputdir=self.outputdir,
+                           parameter_template=self.parameter_template())
         return self.study
-
-    def study_cls(self):
-        raise NotImplementedError('AbstractStudyTestCase is an abstract class')
 
     def add_subjects(self):
         for subjectname, groupname, filename in zip(self.subjectnames,
@@ -55,22 +54,19 @@ class AbstractStudyTestCase(object):
 
 
 class MockStudyTestCase(AbstractStudyTestCase):
-
     '''
     -> Mock analysis
     '''
 
     def __init__(self):
         super(MockStudyTestCase, self).__init__()
+        self.analysis_type = "MockAnalysis"
         self.studyname = 'mock_study'
         self.outputdir = '/tmp/morphologist_output_mock_study_test_case'
         self.subjectnames = ['bla', 'blabla', 'blablabla'] 
         self.filenames = ['/tmp/morphologist_output_mock_study_test_case/foo'] * len(self.subjectnames)
         self.groupnames = ['group1'] * len(self.subjectnames)
         reset_directory(self.outputdir)
-
-    def study_cls(self):
-        return MockStudy
 
     def parameter_template(self):
         return MockAnalysis.DUMMY_TEMPLATE
@@ -111,7 +107,5 @@ class MockFailedStudyTestCase(MockStudyTestCase):
     def __init__(self):
         super(MockFailedStudyTestCase, self).__init__()
         self.failed_step_id = "1_failed_step2"
-    
-    def study_cls(self):
-        return MockFailedStudy
+        self.analysis_type = "MockFailedAnalysis"
     

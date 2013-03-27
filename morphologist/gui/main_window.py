@@ -1,7 +1,7 @@
 import os
 
 from morphologist.core.settings import settings
-from morphologist.core.study import StudySerializationError
+from morphologist.core.study import Study, StudySerializationError
 from morphologist.core.analysis import ImportationError
 from morphologist.core.runner import SomaWorkflowRunner
 
@@ -10,26 +10,23 @@ from morphologist.core.gui.analysis_model import LazyAnalysisModel
 from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
 from morphologist.core.gui.subjects_widget import SubjectsWidget
 from morphologist.core.gui.runner_widget import RunnerView
-
 from morphologist.core.gui.runner_settings_widget \
                         import RunnerSettingsDialog
 from morphologist.core.gui.study_editor_widget import StudyEditorDialog, \
                                                             StudyEditor
-
-from morphologist.intra_analysis.study import IntraAnalysisStudy
-
 from morphologist.gui import ui_directory 
 from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
                              IntraAnalysisViewportView
 
 
-class IntraAnalysisWindow(QtGui.QMainWindow):
+class MainWindow(QtGui.QMainWindow):
     uifile = os.path.join(ui_directory, 'main_window.ui')
 
-    def __init__(self, study_file=None):
-        super(IntraAnalysisWindow, self).__init__()
+    def __init__(self, analysis_type, study_file=None):
+        super(MainWindow, self).__init__()
         self.ui = loadUi(self.uifile, self)
 
+        self.analysis_type = analysis_type
         self.study = self._create_study(study_file)
         self.runner = self._create_runner(self.study)
         self.study_model = LazyStudyModel(self.study, self.runner)
@@ -59,10 +56,10 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         
     def _create_study(self, study_file=None):
         if study_file:
-            study = IntraAnalysisStudy.from_file(study_file)
+            study = Study.from_file(study_file)
             return study
         else:
-            return IntraAnalysisStudy()
+            return Study(self.analysis_type)
         
     def _create_runner(self, study):
         return SomaWorkflowRunner(study)
@@ -181,9 +178,9 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         dialog.show()
 
 
-def create_main_window(study_file=None):
+def create_main_window(analysis_type, study_file=None):
     if settings.tests.mock:
-        from morphologist.tests.intra_analysis.mocks.main_window import MockIntraAnalysisWindow
-        return MockIntraAnalysisWindow(study_file) 
+        from morphologist.tests.intra_analysis.mocks.main_window import MockMainWindow
+        return MockMainWindow(analysis_type, study_file) 
     else:
-        return IntraAnalysisWindow(study_file)
+        return MainWindow(analysis_type, study_file)
