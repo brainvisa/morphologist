@@ -1,6 +1,7 @@
 import os.path
 import shutil
-
+# XXX It is necessary to import mock.analysis to register its Analysis classes in AnalysisFactory
+import mocks.analysis
 
 def reset_directory(dir_path):
     if os.path.isdir(dir_path):

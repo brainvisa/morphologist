@@ -5,7 +5,40 @@ import shutil
 from morphologist.core.utils import OrderedDict
 
 
+class AnalysisFactory(object):
+    _registered_analyses = {}
+    
+    @classmethod
+    def register_analysis(cls, analysis_type, analysis_class):
+        cls._registered_analyses[analysis_type] = analysis_class
+        
+    @classmethod
+    def create_analysis(cls, analysis_type):
+        analysis_cls = cls.get_analysis_cls(analysis_type) 
+        return analysis_cls()
+ 
+    @classmethod
+    def get_analysis_cls(cls, analysis_type):
+        try:
+            analysis_class = cls._registered_analyses[analysis_type]
+            return analysis_class
+        except KeyError:
+            raise UnknownAnalysisError(analysis_type)
+    
+    
+class UnknownAnalysisError(Exception):
+    pass
+
+
+class AnalysisMetaClass(type):
+    def __init__(cls, name, bases, dct):
+        AnalysisFactory.register_analysis(name, cls)
+        super(AnalysisMetaClass, cls).__init__(name, bases, dct)
+ 
+
 class Analysis(object):
+    # XXX the metaclass automatically register the Analysis class in the AnalysisFactory
+    __metaclass__ = AnalysisMetaClass
     PARAMETER_TEMPLATES = []
     param_template_map = {}
 
