@@ -36,13 +36,14 @@ class SettingsManager(object):
 
     @classmethod
     def load(cls):
-        if os.path.exists(cls.filename):
-            settings = ConfigObj(cls.filename, configspec=cls.configspec)
-            check = cls._check_settings(settings)
-        else:
-            settings = cls.generate_default()
-            cls.save(settings)
+        settings = cls.generate_default()
+        if not os.path.exists(cls.filename):
+            cls.save(settings) # save default settings
             check = True
+        else:
+            user_settings = ConfigObj(cls.filename, configspec=cls.configspec)
+            check = cls._check_settings(user_settings)
+            settings.merge(user_settings)
         settings['settings_validation'] = check
         return settings
 
