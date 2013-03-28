@@ -21,63 +21,50 @@ class MockParameterTemplate(ParameterTemplate):
     def get_empty_outputs(cls):
         return Parameters(file_param_names=cls.output_file_param_names)
     
-    @classmethod
-    def get_subject_filename(cls, subject, outputdir):
-        return cls._generate_in_file_path(subject.name, "in1", outputdir)
+    def get_subject_filename(self, subject):
+        return self._generate_in_file_path(subject.name, "in1")
     
-    @classmethod
-    def get_inputs(cls, subject, outputdir):
-        inputs = cls.get_empty_inputs()
-        inputs.input_1 = cls.get_subject_filename(subject, outputdir)
-        inputs.input_2 = cls._generate_in_file_path(subject.name, "in2", outputdir)
+    def get_inputs(self, subject):
+        inputs = self.get_empty_inputs()
+        inputs.input_1 = self.get_subject_filename(subject)
+        inputs.input_2 = self._generate_in_file_path(subject.name, "in2")
         inputs.input_3 = 1.2 
         inputs.input_4 = 2.3 
-        inputs.input_5 = cls._generate_in_file_path(subject.name, "in5", outputdir)
+        inputs.input_5 = self._generate_in_file_path(subject.name, "in5")
         inputs.input_6 = 4.6
         return inputs 
 
-    @classmethod
-    def _generate_in_file_path(cls, prefix, filename, outputdir):
-        file_path = cls._generate_file_path(prefix + '_' + filename, outputdir)
+    def _generate_in_file_path(self, prefix, filename):
+        file_path = os.path.join(self._base_directory, prefix + '_' + filename)
         f = open(file_path, "w")
         f.close()
         return file_path
 
-    @classmethod
-    def _generate_out_file_path(cls, prefix, filename, outputdir):
-        file_path = cls._generate_file_path(prefix + '_' + filename, outputdir)
+    def _generate_out_file_path(self, prefix, filename):
+        file_path = os.path.join(self._base_directory, prefix + '_' + filename)
         if os.path.isfile(file_path):
             os.remove(file_path)
         return file_path
 
-    @classmethod
-    def _generate_file_path(cls, filename, outputdir):
-        return os.path.join(outputdir, filename)
-
-    @classmethod
-    def get_outputs(cls, subject, outputdir):
-        outputs = cls.get_empty_outputs()
-        outputs.output_1 = cls._generate_out_file_path(subject.name, "out1", outputdir)
-        outputs.output_2 = cls._generate_out_file_path(subject.name, "out2", outputdir)
-        outputs.output_3 = cls._generate_out_file_path(subject.name, "out3", outputdir)
-        outputs.output_4 = cls._generate_out_file_path(subject.name, "out4", outputdir)
-        outputs.output_5 = cls._generate_out_file_path(subject.name, "out5", outputdir)
-        outputs.output_6 = cls._generate_out_file_path(subject.name, "out6", outputdir)
+    def get_outputs(self, subject):
+        outputs = self.get_empty_outputs()
+        outputs.output_1 = self._generate_out_file_path(subject.name, "out1")
+        outputs.output_2 = self._generate_out_file_path(subject.name, "out2")
+        outputs.output_3 = self._generate_out_file_path(subject.name, "out3")
+        outputs.output_4 = self._generate_out_file_path(subject.name, "out4")
+        outputs.output_5 = self._generate_out_file_path(subject.name, "out5")
+        outputs.output_6 = self._generate_out_file_path(subject.name, "out6")
         return outputs
     
-    @classmethod
-    def create_outputdirs(cls, subject, outputdir):
+    def create_outputdirs(self, subject):
         pass
     
-    @classmethod
-    def remove_dirs(cls, subject, outputdir):
+    def remove_dirs(self, subject):
         pass
     
-    @classmethod
-    def get_subjects(cls, directory):
+    def get_subjects(self):
         subjects = []
-        print os.listdir(directory)
-        glob_pattern = os.path.join(directory, "*_in1")
+        glob_pattern = os.path.join(self._base_directory, "*_in1")
         for filename in glob.iglob(glob_pattern):
             subjectname = os.path.basename(filename).replace("_in1", "")
             subject = Subject(subjectname, Subject.DEFAULT_GROUP, filename)
@@ -90,7 +77,7 @@ class MockAnalysis(Analysis):
     PARAMETER_TEMPLATES = [DUMMY_TEMPLATE]
     param_template_map = {DUMMY_TEMPLATE : MockParameterTemplate}
 
-    def __init__(self, parameter_template=None):
+    def __init__(self, parameter_template):
         super(MockAnalysis, self).__init__(parameter_template) 
         self.inputs = MockParameterTemplate.get_empty_inputs()
         self.outputs = MockParameterTemplate.get_empty_outputs()
@@ -106,8 +93,8 @@ class MockAnalysis(Analysis):
         return cls.DUMMY_TEMPLATE
          
     @classmethod
-    def import_data(cls, parameter_template, subject, outputdir):
-        return parameter_template.get_subject_filename(subject, outputdir)
+    def import_data(cls, parameter_template, subject):
+        return parameter_template.get_subject_filename(subject)
         
     def propagate_parameters(self):
         self._steps[0].inputs.input_1 = self.inputs.input_1

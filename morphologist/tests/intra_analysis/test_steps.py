@@ -34,13 +34,14 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         os.makedirs(self.output_directory)
   
         subject = Subject(self.subjectname, self.groupname, self.raw_mri)
-        self.ref_outputs = BrainvisaIntraAnalysisParameterTemplate.get_outputs(subject, self.bv_db_directory)
-        self.test_outputs = BrainvisaIntraAnalysisParameterTemplate.get_outputs(subject, self.output_directory)
+        ref_param_template = BrainvisaIntraAnalysisParameterTemplate(self.bv_db_directory)
+        test_param_template = BrainvisaIntraAnalysisParameterTemplate(self.output_directory)
+        self.ref_outputs = ref_param_template.get_outputs(subject)
+        self.test_outputs = test_param_template.get_outputs(subject)
         
-        BrainvisaIntraAnalysisParameterTemplate.create_outputdirs(subject, 
-                                                                  self.output_directory)
-        self.ref_mri = BrainvisaIntraAnalysisParameterTemplate.get_mri_path(subject, self.bv_db_directory)
-        self.test_mri = BrainvisaIntraAnalysisParameterTemplate.get_mri_path(subject, self.output_directory)
+        test_param_template.create_outputdirs(subject)
+        self.ref_mri = ref_param_template.get_subject_filename(subject)
+        self.test_mri = test_param_template.get_subject_filename(subject)
         
         if not os.path.exists(self.bv_db_directory):
             self._create_ref_database()

@@ -62,7 +62,7 @@ class IntraAnalysis(Analysis):
         cls.param_template_map[cls.DEFAULT_PARAM_TEMPLATE] = \
                         DefaultIntraAnalysisParameterTemplate
   
-    def __init__(self, parameter_template=None):
+    def __init__(self, parameter_template):
         super(IntraAnalysis, self).__init__(parameter_template) 
         self.inputs = IntraAnalysisParameterTemplate.get_empty_inputs()
         self.outputs = IntraAnalysisParameterTemplate.get_empty_outputs()
@@ -108,11 +108,11 @@ class IntraAnalysis(Analysis):
         return cls.BRAINVISA_PARAM_TEMPLATE
         
     @classmethod
-    def import_data(cls, parameter_template, subject, outputdir):
+    def import_data(cls, parameter_template, subject):
         import_step = ImageImportation()
         import_step.inputs.input = subject.filename
-        import_step.outputs.output = parameter_template.get_subject_filename(subject, outputdir)
-        parameter_template.create_outputdirs(subject, outputdir)
+        import_step.outputs.output = parameter_template.get_subject_filename(subject)
+        parameter_template.create_outputdirs(subject)
         if import_step.run() != 0:
             raise ImportationError("The importation failed for the subject %s."
                                    % str(subject))
@@ -267,11 +267,10 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
     def get_empty_outputs(cls):
         return IntraAnalysisParameters(cls.output_file_param_names)
     
-    @classmethod
-    def get_inputs(cls, subject, outputdir):
-        parameters = IntraAnalysisParameters(cls.input_file_param_names,
-                                     cls.input_other_param_names)
-        parameters[IntraAnalysis.MRI] = cls.get_subject_filename(subject, outputdir)
+    def get_inputs(self, subject):
+        parameters = IntraAnalysisParameters(self.input_file_param_names,
+                                     self.input_other_param_names)
+        parameters[IntraAnalysis.MRI] = self.get_subject_filename(subject)
         parameters[IntraAnalysis.EROSION_SIZE] = 1.8
         parameters[IntraAnalysis.BARY_FACTOR] = 0.6
         return parameters
@@ -287,31 +286,29 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
     FOLDS = os.path.join("folds", "3.1")
     SESSION_AUTO = "default_session_auto"
     
-    @classmethod
-    def get_subject_filename(cls, subject, directory):
-        return os.path.join(directory, subject.groupname, subject.name, 
-                            cls.MODALITY, cls.ACQUISITION, subject.name + ".nii")
+    def get_subject_filename(self, subject):
+        return os.path.join(self._base_directory, subject.groupname, subject.name, 
+                            self.MODALITY, self.ACQUISITION, subject.name + ".nii")
 
-    @classmethod
-    def get_outputs(cls, subject, outputdir):
-        default_acquisition_path = os.path.join(outputdir, subject.groupname,
-                                subject.name, cls.MODALITY, cls.ACQUISITION)
-        registration_path = os.path.join(default_acquisition_path, cls.REGISTRATION)
-        default_analysis_path = os.path.join(default_acquisition_path, cls.ANALYSIS) 
+    def get_outputs(self, subject):
+        default_acquisition_path = os.path.join(self._base_directory, subject.groupname,
+                                subject.name, self.MODALITY, self.ACQUISITION)
+        registration_path = os.path.join(default_acquisition_path, self.REGISTRATION)
+        default_analysis_path = os.path.join(default_acquisition_path, self.ANALYSIS) 
           
-        segmentation_path = os.path.join(default_analysis_path, cls.SEGMENTATION)
-        surface_path = os.path.join(segmentation_path, cls.SURFACE)
+        segmentation_path = os.path.join(default_analysis_path, self.SEGMENTATION)
+        surface_path = os.path.join(segmentation_path, self.SURFACE)
 
-        folds_path = os.path.join(default_analysis_path, cls.FOLDS)
+        folds_path = os.path.join(default_analysis_path, self.FOLDS)
   
-        session_auto_path = os.path.join(folds_path, cls.SESSION_AUTO)
+        session_auto_path = os.path.join(folds_path, self.SESSION_AUTO)
  
-        parameters = IntraAnalysisParameters(cls.output_file_param_names)
+        parameters = IntraAnalysisParameters(self.output_file_param_names)
         parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(default_acquisition_path, 
                                                    "%s.APC" % subject.name)
         parameters[IntraAnalysis.TALAIRACH_TRANSFORMATION] = os.path.join(registration_path, 
                                                          "RawT1-%s_%s_TO_Talairach-ACPC.trm" 
-                                                         % (subject.name, cls.ACQUISITION))
+                                                         % (subject.name, self.ACQUISITION))
         parameters[IntraAnalysis.HFILTERED] = os.path.join(default_analysis_path, 
                                             "hfiltered_%s.nii" % subject.name)
         parameters[IntraAnalysis.WHITE_RIDGES] = os.path.join(default_analysis_path, 
@@ -368,51 +365,47 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
 
         return parameters
 
-    @classmethod
-    def create_outputdirs(cls, subject, outputdir):
-        group_path = os.path.join(outputdir, subject.groupname)
+    def create_outputdirs(self, subject):
+        group_path = os.path.join(self._base_directory, subject.groupname)
         create_directory_if_missing(group_path)
         
         subject_path = os.path.join(group_path, subject.name)
         create_directory_if_missing(subject_path)
         
-        t1mri_path = os.path.join(subject_path, cls.MODALITY)
+        t1mri_path = os.path.join(subject_path, self.MODALITY)
         create_directory_if_missing(t1mri_path)
         
-        default_acquisition_path = os.path.join(t1mri_path, cls.ACQUISITION)
+        default_acquisition_path = os.path.join(t1mri_path, self.ACQUISITION)
         create_directory_if_missing(default_acquisition_path)
         
-        registration_path = os.path.join(default_acquisition_path, cls.REGISTRATION)
+        registration_path = os.path.join(default_acquisition_path, self.REGISTRATION)
         create_directory_if_missing(registration_path)
         
-        default_analysis_path = os.path.join(default_acquisition_path, cls.ANALYSIS) 
+        default_analysis_path = os.path.join(default_acquisition_path, self.ANALYSIS) 
         create_directory_if_missing(default_analysis_path)
         
-        segmentation_path = os.path.join(default_analysis_path, cls.SEGMENTATION)
+        segmentation_path = os.path.join(default_analysis_path, self.SEGMENTATION)
         create_directory_if_missing(segmentation_path)
         
-        surface_path = os.path.join(segmentation_path, cls.SURFACE)
+        surface_path = os.path.join(segmentation_path, self.SURFACE)
         create_directory_if_missing(surface_path)
 
-        folds_path = os.path.join(default_analysis_path, cls.FOLDS)
+        folds_path = os.path.join(default_analysis_path, self.FOLDS)
         create_directories_if_missing(folds_path)
    
-        session_auto_path = os.path.join(folds_path, cls.SESSION_AUTO)
+        session_auto_path = os.path.join(folds_path, self.SESSION_AUTO)
         create_directory_if_missing(session_auto_path)
 
-    @classmethod
-    def remove_dirs(cls, subject, outputdir):
-        group_path = os.path.join(outputdir, subject.groupname)
+    def remove_dirs(self, subject):
+        group_path = os.path.join(self._base_directory, subject.groupname)
         subject_path = os.path.join(group_path, subject.name)
         shutil.rmtree(subject_path)
 
-
-    @classmethod
-    def get_subjects(cls, directory):
+    def get_subjects(self):
         subjects = []
-        glob_pattern = os.path.join(directory, "*", "*", cls.MODALITY, "*", "*.*")
+        glob_pattern = os.path.join(self._base_directory, "*", "*", self.MODALITY, "*", "*.*")
         any_dir = "([^/]+)"
-        regexp=re.compile("^"+os.path.join(directory, any_dir, any_dir, cls.MODALITY,
+        regexp=re.compile("^"+os.path.join(self._base_directory, any_dir, any_dir, self.MODALITY,
                                            any_dir, "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$"))
         for filename in glob.iglob(glob_pattern):
             match=regexp.match(filename)
@@ -426,16 +419,14 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         
 class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
 
-    @classmethod
-    def get_subject_filename(cls, subject, directory):
-        return os.path.join(directory, subject.groupname, subject.name, 
+    def get_subject_filename(self, subject):
+        return os.path.join(self._base_directory, subject.groupname, subject.name, 
                             subject.name + ".nii")
 
-    @classmethod
-    def get_outputs(cls, subject, outputdir):
-        parameters = IntraAnalysisParameters(cls.output_file_param_names)
+    def get_outputs(self, subject):
+        parameters = IntraAnalysisParameters(self.output_file_param_names)
 
-        subject_path = os.path.join(outputdir, subject.groupname, subject.name)
+        subject_path = os.path.join(self._base_directory, subject.groupname, subject.name)
         parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(subject_path, 
                                                          "%s.APC" %subject.name)
         parameters[IntraAnalysis.TALAIRACH_TRANSFORMATION] = os.path.join(subject_path,
@@ -496,25 +487,22 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
 
         return parameters
 
-    @classmethod
-    def create_outputdirs(cls, subject, outputdir):
-        group_path = os.path.join(outputdir, subject.groupname)
+    def create_outputdirs(self, subject):
+        group_path = os.path.join(self._base_directory, subject.groupname)
         create_directory_if_missing(group_path)
         subject_path = os.path.join(group_path, subject.name)
         create_directory_if_missing(subject_path)    
 
-    @classmethod
-    def remove_dirs(cls, subject, outputdir):
-        group_path = os.path.join(outputdir, subject.groupname)
+    def remove_dirs(self, subject):
+        group_path = os.path.join(self._base_directory, subject.groupname)
         subject_path = os.path.join(group_path, subject.name)
         shutil.rmtree(subject_path)
 
-    @classmethod
-    def get_subjects(cls, directory):
+    def get_subjects(self):
         subjects = []
-        glob_pattern = os.path.join(directory, "*", "*", "*.*")
+        glob_pattern = os.path.join(self._base_directory, "*", "*", "*.*")
         any_dir = "([^/]+)"
-        regexp=re.compile("^"+os.path.join(directory, any_dir, any_dir, 
+        regexp=re.compile("^"+os.path.join(self._base_directory, any_dir, any_dir, 
                                            "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$"))
         for filename in glob.iglob(glob_pattern):
             match=regexp.match(filename)

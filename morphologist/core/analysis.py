@@ -42,11 +42,9 @@ class Analysis(object):
     PARAMETER_TEMPLATES = []
     param_template_map = {}
 
-    def __init__(self, parameter_template=None):
+    def __init__(self, parameter_template):
         self._init_steps()
         self._init_step_ids()
-        if parameter_template is None:
-            parameter_template = self.create_default_parameter_template()
         self.parameter_template = parameter_template
         self.inputs = Parameters(file_param_names=[])
         self.outputs = Parameters(file_param_names=[])
@@ -65,14 +63,15 @@ class Analysis(object):
         raise NotImplementedError("Analysis is an Abstract class.")
     
     @classmethod
-    def create_default_parameter_template(cls):
-        return cls.create_parameter_template(cls.get_default_parameter_template_name())
+    def create_default_parameter_template(cls, base_directory):
+        return cls.create_parameter_template(cls.get_default_parameter_template_name(), 
+                                             base_directory)
        
     @classmethod
-    def  create_parameter_template(cls, parameter_template_name):
+    def  create_parameter_template(cls, parameter_template_name, base_directory):
         if parameter_template_name not in cls.PARAMETER_TEMPLATES:
             raise UnknownParameterTemplate(parameter_template_name)
-        param_template = cls.param_template_map[parameter_template_name]()
+        param_template = cls.param_template_map[parameter_template_name](base_directory)
         return param_template
         
     def step_from_id(self, step_id):
@@ -88,15 +87,15 @@ class Analysis(object):
             yield command, step_id
     
     @classmethod
-    def import_data(cls, parameter_template, subject, outputdir):        
-        new_subject_filename = parameter_template.get_subject_filename(subject, outputdir)
-        parameter_template.create_outputdirs(subject, outputdir)
+    def import_data(cls, parameter_template, subject):        
+        new_subject_filename = parameter_template.get_subject_filename(subject)
+        parameter_template.create_outputdirs(subject)
         shutil.copy(subject.filename, new_subject_filename)
         return new_subject_filename
 
-    def set_parameters(self, subject, outputdir):
-        self.inputs = self.parameter_template.get_inputs(subject, outputdir)
-        self.outputs = self.parameter_template.get_outputs(subject, outputdir)
+    def set_parameters(self, subject):
+        self.inputs = self.parameter_template.get_inputs(subject)
+        self.outputs = self.parameter_template.get_outputs(subject)
 
     def get_command_list(self):
         self._check_parameter_values_filled()
@@ -135,6 +134,9 @@ class Analysis(object):
                 
 class ParameterTemplate(object):
     
+    def __init__(self, base_directory):
+        self._base_directory = base_directory
+        
     @classmethod
     def get_empty_inputs(cls):
         raise NotImplementedError("ParameterTemplate is an abstract class")
@@ -143,28 +145,22 @@ class ParameterTemplate(object):
     def get_empty_outputs(cls):
         raise NotImplementedError("ParameterTemplate is an abstract class")
     
-    @classmethod
-    def get_subject_filename(cls):
+    def get_subject_filename(self, subject):
         raise NotImplementedError("ParameterTemplate is an abstract class")
         
-    @classmethod
-    def get_inputs(cls, subject, outputdir):
+    def get_inputs(self, subject):
         raise NotImplementedError("ParameterTemplate is an abstract class")
 
-    @classmethod
-    def get_outputs(cls, subject, outputdir):
+    def get_outputs(self, subject):
         raise NotImplementedError("ParameterTemplate is an abstract class")
     
-    @classmethod
-    def create_outputdirs(cls, subject, outputdir):
+    def create_outputdirs(self, subject):
         raise NotImplementedError("ParameterTemplate is an abstract class")
     
-    @classmethod
-    def remove_dirs(cls, subject, outputdir):
+    def remove_dirs(self, subject):
         raise NotImplementedError("ParameterTemplate is an abstract class")
     
-    @classmethod
-    def get_subjects(cls, directory):
+    def get_subjects(self):
         raise NotImplementedError("ParameterTemplate is an abstract class")
 
 

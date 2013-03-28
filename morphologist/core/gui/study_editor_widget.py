@@ -58,7 +58,7 @@ class StudyEditorDialog(QtGui.QDialog):
         self._init_ui()
         self.study_editor = StudyEditor(study, editor_mode)
         self._set_window_title(editor_mode)
-        self._default_parameter_template = study.analysis_cls().PARAMETER_TEMPLATES[0]
+        self._default_parameter_template_name = study.analysis_cls().get_default_parameter_template_name()
 
         self._subjects_tablemodel = SubjectsEditorTableModel(\
                             self.study_editor.subjects_editor)
@@ -105,7 +105,7 @@ class StudyEditorDialog(QtGui.QDialog):
     def _init_subjects_from_study_dialog(self, study):
         outputdir = study.outputdir
         parameter_templates = study.analysis_cls().PARAMETER_TEMPLATES
-        selected_template = self._default_parameter_template
+        selected_template = self._default_parameter_template_name
         self._subjects_from_study_dialog = SelectStudyDirectoryDialog(self.ui,
                             outputdir, parameter_templates, selected_template)
         self._subjects_from_study_dialog.accepted.connect(\
@@ -170,9 +170,10 @@ class StudyEditorDialog(QtGui.QDialog):
     def on_subjects_from_study_dialog_accepted(self):
         study_directory = self._subjects_from_study_dialog.get_study_directory()
         parameter_template_name = self._subjects_from_study_dialog.get_study_parameter_template()
-        parameter_template = self.study_editor.study_properties_editor.analysis_cls.param_template_map[parameter_template_name]
+        analysis_cls = self.study_editor.study_properties_editor.analysis_cls
+        parameter_template = analysis_cls.param_template_map[parameter_template_name](study_directory)
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-        subjects = parameter_template.get_subjects(study_directory)
+        subjects = parameter_template.get_subjects()
         QtGui.QApplication.restoreOverrideCursor()
         if not subjects:
             QtGui.QMessageBox.warning(self, "No subjects", 
@@ -546,7 +547,7 @@ class StudyPropertiesEditor(object):
     def update_study(self, study):
         study.name = self.name
         study.outputdir = self.outputdir
-        study.backup_filename = self.backup_filename 
+        study.backup_filename = self.backup_filename
         study.parameter_template = self.parameter_template
 
     def get_consistency_status(self, editor_mode):

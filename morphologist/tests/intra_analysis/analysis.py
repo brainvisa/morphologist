@@ -17,10 +17,6 @@ class IntraAnalysisTestCase(AnalysisTestCase):
                                       IntraAnalysis.get_default_parameter_template_name())
         reset_directory(self.outputdir)
 
-    def create_analysis(self):
-        self.analysis = IntraAnalysis()
-        return self.analysis
-
     def analysis_cls(self):
         return IntraAnalysis
 
@@ -32,8 +28,8 @@ class IntraAnalysisTestCase(AnalysisTestCase):
             'cati-dev-prod', 'morphologist', 'raw_irm', subjectname + ".nii")
          
         subject = Subject(subjectname, groupname, filename)
-        self.analysis.set_parameters(subject=subject, outputdir=self.outputdir) 
-        self.analysis.parameter_template.create_outputdirs(subject, self.outputdir)
+        self.analysis.set_parameters(subject=subject) 
+        self.analysis.parameter_template.create_outputdirs(subject)
         self.analysis.clear_results() 
 
     def delete_some_parameter_values(self):

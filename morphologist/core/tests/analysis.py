@@ -9,12 +9,15 @@ class AnalysisTestCase(object):
     ''' abstract class '''
     def __init__(self):
         self.analysis = None
+        self.outputdir = None
 
     def analysis_cls(self):
         raise NotImplementedError("AnalysisTestCase is an abstract class")
 
     def create_analysis(self):
-        raise NotImplementedError("AnalysisTestCase is an abstract class")
+        param_template = self.analysis_cls().create_default_parameter_template(self.outputdir)
+        self.analysis = self.analysis_cls()(param_template)
+        return self.analysis
 
     def set_analysis_parameters(self):
         raise NotImplementedError("AnalysisTestCase is an abstract class")
@@ -39,14 +42,9 @@ class MockAnalysisTestCase(AnalysisTestCase):
     def analysis_cls(self):
         return MockAnalysis
 
-    def create_analysis(self):
-        self.analysis = MockAnalysis()
-        return self.analysis
-
     def set_analysis_parameters(self):
         subject = Subject('foo', 'foo', os.path.join(self.outputdir, 'foo'))
-        self.analysis.set_parameters(subject=subject,
-                                     outputdir=self.outputdir)
+        self.analysis.set_parameters(subject=subject)
 
     def delete_some_parameter_values(self):
         self.analysis.outputs.output_3 = None

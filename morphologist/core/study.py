@@ -19,9 +19,10 @@ class Study(object):
         self.outputdir = outputdir
         self.subjects = OrderedDict()
         if parameter_template_name is None:
-            self.parameter_template = self.analysis_cls().create_default_parameter_template()
+            self.parameter_template = self.analysis_cls().create_default_parameter_template(self.outputdir)
         else:
-            self.parameter_template = self.analysis_cls().create_parameter_template(parameter_template_name)
+            self.parameter_template = self.analysis_cls().create_parameter_template(parameter_template_name, 
+                                                                                    self.outputdir)
         if backup_filename is None:
             backup_filename = self.default_backup_filename_from_outputdir(outputdir)
         self.backup_filename = backup_filename
@@ -111,12 +112,10 @@ class Study(object):
             raise SubjectExistsError(subject)
         self.subjects[subject_id] = subject
         self.analyses[subject_id] = self._create_analysis()
-        self.analyses[subject_id].set_parameters(self.parameter_template,
-                                                subject, self.outputdir)
+        self.analyses[subject_id].set_parameters(subject)
         try:
-            new_imgname = self.analysis_cls().import_data(\
-                                        self.parameter_template, 
-                                        subject, self.outputdir)
+            new_imgname = self.analysis_cls().import_data(self.parameter_template, 
+                                                          subject)
         except ImportationError:
             del self.subjects[subject_id]
             del self.analyses[subject_id]
@@ -127,7 +126,7 @@ class Study(object):
 
     def remove_subject_and_files_from_id(self, subject_id):
         subject = self.subjects[subject_id]
-        self.parameter_template.remove_dirs(subject, self.outputdir)
+        self.parameter_template.remove_dirs(subject)
         self.remove_subject_from_id(subject_id)
 
     def remove_subject_from_id(self, subject_id):

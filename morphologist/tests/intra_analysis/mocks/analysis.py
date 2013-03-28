@@ -10,13 +10,14 @@ from morphologist.tests.intra_analysis.mocks.steps import MockSpatialNormalizati
 
 class MockIntraAnalysis(IntraAnalysis):
 
-    def __init__(self, parameter_template=None):
+    def __init__(self, parameter_template):
         super(MockIntraAnalysis, self).__init__(parameter_template)
 
     def _init_steps(self):
         subject=Subject("hyperion", "test", None)
-        ref_results = BrainvisaIntraAnalysisParameterTemplate.get_outputs(subject,
-                        "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/bv_database")
+        bv_database_directory = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/bv_database"
+        bv_param_template = BrainvisaIntraAnalysisParameterTemplate(bv_database_directory)
+        ref_results = bv_param_template.get_outputs(subject)
         self._normalization = MockSpatialNormalization(ref_results[IntraAnalysis.COMMISSURE_COORDINATES], ref_results[IntraAnalysis.TALAIRACH_TRANSFORMATION])
         self._bias_correction = MockBiasCorrection(\
             ref_results[IntraAnalysis.HFILTERED],
@@ -77,9 +78,9 @@ class MockIntraAnalysis(IntraAnalysis):
                        self._right_sulci_labelling]
 
     @classmethod
-    def import_data(cls, parameter_template, subject, outputdir):
-        target_filename = parameter_template.get_subject_filename(subject, outputdir)
-        parameter_template.create_outputdirs(subject, outputdir)
+    def import_data(cls, parameter_template, subject):
+        target_filename = parameter_template.get_subject_filename(subject)
+        parameter_template.create_outputdirs(subject)
         source_filename = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/raw_irm/hyperion.nii"
         shutil.copy(source_filename, target_filename)
         return target_filename
