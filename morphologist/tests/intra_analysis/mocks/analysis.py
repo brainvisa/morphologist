@@ -10,8 +10,8 @@ from morphologist.tests.intra_analysis.mocks.steps import MockSpatialNormalizati
 
 class MockIntraAnalysis(IntraAnalysis):
 
-    def __init__(self):
-        super(MockIntraAnalysis, self).__init__()
+    def __init__(self, parameter_template=None):
+        super(MockIntraAnalysis, self).__init__(parameter_template)
 
     def _init_steps(self):
         subject=Subject("hyperion", "test", None)
@@ -78,8 +78,8 @@ class MockIntraAnalysis(IntraAnalysis):
 
     @classmethod
     def import_data(cls, parameter_template, subject, outputdir):
-        target_filename = cls.get_subject_filename(parameter_template, subject, outputdir)
-        cls.create_outputdirs(parameter_template, subject, outputdir)
+        target_filename = parameter_template.get_subject_filename(subject, outputdir)
+        parameter_template.create_outputdirs(subject, outputdir)
         source_filename = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/raw_irm/hyperion.nii"
         shutil.copy(source_filename, target_filename)
         return target_filename

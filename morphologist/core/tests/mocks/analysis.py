@@ -1,5 +1,4 @@
 import os
-import re
 import glob
 
 from morphologist.core.steps import Step
@@ -91,8 +90,8 @@ class MockAnalysis(Analysis):
     PARAMETER_TEMPLATES = [DUMMY_TEMPLATE]
     param_template_map = {DUMMY_TEMPLATE : MockParameterTemplate}
 
-    def __init__(self):
-        super(MockAnalysis, self).__init__() 
+    def __init__(self, parameter_template=None):
+        super(MockAnalysis, self).__init__(parameter_template) 
         self.inputs = MockParameterTemplate.get_empty_inputs()
         self.outputs = MockParameterTemplate.get_empty_outputs()
 
@@ -103,8 +102,12 @@ class MockAnalysis(Analysis):
         self._steps = [step1, step2, step3] 
     
     @classmethod
+    def get_default_parameter_template_name(cls):
+        return cls.DUMMY_TEMPLATE
+         
+    @classmethod
     def import_data(cls, parameter_template, subject, outputdir):
-        return cls.get_subject_filename(parameter_template, subject, outputdir)
+        return parameter_template.get_subject_filename(subject, outputdir)
         
     def propagate_parameters(self):
         self._steps[0].inputs.input_1 = self.inputs.input_1

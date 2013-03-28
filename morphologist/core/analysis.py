@@ -13,9 +13,9 @@ class AnalysisFactory(object):
         cls._registered_analyses[analysis_type] = analysis_class
         
     @classmethod
-    def create_analysis(cls, analysis_type):
+    def create_analysis(cls, analysis_type, parameter_template):
         analysis_cls = cls.get_analysis_cls(analysis_type) 
-        return analysis_cls()
+        return analysis_cls(parameter_template)
  
     @classmethod
     def get_analysis_cls(cls, analysis_type):
@@ -42,9 +42,12 @@ class Analysis(object):
     PARAMETER_TEMPLATES = []
     param_template_map = {}
 
-    def __init__(self):
+    def __init__(self, parameter_template=None):
         self._init_steps()
         self._init_step_ids()
+        if parameter_template is None:
+            parameter_template = self.create_default_parameter_template()
+        self.parameter_template = parameter_template
         self.inputs = Parameters(file_param_names=[])
         self.outputs = Parameters(file_param_names=[])
 
@@ -57,6 +60,21 @@ class Analysis(object):
             step_id = "%d_%s" % (i, step.name)
             self._step_ids[step_id] = step
 
+    @classmethod
+    def get_default_parameter_template_name(cls):
+        raise NotImplementedError("Analysis is an Abstract class.")
+    
+    @classmethod
+    def create_default_parameter_template(cls):
+        return cls.create_parameter_template(cls.get_default_parameter_template_name())
+       
+    @classmethod
+    def  create_parameter_template(cls, parameter_template_name):
+        if parameter_template_name not in cls.PARAMETER_TEMPLATES:
+            raise UnknownParameterTemplate(parameter_template_name)
+        param_template = cls.param_template_map[parameter_template_name]()
+        return param_template
+        
     def step_from_id(self, step_id):
         return self._step_ids[step_id]
 
@@ -71,18 +89,14 @@ class Analysis(object):
     
     @classmethod
     def import_data(cls, parameter_template, subject, outputdir):        
-        new_subject_filename = cls.get_subject_filename(parameter_template, subject, outputdir)
-        cls.create_outputdirs(parameter_template, subject, outputdir)
+        new_subject_filename = parameter_template.get_subject_filename(subject, outputdir)
+        parameter_template.create_outputdirs(subject, outputdir)
         shutil.copy(subject.filename, new_subject_filename)
         return new_subject_filename
 
-    def set_parameters(self, parameter_template, subject, outputdir):
-        if parameter_template not in self.PARAMETER_TEMPLATES:
-            raise UnknownParameterTemplate(parameter_template)
-
-        param_template_instance = self.param_template_map[parameter_template]
-        self.inputs = param_template_instance.get_inputs(subject, outputdir)
-        self.outputs = param_template_instance.get_outputs(subject, outputdir)
+    def set_parameters(self, subject, outputdir):
+        self.inputs = self.parameter_template.get_inputs(subject, outputdir)
+        self.outputs = self.parameter_template.get_outputs(subject, outputdir)
 
     def get_command_list(self):
         self._check_parameter_values_filled()
@@ -103,21 +117,6 @@ class Analysis(object):
             separator = " ,"
             message = separator.join(missing_parameters)
             raise MissingParameterValueError(message)
-
-    @classmethod
-    def get_subject_filename(cls, parameter_template, subject, directory):
-        param_template_instance = cls.param_template_map[parameter_template]
-        return param_template_instance.get_subject_filename(subject, directory)
-            
-    @classmethod
-    def create_outputdirs(cls, parameter_template, subject, directory):
-        param_template_instance = cls.param_template_map[parameter_template]
-        param_template_instance.create_outputdirs(subject, directory)
-
-    @classmethod
-    def remove_dirs(cls, parameter_template, subject, outputdir):
-        param_template_instance = cls.param_template_map[parameter_template]
-        param_template_instance.remove_dirs(subject, outputdir)
         
     def has_some_results(self):
         return self.outputs.some_file_exists()

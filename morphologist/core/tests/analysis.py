@@ -45,8 +45,7 @@ class MockAnalysisTestCase(AnalysisTestCase):
 
     def set_analysis_parameters(self):
         subject = Subject('foo', 'foo', os.path.join(self.outputdir, 'foo'))
-        self.analysis.set_parameters(parameter_template=MockAnalysis.DUMMY_TEMPLATE,
-                                     subject=subject,
+        self.analysis.set_parameters(subject=subject,
                                      outputdir=self.outputdir)
 
     def delete_some_parameter_values(self):

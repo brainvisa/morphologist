@@ -62,8 +62,8 @@ class IntraAnalysis(Analysis):
         cls.param_template_map[cls.DEFAULT_PARAM_TEMPLATE] = \
                         DefaultIntraAnalysisParameterTemplate
   
-    def __init__(self):
-        super(IntraAnalysis, self).__init__() 
+    def __init__(self, parameter_template=None):
+        super(IntraAnalysis, self).__init__(parameter_template) 
         self.inputs = IntraAnalysisParameterTemplate.get_empty_inputs()
         self.outputs = IntraAnalysisParameterTemplate.get_empty_outputs()
 
@@ -104,11 +104,15 @@ class IntraAnalysis(Analysis):
                        self._right_sulci_labelling]
 
     @classmethod
+    def get_default_parameter_template_name(cls):
+        return cls.BRAINVISA_PARAM_TEMPLATE
+        
+    @classmethod
     def import_data(cls, parameter_template, subject, outputdir):
         import_step = ImageImportation()
         import_step.inputs.input = subject.filename
-        import_step.outputs.output = cls.get_subject_filename(parameter_template, subject, outputdir)
-        cls.create_outputdirs(parameter_template, subject, outputdir)
+        import_step.outputs.output = parameter_template.get_subject_filename(subject, outputdir)
+        parameter_template.create_outputdirs(subject, outputdir)
         if import_step.run() != 0:
             raise ImportationError("The importation failed for the subject %s."
                                    % str(subject))

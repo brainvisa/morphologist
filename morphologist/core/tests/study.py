@@ -18,7 +18,7 @@ class AbstractStudyTestCase(object):
     def create_study(self):
         self.study = Study(analysis_type=self.analysis_type, name=self.studyname, 
                            outputdir=self.outputdir,
-                           parameter_template=self.parameter_template())
+                           parameter_template_name=self.parameter_template())
         return self.study
 
     def add_subjects(self):
