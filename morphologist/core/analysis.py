@@ -86,10 +86,9 @@ class Analysis(object):
             command = step.get_command()
             yield command, step_id
     
-    @classmethod
-    def import_data(cls, parameter_template, subject):        
-        new_subject_filename = parameter_template.get_subject_filename(subject)
-        parameter_template.create_outputdirs(subject)
+    def import_data(self, subject):        
+        new_subject_filename = self.parameter_template.get_subject_filename(subject)
+        self.parameter_template.create_outputdirs(subject)
         shutil.copy(subject.filename, new_subject_filename)
         return new_subject_filename
 

@@ -107,12 +107,11 @@ class IntraAnalysis(Analysis):
     def get_default_parameter_template_name(cls):
         return cls.BRAINVISA_PARAM_TEMPLATE
         
-    @classmethod
-    def import_data(cls, parameter_template, subject):
+    def import_data(self, subject):
         import_step = ImageImportation()
         import_step.inputs.input = subject.filename
-        import_step.outputs.output = parameter_template.get_subject_filename(subject)
-        parameter_template.create_outputdirs(subject)
+        import_step.outputs.output = self.parameter_template.get_subject_filename(subject)
+        self.parameter_template.create_outputdirs(subject)
         if import_step.run() != 0:
             raise ImportationError("The importation failed for the subject %s."
                                    % str(subject))

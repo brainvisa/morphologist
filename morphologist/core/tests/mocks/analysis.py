@@ -92,9 +92,8 @@ class MockAnalysis(Analysis):
     def get_default_parameter_template_name(cls):
         return cls.DUMMY_TEMPLATE
          
-    @classmethod
-    def import_data(cls, parameter_template, subject):
-        return parameter_template.get_subject_filename(subject)
+    def import_data(self, subject):
+        return self.parameter_template.get_subject_filename(subject)
         
     def propagate_parameters(self):
         self._steps[0].inputs.input_1 = self.inputs.input_1

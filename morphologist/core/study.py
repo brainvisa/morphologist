@@ -114,8 +114,7 @@ class Study(object):
         self.analyses[subject_id] = self._create_analysis()
         self.analyses[subject_id].set_parameters(subject)
         try:
-            new_imgname = self.analysis_cls().import_data(self.parameter_template, 
-                                                          subject)
+            new_imgname = self.analyses[subject_id].import_data(subject)
         except ImportationError:
             del self.subjects[subject_id]
             del self.analyses[subject_id]

@@ -77,10 +77,9 @@ class MockIntraAnalysis(IntraAnalysis):
                        self._left_sulci_labelling,
                        self._right_sulci_labelling]
 
-    @classmethod
-    def import_data(cls, parameter_template, subject):
-        target_filename = parameter_template.get_subject_filename(subject)
-        parameter_template.create_outputdirs(subject)
+    def import_data(self, subject):
+        target_filename = self.parameter_template.get_subject_filename(subject)
+        self.parameter_template.create_outputdirs(subject)
         source_filename = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/raw_irm/hyperion.nii"
         shutil.copy(source_filename, target_filename)
         return target_filename
