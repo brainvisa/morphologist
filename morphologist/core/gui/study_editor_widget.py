@@ -6,6 +6,7 @@ import tempfile
 import numpy
 from collections import namedtuple
 
+from morphologist.core.settings import settings
 from morphologist.core.gui.qt_backend import QtGui, QtCore, loadUi
 from morphologist.core.gui import ui_directory
 from morphologist.core.study import Study, Subject
@@ -60,8 +61,7 @@ class StudyEditorDialog(QtGui.QDialog):
         role_map[apply_role] = cls.on_apply_button_clicked
         role_map[reject_role] = cls.on_cancel_button_clicked
 
-    def __init__(self, study, parent=None, editor_mode=StudyEditor.NEW_STUDY,
-                        enable_brainomics_db=False):
+    def __init__(self, study, parent=None, editor_mode=StudyEditor.NEW_STUDY):
         super(StudyEditorDialog, self).__init__(parent)
         self._init_ui()
         self.study_editor = StudyEditor(study, editor_mode)
@@ -87,7 +87,7 @@ class StudyEditorDialog(QtGui.QDialog):
         self._study_properties_editor_widget.validity_changed.connect(self.on_study_properties_editor_validity_changed)
 
         self._init_subjects_from_study_dialog(study)
-        self._init_db_dialog(enable_brainomics_db)
+        self._init_db_dialog(settings.study_editor_settings.brainomics)
 
     def _init_ui(self):
         uifile = os.path.join(ui_directory, 'study_editor_widget.ui')

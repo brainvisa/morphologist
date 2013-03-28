@@ -50,7 +50,6 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         self.setWindowTitle(self._window_title())
         
         self.study_editor_widget_window = None
-        self.enable_brainomics_db = settings['application']['brainomics']
         
         self.study_model.current_subject_changed.connect(self.on_current_subject_changed)
         self.on_current_subject_changed()
@@ -72,8 +71,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
         study = self._create_study()
         self.study_editor_widget_window = StudyEditorDialog(study, parent=self,
-                            editor_mode=StudyEditor.NEW_STUDY,
-                            enable_brainomics_db=self.enable_brainomics_db)
+                            editor_mode=StudyEditor.NEW_STUDY)
         self.study_editor_widget_window.ui.accepted.connect(self.on_study_dialog_accepted)
         self.study_editor_widget_window.ui.show()
        
@@ -83,8 +81,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         msg = 'Stop current running analysis and edit the current study ?'
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
         self.study_editor_widget_window = StudyEditorDialog(self.study,
-                    parent=self, editor_mode=StudyEditor.EDIT_STUDY,
-                    enable_brainomics_db=self.enable_brainomics_db)
+                    parent=self, editor_mode=StudyEditor.EDIT_STUDY)
         self.study_editor_widget_window.ui.accepted.connect(self.on_study_dialog_accepted)
         self.study_editor_widget_window.ui.show()
 
@@ -174,7 +171,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
 
 
 def create_main_window(study_file=None):
-    if settings['debug']['mock']:
+    if settings.tests.mock:
         from morphologist.tests.intra_analysis.mocks.main_window import MockIntraAnalysisWindow
         return MockIntraAnalysisWindow(study_file) 
     else:

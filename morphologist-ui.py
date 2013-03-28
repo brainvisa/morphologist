@@ -31,17 +31,18 @@ def option_parser():
 
 
 def mock_option_callback(self, option, value, parser):
-    settings['debug']['mock'] = True
+    settings.commandline.mock = True
 
 
 def brainomics_option_callback(self, option, value, parser):
-    settings['application']['brainomics'] = True
+    settings.commandline.brainomics = True
 
 
 def main():
     parser = option_parser()
     options, args = parser.parse_args(sys.argv)
-    if not settings['settings_validation']: return
+    settings.commandline.set_read_only()
+    if not settings.are_valid(): return
     
     qApp = QtGui.QApplication(sys.argv)
     main_window = create_main_window(options.study_file)

@@ -30,15 +30,15 @@ class FormatsManager(object):
     def formats_manager(cls):
         if cls._formats_manager_instance:
             return cls._formats_manager_instance
-        formats_manager_backend = settings['backend']['formats_manager_backend']
-        backend_info = cls._formats_backend_modules[formats_manager_backend]
+        formats_backend = settings.backends.formats
+        backend_info = cls._formats_backend_modules[formats_backend]
         modulename, classname = backend_info
         try:
             module = __import__(modulename, fromlist=classname)
             FormatsManagerBackend = module.__getattribute__(classname)
         except ImportError, e:
-            raise ValueError("invalid format backend : '%s' (%s)" % \
-                                        (formats_manager_backend, e))
+            raise ValueError("invalid formats backend : '%s' (%s)" % \
+                                        (formats_backend, e))
         cls._formats_manager_instance = FormatsManagerBackend()
         return cls._formats_manager_instance
 

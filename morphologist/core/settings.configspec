@@ -6,10 +6,10 @@ brainomics = boolean(default=False)
 CPUs = auto_or_integer(default='auto')
 # backend settings
 [backend]
-vector_graphics_backend = option(morphologist_common, default=morphologist_common)
-display_backend = option(pyanatomist, default=pyanatomist)
-objects_backend = option(pyanatomist, default=pyanatomist)
-formats_manager_backend = option(brainvisa, default=brainvisa)
+vector_graphics = option(morphologist_common, default=morphologist_common)
+display = option(pyanatomist, default=pyanatomist)
+objects = option(pyanatomist, default=pyanatomist)
+formats = option(brainvisa, default=brainvisa)
 # debug settings
 [debug]
 start_qt_event_loop_for_tests = boolean(default=True)
