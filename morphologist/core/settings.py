@@ -45,20 +45,24 @@ class SettingsManager(object):
         settings = cls.generate_default()
         if not os.path.exists(cls.filename):
             cls.save(settings) # save default settings
-            check = True
         else:
             user_settings = ConfigObj(cls.filename, configspec=cls.configspec)
-            check = cls._check_settings(user_settings)
             settings.merge(user_settings)
-        settings['settings_are_valid'] = check
         return settings
 
-    @classmethod
-    def save(cls, settings):
+    @staticmethod
+    def save(settings):
         settings.write()
 
-    @classmethod
-    def _check_settings(cls, settings):
+    @staticmethod
+    def copy(settings):
+        copy_settings = ConfigObj(configspec=settings.configspec)
+        copy_settings.filename = settings.filename
+        copy_settings.update(copy.deepcopy(settings))
+        return copy_settings
+
+    @staticmethod
+    def check_settings(settings):
         validator = MorphologistConfigValidator()
         validation = settings.validate(validator, preserve_errors=True)
         settings_issues = flatten_errors(settings, validation)
@@ -225,12 +229,12 @@ class Settings(object):
         self.tests = TestsSettings(configobj_settings)
 
     def are_valid(self):
-        return self._configobj_settings['settings_are_valid']
+        return SettingsManager.check_settings(self._configobj_settings)
         
 
 # low level internal (only this file) configobj settings
 disk_settings = SettingsManager.load()
-memory_settings = disk_settings.copy()
+memory_settings = SettingsManager.copy(disk_settings)
 
 # high level client-code-oriented settings
 settings = Settings(memory_settings)
