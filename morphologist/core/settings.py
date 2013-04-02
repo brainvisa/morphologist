@@ -69,6 +69,7 @@ class ConfigobjSettingsHandler(object):
     def copy(settings):
         copy_settings = ConfigObj(configspec=settings.configspec)
         copy_settings.filename = settings.filename
+        # XXX: use a deepcopy since settings contains dictionnary references
         copy_settings.update(copy.deepcopy(settings))
         return copy_settings
 
@@ -160,7 +161,8 @@ class SettingsFacade(object):
     def copy(self):
         # make a copy as expected by a client which may ignore the fact that
         # this instance is a facade on another object
-        return self.__class__(copy.deepcopy(self._wrapped))
+        configobj = ConfigobjSettingsHandler.copy(self._wrapped)
+        return self.__class__(configobj)
 
     def update(self, settings_facade):
         # XXX: protected field _wrapped can be friendly access here
