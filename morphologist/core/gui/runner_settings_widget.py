@@ -1,5 +1,6 @@
 import os
 import validate
+import multiprocessing
 
 from morphologist.core.settings import settings, AUTO
 from morphologist.core.gui.qt_backend import QtGui, QtCore, loadUi
@@ -31,12 +32,10 @@ class RunnerSettingsDialog(QtGui.QDialog):
         self.ui.cancel_button = self.ui.apply_cancel_buttons.button(cancel_id)
         self.apply_button = self.ui.apply_button
         self.cancel_button = self.ui.cancel_button
-        # TODO: for cpu_count(), ask Runner backend instead
         cpus = self._runner_settings.selected_processing_units_n
         if cpus.is_auto:
             self.ui.auto_checkBox.setCheckState(QtCore.Qt.Checked)
         self.ui.selected_cpu_spinBox.setValue(cpus)
-        import multiprocessing
         max_cpu = multiprocessing.cpu_count()
         self.ui.selected_cpu_spinBox.setRange(1, max_cpu)
         self.ui.max_cpu_number_label.setText(str(max_cpu))
@@ -51,6 +50,11 @@ class RunnerSettingsDialog(QtGui.QDialog):
     @QtCore.Slot('int')
     def on_auto_checkBox_stateChanged(self, state):
         self.ui.cpu_groupBox.setEnabled(not self._is_auto_mode_on())
+        if self._is_auto_mode_on():
+            self._runner_settings.selected_processing_units_n = AUTO
+        else:
+            value = self.ui.selected_cpu_spinBox.value()
+            self._runner_settings.selected_processing_units_n = value
         
     # this slot is automagically connected
     @QtCore.Slot('int')
@@ -65,16 +69,8 @@ class RunnerSettingsDialog(QtGui.QDialog):
 
     @QtCore.Slot()
     def on_apply_button_clicked(self):
-        current_value = settings.runner.selected_processing_units_n
-        edited_value = self._runner_settings.selected_processing_units_n
-        is_auto_mode_on_and_unchanged = (current_value.is_auto and \
-                                        self._is_auto_mode_on())
-        is_auto_mode_off_and_values_unchanged = (not current_value.is_auto and \
-                not self._is_auto_mode_on() and current_value == edited_value)
-        
-        if is_auto_mode_on_and_unchanged or \
-            is_auto_mode_off_and_values_unchanged:
-            self.ui.accept() # nothing to do
+        if self._are_settings_unchanged():
+            self.ui.accept()
             return
         title = 'Save settings'
         msg = 'Save cpu settings ?'
@@ -89,6 +85,16 @@ class RunnerSettingsDialog(QtGui.QDialog):
         if answer == QtGui.QMessageBox.Yes:
             settings.runner.save()
         self.ui.accept()
+
+    def _are_settings_unchanged(self):
+        old_value = settings.runner.selected_processing_units_n
+        edited_value = self._runner_settings.selected_processing_units_n
+        is_both_auto_mode_on = (old_value.is_auto and edited_value.is_auto)
+        is_both_auto_mode_off_and_values_unchanged = (not old_value.is_auto and\
+                        not edited_value.is_auto and old_value == edited_value)
+        are_settings_unchanged = is_both_auto_mode_on or \
+                                 is_both_auto_mode_off_and_values_unchanged
+        return are_settings_unchanged
 
     def _is_auto_mode_on(self):
         return (self.ui.auto_checkBox.checkState() == QtCore.Qt.Checked)
