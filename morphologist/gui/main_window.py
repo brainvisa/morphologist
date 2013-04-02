@@ -178,13 +178,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
     @QtCore.Slot()
     def on_action_runner_settings_triggered(self):
         dialog = RunnerSettingsDialog(settings, self)
-        dialog.ui.accepted.connect(self.on_runner_settings_dialog_accepted)
         dialog.show()
-        self.dialogs['runner_settings_dialog'] = dialog
-
-    @QtCore.Slot()
-    def on_runner_settings_dialog_accepted(self):
-        del self.dialogs['runner_settings_dialog']
 
 
 def create_main_window(study_file=None):
