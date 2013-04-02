@@ -11,57 +11,16 @@ from morphologist.intra_analysis.steps import ImageImportation, \
     BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
     GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface, Sulci, SulciLabelling
 from morphologist.intra_analysis import constants
+from morphologist.intra_analysis.parameters import BrainvisaIntraAnalysisParameterTemplate, \
+                                                    DefaultIntraAnalysisParameterTemplate, \
+                                                    IntraAnalysisParameterTemplate, \
+                                                    IntraAnalysisParameterNames
 
 
 class IntraAnalysis(Analysis):
-    # TODO: change string by a number
-    BRAINVISA_PARAM_TEMPLATE = 'brainvisa'
-    DEFAULT_PARAM_TEMPLATE = 'default'
-    PARAMETER_TEMPLATES = [BRAINVISA_PARAM_TEMPLATE, DEFAULT_PARAM_TEMPLATE]
-    param_template_map = {}
-
-    # intra analysis parameters (inputs / outputs)
-    MRI = 'mri'
-    COMMISSURE_COORDINATES = 'commissure_coordinates'
-    TALAIRACH_TRANSFORMATION = 'talairach_transformation'
-    EROSION_SIZE = 'erosion_size' 
-    BARY_FACTOR = 'bary_factor'
-    HFILTERED = 'hfiltered'
-    WHITE_RIDGES = 'white_ridges'
-    REFINED_WHITE_RIDGES = 'refined_white_ridges'
-    EDGES = 'edges'
-    VARIANCE = 'variance'
-    CORRECTED_MRI = 'corrected_mri'
-    HISTO_ANALYSIS = 'histo_analysis'
-    HISTOGRAM = 'histogram'
-    BRAIN_MASK = 'brain_mask'
-    SPLIT_MASK = 'split_mask'
-    LEFT_GREY_WHITE = 'left_grey_white'
-    RIGHT_GREY_WHITE = 'right_grey_white'
-    LEFT_GREY = 'left_grey'
-    RIGHT_GREY = 'right_grey'
-    LEFT_GREY_SURFACE = 'left_grey_surface'
-    RIGHT_GREY_SURFACE = 'right_grey_surface'
-    LEFT_WHITE_SURFACE = 'left_white_surface'
-    RIGHT_WHITE_SURFACE = 'right_white_surface'
-    LEFT_SULCI = 'left_sulci'
-    RIGHT_SULCI = 'right_sulci'
-    LEFT_LABELED_SULCI = 'left_labeled_sulci'
-    RIGHT_LABELED_SULCI = 'right_labeled_sulci'
-    # XXX _DATA are used to hardcode .data directory generated with .arg files
-    LEFT_SULCI_DATA = 'left_sulci_data'
-    RIGHT_SULCI_DATA = 'right_sulci_data'
-    LEFT_LABELED_SULCI_DATA = 'left_labeled_sulci_data'
-    RIGHT_LABELED_SULCI_DATA = 'right_labeled_sulci_data'
-
-    # TODO: reimplement a standard python method ?
-    @classmethod
-    def _init_class(cls):
-        cls.param_template_map[cls.BRAINVISA_PARAM_TEMPLATE] = \
-                        BrainvisaIntraAnalysisParameterTemplate
-        cls.param_template_map[cls.DEFAULT_PARAM_TEMPLATE] = \
-                        DefaultIntraAnalysisParameterTemplate
-  
+    PARAMETER_TEMPLATES = [BrainvisaIntraAnalysisParameterTemplate, 
+                           DefaultIntraAnalysisParameterTemplate]
+    
     def __init__(self, parameter_template):
         super(IntraAnalysis, self).__init__(parameter_template) 
         self.inputs = IntraAnalysisParameterTemplate.get_empty_inputs()
@@ -105,7 +64,7 @@ class IntraAnalysis(Analysis):
 
     @classmethod
     def get_default_parameter_template_name(cls):
-        return cls.BRAINVISA_PARAM_TEMPLATE
+        return BrainvisaIntraAnalysisParameterTemplate.name
         
     def import_data(self, subject):
         import_step = ImageImportation()
@@ -118,409 +77,109 @@ class IntraAnalysis(Analysis):
         return import_step.outputs.output
 
     def propagate_parameters(self):
-        self._normalization.inputs.mri = self.inputs[IntraAnalysis.MRI]
-        self._normalization.outputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
-        self._normalization.outputs.talairach_transformation = self.outputs[IntraAnalysis.TALAIRACH_TRANSFORMATION]
+        self._normalization.inputs.mri = self.inputs[IntraAnalysisParameterNames.MRI]
+        self._normalization.outputs.commissure_coordinates = self.outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
+        self._normalization.outputs.talairach_transformation = self.outputs[IntraAnalysisParameterNames.TALAIRACH_TRANSFORMATION]
         
-        self._bias_correction.inputs.mri = self.inputs[IntraAnalysis.MRI]
-        self._bias_correction.inputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
-        self._bias_correction.outputs.hfiltered = self.outputs[IntraAnalysis.HFILTERED]
-        self._bias_correction.outputs.white_ridges = self.outputs[IntraAnalysis.WHITE_RIDGES]
-        self._bias_correction.outputs.edges = self.outputs[IntraAnalysis.EDGES]
-        self._bias_correction.outputs.variance = self.outputs[IntraAnalysis.VARIANCE]
-        self._bias_correction.outputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
+        self._bias_correction.inputs.mri = self.inputs[IntraAnalysisParameterNames.MRI]
+        self._bias_correction.inputs.commissure_coordinates = self.outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
+        self._bias_correction.outputs.hfiltered = self.outputs[IntraAnalysisParameterNames.HFILTERED]
+        self._bias_correction.outputs.white_ridges = self.outputs[IntraAnalysisParameterNames.WHITE_RIDGES]
+        self._bias_correction.outputs.edges = self.outputs[IntraAnalysisParameterNames.EDGES]
+        self._bias_correction.outputs.variance = self.outputs[IntraAnalysisParameterNames.VARIANCE]
+        self._bias_correction.outputs.corrected_mri = self.outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
 
-        self._histogram_analysis.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI] 
-        self._histogram_analysis.inputs.hfiltered = self.outputs[IntraAnalysis.HFILTERED] 
-        self._histogram_analysis.inputs.white_ridges = self.outputs[IntraAnalysis.WHITE_RIDGES] 
-        self._histogram_analysis.outputs.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
-        self._histogram_analysis.outputs.histogram = self.outputs[IntraAnalysis.HISTOGRAM]
+        self._histogram_analysis.inputs.corrected_mri = self.outputs[IntraAnalysisParameterNames.CORRECTED_MRI] 
+        self._histogram_analysis.inputs.hfiltered = self.outputs[IntraAnalysisParameterNames.HFILTERED] 
+        self._histogram_analysis.inputs.white_ridges = self.outputs[IntraAnalysisParameterNames.WHITE_RIDGES] 
+        self._histogram_analysis.outputs.histo_analysis = self.outputs[IntraAnalysisParameterNames.HISTO_ANALYSIS]
+        self._histogram_analysis.outputs.histogram = self.outputs[IntraAnalysisParameterNames.HISTOGRAM]
 
-        self._brain_segmentation.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
-        self._brain_segmentation.inputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
-        self._brain_segmentation.inputs.edges = self.outputs[IntraAnalysis.EDGES]
-        self._brain_segmentation.inputs.variance = self.outputs[IntraAnalysis.VARIANCE]
-        self._brain_segmentation.inputs.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
-        self._brain_segmentation.inputs.erosion_size = self.inputs[IntraAnalysis.EROSION_SIZE]
-        self._brain_segmentation.inputs.white_ridges = self.outputs[IntraAnalysis.WHITE_RIDGES]
-        self._brain_segmentation.outputs.brain_mask = self.outputs[IntraAnalysis.BRAIN_MASK]
-        self._brain_segmentation.outputs.white_ridges = self.outputs[IntraAnalysis.REFINED_WHITE_RIDGES]
+        self._brain_segmentation.inputs.corrected_mri = self.outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        self._brain_segmentation.inputs.commissure_coordinates = self.outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
+        self._brain_segmentation.inputs.edges = self.outputs[IntraAnalysisParameterNames.EDGES]
+        self._brain_segmentation.inputs.variance = self.outputs[IntraAnalysisParameterNames.VARIANCE]
+        self._brain_segmentation.inputs.histo_analysis = self.outputs[IntraAnalysisParameterNames.HISTO_ANALYSIS]
+        self._brain_segmentation.inputs.erosion_size = self.inputs[IntraAnalysisParameterNames.EROSION_SIZE]
+        self._brain_segmentation.inputs.white_ridges = self.outputs[IntraAnalysisParameterNames.WHITE_RIDGES]
+        self._brain_segmentation.outputs.brain_mask = self.outputs[IntraAnalysisParameterNames.BRAIN_MASK]
+        self._brain_segmentation.outputs.white_ridges = self.outputs[IntraAnalysisParameterNames.REFINED_WHITE_RIDGES]
 
-        self._split_brain.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
-        self._split_brain.inputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
-        self._split_brain.inputs.brain_mask = self.outputs[IntraAnalysis.BRAIN_MASK] 
-        self._split_brain.inputs.white_ridges = self.outputs[IntraAnalysis.REFINED_WHITE_RIDGES]
-        self._split_brain.inputs.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
-        self._split_brain.inputs.bary_factor = self.inputs[IntraAnalysis.BARY_FACTOR]
-        self._split_brain.outputs.split_mask = self.outputs[IntraAnalysis.SPLIT_MASK]
+        self._split_brain.inputs.corrected_mri = self.outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        self._split_brain.inputs.commissure_coordinates = self.outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
+        self._split_brain.inputs.brain_mask = self.outputs[IntraAnalysisParameterNames.BRAIN_MASK] 
+        self._split_brain.inputs.white_ridges = self.outputs[IntraAnalysisParameterNames.REFINED_WHITE_RIDGES]
+        self._split_brain.inputs.histo_analysis = self.outputs[IntraAnalysisParameterNames.HISTO_ANALYSIS]
+        self._split_brain.inputs.bary_factor = self.inputs[IntraAnalysisParameterNames.BARY_FACTOR]
+        self._split_brain.outputs.split_mask = self.outputs[IntraAnalysisParameterNames.SPLIT_MASK]
 
-        self._left_grey_white.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
-        self._left_grey_white.inputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
-        self._left_grey_white.inputs.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
-        self._left_grey_white.inputs.split_mask = self.outputs[IntraAnalysis.SPLIT_MASK]
-        self._left_grey_white.inputs.edges = self.outputs[IntraAnalysis.EDGES]
-        self._left_grey_white.outputs.grey_white = self.outputs[IntraAnalysis.LEFT_GREY_WHITE]
+        self._left_grey_white.inputs.corrected_mri = self.outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        self._left_grey_white.inputs.commissure_coordinates = self.outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
+        self._left_grey_white.inputs.histo_analysis = self.outputs[IntraAnalysisParameterNames.HISTO_ANALYSIS]
+        self._left_grey_white.inputs.split_mask = self.outputs[IntraAnalysisParameterNames.SPLIT_MASK]
+        self._left_grey_white.inputs.edges = self.outputs[IntraAnalysisParameterNames.EDGES]
+        self._left_grey_white.outputs.grey_white = self.outputs[IntraAnalysisParameterNames.LEFT_GREY_WHITE]
 
-        self._right_grey_white.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
-        self._right_grey_white.inputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
-        self._right_grey_white.inputs.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
-        self._right_grey_white.inputs.split_mask = self.outputs[IntraAnalysis.SPLIT_MASK]
-        self._right_grey_white.inputs.edges = self.outputs[IntraAnalysis.EDGES]
-        self._right_grey_white.outputs.grey_white = self.outputs[IntraAnalysis.RIGHT_GREY_WHITE]
+        self._right_grey_white.inputs.corrected_mri = self.outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        self._right_grey_white.inputs.commissure_coordinates = self.outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
+        self._right_grey_white.inputs.histo_analysis = self.outputs[IntraAnalysisParameterNames.HISTO_ANALYSIS]
+        self._right_grey_white.inputs.split_mask = self.outputs[IntraAnalysisParameterNames.SPLIT_MASK]
+        self._right_grey_white.inputs.edges = self.outputs[IntraAnalysisParameterNames.EDGES]
+        self._right_grey_white.outputs.grey_white = self.outputs[IntraAnalysisParameterNames.RIGHT_GREY_WHITE]
 
-        self._left_grey.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
-        self._left_grey.inputs.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
-        self._left_grey.inputs.grey_white = self.outputs[IntraAnalysis.LEFT_GREY_WHITE]
-        self._left_grey.outputs.grey = self.outputs[IntraAnalysis.LEFT_GREY]
+        self._left_grey.inputs.corrected_mri = self.outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        self._left_grey.inputs.histo_analysis = self.outputs[IntraAnalysisParameterNames.HISTO_ANALYSIS]
+        self._left_grey.inputs.grey_white = self.outputs[IntraAnalysisParameterNames.LEFT_GREY_WHITE]
+        self._left_grey.outputs.grey = self.outputs[IntraAnalysisParameterNames.LEFT_GREY]
 
-        self._right_grey.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
-        self._right_grey.inputs.histo_analysis = self.outputs[IntraAnalysis.HISTO_ANALYSIS]
-        self._right_grey.inputs.grey_white = self.outputs[IntraAnalysis.RIGHT_GREY_WHITE]
-        self._right_grey.outputs.grey = self.outputs[IntraAnalysis.RIGHT_GREY]
+        self._right_grey.inputs.corrected_mri = self.outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        self._right_grey.inputs.histo_analysis = self.outputs[IntraAnalysisParameterNames.HISTO_ANALYSIS]
+        self._right_grey.inputs.grey_white = self.outputs[IntraAnalysisParameterNames.RIGHT_GREY_WHITE]
+        self._right_grey.outputs.grey = self.outputs[IntraAnalysisParameterNames.RIGHT_GREY]
 
-        self._left_grey_surface.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI] 
-        self._left_grey_surface.inputs.split_mask = self.outputs[IntraAnalysis.SPLIT_MASK]
-        self._left_grey_surface.inputs.grey = self.outputs[IntraAnalysis.LEFT_GREY]
-        self._left_grey_surface.outputs.grey_surface = self.outputs[IntraAnalysis.LEFT_GREY_SURFACE]
+        self._left_grey_surface.inputs.corrected_mri = self.outputs[IntraAnalysisParameterNames.CORRECTED_MRI] 
+        self._left_grey_surface.inputs.split_mask = self.outputs[IntraAnalysisParameterNames.SPLIT_MASK]
+        self._left_grey_surface.inputs.grey = self.outputs[IntraAnalysisParameterNames.LEFT_GREY]
+        self._left_grey_surface.outputs.grey_surface = self.outputs[IntraAnalysisParameterNames.LEFT_GREY_SURFACE]
 
-        self._right_grey_surface.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
-        self._right_grey_surface.inputs.split_mask = self.outputs[IntraAnalysis.SPLIT_MASK]
-        self._right_grey_surface.inputs.grey = self.outputs[IntraAnalysis.RIGHT_GREY]
-        self._right_grey_surface.outputs.grey_surface = self.outputs[IntraAnalysis.RIGHT_GREY_SURFACE]
+        self._right_grey_surface.inputs.corrected_mri = self.outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        self._right_grey_surface.inputs.split_mask = self.outputs[IntraAnalysisParameterNames.SPLIT_MASK]
+        self._right_grey_surface.inputs.grey = self.outputs[IntraAnalysisParameterNames.RIGHT_GREY]
+        self._right_grey_surface.outputs.grey_surface = self.outputs[IntraAnalysisParameterNames.RIGHT_GREY_SURFACE]
 
-        self._left_white_surface.inputs.grey = self.outputs[IntraAnalysis.LEFT_GREY]
-        self._left_white_surface.outputs.white_surface = self.outputs[IntraAnalysis.LEFT_WHITE_SURFACE]
+        self._left_white_surface.inputs.grey = self.outputs[IntraAnalysisParameterNames.LEFT_GREY]
+        self._left_white_surface.outputs.white_surface = self.outputs[IntraAnalysisParameterNames.LEFT_WHITE_SURFACE]
 
-        self._right_white_surface.inputs.grey = self.outputs[IntraAnalysis.RIGHT_GREY]
-        self._right_white_surface.outputs.white_surface = self.outputs[IntraAnalysis.RIGHT_WHITE_SURFACE]
+        self._right_white_surface.inputs.grey = self.outputs[IntraAnalysisParameterNames.RIGHT_GREY]
+        self._right_white_surface.outputs.white_surface = self.outputs[IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE]
 
-        self._left_sulci.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
-        self._left_sulci.inputs.grey = self.outputs[IntraAnalysis.LEFT_GREY]
-        self._left_sulci.inputs.split_mask = self.outputs[IntraAnalysis.SPLIT_MASK]
-        self._left_sulci.inputs.talairach_transformation = self.outputs[IntraAnalysis.TALAIRACH_TRANSFORMATION]
-        self._left_sulci.inputs.grey_white = self.outputs[IntraAnalysis.LEFT_GREY_WHITE]
-        self._left_sulci.inputs.white_surface = self.outputs[IntraAnalysis.LEFT_WHITE_SURFACE]
-        self._left_sulci.inputs.grey_surface = self.outputs[IntraAnalysis.LEFT_GREY_SURFACE]
-        self._left_sulci.inputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
-        self._left_sulci.outputs.sulci = self.outputs[IntraAnalysis.LEFT_SULCI]
-        self._left_sulci.outputs.sulci_data = self.outputs[IntraAnalysis.LEFT_SULCI_DATA]
+        self._left_sulci.inputs.corrected_mri = self.outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        self._left_sulci.inputs.grey = self.outputs[IntraAnalysisParameterNames.LEFT_GREY]
+        self._left_sulci.inputs.split_mask = self.outputs[IntraAnalysisParameterNames.SPLIT_MASK]
+        self._left_sulci.inputs.talairach_transformation = self.outputs[IntraAnalysisParameterNames.TALAIRACH_TRANSFORMATION]
+        self._left_sulci.inputs.grey_white = self.outputs[IntraAnalysisParameterNames.LEFT_GREY_WHITE]
+        self._left_sulci.inputs.white_surface = self.outputs[IntraAnalysisParameterNames.LEFT_WHITE_SURFACE]
+        self._left_sulci.inputs.grey_surface = self.outputs[IntraAnalysisParameterNames.LEFT_GREY_SURFACE]
+        self._left_sulci.inputs.commissure_coordinates = self.outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
+        self._left_sulci.outputs.sulci = self.outputs[IntraAnalysisParameterNames.LEFT_SULCI]
+        self._left_sulci.outputs.sulci_data = self.outputs[IntraAnalysisParameterNames.LEFT_SULCI_DATA]
  
-        self._right_sulci.inputs.corrected_mri = self.outputs[IntraAnalysis.CORRECTED_MRI]
-        self._right_sulci.inputs.grey = self.outputs[IntraAnalysis.RIGHT_GREY]
-        self._right_sulci.inputs.split_mask = self.outputs[IntraAnalysis.SPLIT_MASK]
-        self._right_sulci.inputs.talairach_transformation = self.outputs[IntraAnalysis.TALAIRACH_TRANSFORMATION]
-        self._right_sulci.inputs.grey_white = self.outputs[IntraAnalysis.RIGHT_GREY_WHITE]
-        self._right_sulci.inputs.white_surface = self.outputs[IntraAnalysis.RIGHT_WHITE_SURFACE]
-        self._right_sulci.inputs.grey_surface = self.outputs[IntraAnalysis.RIGHT_GREY_SURFACE]
-        self._right_sulci.inputs.commissure_coordinates = self.outputs[IntraAnalysis.COMMISSURE_COORDINATES]
-        self._right_sulci.outputs.sulci = self.outputs[IntraAnalysis.RIGHT_SULCI]
-        self._right_sulci.outputs.sulci_data = self.outputs[IntraAnalysis.RIGHT_SULCI_DATA]
+        self._right_sulci.inputs.corrected_mri = self.outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        self._right_sulci.inputs.grey = self.outputs[IntraAnalysisParameterNames.RIGHT_GREY]
+        self._right_sulci.inputs.split_mask = self.outputs[IntraAnalysisParameterNames.SPLIT_MASK]
+        self._right_sulci.inputs.talairach_transformation = self.outputs[IntraAnalysisParameterNames.TALAIRACH_TRANSFORMATION]
+        self._right_sulci.inputs.grey_white = self.outputs[IntraAnalysisParameterNames.RIGHT_GREY_WHITE]
+        self._right_sulci.inputs.white_surface = self.outputs[IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE]
+        self._right_sulci.inputs.grey_surface = self.outputs[IntraAnalysisParameterNames.RIGHT_GREY_SURFACE]
+        self._right_sulci.inputs.commissure_coordinates = self.outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
+        self._right_sulci.outputs.sulci = self.outputs[IntraAnalysisParameterNames.RIGHT_SULCI]
+        self._right_sulci.outputs.sulci_data = self.outputs[IntraAnalysisParameterNames.RIGHT_SULCI_DATA]
 
-        self._left_sulci_labelling.inputs.sulci = self.outputs[IntraAnalysis.LEFT_SULCI]
-        self._left_sulci_labelling.outputs.labeled_sulci = self.outputs[IntraAnalysis.LEFT_LABELED_SULCI]
-        self._left_sulci_labelling.outputs.labeled_sulci_data = self.outputs[IntraAnalysis.LEFT_LABELED_SULCI_DATA]
+        self._left_sulci_labelling.inputs.sulci = self.outputs[IntraAnalysisParameterNames.LEFT_SULCI]
+        self._left_sulci_labelling.outputs.labeled_sulci = self.outputs[IntraAnalysisParameterNames.LEFT_LABELED_SULCI]
+        self._left_sulci_labelling.outputs.labeled_sulci_data = self.outputs[IntraAnalysisParameterNames.LEFT_LABELED_SULCI_DATA]
 
-        self._right_sulci_labelling.inputs.sulci = self.outputs[IntraAnalysis.RIGHT_SULCI]
-        self._right_sulci_labelling.outputs.labeled_sulci = self.outputs[IntraAnalysis.RIGHT_LABELED_SULCI]
-        self._right_sulci_labelling.outputs.labeled_sulci_data = self.outputs[IntraAnalysis.RIGHT_LABELED_SULCI_DATA]
+        self._right_sulci_labelling.inputs.sulci = self.outputs[IntraAnalysisParameterNames.RIGHT_SULCI]
+        self._right_sulci_labelling.outputs.labeled_sulci = self.outputs[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI]
+        self._right_sulci_labelling.outputs.labeled_sulci_data = self.outputs[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI_DATA]
 
-
-class IntraAnalysisParameterTemplate(ParameterTemplate):
-    input_file_param_names = [IntraAnalysis.MRI]
-    input_other_param_names = [IntraAnalysis.EROSION_SIZE, IntraAnalysis.BARY_FACTOR]
-    output_file_param_names = [IntraAnalysis.COMMISSURE_COORDINATES,
-                               IntraAnalysis.TALAIRACH_TRANSFORMATION,
-                               IntraAnalysis.HFILTERED,
-                               IntraAnalysis.WHITE_RIDGES,
-                               IntraAnalysis.REFINED_WHITE_RIDGES,
-                               IntraAnalysis.EDGES,
-                               IntraAnalysis.VARIANCE,
-                               IntraAnalysis.CORRECTED_MRI,
-                               IntraAnalysis.HISTO_ANALYSIS,
-                               IntraAnalysis.HISTOGRAM,
-                               IntraAnalysis.BRAIN_MASK,
-                               IntraAnalysis.SPLIT_MASK,
-                               IntraAnalysis.LEFT_GREY_WHITE,
-                               IntraAnalysis.RIGHT_GREY_WHITE,
-                               IntraAnalysis.LEFT_GREY,
-                               IntraAnalysis.RIGHT_GREY,
-                               IntraAnalysis.LEFT_GREY_SURFACE,
-                               IntraAnalysis.RIGHT_GREY_SURFACE,
-                               IntraAnalysis.LEFT_WHITE_SURFACE,
-                               IntraAnalysis.RIGHT_WHITE_SURFACE,
-                               IntraAnalysis.LEFT_SULCI,
-                               IntraAnalysis.RIGHT_SULCI,
-                               IntraAnalysis.LEFT_SULCI_DATA,
-                               IntraAnalysis.RIGHT_SULCI_DATA,
-                               IntraAnalysis.LEFT_LABELED_SULCI,
-                               IntraAnalysis.RIGHT_LABELED_SULCI,
-                               IntraAnalysis.LEFT_LABELED_SULCI_DATA,
-                               IntraAnalysis.RIGHT_LABELED_SULCI_DATA]
-
-    @classmethod
-    def get_empty_inputs(cls):
-        return IntraAnalysisParameters(cls.input_file_param_names,
-                               cls.input_other_param_names)
-
-    @classmethod
-    def get_empty_outputs(cls):
-        return IntraAnalysisParameters(cls.output_file_param_names)
-    
-    def get_inputs(self, subject):
-        parameters = IntraAnalysisParameters(self.input_file_param_names,
-                                     self.input_other_param_names)
-        parameters[IntraAnalysis.MRI] = self.get_subject_filename(subject)
-        parameters[IntraAnalysis.EROSION_SIZE] = 1.8
-        parameters[IntraAnalysis.BARY_FACTOR] = 0.6
-        return parameters
-
-
-class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
-    ACQUISITION = "default_acquisition"
-    ANALYSIS = "default_analysis"
-    REGISTRATION = "registration"
-    MODALITY = "t1mri"
-    SEGMENTATION = "segmentation"
-    SURFACE = "mesh"
-    FOLDS = os.path.join("folds", "3.1")
-    SESSION_AUTO = "default_session_auto"
-    
-    def get_subject_filename(self, subject):
-        return os.path.join(self._base_directory, subject.groupname, subject.name, 
-                            self.MODALITY, self.ACQUISITION, subject.name + ".nii")
-
-    def get_outputs(self, subject):
-        default_acquisition_path = os.path.join(self._base_directory, subject.groupname,
-                                subject.name, self.MODALITY, self.ACQUISITION)
-        registration_path = os.path.join(default_acquisition_path, self.REGISTRATION)
-        default_analysis_path = os.path.join(default_acquisition_path, self.ANALYSIS) 
-          
-        segmentation_path = os.path.join(default_analysis_path, self.SEGMENTATION)
-        surface_path = os.path.join(segmentation_path, self.SURFACE)
-
-        folds_path = os.path.join(default_analysis_path, self.FOLDS)
-  
-        session_auto_path = os.path.join(folds_path, self.SESSION_AUTO)
- 
-        parameters = IntraAnalysisParameters(self.output_file_param_names)
-        parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(default_acquisition_path, 
-                                                   "%s.APC" % subject.name)
-        parameters[IntraAnalysis.TALAIRACH_TRANSFORMATION] = os.path.join(registration_path, 
-                                                         "RawT1-%s_%s_TO_Talairach-ACPC.trm" 
-                                                         % (subject.name, self.ACQUISITION))
-        parameters[IntraAnalysis.HFILTERED] = os.path.join(default_analysis_path, 
-                                            "hfiltered_%s.nii" % subject.name)
-        parameters[IntraAnalysis.WHITE_RIDGES] = os.path.join(default_analysis_path, 
-                                            "raw_whiteridge_%s.nii" % subject.name)
-        parameters[IntraAnalysis.REFINED_WHITE_RIDGES] = os.path.join(default_analysis_path, 
-                                            "whiteridge_%s.nii" % subject.name)
-        parameters[IntraAnalysis.EDGES] = os.path.join(default_analysis_path, 
-                                            "edges_%s.nii" % subject.name)
-        parameters[IntraAnalysis.CORRECTED_MRI] = os.path.join(default_analysis_path, 
-                                            "nobias_%s.nii" % subject.name)
-        parameters[IntraAnalysis.VARIANCE] = os.path.join(default_analysis_path, 
-                                            "variance_%s.nii" % subject.name)
-        parameters[IntraAnalysis.HISTO_ANALYSIS] = os.path.join(default_analysis_path, 
-                                            "nobias_%s.han" % subject.name)
-        parameters[IntraAnalysis.HISTOGRAM] = os.path.join(default_analysis_path, 
-                                            "nobias_%s.his" % subject.name)
-        parameters[IntraAnalysis.BRAIN_MASK] = os.path.join(segmentation_path, 
-                                            "brain_%s.nii" % subject.name)
-        parameters[IntraAnalysis.SPLIT_MASK] = os.path.join(segmentation_path, 
-                                            "voronoi_%s.nii" % subject.name)
-        parameters[IntraAnalysis.LEFT_GREY_WHITE] = os.path.join(\
-                        segmentation_path, "Lgrey_white_%s.nii" % subject.name)
-        parameters[IntraAnalysis.RIGHT_GREY_WHITE] = os.path.join(\
-                        segmentation_path, "Rgrey_white_%s.nii" % subject.name)
-        parameters[IntraAnalysis.LEFT_GREY] = os.path.join(\
-                        segmentation_path, "Lcortex_%s.nii" % subject.name)
-        parameters[IntraAnalysis.RIGHT_GREY] = os.path.join(\
-                        segmentation_path, "Rcortex_%s.nii" % subject.name)
-        parameters[IntraAnalysis.LEFT_GREY_SURFACE] = os.path.join(\
-                        surface_path, "%s_Lhemi.gii" % subject.name)
-        parameters[IntraAnalysis.RIGHT_GREY_SURFACE] = os.path.join(\
-                        surface_path, "%s_Rhemi.gii" % subject.name)
-        parameters[IntraAnalysis.LEFT_WHITE_SURFACE] = os.path.join(\
-                        surface_path, "%s_Lwhite.gii" % subject.name)
-        parameters[IntraAnalysis.RIGHT_WHITE_SURFACE] = os.path.join(\
-                        surface_path, "%s_Rwhite.gii" % subject.name)
-        parameters[IntraAnalysis.LEFT_SULCI] = os.path.join(\
-                        folds_path, "L%s.arg" % subject.name)
-        parameters[IntraAnalysis.RIGHT_SULCI] = os.path.join(\
-                        folds_path, "R%s.arg" % subject.name)
-        parameters[IntraAnalysis.LEFT_SULCI_DATA] = os.path.join(\
-                        folds_path, "L%s.data" % subject.name)
-        parameters[IntraAnalysis.RIGHT_SULCI_DATA] = os.path.join(\
-                        folds_path, "R%s.data" % subject.name)
-        parameters[IntraAnalysis.LEFT_LABELED_SULCI] = os.path.join(\
-                        session_auto_path, "L%s_default_session_auto.arg" % subject.name)
-        parameters[IntraAnalysis.RIGHT_LABELED_SULCI] = os.path.join(\
-                        session_auto_path, "R%s_default_session_auto.arg" % subject.name)
-        parameters[IntraAnalysis.LEFT_LABELED_SULCI_DATA] = os.path.join(\
-                        session_auto_path, "L%s_default_session_auto.data" % subject.name)
-        parameters[IntraAnalysis.RIGHT_LABELED_SULCI_DATA] = os.path.join(\
-                        session_auto_path, "R%s_default_session_auto.data" % subject.name)
-
-
-        return parameters
-
-    def create_outputdirs(self, subject):
-        group_path = os.path.join(self._base_directory, subject.groupname)
-        create_directory_if_missing(group_path)
-        
-        subject_path = os.path.join(group_path, subject.name)
-        create_directory_if_missing(subject_path)
-        
-        t1mri_path = os.path.join(subject_path, self.MODALITY)
-        create_directory_if_missing(t1mri_path)
-        
-        default_acquisition_path = os.path.join(t1mri_path, self.ACQUISITION)
-        create_directory_if_missing(default_acquisition_path)
-        
-        registration_path = os.path.join(default_acquisition_path, self.REGISTRATION)
-        create_directory_if_missing(registration_path)
-        
-        default_analysis_path = os.path.join(default_acquisition_path, self.ANALYSIS) 
-        create_directory_if_missing(default_analysis_path)
-        
-        segmentation_path = os.path.join(default_analysis_path, self.SEGMENTATION)
-        create_directory_if_missing(segmentation_path)
-        
-        surface_path = os.path.join(segmentation_path, self.SURFACE)
-        create_directory_if_missing(surface_path)
-
-        folds_path = os.path.join(default_analysis_path, self.FOLDS)
-        create_directories_if_missing(folds_path)
-   
-        session_auto_path = os.path.join(folds_path, self.SESSION_AUTO)
-        create_directory_if_missing(session_auto_path)
-
-    def remove_dirs(self, subject):
-        group_path = os.path.join(self._base_directory, subject.groupname)
-        subject_path = os.path.join(group_path, subject.name)
-        shutil.rmtree(subject_path)
-
-    def get_subjects(self):
-        subjects = []
-        glob_pattern = os.path.join(self._base_directory, "*", "*", self.MODALITY, "*", "*.*")
-        any_dir = "([^/]+)"
-        regexp=re.compile("^"+os.path.join(self._base_directory, any_dir, any_dir, self.MODALITY,
-                                           any_dir, "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$"))
-        for filename in glob.iglob(glob_pattern):
-            match=regexp.match(filename)
-            if match:
-                groupname = match.group(1)
-                subjectname = match.group(2)
-                subject = Subject(subjectname, groupname, filename)
-                subjects.append(subject)
-        return subjects
-           
-        
-class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
-
-    def get_subject_filename(self, subject):
-        return os.path.join(self._base_directory, subject.groupname, subject.name, 
-                            subject.name + ".nii")
-
-    def get_outputs(self, subject):
-        parameters = IntraAnalysisParameters(self.output_file_param_names)
-
-        subject_path = os.path.join(self._base_directory, subject.groupname, subject.name)
-        parameters[IntraAnalysis.COMMISSURE_COORDINATES] = os.path.join(subject_path, 
-                                                         "%s.APC" %subject.name)
-        parameters[IntraAnalysis.TALAIRACH_TRANSFORMATION] = os.path.join(subject_path,
-                                                            "RawT1-%s_TO_Talairach-ACPC.trm" 
-                                                            % subject.name)
-        parameters[IntraAnalysis.HFILTERED] = os.path.join(subject_path, 
-                                            "hfiltered_%s.nii" % subject.name)
-        parameters[IntraAnalysis.WHITE_RIDGES] = os.path.join(subject_path, 
-                                            "raw_whiteridge_%s.nii" % subject.name)
-        parameters[IntraAnalysis.REFINED_WHITE_RIDGES] = os.path.join(subject_path, 
-                                            "refined_whiteridge_%s.nii" % subject.name)
-        parameters[IntraAnalysis.EDGES] = os.path.join(subject_path, 
-                                            "edges_%s.nii" % subject.name)
-        parameters[IntraAnalysis.CORRECTED_MRI] = os.path.join(subject_path, 
-                                            "nobias_%s.nii" % subject.name)
-        parameters[IntraAnalysis.VARIANCE] = os.path.join(subject_path, 
-                                            "variance_%s.nii" % subject.name)
-        parameters[IntraAnalysis.HISTO_ANALYSIS] = os.path.join(subject_path, 
-                                            "nobias_%s.han" % subject.name)
-        parameters[IntraAnalysis.HISTOGRAM] = os.path.join(subject_path, 
-                                            "nobias_%s.his" % subject.name)
-        parameters[IntraAnalysis.BRAIN_MASK] = os.path.join(subject_path, 
-                                            "brain_%s.nii" % subject.name)
-        parameters[IntraAnalysis.SPLIT_MASK] = os.path.join(subject_path, 
-                                            "voronoi_%s.nii" % subject.name)
-        parameters[IntraAnalysis.LEFT_GREY_WHITE] = os.path.join(\
-                subject_path, "left_grey_white_%s.nii" % subject.name)
-        parameters[IntraAnalysis.RIGHT_GREY_WHITE] = os.path.join(\
-                subject_path, "right_grey_white_%s.nii" % subject.name)
-        parameters[IntraAnalysis.LEFT_GREY] = os.path.join(\
-                subject_path, "left_grey_%s.nii" % subject.name)
-        parameters[IntraAnalysis.RIGHT_GREY] = os.path.join(\
-                subject_path, "right_grey_%s.nii" % subject.name)
-        parameters[IntraAnalysis.LEFT_GREY_SURFACE] = os.path.join(\
-                subject_path, "left_grey_surface_%s.gii" % subject.name)
-        parameters[IntraAnalysis.RIGHT_GREY_SURFACE] = os.path.join(\
-                subject_path, "right_grey_surface_%s.gii" % subject.name)
-        parameters[IntraAnalysis.LEFT_WHITE_SURFACE] = os.path.join(\
-                subject_path, "left_white_surface_%s.gii" % subject.name)
-        parameters[IntraAnalysis.RIGHT_WHITE_SURFACE] = os.path.join(\
-                subject_path, "right_white_surface_%s.gii" % subject.name)
-        parameters[IntraAnalysis.LEFT_SULCI] = os.path.join(\
-                subject_path, "left_sulci_%s.arg" % subject.name)
-        parameters[IntraAnalysis.RIGHT_SULCI] = os.path.join(\
-                subject_path, "right_sulci_%s.arg" % subject.name)
-        parameters[IntraAnalysis.LEFT_SULCI_DATA] = os.path.join(\
-                subject_path, "left_sulci_%s.data" % subject.name)
-        parameters[IntraAnalysis.RIGHT_SULCI_DATA] = os.path.join(\
-                subject_path, "right_sulci_%s.data" % subject.name)
-        parameters[IntraAnalysis.LEFT_LABELED_SULCI] = os.path.join(\
-                subject_path, "left_labeled_sulci_%s.arg" % subject.name)
-        parameters[IntraAnalysis.RIGHT_LABELED_SULCI] = os.path.join(\
-                subject_path, "right_labeled_sulci_%s.arg" % subject.name) 
-        parameters[IntraAnalysis.LEFT_LABELED_SULCI_DATA] = os.path.join(\
-                subject_path, "left_labeled_sulci_%s.data" % subject.name)
-        parameters[IntraAnalysis.RIGHT_LABELED_SULCI_DATA] = os.path.join(\
-                subject_path, "right_labeled_sulci_%s.data" % subject.name) 
-
-        return parameters
-
-    def create_outputdirs(self, subject):
-        group_path = os.path.join(self._base_directory, subject.groupname)
-        create_directory_if_missing(group_path)
-        subject_path = os.path.join(group_path, subject.name)
-        create_directory_if_missing(subject_path)    
-
-    def remove_dirs(self, subject):
-        group_path = os.path.join(self._base_directory, subject.groupname)
-        subject_path = os.path.join(group_path, subject.name)
-        shutil.rmtree(subject_path)
-
-    def get_subjects(self):
-        subjects = []
-        glob_pattern = os.path.join(self._base_directory, "*", "*", "*.*")
-        any_dir = "([^/]+)"
-        regexp=re.compile("^"+os.path.join(self._base_directory, any_dir, any_dir, 
-                                           "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$"))
-        for filename in glob.iglob(glob_pattern):
-            match=regexp.match(filename)
-            if match:
-                groupname = match.group(1)
-                subjectname = match.group(2)
-                subject = Subject(subjectname, groupname, filename)
-                subjects.append(subject)
-        return subjects
-
-
-class IntraAnalysisParameters(Parameters):
-    
-    @classmethod
-    def _clear_file(cls, filename):
-        super(IntraAnalysisParameters, cls)._clear_file(filename)
-        minf_filename = filename + ".minf"
-        if os.path.exists(minf_filename):
-            os.remove(minf_filename)
-
-
-IntraAnalysis._init_class()

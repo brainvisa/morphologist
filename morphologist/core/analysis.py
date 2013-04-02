@@ -31,17 +31,21 @@ class UnknownAnalysisError(Exception):
 
 
 class AnalysisMetaClass(type):
+    
     def __init__(cls, name, bases, dct):
         AnalysisFactory.register_analysis(name, cls)
         super(AnalysisMetaClass, cls).__init__(name, bases, dct)
- 
+        for param_template in cls.PARAMETER_TEMPLATES:
+            cls._param_template_map[param_template.name] = param_template
+
 
 class Analysis(object):
     # XXX the metaclass automatically register the Analysis class in the AnalysisFactory
+    # and intialize the param_template_map
     __metaclass__ = AnalysisMetaClass
     PARAMETER_TEMPLATES = []
-    param_template_map = {}
-
+    _param_template_map = {}
+    
     def __init__(self, parameter_template):
         self._init_steps()
         self._init_step_ids()
@@ -68,10 +72,11 @@ class Analysis(object):
                                              base_directory)
        
     @classmethod
-    def  create_parameter_template(cls, parameter_template_name, base_directory):
-        if parameter_template_name not in cls.PARAMETER_TEMPLATES:
+    def create_parameter_template(cls, parameter_template_name, base_directory):
+        param_template_cls = cls._param_template_map.get(parameter_template_name, None)
+        if param_template_cls is None:
             raise UnknownParameterTemplate(parameter_template_name)
-        param_template = cls.param_template_map[parameter_template_name](base_directory)
+        param_template = param_template_cls(base_directory)
         return param_template
         
     def step_from_id(self, step_id):
@@ -132,6 +137,7 @@ class Analysis(object):
                 
                 
 class ParameterTemplate(object):
+    name = None
     
     def __init__(self, base_directory):
         self._base_directory = base_directory

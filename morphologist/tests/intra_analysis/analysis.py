@@ -3,6 +3,7 @@ import getpass
 
 from morphologist.core.subject import Subject
 from morphologist.intra_analysis import IntraAnalysis
+from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
 from morphologist.core.tests.analysis import AnalysisTestCase
 from morphologist.core.tests import reset_directory
 
@@ -37,7 +38,8 @@ class IntraAnalysisTestCase(AnalysisTestCase):
         self.analysis.inputs.mri = None
 
     def create_some_output_files(self):
-        parameter_names = [IntraAnalysis.SPLIT_MASK, IntraAnalysis.HFILTERED]
+        parameter_names = [IntraAnalysisParameterNames.SPLIT_MASK, 
+                           IntraAnalysisParameterNames.HFILTERED]
         for name in parameter_names:
             file_name = self.analysis.outputs.get_value(name)
             f = open(file_name, "w")

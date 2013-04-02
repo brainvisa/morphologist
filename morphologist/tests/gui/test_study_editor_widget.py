@@ -46,13 +46,13 @@ class TestStudyGui(TestGui):
     @TestGui.start_qt_and_test        
     def test_changing_parameter_template(self):
         study = self.test_case.create_study()
-        parameter_template = self.test_case.parameter_template()
+        parameter_template_name = self.test_case.parameter_template_name()
         study_editor_dialog = StudyEditorDialog(study)
-        self._action_change_parameter_template(study_editor_dialog, parameter_template)
+        self._action_change_parameter_template(study_editor_dialog, parameter_template_name)
         
         study_properties_editor = study_editor_dialog.study_editor.study_properties_editor
-        self.assertEqual(study_properties_editor.parameter_template,
-                                                parameter_template)
+        self.assertEqual(study_properties_editor.parameter_template_name,
+                                                parameter_template_name)
                 
     @staticmethod
     def action_define_new_study_content(study_editor_dialog_ui,

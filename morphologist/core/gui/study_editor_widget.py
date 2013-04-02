@@ -169,9 +169,10 @@ class StudyEditorDialog(QtGui.QDialog):
     @QtCore.Slot()
     def on_subjects_from_study_dialog_accepted(self):
         study_directory = self._subjects_from_study_dialog.get_study_directory()
-        parameter_template_name = self._subjects_from_study_dialog.get_study_parameter_template()
+        parameter_template_name = self._subjects_from_study_dialog.get_study_parameter_template_name()
         analysis_cls = self.study_editor.study_properties_editor.analysis_cls
-        parameter_template = analysis_cls.param_template_map[parameter_template_name](study_directory)
+        parameter_template = analysis_cls.create_parameter_template(parameter_template_name, 
+                                                                    study_directory)
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         subjects = parameter_template.get_subjects()
         QtGui.QApplication.restoreOverrideCursor()
@@ -327,7 +328,8 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
 
     def _create_parameter_template_combobox(self):
         parameter_templates = self._study_properties_editor.analysis_cls.PARAMETER_TEMPLATES
-        for param_template_name in parameter_templates: 
+        for param_template in parameter_templates:
+            param_template_name = param_template.name 
             self.ui.parameter_template_combobox.addItem(param_template_name)
 
     def _init_mapper(self):
@@ -436,8 +438,8 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
     NAME_COL = 0
     OUTPUTDIR_COL = 1
     BACKUP_FILENAME_COL = 2
-    PARAMETER_TEMPLATE_COL = 3
-    attributes = ["name", "outputdir", "backup_filename", "parameter_template"]
+    PARAMETER_TEMPLATE_NAME_COL = 3
+    attributes = ["name", "outputdir", "backup_filename", "parameter_template_name"]
     status_changed = QtCore.pyqtSignal(bool)
 
     def __init__(self, study_properties_editor, parent=None):
@@ -536,7 +538,7 @@ class StudyPropertiesEditor(object):
         self.name = study.name
         self.outputdir = study.outputdir
         self.backup_filename = study.backup_filename 
-        self.parameter_template = study.parameter_template
+        self.parameter_template_name = study.parameter_template.name
         # FIXME: store analysis name rather than class ?
         self._analysis_cls = study.analysis_cls()
 
@@ -548,7 +550,8 @@ class StudyPropertiesEditor(object):
         study.name = self.name
         study.outputdir = self.outputdir
         study.backup_filename = self.backup_filename
-        study.parameter_template = self.parameter_template
+        study.parameter_template = study.analysis_cls().create_parameter_template(self.parameter_template_name, 
+                                                                                  self.outputdir)
 
     def get_consistency_status(self, editor_mode):
         if editor_mode == StudyEditor.NEW_STUDY:
@@ -880,7 +883,8 @@ class SelectStudyDirectoryDialog(QtGui.QDialog):
         
         self.ui.study_directory_lineEdit.setText(default_study_directory)
         
-        for param_template_name in parameter_templates:
+        for param_template in parameter_templates:
+            param_template_name = param_template.name
             self.ui.parameter_template_combobox.addItem(param_template_name)
             if param_template_name == selected_template:
                 self.ui.parameter_template_combobox.setCurrentIndex(self.ui.parameter_template_combobox.count()-1)
@@ -888,7 +892,7 @@ class SelectStudyDirectoryDialog(QtGui.QDialog):
     def get_study_directory(self):
         return self.ui.study_directory_lineEdit.text()
     
-    def get_study_parameter_template(self):
+    def get_study_parameter_template_name(self):
         return self.ui.parameter_template_combobox.currentText()
 
     # this slot is automagically connected

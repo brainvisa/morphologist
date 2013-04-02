@@ -7,6 +7,7 @@ from morphologist.core.subject import Subject
 
 
 class MockParameterTemplate(ParameterTemplate):
+    name = "dummy"
     input_file_param_names = ['input_1', 'input_2', 'input_5']
     input_other_param_names = ['input_3', 'input_4', 'input_6']
     output_file_param_names = ['output_1', 'output_2', 'output_3', 'output_4',
@@ -73,9 +74,7 @@ class MockParameterTemplate(ParameterTemplate):
         
         
 class MockAnalysis(Analysis):
-    DUMMY_TEMPLATE = "dummy"
-    PARAMETER_TEMPLATES = [DUMMY_TEMPLATE]
-    param_template_map = {DUMMY_TEMPLATE : MockParameterTemplate}
+    PARAMETER_TEMPLATES = [MockParameterTemplate]
 
     def __init__(self, parameter_template):
         super(MockAnalysis, self).__init__(parameter_template) 
@@ -90,7 +89,7 @@ class MockAnalysis(Analysis):
     
     @classmethod
     def get_default_parameter_template_name(cls):
-        return cls.DUMMY_TEMPLATE
+        return MockParameterTemplate.name
          
     def import_data(self, subject):
         return self.parameter_template.get_subject_filename(subject)

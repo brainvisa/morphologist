@@ -6,7 +6,7 @@ from morphologist.core.gui.vector_graphics import Histogram, VectorView
 from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi
 from morphologist.core.gui.viewport_widget import AnalysisViewportModel
 from morphologist.gui import ui_directory 
-from morphologist.intra_analysis import IntraAnalysis
+from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
 
 
 class IntraAnalysisViewportModel(AnalysisViewportModel):
@@ -16,38 +16,40 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
 
     def _init_3d_objects(self):
         self.observed_objects = { \
-            IntraAnalysis.MRI : None,
-            IntraAnalysis.COMMISSURE_COORDINATES : None, 
-            IntraAnalysis.CORRECTED_MRI : None,
-            IntraAnalysis.HISTO_ANALYSIS : None,
-            IntraAnalysis.BRAIN_MASK : None,
-            IntraAnalysis.SPLIT_MASK : None,
-            IntraAnalysis.LEFT_GREY_WHITE : None,
-            IntraAnalysis.RIGHT_GREY_WHITE : None,
-            IntraAnalysis.LEFT_GREY_SURFACE : None,
-            IntraAnalysis.RIGHT_GREY_SURFACE : None,
-            IntraAnalysis.LEFT_WHITE_SURFACE : None,
-            IntraAnalysis.RIGHT_WHITE_SURFACE : None,
-            IntraAnalysis.LEFT_SULCI : None, 
-            IntraAnalysis.RIGHT_SULCI : None,
-            IntraAnalysis.LEFT_LABELED_SULCI : None, 
-            IntraAnalysis.RIGHT_LABELED_SULCI : None,
+            IntraAnalysisParameterNames.MRI : None,
+            IntraAnalysisParameterNames.COMMISSURE_COORDINATES : None, 
+            IntraAnalysisParameterNames.CORRECTED_MRI : None,
+            IntraAnalysisParameterNames.HISTO_ANALYSIS : None,
+            IntraAnalysisParameterNames.BRAIN_MASK : None,
+            IntraAnalysisParameterNames.SPLIT_MASK : None,
+            IntraAnalysisParameterNames.LEFT_GREY_WHITE : None,
+            IntraAnalysisParameterNames.RIGHT_GREY_WHITE : None,
+            IntraAnalysisParameterNames.LEFT_GREY_SURFACE : None,
+            IntraAnalysisParameterNames.RIGHT_GREY_SURFACE : None,
+            IntraAnalysisParameterNames.LEFT_WHITE_SURFACE : None,
+            IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE : None,
+            IntraAnalysisParameterNames.LEFT_SULCI : None, 
+            IntraAnalysisParameterNames.RIGHT_SULCI : None,
+            IntraAnalysisParameterNames.LEFT_LABELED_SULCI : None, 
+            IntraAnalysisParameterNames.RIGHT_LABELED_SULCI : None,
         }
 
     @staticmethod
     def load_object(parameter_name, filename):
         obj = None
-        if (parameter_name == IntraAnalysis.COMMISSURE_COORDINATES):
+        if (parameter_name == IntraAnalysisParameterNames.COMMISSURE_COORDINATES):
             obj = APCObject(filename)
-        elif (parameter_name == IntraAnalysis.HISTO_ANALYSIS):
+        elif (parameter_name == IntraAnalysisParameterNames.HISTO_ANALYSIS):
             obj = Histogram.from_filename(filename)
         else:
             obj = Object3D.from_filename(filename) 
         return obj
 
     def _remove_useless_parameters(self, changed_parameters):
-        for sulci, labelled_sulci in [(IntraAnalysis.LEFT_SULCI,IntraAnalysis.LEFT_LABELED_SULCI), 
-                                      (IntraAnalysis.RIGHT_SULCI,IntraAnalysis.RIGHT_LABELED_SULCI)]:
+        for sulci, labelled_sulci in [(IntraAnalysisParameterNames.LEFT_SULCI,
+                                       IntraAnalysisParameterNames.LEFT_LABELED_SULCI), 
+                                      (IntraAnalysisParameterNames.RIGHT_SULCI,
+                                       IntraAnalysisParameterNames.RIGHT_LABELED_SULCI)]:
             labeled_sulci_filename = changed_parameters.get(labelled_sulci, None)
             if (labeled_sulci_filename and os.path.exists(labeled_sulci_filename)):
                 if changed_parameters.get(sulci, None):
@@ -136,34 +138,34 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     def on_parameter_changed(self, parameter_name_list):
         views_to_update=set()
         for parameter_name in parameter_name_list:
-            if ((parameter_name == IntraAnalysis.MRI) or 
-                (parameter_name == IntraAnalysis.COMMISSURE_COORDINATES)):
+            if ((parameter_name == IntraAnalysisParameterNames.MRI) or 
+                (parameter_name == IntraAnalysisParameterNames.COMMISSURE_COORDINATES)):
                 views_to_update.add(self.RAW_MRI_ACPC)  
-            elif parameter_name == IntraAnalysis.CORRECTED_MRI:
+            elif parameter_name == IntraAnalysisParameterNames.CORRECTED_MRI:
                 views_to_update.add(self.BIAS_CORRECTED)
                 views_to_update.add(self.BRAIN_MASK)
                 views_to_update.add(self.SPLIT_MASK)
                 views_to_update.add(self.GREY_WHITE)
                 views_to_update.add(self.GREY_SURFACE)
                 views_to_update.add(self.WHITE_SURFACE_SULCI)
-            elif parameter_name == IntraAnalysis.HISTO_ANALYSIS:
+            elif parameter_name == IntraAnalysisParameterNames.HISTO_ANALYSIS:
                 views_to_update.add(self.HISTO_ANALYSIS)
-            elif parameter_name == IntraAnalysis.BRAIN_MASK:
+            elif parameter_name == IntraAnalysisParameterNames.BRAIN_MASK:
                 views_to_update.add(self.BRAIN_MASK)
-            elif parameter_name == IntraAnalysis.SPLIT_MASK:
+            elif parameter_name == IntraAnalysisParameterNames.SPLIT_MASK:
                 views_to_update.add(self.SPLIT_MASK)
-            elif ((parameter_name == IntraAnalysis.LEFT_GREY_WHITE) or
-                  (parameter_name == IntraAnalysis.RIGHT_GREY_WHITE)):
+            elif ((parameter_name == IntraAnalysisParameterNames.LEFT_GREY_WHITE) or
+                  (parameter_name == IntraAnalysisParameterNames.RIGHT_GREY_WHITE)):
                 views_to_update.add(self.GREY_WHITE)
-            elif ((parameter_name == IntraAnalysis.LEFT_GREY_SURFACE) or
-                  (parameter_name == IntraAnalysis.RIGHT_GREY_SURFACE)):
+            elif ((parameter_name == IntraAnalysisParameterNames.LEFT_GREY_SURFACE) or
+                  (parameter_name == IntraAnalysisParameterNames.RIGHT_GREY_SURFACE)):
                 views_to_update.add(self.GREY_SURFACE)
-            elif ( (parameter_name == IntraAnalysis.LEFT_WHITE_SURFACE) or 
-                   (parameter_name == IntraAnalysis.RIGHT_WHITE_SURFACE) or
-                   (parameter_name == IntraAnalysis.LEFT_SULCI) or
-                   (parameter_name == IntraAnalysis.RIGHT_SULCI) or 
-                   (parameter_name == IntraAnalysis.LEFT_LABELED_SULCI) or 
-                   (parameter_name == IntraAnalysis.RIGHT_LABELED_SULCI)):
+            elif ( (parameter_name == IntraAnalysisParameterNames.LEFT_WHITE_SURFACE) or 
+                   (parameter_name == IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE) or
+                   (parameter_name == IntraAnalysisParameterNames.LEFT_SULCI) or
+                   (parameter_name == IntraAnalysisParameterNames.RIGHT_SULCI) or 
+                   (parameter_name == IntraAnalysisParameterNames.LEFT_LABELED_SULCI) or 
+                   (parameter_name == IntraAnalysisParameterNames.RIGHT_LABELED_SULCI)):
                 views_to_update.add(self.WHITE_SURFACE_SULCI)
         self.update_views(views_to_update)
             
@@ -189,11 +191,11 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     def update_raw_mri_acpc_view(self):
         view = self._views[self.RAW_MRI_ACPC]
         view.clear()
-        mri = self._viewport_model.observed_objects[IntraAnalysis.MRI]
+        mri = self._viewport_model.observed_objects[IntraAnalysisParameterNames.MRI]
         if mri is not None:
             view.add_object(mri)
             view.center_on_object(mri)
-        apc_object = self._viewport_model.observed_objects[IntraAnalysis.COMMISSURE_COORDINATES]
+        apc_object = self._viewport_model.observed_objects[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
         if apc_object is not None:
             apc_object.set_ac_color(( 0, 0, 1, 1 )) 
             apc_object.set_pc_color(( 1, 1, 0, 1 )) 
@@ -204,7 +206,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     def update_corrected_mri_view(self):
         view = self._views[self.BIAS_CORRECTED]
         view.clear()
-        corrected_mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
+        corrected_mri = self._viewport_model.observed_objects[IntraAnalysisParameterNames.CORRECTED_MRI]
         if corrected_mri is not None:
             mri_copy = corrected_mri.shallow_copy()
             self._objects[self.BIAS_CORRECTED] = mri_copy
@@ -215,7 +217,7 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     def update_histo_analysis_view(self):
         view = self._views[self.HISTO_ANALYSIS]
         view.clear()
-        histo_analysis = self._viewport_model.observed_objects[IntraAnalysis.HISTO_ANALYSIS]
+        histo_analysis = self._viewport_model.observed_objects[IntraAnalysisParameterNames.HISTO_ANALYSIS]
         if histo_analysis is not None:
             view.add_object(histo_analysis)
 
@@ -223,10 +225,10 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     def update_brain_mask_view(self):
         view = self._views[self.BRAIN_MASK]
         view.clear()
-        mask = self._viewport_model.observed_objects[IntraAnalysis.BRAIN_MASK]
+        mask = self._viewport_model.observed_objects[IntraAnalysisParameterNames.BRAIN_MASK]
         if mask is not None:
             mask.set_color_map(ColorMap.GREEN_MASK)
-            mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
+            mri = self._viewport_model.observed_objects[IntraAnalysisParameterNames.CORRECTED_MRI]
             if mri is not None:
                 fusion = Object3D.from_fusion(mri, mask, mode='linear', rate=0.7)
                 self._objects[self.BRAIN_MASK] = fusion
@@ -237,10 +239,10 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     def update_split_mask_view(self):
         view = self._views[self.SPLIT_MASK]
         view.clear()
-        mask = self._viewport_model.observed_objects[IntraAnalysis.SPLIT_MASK]
+        mask = self._viewport_model.observed_objects[IntraAnalysisParameterNames.SPLIT_MASK]
         if mask is not None:
             mask.set_color_map(ColorMap.RAINBOW_MASK)
-            mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
+            mri = self._viewport_model.observed_objects[IntraAnalysisParameterNames.CORRECTED_MRI]
             if mri is not None:
                 fusion = Object3D.from_fusion(mri, mask, mode='linear', rate=0.7)
                 self._objects[self.SPLIT_MASK] = fusion
@@ -251,13 +253,13 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     def update_grey_white_view(self):
         view = self._views[self.GREY_WHITE]
         view.clear()
-        left_mask = self._viewport_model.observed_objects[IntraAnalysis.LEFT_GREY_WHITE]
-        right_mask = self._viewport_model.observed_objects[IntraAnalysis.RIGHT_GREY_WHITE]
+        left_mask = self._viewport_model.observed_objects[IntraAnalysisParameterNames.LEFT_GREY_WHITE]
+        right_mask = self._viewport_model.observed_objects[IntraAnalysisParameterNames.RIGHT_GREY_WHITE]
         if left_mask is not None and right_mask is not None:
             left_mask.set_color_map(ColorMap.RAINBOW_MASK)
             right_mask.set_color_map(ColorMap.RAINBOW_MASK)
             mask_fusion = Object3D.from_fusion(left_mask, right_mask, mode='max_channel', rate=0.5)
-            mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
+            mri = self._viewport_model.observed_objects[IntraAnalysisParameterNames.CORRECTED_MRI]
             if mri is not None:
                 fusion = Object3D.from_fusion(mri, mask_fusion, mode='linear', rate=0.7)
                 self._objects[self.GREY_WHITE] = fusion
@@ -269,8 +271,8 @@ class IntraAnalysisViewportView(QtGui.QWidget):
     def update_grey_surface_view(self):
         view = self._views[self.GREY_SURFACE]
         view.clear()
-        left_mesh = self._viewport_model.observed_objects[IntraAnalysis.LEFT_GREY_SURFACE]
-        right_mesh = self._viewport_model.observed_objects[IntraAnalysis.RIGHT_GREY_SURFACE]
+        left_mesh = self._viewport_model.observed_objects[IntraAnalysisParameterNames.LEFT_GREY_SURFACE]
+        right_mesh = self._viewport_model.observed_objects[IntraAnalysisParameterNames.RIGHT_GREY_SURFACE]
         yellow_color = [0.9, 0.7, 0.0, 1]
         if left_mesh is not None:
             left_mesh.set_color(yellow_color) 
@@ -279,19 +281,19 @@ class IntraAnalysisViewportView(QtGui.QWidget):
             right_mesh.set_color(yellow_color)
             view.add_object(right_mesh)
         if left_mesh is not None or right_mesh is not None:
-            mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
+            mri = self._viewport_model.observed_objects[IntraAnalysisParameterNames.CORRECTED_MRI]
             if mri is not None:
                 view.add_object(mri)
 
     def update_white_surface_sulci_view(self):
         view = self._views[self.WHITE_SURFACE_SULCI]
         view.clear()
-        left_mesh = self._viewport_model.observed_objects[IntraAnalysis.LEFT_WHITE_SURFACE]
-        right_mesh = self._viewport_model.observed_objects[IntraAnalysis.RIGHT_WHITE_SURFACE]
-        left_sulci = self._viewport_model.observed_objects[IntraAnalysis.LEFT_SULCI]
-        right_sulci = self._viewport_model.observed_objects[IntraAnalysis.RIGHT_SULCI]
-        left_labeled_sulci = self._viewport_model.observed_objects[IntraAnalysis.LEFT_LABELED_SULCI]
-        right_labeled_sulci = self._viewport_model.observed_objects[IntraAnalysis.RIGHT_LABELED_SULCI]
+        left_mesh = self._viewport_model.observed_objects[IntraAnalysisParameterNames.LEFT_WHITE_SURFACE]
+        right_mesh = self._viewport_model.observed_objects[IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE]
+        left_sulci = self._viewport_model.observed_objects[IntraAnalysisParameterNames.LEFT_SULCI]
+        right_sulci = self._viewport_model.observed_objects[IntraAnalysisParameterNames.RIGHT_SULCI]
+        left_labeled_sulci = self._viewport_model.observed_objects[IntraAnalysisParameterNames.LEFT_LABELED_SULCI]
+        right_labeled_sulci = self._viewport_model.observed_objects[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI]
         grey_color = [0.8, 0.8, 0.8, 1.]
         if left_mesh is not None:
             left_mesh.set_color(grey_color) 
@@ -310,6 +312,6 @@ class IntraAnalysisViewportView(QtGui.QWidget):
         if ((left_mesh is not None) or (right_mesh is not None) or
             (left_sulci is not None) or (right_sulci is not None) or
             (left_labeled_sulci is not None) or (right_labeled_sulci is not None)):
-            mri = self._viewport_model.observed_objects[IntraAnalysis.CORRECTED_MRI]
+            mri = self._viewport_model.observed_objects[IntraAnalysisParameterNames.CORRECTED_MRI]
             if mri is not None:
                 view.add_object(mri)

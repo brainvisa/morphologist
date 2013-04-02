@@ -2,8 +2,9 @@ import os
 import getpass
 
 from morphologist.core.tests.study import AbstractStudyTestCase
-from morphologist.intra_analysis import IntraAnalysis
-from morphologist.tests.intra_analysis.mocks.analysis import MockIntraAnalysis
+from morphologist.intra_analysis.parameters import DefaultIntraAnalysisParameterTemplate, \
+                                                BrainvisaIntraAnalysisParameterTemplate, \
+                                                IntraAnalysisParameterNames
 from morphologist.core.tests import reset_directory
 
 
@@ -16,11 +17,11 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
     def __init__(self):
         super(IntraAnalysisStudyTestCase, self).__init__()
         self.analysis_type = "IntraAnalysis"
-        self.studyname = "study with param template: " + self.parameter_template() 
+        self.studyname = "study with param template: " + self.parameter_template_name() 
         self.outputdir = os.path.join('/neurospin', 'tmp',  
                                       'cati-dev-prod', 'morphologist', 
                                       'output_dirs', getpass.getuser(), 
-                                      self.parameter_template())
+                                      self.parameter_template_name())
         inputdir = os.path.join('/neurospin', 'lnao', 'Panabase', 
                                 'cati-dev-prod', 'morphologist', 'raw_irm')
         basenames = ['caca.ima', 'chaos.nii.gz',
@@ -31,17 +32,18 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
         
         reset_directory(self.outputdir)
 
-    def parameter_template(self):
-        return IntraAnalysis.DEFAULT_PARAM_TEMPLATE 
+    def parameter_template_name(self):
+        return DefaultIntraAnalysisParameterTemplate.name
 
     def delete_some_input_files(self):
-        parameter_names = [IntraAnalysis.MRI]
+        parameter_names = [IntraAnalysisParameterNames.MRI]
         for name in parameter_names:
             file_name = self.study.analyses.values()[1].inputs.get_value(name)
             os.rename(file_name, file_name + "hide_for_test") 
 
     def create_some_output_files(self):
-        parameter_names = [IntraAnalysis.SPLIT_MASK, IntraAnalysis.VARIANCE]
+        parameter_names = [IntraAnalysisParameterNames.SPLIT_MASK, 
+                           IntraAnalysisParameterNames.VARIANCE]
         for name in parameter_names:
             file_name = self.study.analyses.values()[0].outputs.get_value(name)
             f = open(file_name, "w")
@@ -49,7 +51,7 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
             f.close() 
 
     def restore_input_files(self):
-        parameter_names = [IntraAnalysis.MRI]
+        parameter_names = [IntraAnalysisParameterNames.MRI]
         for name in parameter_names:
             file_name = self.study.analyses.values()[1].inputs.get_value(name)
             if file_name != None and os.path.isfile(file_name + "hide_for_test"):
@@ -85,8 +87,8 @@ class IntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
     -> Brainvisa parameter template
     '''
 
-    def parameter_template(self):
-        return IntraAnalysis.BRAINVISA_PARAM_TEMPLATE 
+    def parameter_template_name(self):
+        return BrainvisaIntraAnalysisParameterTemplate.name 
 
 
 class MockIntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
@@ -99,5 +101,5 @@ class MockIntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
         super(MockIntraAnalysisStudyTestCaseBvParamTemplate, self).__init__()
         self.analysis_type = "MockIntraAnalysis"
 
-    def parameter_template(self):
-        return IntraAnalysis.BRAINVISA_PARAM_TEMPLATE 
+    def parameter_template_name(self):
+        return BrainvisaIntraAnalysisParameterTemplate.name
