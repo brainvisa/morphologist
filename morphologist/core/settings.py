@@ -170,6 +170,7 @@ class RunnerSettings(SettingsFacade):
     _settings_map = {
         'selected_processing_units_n' : ('application', 'CPUs')
     }
+
     def __init__(self, configobj_settings):
         super(RunnerSettings, self).__init__(configobj_settings)
         # TODO: for cpu_count(), ask Runner backend instead
