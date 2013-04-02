@@ -2,6 +2,7 @@
 import os
 import time
 import threading
+import multiprocessing
 
 import soma.workflow as sw
 from soma.workflow.client import WorkflowController, Helper, Workflow, Job, Group
@@ -153,8 +154,7 @@ class  SomaWorkflowRunner(Runner):
         self._cached_jobs_status = None
 
     def _cpus_number(self):
-        # TODO: for cpu_count(), ask Runner backend instead
-        cpus_count = Helper.cpu_count()
+        cpus_count = multiprocessing.cpu_count()
         cpus_settings = settings.runner.selected_processing_units_n
         if cpus_settings > cpus_count:
             print "Warning: bad setting value:\n" + \
