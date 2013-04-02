@@ -87,7 +87,7 @@ class StudyEditorDialog(QtGui.QDialog):
         self._study_properties_editor_widget.validity_changed.connect(self.on_study_properties_editor_validity_changed)
 
         self._init_subjects_from_study_dialog(study)
-        self._init_db_dialog(settings.study_editor_settings.brainomics)
+        self._init_db_dialog(settings.study_editor.brainomics)
 
     def _init_ui(self):
         uifile = os.path.join(ui_directory, 'study_editor_widget.ui')

@@ -27,7 +27,7 @@ class Settings(object):
                                 Settings.disk_configobj)
         self.runner = RunnerSettings(self._memory_configobj)
         self.commandline = CommandLineSettings(self._memory_configobj)
-        self.study_editor_settings = StudyEditorSettings(self._memory_configobj)
+        self.study_editor = StudyEditorSettings(self._memory_configobj)
         self.backends = BackendSettings(self._memory_configobj)
         self.tests = TestsSettings(self._memory_configobj)
 
@@ -216,10 +216,10 @@ class StudyEditorSettings(SettingsFacade):
 
 class BackendSettings(SettingsFacade):
     _settings_map = {
-        "vector_graphics" : ('backend', 'vector_graphics'),
-        "display" : ('backend', 'display'),
-        "objects" : ('backend', 'objects'),
-        "formats" : ('backend', 'formats'),
+        "vector_graphics" : ('backends', 'vector_graphics'),
+        "display" : ('backends', 'display'),
+        "objects" : ('backends', 'objects'),
+        "formats" : ('backends', 'formats'),
      }
 
 

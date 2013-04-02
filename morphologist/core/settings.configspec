@@ -5,7 +5,7 @@ brainomics = boolean(default=False)
 # number of CPUs used for analyses (default: auto)
 CPUs = auto_or_integer(default='auto')
 # backend settings
-[backend]
+[backends]
 vector_graphics = option(morphologist_common, default=morphologist_common)
 display = option(pyanatomist, default=pyanatomist)
 objects = option(pyanatomist, default=pyanatomist)
