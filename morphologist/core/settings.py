@@ -27,6 +27,16 @@ class MorphologistConfigValidator(Validator):
                                                     value, missing)
 
 
+class AutoOrInt(int):
+    def __new__(cls, value, auto=False):
+        i = int.__new__(cls, value)
+        i._is_auto = auto
+        return i
+    @property
+    def is_auto(self):
+        return self._is_auto
+
+
 class SettingsManager(object):
     prefix = 'morphologist/core'
     configspec = os.path.join(prefix, 'settings.configspec')
@@ -168,16 +178,13 @@ class RunnerSettings(SettingsFacade):
 
     @property
     def selected_processing_units_n(self):
-        value = super(SettingsFacade, self).__getattr__(attr)
+        attr = 'selected_processing_units_n'
+        value = super(RunnerSettings, self).__getattr__(attr)
         if value == AUTO:
-            return self._auto_selected_processing_units_n()
+            value = self._auto_selected_processing_units_n()
+            return AutoOrInt(value, auto=True)
         else:
-            return value
-
-    def auto_select_processing_units(self):
-        value = self._auto_selected_processing_units_n() 
-        self.selected_processing_units_n = value
-        return value
+            return AutoOrInt(value, auto=False)
 
     def _auto_selected_processing_units_n(self):
         return max(1, self._total_processing_units_n - 1)
