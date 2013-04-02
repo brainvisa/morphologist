@@ -5,13 +5,16 @@ from morphologist.core.study import StudySerializationError
 from morphologist.core.analysis import ImportationError
 from morphologist.core.runner import SomaWorkflowRunner
 
-from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
-from morphologist.core.gui.study_editor_widget import StudyEditorDialog, \
-                                                            StudyEditor
 from morphologist.core.gui.study_model import LazyStudyModel
 from morphologist.core.gui.analysis_model import LazyAnalysisModel
+from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
 from morphologist.core.gui.subjects_widget import SubjectsWidget
 from morphologist.core.gui.runner_widget import RunnerView
+
+from morphologist.core.gui.runner_settings_widget \
+                        import RunnerSettingsDialog
+from morphologist.core.gui.study_editor_widget import StudyEditorDialog, \
+                                                            StudyEditor
 
 from morphologist.intra_analysis.study import IntraAnalysisStudy
 
@@ -49,7 +52,7 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
 
         self.setWindowTitle(self._window_title())
         
-        self.study_editor_widget_window = None
+        self.dialogs = {}
         
         self.study_model.current_subject_changed.connect(self.on_current_subject_changed)
         self.on_current_subject_changed()
@@ -70,28 +73,30 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
         msg = 'Stop current running analysis and create a new study ?'
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
         study = self._create_study()
-        self.study_editor_widget_window = StudyEditorDialog(study, parent=self,
+        dialog = StudyEditorDialog(study, parent=self,
                             editor_mode=StudyEditor.NEW_STUDY)
-        self.study_editor_widget_window.ui.accepted.connect(self.on_study_dialog_accepted)
-        self.study_editor_widget_window.ui.show()
+        dialog.ui.accepted.connect(self.on_study_dialog_accepted)
+        dialog.ui.show()
+        self.dialogs['study_editor_dialog'] = dialog
        
     # this slot is automagically connected
     @QtCore.Slot()
     def on_action_edit_study_triggered(self):
         msg = 'Stop current running analysis and edit the current study ?'
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
-        self.study_editor_widget_window = StudyEditorDialog(self.study,
+        dialog = StudyEditorDialog(self.study,
                     parent=self, editor_mode=StudyEditor.EDIT_STUDY)
-        self.study_editor_widget_window.ui.accepted.connect(self.on_study_dialog_accepted)
-        self.study_editor_widget_window.ui.show()
+        dialog.ui.accepted.connect(self.on_study_dialog_accepted)
+        dialog.ui.show()
+        self.dialogs['study_editor_dialog'] = dialog
 
     @QtCore.Slot()
     def on_study_dialog_accepted(self):
-        dialog = self.study_editor_widget_window
+        dialog = self.dialogs['study_editor_dialog']
         study = dialog.create_updated_study()
         self.set_study(dialog.study_editor.study)
         self._try_save_to_backup_file()
-        self.study_editor_widget_window = None
+        del self.dialogs['study_editor_dialog']
 
     # this slot is automagically connected
     @QtCore.Slot()
@@ -168,6 +173,18 @@ class IntraAnalysisWindow(QtGui.QMainWindow):
             event.ignore()
         else:
             event.accept()
+
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_action_runner_settings_triggered(self):
+        dialog = RunnerSettingsDialog(settings, self)
+        dialog.ui.accepted.connect(self.on_runner_settings_dialog_accepted)
+        dialog.show()
+        self.dialogs['runner_settings_dialog'] = dialog
+
+    @QtCore.Slot()
+    def on_runner_settings_dialog_accepted(self):
+        del self.dialogs['runner_settings_dialog']
 
 
 def create_main_window(study_file=None):

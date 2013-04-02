@@ -59,7 +59,7 @@
      <bool>true</bool>
     </property>
     <property name="title">
-     <string>Study</string>
+     <string>&amp;Study</string>
     </property>
     <addaction name="action_new_study"/>
     <addaction name="action_edit_study"/>
@@ -67,7 +67,14 @@
     <addaction name="action_save_study"/>
     <addaction name="action_save_as_study"/>
    </widget>
+   <widget class="QMenu" name="menuConfig">
+    <property name="title">
+     <string>&amp;Settings</string>
+    </property>
+    <addaction name="action_runner_settings"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuConfig"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="runner_widget_dock">
@@ -165,6 +172,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+E</string>
+   </property>
+  </action>
+  <action name="action_runner_settings">
+   <property name="text">
+    <string>&amp;Calculations</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
    </property>
   </action>
  </widget>
