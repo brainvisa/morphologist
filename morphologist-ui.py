@@ -41,7 +41,6 @@ def brainomics_option_callback(self, option, value, parser):
 def main():
     parser = option_parser()
     options, args = parser.parse_args(sys.argv)
-    settings.commandline.set_read_only()
     if not settings.are_valid(): return
     
     qApp = QtGui.QApplication(sys.argv)

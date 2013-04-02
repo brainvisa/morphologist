@@ -3,6 +3,7 @@ __all__ = ['settings', 'AUTO']
 
 import os
 import copy
+import multiprocessing
 from configobj import ConfigObj, flatten_errors, get_extra_values
 from validate import Validator
 
@@ -10,42 +11,42 @@ from validate import Validator
 AUTO = 'auto'
 
 
-class MorphologistConfigValidator(Validator):
-    AUTO_PREFIX = 'auto_or_'
+class Settings(object):
+    disk_configobj = None
+    _cfg_handler = None
 
-    def __init__(self, *args, **kwargs):
-        super(MorphologistConfigValidator, self).__init__(*args, **kwargs)
+    @classmethod
+    def _init_class(cls):
+        cls._cfg_handler = ConfigobjSettingsHandler()
+        cls.disk_configobj = cls._cfg_handler.load()
 
-    def check(self, check, value, missing):
-        if check.startswith(self.AUTO_PREFIX):
-            if missing:
-                value = AUTO
-            if value == AUTO:
-                return AUTO
-            check = check.replace(self.AUTO_PREFIX, "", 1)
-        return super(MorphologistConfigValidator, self).check(check,
-                                                    value, missing)
+    def __init__(self):
+        if Settings.disk_configobj is None:
+            Settings._init_class()
+        self._memory_configobj = self._cfg_handler.copy(\
+                                Settings.disk_configobj)
+        self.runner = RunnerSettings(self._memory_configobj)
+        self.commandline = CommandLineSettings(self._memory_configobj)
+        self.study_editor_settings = StudyEditorSettings(self._memory_configobj)
+        self.backends = BackendSettings(self._memory_configobj)
+        self.tests = TestsSettings(self._memory_configobj)
+
+    def are_valid(self):
+        return self._cfg_handler.check_settings(self._memory_configobj)
+
+    def save(self):
+        self._cfg_handler.save(cls.disk_configobj)
 
 
-class AutoOrInt(int):
-    def __new__(cls, value, auto=False):
-        i = int.__new__(cls, value)
-        i._is_auto = auto
-        return i
-    @property
-    def is_auto(self):
-        return self._is_auto
-
-
-class SettingsManager(object):
-    prefix = 'morphologist/core'
-    configspec = os.path.join(prefix, 'settings.configspec')
-    filename = os.path.join(os.path.expanduser('~'), '.morphologist-ui.ini')
+class ConfigobjSettingsHandler(object):
+    filepath = os.path.join(os.path.expanduser('~'), '.morphologist-ui.ini')
+    _prefix = 'morphologist/core'
+    _configspec = os.path.join(_prefix, 'settings.configspec')
 
     @classmethod
     def generate_default(cls):
-        settings = ConfigObj(configspec=cls.configspec)
-        settings.filename = cls.filename
+        settings = ConfigObj(configspec=cls._configspec)
+        settings.filename = cls.filepath
         validator = MorphologistConfigValidator()
         settings.validate(validator, copy=True)
         return settings
@@ -53,10 +54,10 @@ class SettingsManager(object):
     @classmethod
     def load(cls):
         settings = cls.generate_default()
-        if not os.path.exists(cls.filename):
+        if not os.path.exists(cls.filepath):
             cls.save(settings) # save default settings
         else:
-            user_settings = ConfigObj(cls.filename, configspec=cls.configspec)
+            user_settings = ConfigObj(cls.filepath, configspec=cls._configspec)
             settings.merge(user_settings)
         return settings
 
@@ -96,7 +97,24 @@ class SettingsManager(object):
                 print "  -", item
             return False
         return True
-     
+
+
+class MorphologistConfigValidator(Validator):
+    AUTO_PREFIX = 'auto_or_'
+
+    def __init__(self, *args, **kwargs):
+        super(MorphologistConfigValidator, self).__init__(*args, **kwargs)
+
+    def check(self, check, value, missing):
+        if check.startswith(self.AUTO_PREFIX):
+            if missing:
+                value = AUTO
+            if value == AUTO:
+                return AUTO
+            check = check.replace(self.AUTO_PREFIX, "", 1)
+        return super(MorphologistConfigValidator, self).check(check,
+                                                    value, missing)
+
 
 # use facade design pattern to propose new interfaces of configobj settings
 class SettingsFacade(object):
@@ -106,7 +124,9 @@ class SettingsFacade(object):
         self._wrapped = configobj_settings
 
     def save(self):
+        disk_settings = Settings.disk_configobj
         for section, setting in self._settings_map.itervalues():
+            # XXX: this repr [section][setting] is a specificity of configobj
             disk_settings[section][setting] = self._wrapped[section][setting]
         disk_settings.write()
 
@@ -120,6 +140,7 @@ class SettingsFacade(object):
         if not self._settings_map.has_key(attr):
             return super(SettingsFacade, self).__getattribute__(attr)
         section, setting = self._try_find_attr(attr)
+        # XXX: this repr [section][setting] is a specificity of configobj
         return self._wrapped[section][setting]
 
     def _try_find_attr(self, attr):
@@ -152,30 +173,11 @@ class CommandLineSettings(SettingsFacade):
         "mock" : ('debug', 'mock'),
      }
 
-    def __init__(self, configobj_settings):
-        super(CommandLineSettings, self).__init__(configobj_settings)
-        self._read_only = False
-
-    def __setattr__(self, attr, value):
-        if self._settings_map.has_key(attr) and self._read_only:
-            raise AttributeError("can't set attribute")
-        else:
-            super(CommandLineSettings, self).__setattr__(attr, value)
-
-    def set_read_only(self):
-        object.__setattr__(self, "_read_only", True)
-
 
 class RunnerSettings(SettingsFacade):
     _settings_map = {
         'selected_processing_units_n' : ('application', 'CPUs')
     }
-
-    def __init__(self, configobj_settings):
-        super(RunnerSettings, self).__init__(configobj_settings)
-        # TODO: for cpu_count(), ask Runner backend instead
-        import multiprocessing
-        self._total_processing_units_n = multiprocessing.cpu_count()
 
     @property
     def selected_processing_units_n(self):
@@ -188,20 +190,26 @@ class RunnerSettings(SettingsFacade):
             return AutoOrInt(value, auto=False)
 
     def _auto_selected_processing_units_n(self):
-        return max(1, self._total_processing_units_n - 1)
+        total_processing_units_n = multiprocessing.cpu_count()
+        return max(1, total_processing_units_n - 1)
+
+
+class AutoOrInt(int):
+
+    def __new__(cls, value, auto=False):
+        i = int.__new__(cls, value)
+        i._is_auto = auto
+        return i
 
     @property
-    def total_processing_units_n(self):
-        return self._total_processing_units_n
+    def is_auto(self):
+        return self._is_auto
 
 
 class StudyEditorSettings(SettingsFacade):
     _settings_map = {
         "brainomics" : ('application', 'brainomics'),
      }
-
-    def __init__(self, configobj_settings):
-        super(StudyEditorSettings, self).__init__(configobj_settings)
 
 
 class BackendSettings(SettingsFacade):
@@ -212,9 +220,6 @@ class BackendSettings(SettingsFacade):
         "formats" : ('backend', 'formats'),
      }
 
-    def __init__(self, configobj_settings):
-        super(BackendSettings, self).__init__(configobj_settings)
-
 
 class TestsSettings(SettingsFacade):
     _settings_map = {
@@ -222,27 +227,5 @@ class TestsSettings(SettingsFacade):
         "mock" : ('debug', 'mock'),
      }
 
-    def __init__(self, configobj_settings):
-        super(TestsSettings, self).__init__(configobj_settings)
 
-
-class Settings(object):
-
-    def __init__(self, configobj_settings):
-        self._configobj_settings = configobj_settings
-        self.runner = RunnerSettings(configobj_settings)
-        self.commandline = CommandLineSettings(configobj_settings)
-        self.study_editor_settings = StudyEditorSettings(configobj_settings)
-        self.backends = BackendSettings(configobj_settings)
-        self.tests = TestsSettings(configobj_settings)
-
-    def are_valid(self):
-        return SettingsManager.check_settings(self._configobj_settings)
-        
-
-# low level internal (only this file) configobj settings
-disk_settings = SettingsManager.load()
-memory_settings = SettingsManager.copy(disk_settings)
-
-# high level client-code-oriented settings
-settings = Settings(memory_settings)
+settings = Settings()
