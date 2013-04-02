@@ -8,16 +8,6 @@ from morphologist.core.gui import ui_directory
 
 
 class RunnerSettingsDialog(QtGui.QDialog):
-    on_apply_cancel_buttons_clicked_map = {}
-
-    @classmethod
-    def _init_class(cls):
-        apply_role = QtGui.QDialogButtonBox.ApplyRole
-        reject_role = QtGui.QDialogButtonBox.RejectRole
-        role_map = cls.on_apply_cancel_buttons_clicked_map
-        role_map[apply_role] = cls.on_apply_button_clicked
-        role_map[reject_role] = cls.on_cancel_button_clicked
-
     def __init__(self, settings, parent=None):
         super(RunnerSettingsDialog, self).__init__(parent)
         self._runner_settings = settings.runner.copy()
@@ -30,8 +20,8 @@ class RunnerSettingsDialog(QtGui.QDialog):
         cancel_id = QtGui.QDialogButtonBox.Cancel
         self.ui.apply_button = self.ui.apply_cancel_buttons.button(apply_id)
         self.ui.cancel_button = self.ui.apply_cancel_buttons.button(cancel_id)
-        self.apply_button = self.ui.apply_button
-        self.cancel_button = self.ui.cancel_button
+        self.ui.apply_button.clicked.connect(self.on_apply_button_clicked)
+        self.ui.cancel_button.clicked.connect(self.on_cancel_button_clicked)
         cpus = self._runner_settings.selected_processing_units_n
         if cpus.is_auto:
             self.ui.auto_checkBox.setCheckState(QtCore.Qt.Checked)
@@ -60,12 +50,6 @@ class RunnerSettingsDialog(QtGui.QDialog):
     @QtCore.Slot('int')
     def on_selected_cpu_spinBox_valueChanged(self, value):
         self._runner_settings.selected_processing_units_n = value
-
-    # this slot is automagically connected
-    @QtCore.Slot("QAbstractButton *")
-    def on_apply_cancel_buttons_clicked(self, button):
-        role = self.ui.apply_cancel_buttons.buttonRole(button)
-        self.on_apply_cancel_buttons_clicked_map[role](self)
 
     @QtCore.Slot()
     def on_apply_button_clicked(self):
@@ -102,6 +86,3 @@ class RunnerSettingsDialog(QtGui.QDialog):
     @QtCore.Slot()
     def on_cancel_button_clicked(self):
         self.ui.reject()
-
-
-RunnerSettingsDialog._init_class()

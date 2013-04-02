@@ -49,17 +49,8 @@ class StudyEditorDialog(QtGui.QDialog):
     window_title_from_mode = [\
         "Create a new study",
         "Edit current study"]
-    on_apply_cancel_buttons_clicked_map = {}
     default_group = Subject.DEFAULT_GROUP
     group_column_width = 100
-
-    @classmethod
-    def _init_class(cls):
-        apply_role = QtGui.QDialogButtonBox.ApplyRole
-        reject_role = QtGui.QDialogButtonBox.RejectRole
-        role_map = cls.on_apply_cancel_buttons_clicked_map
-        role_map[apply_role] = cls.on_apply_button_clicked
-        role_map[reject_role] = cls.on_cancel_button_clicked
 
     def __init__(self, study, parent=None, editor_mode=StudyEditor.NEW_STUDY):
         super(StudyEditorDialog, self).__init__(parent)
@@ -96,6 +87,8 @@ class StudyEditorDialog(QtGui.QDialog):
         cancel_id = QtGui.QDialogButtonBox.Cancel
         self.ui.apply_button = self.ui.apply_cancel_buttons.button(apply_id)
         self.ui.cancel_button = self.ui.apply_cancel_buttons.button(cancel_id)
+        self.ui.apply_button.clicked.connect(self.on_apply_button_clicked)
+        self.ui.cancel_button.clicked.connect(self.on_cancel_button_clicked)
 
     def _init_db_dialog(self, enable_brainomics_db):
         if enable_brainomics_db:
@@ -230,12 +223,6 @@ class StudyEditorDialog(QtGui.QDialog):
         self._subjects_tablemodel.add_subjects_from_filenames(\
                             self._subject_from_db_dialog.get_filenames(), 
                             self._subject_from_db_dialog.get_group())
-
-    # this slot is automagically connected
-    @QtCore.Slot("QAbstractButton *")
-    def on_apply_cancel_buttons_clicked(self, button):
-        role = self.ui.apply_cancel_buttons.buttonRole(button)
-        self.on_apply_cancel_buttons_clicked_map[role](self)
 
     def on_apply_button_clicked(self):
         if not self._check_study_consistency():
@@ -995,6 +982,3 @@ class SubjectsFromDatabaseDialog(QtGui.QDialog):
 
 class LoadSubjectsFromDatabaseError(Exception):
     pass        
-
-
-StudyEditorDialog._init_class()
