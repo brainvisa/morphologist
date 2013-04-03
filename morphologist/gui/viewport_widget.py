@@ -51,10 +51,10 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
     def load_object_async(parameter_name, filename, callback):
         _ = parameter_name
         obj = None
-        if (parameter_name == IntraAnalysis.COMMISSURE_COORDINATES):
+        if (parameter_name == IntraAnalysisParameterNames.COMMISSURE_COORDINATES):
             obj = APCObject(filename)
-        elif (parameter_name == IntraAnalysis.HISTO_ANALYSIS):
-            obj = histo_analysis_widget.load_histo_data(filename)
+        elif (parameter_name == IntraAnalysisParameterNames.HISTO_ANALYSIS):
+            obj = Histogram.from_filename(filename)
         else:
             Object3D.from_filename_async(filename, callback)
             return
