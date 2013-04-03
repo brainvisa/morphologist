@@ -63,9 +63,9 @@ class Study(object):
         study = cls(analysis_type=serialized['analysis_type'], 
                     name=serialized['name'],
                     outputdir=serialized['outputdir'])
-        for serialized_subject in serialized['subjects']:
+        for subject_id, serialized_subject in serialized['subjects'].iteritems():
             subject = Subject.unserialize(serialized_subject)
-            study.subjects[subject.id()] = subject
+            study.subjects[subject_id] = subject
         for subject_id, subject in study.subjects.iteritems():
             if subject_id not in serialized['inputs']:
                 raise StudySerializationError("Cannot find input params"
@@ -96,9 +96,9 @@ class Study(object):
         serialized['analysis_type'] = self.analysis_type
         serialized['name'] = self.name
         serialized['outputdir'] = self.outputdir
-        serialized['subjects'] = []
+        serialized['subjects'] = {}
         for subject_id, subject in self.subjects.iteritems():
-            serialized['subjects'].append(subject.serialize())
+            serialized['subjects'][subject_id] = subject.serialize()
         serialized['inputs'] = {}
         serialized['outputs'] = {}
         for subject_id, analysis in self.analyses.iteritems():

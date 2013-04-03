@@ -41,14 +41,14 @@ class Subject(object):
 
     def serialize(self):
         serialized = {}
-        serialized['subjectname'] = self.name
+        serialized['name'] = self.name
         serialized['groupname'] = self.groupname
         serialized['filename'] = self.filename
         return serialized
 
     @classmethod
     def unserialize(cls, serialized):
-        subject = cls(name=serialized['subjectname'], 
+        subject = cls(name=serialized['name'], 
                       groupname=serialized['groupname'],
                       filename=serialized['filename'])
         return subject
