@@ -13,7 +13,8 @@ from morphologist.core.gui.runner_widget import RunnerView
 from morphologist.core.gui.runner_settings_widget \
                         import RunnerSettingsDialog
 from morphologist.core.gui.study_editor_widget import StudyEditorDialog, \
-                                                            StudyEditor
+                                                    StudyEditor, \
+                                                    SelectOrganizedDirectoryDialog
 from morphologist.gui import ui_directory 
 from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
                              IntraAnalysisViewportView
@@ -78,6 +79,43 @@ class MainWindow(QtGui.QMainWindow):
        
     # this slot is automagically connected
     @QtCore.Slot()
+    def on_action_import_study_triggered(self):
+        msg = 'Stop current running analysis and import a study ?'
+        if self._runner_still_running_after_stopping_asked_to_user(msg): return
+        dialog = SelectOrganizedDirectoryDialog(self, 
+                                                self.study.default_outputdir,
+                                                self.analysis_type,
+                                                selected_template_name=self.study.parameter_template.name, 
+                                                in_place_checkbox_visible=True)
+        dialog.accepted.connect(self.on_import_study_dialog_accepted)
+        dialog.show()
+        self.dialogs['import_study_dialog'] = dialog
+        
+    @QtCore.Slot()
+    def on_import_study_dialog_accepted(self):
+        dialog = self.dialogs['import_study_dialog']
+        in_place = dialog.ui.in_place_checkbox.checkState() == QtCore.Qt.Checked 
+        if in_place:
+            organized_directory = dialog.get_organized_directory()
+            parameter_template_name = dialog.get_parameter_template_name()
+            study = Study.from_organized_directory(self.analysis_type, organized_directory, 
+                                                   parameter_template_name)
+            subjects = None
+            mode = StudyEditor.EDIT_STUDY
+        else:
+            study = self._create_study()
+            subjects = dialog.get_subjects()
+            mode = StudyEditor.NEW_STUDY
+        dialog = StudyEditorDialog(study, parent=self,
+                            editor_mode=mode)
+        if subjects:
+            dialog.add_subjects(subjects)
+        dialog.ui.accepted.connect(self.on_study_dialog_accepted)
+        dialog.ui.show()
+        self.dialogs['study_editor_dialog'] = dialog
+    
+    # this slot is automagically connected
+    @QtCore.Slot()
     def on_action_edit_study_triggered(self):
         msg = 'Stop current running analysis and edit the current study ?'
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
@@ -91,7 +129,7 @@ class MainWindow(QtGui.QMainWindow):
     def on_study_dialog_accepted(self):
         dialog = self.dialogs['study_editor_dialog']
         study = dialog.create_updated_study()
-        self.set_study(dialog.study_editor.study)
+        self.set_study(study)
         self._try_save_to_backup_file()
         del self.dialogs['study_editor_dialog']
 

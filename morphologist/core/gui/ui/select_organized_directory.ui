@@ -6,25 +6,25 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>119</height>
+    <width>422</width>
+    <height>167</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Find subjects in an organized directory</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QLabel" name="study_directory_label">
+      <widget class="QLabel" name="organized_directory_label">
        <property name="text">
-        <string>Study directory:</string>
+        <string>Directory:</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="study_directory_lineEdit"/>
+      <widget class="QLineEdit" name="organized_directory_lineEdit"/>
      </item>
      <item>
       <widget class="QPushButton" name="study_directory_button">
@@ -32,7 +32,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../../../resources/morphologist.qrc">
+        <iconset resource="../../../../resources/morphologist.qrc">
          <normaloff>:/icons/open.png</normaloff>:/icons/open.png</iconset>
        </property>
       </widget>
@@ -40,7 +40,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
       <widget class="QLabel" name="parameter_template_label">
        <property name="sizePolicy">
@@ -50,7 +50,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Study directory organization:</string>
+        <string>Directory organization:</string>
        </property>
       </widget>
      </item>
@@ -58,6 +58,16 @@
       <widget class="QComboBox" name="parameter_template_combobox"/>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="in_place_checkbox">
+     <property name="text">
+      <string>Create the study in this directory (no file copy)</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
@@ -72,7 +82,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../../resources/morphologist.qrc"/>
+  <include location="../../../../resources/morphologist.qrc"/>
  </resources>
  <connections>
   <connection>

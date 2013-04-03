@@ -62,8 +62,11 @@
      <string>&amp;Study</string>
     </property>
     <addaction name="action_new_study"/>
-    <addaction name="action_edit_study"/>
     <addaction name="action_open_study"/>
+    <addaction name="action_import_study"/>
+    <addaction name="separator"/>
+    <addaction name="action_edit_study"/>
+    <addaction name="separator"/>
     <addaction name="action_save_study"/>
     <addaction name="action_save_as_study"/>
    </widget>
@@ -180,6 +183,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="action_import_study">
+   <property name="text">
+    <string>Import...</string>
+   </property>
+   <property name="toolTip">
+    <string>Import a study from an organized directory</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
    </property>
   </action>
  </widget>

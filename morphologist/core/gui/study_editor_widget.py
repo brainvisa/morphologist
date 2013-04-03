@@ -12,7 +12,7 @@ from morphologist.core.gui import ui_directory
 from morphologist.core.study import Study
 from morphologist.core.subject import Subject
 from morphologist.core.formats import FormatsManager
-from morphologist.core.analysis import ImportationError
+from morphologist.core.analysis import ImportationError, AnalysisFactory
 
 
 class StudyEditor(object):
@@ -78,7 +78,7 @@ class StudyEditorDialog(QtGui.QDialog):
 
         self._study_properties_editor_widget.validity_changed.connect(self.on_study_properties_editor_validity_changed)
 
-        self._init_subjects_from_study_dialog(study)
+        self._init_subjects_from_directory_dialog(study)
         self._init_db_dialog(settings.study_editor.brainomics)
 
     def _init_ui(self):
@@ -102,14 +102,13 @@ class StudyEditorDialog(QtGui.QDialog):
         else:
             self.ui.add_subjects_from_database_button.hide()    
              
-    def _init_subjects_from_study_dialog(self, study):
+    def _init_subjects_from_directory_dialog(self, study):
         outputdir = study.outputdir
-        parameter_templates = study.analysis_cls().PARAMETER_TEMPLATES
-        selected_template = self._default_parameter_template_name
-        self._subjects_from_study_dialog = SelectStudyDirectoryDialog(self.ui,
-                            outputdir, parameter_templates, selected_template)
-        self._subjects_from_study_dialog.accepted.connect(\
-            self.on_subjects_from_study_dialog_accepted)
+        selected_template_name = self._default_parameter_template_name
+        self._subjects_from_directory_dialog = SelectOrganizedDirectoryDialog(self.ui,
+                            outputdir, study.analysis_type, selected_template_name)
+        self._subjects_from_directory_dialog.accepted.connect(\
+            self.on_subjects_from_directory_dialog_accepted)
 
     def _set_window_title(self, mode):
         self.setWindowTitle(self.window_title_from_mode[mode])
@@ -134,6 +133,9 @@ class StudyEditorDialog(QtGui.QDialog):
             msgbox.show()
         return study
  
+    def add_subjects(self, subjects):
+        self._subjects_tablemodel.add_subjects(subjects)
+        
     @QtCore.Slot("const QModelIndex &", "int", "int")
     def on_subjects_tablemodel_rows_changed(self):
         self._on_table_model_changed()
@@ -167,15 +169,8 @@ class StudyEditorDialog(QtGui.QDialog):
         
     # this slot is automagically connected
     @QtCore.Slot()
-    def on_subjects_from_study_dialog_accepted(self):
-        study_directory = self._subjects_from_study_dialog.get_study_directory()
-        parameter_template_name = self._subjects_from_study_dialog.get_study_parameter_template_name()
-        analysis_cls = self.study_editor.study_properties_editor.analysis_cls
-        parameter_template = analysis_cls.create_parameter_template(parameter_template_name, 
-                                                                    study_directory)
-        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-        subjects = parameter_template.get_subjects()
-        QtGui.QApplication.restoreOverrideCursor()
+    def on_subjects_from_directory_dialog_accepted(self):
+        subjects = self._subjects_from_directory_dialog.get_subjects
         if not subjects:
             QtGui.QMessageBox.warning(self, "No subjects", 
                                       "Cannot find subjects in this directory.")
@@ -872,38 +867,53 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
         return final_filter
 
 
-class SelectStudyDirectoryDialog(QtGui.QDialog):
+class SelectOrganizedDirectoryDialog(QtGui.QDialog):
     
-    def __init__(self, parent, default_study_directory, 
-                 parameter_templates, selected_template):
-        super(SelectStudyDirectoryDialog, self).__init__(parent)
+    def __init__(self, parent, default_directory, analysis_type,
+                 selected_template_name,
+                 in_place_checkbox_visible=False):
+        super(SelectOrganizedDirectoryDialog, self).__init__(parent)
         
-        uifile = os.path.join(ui_directory, 'select_study_directory.ui')
+        uifile = os.path.join(ui_directory, 'select_organized_directory.ui')
         self.ui = loadUi(uifile, self)
         
-        self.ui.study_directory_lineEdit.setText(default_study_directory)
+        self.ui.organized_directory_lineEdit.setText(default_directory)
+        self.ui.in_place_checkbox.setVisible(in_place_checkbox_visible)
         
+        self._analysis_type = analysis_type
+        parameter_templates = AnalysisFactory.get_analysis_cls(analysis_type).PARAMETER_TEMPLATES
         for param_template in parameter_templates:
             param_template_name = param_template.name
             self.ui.parameter_template_combobox.addItem(param_template_name)
-            if param_template_name == selected_template:
+            if param_template_name == selected_template_name:
                 self.ui.parameter_template_combobox.setCurrentIndex(self.ui.parameter_template_combobox.count()-1)
     
-    def get_study_directory(self):
-        return self.ui.study_directory_lineEdit.text()
+    def get_organized_directory(self):
+        return self.ui.organized_directory_lineEdit.text()
     
-    def get_study_parameter_template_name(self):
+    def get_parameter_template_name(self):
         return self.ui.parameter_template_combobox.currentText()
-
+        
+    def get_subjects(self):
+        organized_directory = self.get_organized_directory()
+        parameter_template_name = self.get_parameter_template_name()
+        analysis_cls = AnalysisFactory.get_analysis_cls(self._analysis_type)
+        parameter_template = analysis_cls.create_parameter_template(parameter_template_name, 
+                                                                    organized_directory)
+        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        subjects = parameter_template.get_subjects()
+        QtGui.QApplication.restoreOverrideCursor()
+        return subjects
+        
     # this slot is automagically connected
     @QtCore.Slot()
     def on_study_directory_button_clicked(self):
         selected_directory = QtGui.QFileDialog.getExistingDirectory(self.ui,
                                 caption="Select a study directory", 
-                                directory=self.get_study_directory(), 
+                                directory=self.get_organized_directory(), 
                                 options=QtGui.QFileDialog.DontUseNativeDialog)
         if selected_directory != '':
-            self.ui.study_directory_lineEdit.setText(selected_directory)
+            self.ui.organized_directory_lineEdit.setText(selected_directory)
 
 
 class SubjectsFromDatabaseDialog(QtGui.QDialog):
