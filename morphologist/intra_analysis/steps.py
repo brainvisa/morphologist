@@ -27,8 +27,19 @@ class SpatialNormalization(Step):
     def __init__(self):
         super(SpatialNormalization, self).__init__()
         self.name = 'normalization'
-        self.description = "Spatial normalization using SPM8 standalone."
-        self.help_message = "You should check your SPM installation."
+        self.description = "<b>Spatial normalization using SPM8 standalone.</b>"
+        self.help_message = """<p>You should check your SPM installation.</p>
+<p>The normalization step is using SPM8, preferably the standalone version, which is compiled and does not need Matlab. Alternatively, Morphologist should be able to use the Matlab-based regular SPM8.</p>
+<p>SPM8 has to be installed, and properly configured. The configuration is currently taken from BrainVisa configuration, so you should do the following:
+<ul>
+<li><b><a href="http://brainvisa.info">Open the brainvisa software</a></b></li>
+<li>In brainvisa, go to the 'BrainVISA/Preferences' menu, in the SPM tab</li>
+<li>Set paths for your SPM installation. There is an 'auto detect' button there, you can try it.</li>
+<li>Validate the preferences in BrainVisa</li>
+</ul></p>
+<p>If the Matlab-based SPM is correctly installed and configured, and the normalization step still does not run, you may also check that <b>Matlab</b> is correcly configured, also in <b>BrainVisa preferences</b>, in the <b>Matlab tab</b>.</p>
+<p>If the Matlab-based SPM still does not work at this point, you may check whether Matlab is working: you may encounter Matlab licence issues.</p>
+"""
 
     def _get_inputs(self):
         file_inputs = ['mri']
