@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>562</width>
-    <height>560</height>
+    <height>570</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -249,12 +249,12 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="add_subjects_from_a_study_directory_button">
+            <widget class="QPushButton" name="add_subjects_from_organized_directory_button">
              <property name="enabled">
               <bool>true</bool>
              </property>
              <property name="text">
-              <string>From a study directory</string>
+              <string>From organized directory</string>
              </property>
             </widget>
            </item>

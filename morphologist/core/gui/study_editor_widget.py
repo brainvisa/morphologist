@@ -164,13 +164,13 @@ class StudyEditorDialog(QtGui.QDialog):
 
     # this slot is automagically connected
     @QtCore.Slot()
-    def on_add_subjects_from_a_study_directory_button_clicked(self):
-        self._subjects_from_study_dialog.show()
+    def on_add_subjects_from_organized_directory_button_clicked(self):
+        self._subjects_from_directory_dialog.show()
         
     # this slot is automagically connected
     @QtCore.Slot()
     def on_subjects_from_directory_dialog_accepted(self):
-        subjects = self._subjects_from_directory_dialog.get_subjects
+        subjects = self._subjects_from_directory_dialog.get_subjects()
         if not subjects:
             QtGui.QMessageBox.warning(self, "No subjects", 
                                       "Cannot find subjects in this directory.")
@@ -907,7 +907,7 @@ class SelectOrganizedDirectoryDialog(QtGui.QDialog):
         
     # this slot is automagically connected
     @QtCore.Slot()
-    def on_study_directory_button_clicked(self):
+    def on_organized_directory_button_clicked(self):
         selected_directory = QtGui.QFileDialog.getExistingDirectory(self.ui,
                                 caption="Select a study directory", 
                                 directory=self.get_organized_directory(), 

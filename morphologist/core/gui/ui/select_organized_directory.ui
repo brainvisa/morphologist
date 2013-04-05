@@ -27,7 +27,7 @@
       <widget class="QLineEdit" name="organized_directory_lineEdit"/>
      </item>
      <item>
-      <widget class="QPushButton" name="study_directory_button">
+      <widget class="QPushButton" name="organized_directory_button">
        <property name="text">
         <string/>
        </property>
