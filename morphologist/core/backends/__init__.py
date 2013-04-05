@@ -9,7 +9,8 @@ class Backend(object):
     _backend_loading_info = {
         'pyanatomist' : ('morphologist.core.backends.pyanatomist_backend',
                                                     'PyanatomistBackend'),
-        'morphologist_common' : ('morphologist.core.backends.morphologist_common_backend', 'MorphologistCommonBackend')
+        'morphologist_common' : ('morphologist.core.backends.morphologist_common_backend', 'MorphologistCommonBackend'), 
+        'mock_object_display' : ('morphologist.core.backends.mock_object_display_backend', 'MockObjectDisplayBackend')
     }
 
     @classmethod

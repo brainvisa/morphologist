@@ -7,8 +7,8 @@ CPUs = auto_or_integer(default='auto')
 # backend settings
 [backends]
 vector_graphics = option(morphologist_common, default=morphologist_common)
-display = option(pyanatomist, default=pyanatomist)
-objects = option(pyanatomist, default=pyanatomist)
+display = option(pyanatomist, mock_object_display, default=pyanatomist)
+objects = option(pyanatomist, mock_object_display, default=pyanatomist)
 formats = option(brainvisa, default=brainvisa)
 # debug settings
 [debug]

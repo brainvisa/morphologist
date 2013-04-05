@@ -63,7 +63,7 @@ class MockParameterTemplate(ParameterTemplate):
     def remove_dirs(self, subject):
         pass
     
-    def get_subjects(self):
+    def get_subjects(self, exact_match=False):
         subjects = []
         glob_pattern = os.path.join(self._base_directory, "*_in1")
         for filename in glob.iglob(glob_pattern):
