@@ -18,11 +18,20 @@ class Settings(object):
     @classmethod
     def _init_class(cls):
         cls._cfg_handler = ConfigobjSettingsHandler()
-        cls.disk_configobj = cls._cfg_handler.load()
 
-    def __init__(self):
-        if Settings.disk_configobj is None:
+    def load(self):
+        if Settings._cfg_handler is None:
             Settings._init_class()
+        Settings.disk_configobj = Settings._cfg_handler.load()
+        self._reset_on_configobj_changed()
+
+    def load_default(self):
+        if Settings._cfg_handler is None:
+            Settings._init_class()
+        Settings.disk_configobj = Settings._cfg_handler.generate_default()
+        self._reset_on_configobj_changed()
+
+    def _reset_on_configobj_changed(self):
         self._memory_configobj = self._cfg_handler.copy(\
                                 Settings.disk_configobj)
         self.runner = RunnerSettings(self._memory_configobj)
@@ -231,3 +240,4 @@ class TestsSettings(SettingsFacade):
 
 
 settings = Settings()
+settings.load()

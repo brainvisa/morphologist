@@ -41,7 +41,11 @@ def brainomics_option_callback(self, option, value, parser):
 def main():
     parser = option_parser()
     options, args = parser.parse_args(sys.argv)
-    if not settings.are_valid(): return
+    if not settings.are_valid():
+        print "Warning: unvalid settings!"
+        print "         User settings will be ignored, switch to default. "
+        print "         Try to remove it or fix it."
+        settings.load_default()
     
     qApp = QtGui.QApplication(sys.argv)
     main_window = create_main_window(analysis_type="IntraAnalysis", study_file=options.study_file)
