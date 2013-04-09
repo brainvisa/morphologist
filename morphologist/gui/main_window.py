@@ -56,11 +56,16 @@ class MainWindow(QtGui.QMainWindow):
         self.on_current_subject_changed()
         
     def _create_study(self, study_file=None):
+        if settings.tests.mock:
+            from morphologist.core.tests.mocks.study import MockStudy
+            ApplicationStudy = MockStudy
+        else:
+            ApplicationStudy = Study
         if study_file:
-            study = Study.from_file(study_file)
+            study = ApplicationStudy.from_file(study_file)
             return study
         else:
-            return Study(self.analysis_type)
+            return ApplicationStudy(self.analysis_type)
         
     def _create_runner(self, study):
         return SomaWorkflowRunner(study)
