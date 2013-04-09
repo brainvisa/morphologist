@@ -40,7 +40,7 @@ class Settings(object):
 
 class ConfigobjSettingsHandler(object):
     filepath = os.path.join(os.path.expanduser('~'), '.morphologist-ui.ini')
-    _prefix = 'morphologist/core'
+    _prefix = os.path.dirname(__file__)
     _configspec = os.path.join(_prefix, 'settings.configspec')
 
     @classmethod
