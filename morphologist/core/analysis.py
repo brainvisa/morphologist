@@ -254,7 +254,7 @@ class Parameters(object):
             shutil.rmtree(filename)
                      
     @classmethod
-    def unserialize(cls, serialized):
+    def unserialize(cls, serialized, relative_directory=None):
         file_param_names = serialized['file_param_names']
         parameter_names = serialized['parameter_names'] 
         other_param_names = []
@@ -263,16 +263,22 @@ class Parameters(object):
                 other_param_names.append(param_name)    
         parameters = cls(file_param_names, other_param_names)
         for param_name in parameter_names:
-            parameters.set_value(param_name, serialized['parameter_values'][param_name])
+            value = serialized['parameter_values'][param_name]
+            if relative_directory and param_name in file_param_names:
+                value = os.path.join(relative_directory, value)
+            parameters.set_value(param_name, value)
         return parameters          
 
-    def serialize(self):
+    def serialize(self, relative_directory=None):
         serialized = {}
         serialized['file_param_names'] = self._file_param_names
         serialized['parameter_names'] = self._parameter_names
         serialized['parameter_values'] = {}
         for param_name in self._parameter_names:
-            serialized['parameter_values'][param_name] = self.get_value(param_name) 
+            value = self.get_value(param_name)
+            if relative_directory and param_name in self._file_param_names:
+                value = os.path.relpath(value, relative_directory)
+            serialized['parameter_values'][param_name] = value
         return serialized
         
     

@@ -1,3 +1,5 @@
+import os
+
 from morphologist.core.utils import remove_all_extensions
 
 
@@ -39,18 +41,24 @@ class Subject(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def serialize(self):
+    def serialize(self, relative_directory=None):
         serialized = {}
         serialized['name'] = self.name
         serialized['groupname'] = self.groupname
-        serialized['filename'] = self.filename
+        if relative_directory:
+            serialized['filename'] = os.path.relpath(self.filename, relative_directory)
+        else:
+            serialized['filename'] = self.filename
         return serialized
 
     @classmethod
-    def unserialize(cls, serialized):
+    def unserialize(cls, serialized, relative_directory=None):
+        filepath = serialized['filename']
+        if relative_directory:
+            filepath = os.path.join(relative_directory, filepath)
         subject = cls(name=serialized['name'], 
                       groupname=serialized['groupname'],
-                      filename=serialized['filename'])
+                      filename=filepath)
         return subject
 
     def copy(self):

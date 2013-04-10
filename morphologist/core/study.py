@@ -7,7 +7,7 @@ from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.subject import Subject
 
 
-STUDY_FORMAT_VERSION = '0.1'
+STUDY_FORMAT_VERSION = '0.2'
 
 
 class Study(object):
@@ -75,7 +75,7 @@ class Study(object):
                     name=serialized['name'],
                     outputdir=serialized['outputdir'])
         for subject_id, serialized_subject in serialized['subjects'].iteritems():
-            subject = Subject.unserialize(serialized_subject)
+            subject = Subject.unserialize(serialized_subject, study.outputdir)
             study.subjects[subject_id] = subject
         for subject_id, subject in study.subjects.iteritems():
             if subject_id not in serialized['inputs']:
@@ -86,8 +86,8 @@ class Study(object):
                                          " for subject %s" % str(subject))
             serialized_inputs = serialized['inputs'][subject_id] 
             serialized_outputs = serialized['outputs'][subject_id]
-            inputs = Parameters.unserialize(serialized_inputs) 
-            outputs = Parameters.unserialize(serialized_outputs)
+            inputs = Parameters.unserialize(serialized_inputs, study.outputdir) 
+            outputs = Parameters.unserialize(serialized_outputs, study.outputdir)
             analysis = study._create_analysis()
             analysis.inputs = inputs
             analysis.outputs = outputs
@@ -119,12 +119,12 @@ class Study(object):
         serialized['outputdir'] = self.outputdir
         serialized['subjects'] = {}
         for subject_id, subject in self.subjects.iteritems():
-            serialized['subjects'][subject_id] = subject.serialize()
+            serialized['subjects'][subject_id] = subject.serialize(self.outputdir)
         serialized['inputs'] = {}
         serialized['outputs'] = {}
         for subject_id, analysis in self.analyses.iteritems():
-            serialized['inputs'][subject_id] = analysis.inputs.serialize()
-            serialized['outputs'][subject_id] = analysis.outputs.serialize()
+            serialized['inputs'][subject_id] = analysis.inputs.serialize(self.outputdir)
+            serialized['outputs'][subject_id] = analysis.outputs.serialize(self.outputdir)
         return serialized 
 
     def add_subject(self, subject, import_data=True):
