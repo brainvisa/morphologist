@@ -24,12 +24,13 @@ from morphologist.core.constants import ALL_SUBJECTS
 
 class Runner(object):
     ''' Abstract class '''
-    NOT_STARTED = 'not started'
-    FAILED = 'failed'
-    SUCCESS = 'success'
-    STOPPED_BY_USER = 'stopped_by_user'
-    RUNNING = 'running'
-    UNKNOWN = 'unknown'
+    NOT_STARTED = 0x0
+    RUNNING = 0x1
+    FAILED = 0x2
+    SUCCESS = 0x4
+    STOPPED_BY_USER = 0x8
+    UNKNOWN = 0x10
+    INTERRUPTED = FAILED | STOPPED_BY_USER
     
     def __init__(self, study):
         super(Runner, self).__init__()
@@ -246,7 +247,7 @@ class  SomaWorkflowRunner(Runner):
     def get_running_step_ids(self, subject_id, update_status=True):
         if update_status:
             self._update_jobs_status()
-        running_step_ids = self._get_subject_filtered_step_ids(subject_id, [Runner.RUNNING])
+        running_step_ids = self._get_subject_filtered_step_ids(subject_id, Runner.RUNNING)
         return running_step_ids
                     
     def wait(self, subject_id=None, step_id=None):
@@ -271,7 +272,7 @@ class  SomaWorkflowRunner(Runner):
     def get_failed_step_ids(self, subject_id, update_status=True):
         if update_status:
             self._update_jobs_status()
-        failed_step_ids = self._get_subject_filtered_step_ids(subject_id, [Runner.FAILED])
+        failed_step_ids = self._get_subject_filtered_step_ids(subject_id, Runner.FAILED)
         return failed_step_ids
 
     def stop(self, subject_id=None, step_id=None):
@@ -289,28 +290,27 @@ class  SomaWorkflowRunner(Runner):
 
     def _workflow_stop(self):
         self._workflow_controller.stop_workflow(self._workflow_id)
-        interrupted_status = [Runner.FAILED, Runner.STOPPED_BY_USER]
-        interrupted_step_ids = self._get_filtered_step_ids(interrupted_status)
+        interrupted_step_ids = self._get_filtered_step_ids(Runner.INTERRUPTED)
         for subject_id, step_ids in interrupted_step_ids.iteritems():
             analysis = self._study.analyses[subject_id]
             analysis.clear_results(step_ids)
 
-    def _get_filtered_step_ids(self, status_list, update_status = True):
+    def _get_filtered_step_ids(self, status, update_status = True):
         if update_status:
             self._update_jobs_status()
         filtered_step_ids_by_subject_id = {}
         for subject_id in self._jobid_to_step:
-            interrupted_step_ids = self._get_subject_filtered_step_ids(subject_id, status_list)
-            filtered_step_ids_by_subject_id[subject_id] = interrupted_step_ids
+            filtered_step_ids = self._get_subject_filtered_step_ids(subject_id, status)
+            filtered_step_ids_by_subject_id[subject_id] = filtered_step_ids
         return filtered_step_ids_by_subject_id       
              
-    def _get_subject_filtered_step_ids(self, subject_id, status_list):
+    def _get_subject_filtered_step_ids(self, subject_id, status):
         step_ids = []
         subject_jobs = self._get_subject_jobs(subject_id)
         jobs_status=self._get_jobs_status(update_status=False)
         for job_id in subject_jobs:
             job_status = jobs_status[job_id]
-            if job_status in status_list:
+            if job_status & status:
                 step_ids.append(subject_jobs[job_id])
         return step_ids
            
@@ -351,10 +351,10 @@ class  SomaWorkflowRunner(Runner):
             for job_id in subject_jobs:
                 job_status = jobs_status[job_id]
                 # XXX hypothesis: the workflow is linear for a subject (no branch)
-                if job_status in [Runner.RUNNING, Runner.FAILED, Runner.STOPPED_BY_USER]:
+                if job_status & (Runner.RUNNING | Runner.INTERRUPTED):
                     status = job_status
                     break
-                elif job_status == Runner.UNKNOWN:
+                elif job_status & Runner.UNKNOWN:
                     status = job_status
         return status
         
