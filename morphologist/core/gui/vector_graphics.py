@@ -1,5 +1,5 @@
 from morphologist.core.backends import Backend
-from morphologist.core.utils import Visitable
+from morphologist.core.utils.design_patterns import Visitable
 
 
 class VectorObject(Visitable):
