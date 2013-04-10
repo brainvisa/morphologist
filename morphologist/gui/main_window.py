@@ -12,9 +12,9 @@ from morphologist.core.gui.runner_widget import RunnerView
 from morphologist.core.gui.runner_settings_widget \
                         import RunnerSettingsDialog
 from morphologist.core.gui.study_editor_widget import StudyEditorDialog, \
-                                                    StudyEditor, \
-                                                    ImportStudyDialog, \
-                                                    ImportStudyEditorDialog
+                                                      StudyEditor
+from morphologist.core.gui.import_study_widget import ImportStudyDialog, \
+                                                      ImportStudyEditorDialog
 from morphologist.gui import ui_directory 
 from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
                              IntraAnalysisViewportView
