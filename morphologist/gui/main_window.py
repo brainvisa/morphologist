@@ -1,9 +1,8 @@
 import os
 
 from morphologist.core.settings import settings
-from morphologist.core.study import Study, StudySerializationError
 from morphologist.core.runner import SomaWorkflowRunner
-
+from morphologist.core.study import Study, StudySerializationError
 from morphologist.core.gui.study_model import LazyStudyModel
 from morphologist.core.gui.analysis_model import LazyAnalysisModel
 from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
@@ -15,20 +14,33 @@ from morphologist.core.gui.study_editor_widget import StudyEditorDialog, \
                                                       StudyEditor
 from morphologist.core.gui.import_study_widget import ImportStudyDialog, \
                                                       ImportStudyEditorDialog
+
 from morphologist.gui import ui_directory 
 from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
                              IntraAnalysisViewportView
 
 
+ApplicationStudy = None # dynamically defined
+
+
 class MainWindow(QtGui.QMainWindow):
     uifile = os.path.join(ui_directory, 'main_window.ui')
 
+    def _init_class(self):
+        global ApplicationStudy
+        if settings.tests.mock:
+            from morphologist.core.tests.mocks.study import MockStudy
+            ApplicationStudy = MockStudy
+        else:
+            ApplicationStudy = Study
+
     def __init__(self, analysis_type, study_file=None):
         super(MainWindow, self).__init__()
+        if ApplicationStudy is None: self._init_class()
         self.ui = loadUi(self.uifile, self)
 
         self.analysis_type = analysis_type
-        self.study = self._create_study(study_file)
+        self.study = ApplicationStudy(self.analysis_type)
         self.runner = self._create_runner(self.study)
         self.study_model = LazyStudyModel(self.study, self.runner)
         self.analysis_model = LazyAnalysisModel()
@@ -54,19 +66,19 @@ class MainWindow(QtGui.QMainWindow):
         
         self.study_model.current_subject_changed.connect(self.on_current_subject_changed)
         self.on_current_subject_changed()
-        
-    def _create_study(self, study_file=None):
-        if settings.tests.mock:
-            from morphologist.core.tests.mocks.study import MockStudy
-            ApplicationStudy = MockStudy
-        else:
-            ApplicationStudy = Study
-        if study_file:
+        if study_file is not None:
+            self._try_open_study_from_file(study_file)
+
+    def _try_open_study_from_file(self, study_file):
+        try:
             study = ApplicationStudy.from_file(study_file)
-            return study
+        except StudySerializationError, e:
+            title = "Cannot load study"
+            msg = "'%s':\n%s" % (study_file, e)
+            QtGui.QMessageBox.critical(self, title, msg)
         else:
-            return ApplicationStudy(self.analysis_type)
-        
+            self.set_study(study)
+
     def _create_runner(self, study):
         return SomaWorkflowRunner(study)
 
@@ -75,7 +87,7 @@ class MainWindow(QtGui.QMainWindow):
     def on_action_new_study_triggered(self):
         msg = 'Stop current running analysis and create a new study ?'
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
-        study = self._create_study()
+        study = ApplicationStudy(self.analysis_type)
         dialog = StudyEditorDialog(study, parent=self,
                             editor_mode=StudyEditor.NEW_STUDY)
         dialog.ui.accepted.connect(self.on_study_dialog_accepted)
@@ -139,13 +151,7 @@ class MainWindow(QtGui.QMainWindow):
                                 caption="Open a study", directory="", 
                                 options=QtGui.QFileDialog.DontUseNativeDialog)
         if backup_filename:
-            try:
-                study = self._create_study(backup_filename)
-            except StudySerializationError, e:
-                QtGui.QMessageBox.critical(self, 
-                                          "Cannot load the study", "%s" %(e))
-            else:
-                self.set_study(study) 
+            self._try_open_study_from_file(backup_filename)
 
     def _runner_still_running_after_stopping_asked_to_user(self,
                         msg='Stop current running analysis ?'):

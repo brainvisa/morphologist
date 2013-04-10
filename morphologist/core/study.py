@@ -7,6 +7,9 @@ from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.subject import Subject
 
 
+STUDY_FORMAT_VERSION = '0.1'
+
+
 class Study(object):
     default_outputdir = os.path.join(os.path.expanduser("~"),
                                 'morphologist/studies/study')
@@ -49,17 +52,25 @@ class Study(object):
                     serialized_study = json.load(fd)
         except Exception, e:
             raise StudySerializationError("%s" %(e))
-
         try:
             study = cls.unserialize(serialized_study)
-            study.backup_filename = backup_filename
         except KeyError, e:
-            raise StudySerializationError("The information does not "
-                                          "match with a study.")
+            raise StudySerializationError("file content does not "
+                                          "match with study file format.")
+        else:
+            study.backup_filename = backup_filename
         return study
 
     @classmethod
     def unserialize(cls, serialized):
+        try:
+            version = serialized['study_format_version']
+        except:
+            msg = "unknown study format version"
+            raise StudySerializationError(msg)
+        if version != STUDY_FORMAT_VERSION:
+            msg = "find unsupported study format version '%s'" % version
+            raise StudySerializationError(msg)
         study = cls(analysis_type=serialized['analysis_type'], 
                     name=serialized['name'],
                     outputdir=serialized['outputdir'])
@@ -102,6 +113,7 @@ class Study(object):
   
     def serialize(self):
         serialized = {}
+        serialized['study_format_version'] = STUDY_FORMAT_VERSION
         serialized['analysis_type'] = self.analysis_type
         serialized['name'] = self.name
         serialized['outputdir'] = self.outputdir
