@@ -145,25 +145,11 @@ class  SomaWorkflowRunner(Runner):
         self._workflow_controller = WorkflowController()
         self._init_internal_parameters()
         self._delete_old_workflows()
-        cpus_number = self._cpus_number()
-        self._workflow_controller.scheduler_config.set_proc_nb(cpus_number)
 
     def _init_internal_parameters(self):
         self._workflow_id = None
         self._jobid_to_step = {} # subjectid -> (job_id -> step)
         self._cached_jobs_status = None
-
-    def _cpus_number(self):
-        cpus_count = multiprocessing.cpu_count()
-        cpus_settings = settings.runner.selected_processing_units_n
-        if cpus_settings > cpus_count:
-            print "Warning: bad setting value:\n" + \
-                "  (selected_processing_units_n=%d) " % cpus_settings + \
-                "> number of available processing units: %d" % cpus_count
-            cpus_number = min(cpus_settings, cpus_count)
-        else:
-            cpus_number = cpus_settings
-        return cpus_number
 
     def _delete_old_workflows(self):        
         for (workflow_id, (name, _)) in self._workflow_controller.workflows().iteritems():
@@ -172,6 +158,8 @@ class  SomaWorkflowRunner(Runner):
           
     def run(self, subject_ids=ALL_SUBJECTS):
         self._init_internal_parameters()
+        cpus_number = self._cpus_number()
+        self._workflow_controller.scheduler_config.set_proc_nb(cpus_number)
         if subject_ids == ALL_SUBJECTS:
             subject_ids = self._study.subjects
         self._check_input_files(subject_ids)
@@ -189,6 +177,18 @@ class  SomaWorkflowRunner(Runner):
             time.sleep(0.25)
             status = self._workflow_controller.workflow_status(self._workflow_id)
             try_count -= 1
+
+    def _cpus_number(self):
+        cpus_count = multiprocessing.cpu_count()
+        cpus_settings = settings.runner.selected_processing_units_n
+        if cpus_settings > cpus_count:
+            print "Warning: bad setting value:\n" + \
+                "  (selected_processing_units_n=%d) " % cpus_settings + \
+                "> number of available processing units: %d" % cpus_count
+            cpus_number = min(cpus_settings, cpus_count)
+        else:
+            cpus_number = cpus_settings
+        return cpus_number
 
     def _create_workflow(self, subject_ids):
         jobs = []
