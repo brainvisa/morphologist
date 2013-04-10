@@ -2,7 +2,6 @@ import os
 
 from morphologist.core.settings import settings
 from morphologist.core.study import Study, StudySerializationError
-from morphologist.core.analysis import ImportationError
 from morphologist.core.runner import SomaWorkflowRunner
 
 from morphologist.core.gui.study_model import LazyStudyModel
@@ -14,7 +13,8 @@ from morphologist.core.gui.runner_settings_widget \
                         import RunnerSettingsDialog
 from morphologist.core.gui.study_editor_widget import StudyEditorDialog, \
                                                     StudyEditor, \
-                                                    SelectOrganizedDirectoryDialog
+                                                    ImportStudyDialog, \
+                                                    ImportStudyEditorDialog
 from morphologist.gui import ui_directory 
 from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
                              IntraAnalysisViewportView
@@ -82,11 +82,8 @@ class MainWindow(QtGui.QMainWindow):
     def on_action_import_study_triggered(self):
         msg = 'Stop current running analysis and import a study ?'
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
-        dialog = SelectOrganizedDirectoryDialog(self, 
-                                                self.study.default_outputdir,
-                                                self.analysis_type,
-                                                selected_template_name=self.study.parameter_template.name, 
-                                                in_place_checkbox_visible=True)
+        dialog = ImportStudyDialog(self, self.study.default_outputdir, self.analysis_type,
+                                   selected_template_name=self.study.parameter_template.name)
         dialog.accepted.connect(self.on_import_study_dialog_accepted)
         dialog.show()
         self.dialogs['import_study_dialog'] = dialog
@@ -94,22 +91,17 @@ class MainWindow(QtGui.QMainWindow):
     @QtCore.Slot()
     def on_import_study_dialog_accepted(self):
         dialog = self.dialogs['import_study_dialog']
-        in_place = dialog.ui.in_place_checkbox.checkState() == QtCore.Qt.Checked 
-        if in_place:
+        if dialog.is_import_in_place_selected():
             organized_directory = dialog.get_organized_directory()
             parameter_template_name = dialog.get_parameter_template_name()
             study = Study.from_organized_directory(self.analysis_type, organized_directory, 
                                                    parameter_template_name)
-            subjects = None
-            mode = StudyEditor.EDIT_STUDY
+            dialog = ImportStudyEditorDialog(study, parent=self)
         else:
             study = self._create_study()
             subjects = dialog.get_subjects()
-            mode = StudyEditor.NEW_STUDY
-        dialog = StudyEditorDialog(study, parent=self,
-                            editor_mode=mode)
-        if subjects:
-            dialog.add_subjects(subjects)
+            dialog = ImportStudyEditorDialog(study, parent=self, in_place=False, 
+                                             subjects=subjects)
         dialog.ui.accepted.connect(self.on_study_dialog_accepted)
         dialog.ui.show()
         self.dialogs['study_editor_dialog'] = dialog

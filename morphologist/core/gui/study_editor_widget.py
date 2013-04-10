@@ -44,8 +44,8 @@ class StudyEditor(object):
         self._subjects_editor.update_study(self.study, \
                                 self.study_update_policy)
         return self.study
-
-
+    
+    
 class StudyEditorDialog(QtGui.QDialog):
     window_title_from_mode = [\
         "Create a new study",
@@ -132,9 +132,6 @@ class StudyEditorDialog(QtGui.QDialog):
                                        title, msg, QtGui.QMessageBox.Ok, self)
             msgbox.show()
         return study
- 
-    def add_subjects(self, subjects):
-        self._subjects_tablemodel.add_subjects(subjects)
         
     @QtCore.Slot("const QModelIndex &", "int", "int")
     def on_subjects_tablemodel_rows_changed(self):
@@ -285,6 +282,18 @@ class StudyEditorDialog(QtGui.QDialog):
             assert(0)
         QtGui.QMessageBox.critical(self, "Study consistency error", msg)
         return False
+
+
+class ImportStudyEditorDialog(StudyEditorDialog):
+    
+    def __init__(self, study, parent=None, in_place=True, subjects=None):
+        if in_place:
+            mode = StudyEditor.EDIT_STUDY
+        else:
+            mode = StudyEditor.NEW_STUDY
+        super(ImportStudyEditorDialog, self).__init__(study, parent, mode)
+        if subjects:
+            self._subjects_tablemodel.add_subjects(subjects)
 
 
 class StudyPropertiesEditorWidget(QtGui.QWidget):
@@ -870,15 +879,14 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
 class SelectOrganizedDirectoryDialog(QtGui.QDialog):
     
     def __init__(self, parent, default_directory, analysis_type,
-                 selected_template_name,
-                 in_place_checkbox_visible=False):
+                 selected_template_name):
         super(SelectOrganizedDirectoryDialog, self).__init__(parent)
         
         uifile = os.path.join(ui_directory, 'select_organized_directory.ui')
         self.ui = loadUi(uifile, self)
         
         self.ui.organized_directory_lineEdit.setText(default_directory)
-        self.ui.in_place_checkbox.setVisible(in_place_checkbox_visible)
+        self.ui.in_place_checkbox.setVisible(False)
         
         self._analysis_type = analysis_type
         parameter_templates = AnalysisFactory.get_analysis_cls(analysis_type).PARAMETER_TEMPLATES
@@ -916,6 +924,18 @@ class SelectOrganizedDirectoryDialog(QtGui.QDialog):
             self.ui.organized_directory_lineEdit.setText(selected_directory)
 
 
+class ImportStudyDialog(SelectOrganizedDirectoryDialog):
+    
+    def __init__(self, parent, default_directory, analysis_type,
+                 selected_template_name):
+        super(ImportStudyDialog, self).__init__(parent, default_directory, 
+                                                analysis_type, selected_template_name)
+        self.ui.in_place_checkbox.setVisible(True)
+        
+    def is_import_in_place_selected(self):
+        return self.ui.in_place_checkbox.checkState() == QtCore.Qt.Checked 
+    
+    
 class SubjectsFromDatabaseDialog(QtGui.QDialog):
 
     def __init__(self, parent):
