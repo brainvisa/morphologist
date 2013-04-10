@@ -4,7 +4,7 @@ import optparse
 
 from morphologist.core.settings import settings
 from morphologist.core.gui.qt_backend import QtGui
-from morphologist.gui.main_window import create_main_window
+from morphologist.gui.main_window import MainWindow
 
 
 def option_parser():
@@ -48,7 +48,8 @@ def main():
         settings.load_default()
     
     qApp = QtGui.QApplication(sys.argv)
-    main_window = create_main_window(analysis_type="IntraAnalysis", study_file=options.study_file)
+    main_window = MainWindow(analysis_type="IntraAnalysis",
+                            study_file=options.study_file)
     main_window.show()
     sys.exit(qApp.exec_())
 

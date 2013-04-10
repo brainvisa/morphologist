@@ -197,7 +197,10 @@ class MainWindow(QtGui.QMainWindow):
         self.setWindowTitle(self._window_title())
 
     def _window_title(self):
-        return "Morphologist - %s" % self.study.name
+        title = "Morphologist - %s" % self.study.name
+        if settings.tests.mock:
+            title += "--- MOCK MODE ---"
+        return title
     
     def closeEvent(self, event):
         msg = 'Stop current running analysis and quit ?'
@@ -211,11 +214,3 @@ class MainWindow(QtGui.QMainWindow):
     def on_action_runner_settings_triggered(self):
         dialog = RunnerSettingsDialog(settings, self)
         dialog.show()
-
-
-def create_main_window(analysis_type, study_file=None):
-    if settings.tests.mock:
-        from morphologist.tests.intra_analysis.mocks.main_window import MockMainWindow
-        return MockMainWindow(analysis_type, study_file) 
-    else:
-        return MainWindow(analysis_type, study_file)
