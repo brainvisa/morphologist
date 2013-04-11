@@ -4,6 +4,7 @@ import shutil
 from morphologist.core.settings import settings
 from morphologist.core.runner import SomaWorkflowRunner
 from morphologist.core.study import Study, StudySerializationError
+from morphologist.core.analysis import AnalysisFactory
 from morphologist.core.gui.study_model import LazyStudyModel
 from morphologist.core.gui.analysis_model import LazyAnalysisModel
 from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
@@ -24,6 +25,126 @@ from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
 ApplicationStudy = None # dynamically defined
 
 
+class ActionHandler(QtCore.QObject):
+    terminated = QtCore.pyqtSignal()
+
+    def start(self):
+        clsname = self.__class__.__name__
+        raise NotImplementedError('%s is an abstract class' % clsname)
+
+
+class StudyActionHandler(ActionHandler):
+    study_updated = QtCore.pyqtSignal(Study)
+
+    def __init__(self, study, parent=None):
+        super(StudyActionHandler, self).__init__(parent)
+        self._study = study
+        self._study_editor_dialog = None
+
+    @QtCore.Slot()
+    def _on_study_dialog_accepted(self):
+        study = self._study_editor_dialog.create_updated_study()
+        self._study_editor_dialog = None
+        self.study_updated.emit(study)
+        self.terminated.emit()
+
+
+class NewStudyActionHandler(StudyActionHandler):
+
+    def __init__(self, study, analysis_type, parent=None):
+        super(NewStudyActionHandler, self).__init__(study, parent)
+        self._analysis_type = analysis_type
+
+    def start(self):
+        study = ApplicationStudy(self._analysis_type)
+        dialog = StudyEditorDialog(study, parent=self.parent(),
+                            editor_mode=StudyEditor.NEW_STUDY)
+        dialog.ui.accepted.connect(self._on_study_dialog_accepted)
+        dialog.ui.show()
+        self._study_editor_dialog = dialog
+
+
+class EditStudyActionHandler(StudyActionHandler):
+
+    def __init__(self, study, parent=None):
+        super(EditStudyActionHandler, self).__init__(study, parent)
+
+    def start(self):
+        dialog = StudyEditorDialog(self._study, parent=self.parent(),
+                                    editor_mode=StudyEditor.EDIT_STUDY)
+        dialog.ui.accepted.connect(self._on_study_dialog_accepted)
+        dialog.ui.show()
+        self._study_editor_dialog = dialog
+
+
+class EditImportedStudyActionHandler(StudyActionHandler):
+
+    def __init__(self, study, analysis_type, subjects,
+                    import_data_in_place, parent=None):
+        super(EditImportedStudyActionHandler, self).__init__(study, parent)
+        self._import_data_in_place = import_data_in_place
+        self._analysis_type = analysis_type
+        self._subjects = subjects
+
+    def start(self):
+        dialog = ImportStudyEditorDialog(self._study, self.parent(),
+                        self._import_data_in_place, self._subjects)
+        dialog.ui.accepted.connect(self._on_study_dialog_accepted)
+        dialog.ui.show()
+        self._study_editor_dialog = dialog
+
+
+class ImportStudyActionHandler(ActionHandler):
+    study_updated = QtCore.pyqtSignal(Study)
+
+    def __init__(self, analysis_type, parent=None):
+        super(ImportStudyActionHandler, self).__init__(parent)
+        self._analysis_type = analysis_type
+        self._import_study_dialog = None
+        self._edit_imported_study_action_handler = None
+
+    def start(self):
+        analysis_cls = AnalysisFactory.get_analysis_cls(self._analysis_type)
+        parameter_template_name = analysis_cls.get_default_parameter_template_name()
+        dialog = ImportStudyDialog(self.parent(),
+                ApplicationStudy.default_outputdir, self._analysis_type,
+                selected_template_name=parameter_template_name)
+        dialog.accepted.connect(self._on_import_study_dialog_accepted)
+        dialog.show()
+        self._import_study_dialog = dialog
+        
+    @QtCore.Slot()
+    def _on_import_study_dialog_accepted(self):
+        dialog = self._import_study_dialog
+        import_data_in_place = dialog.is_import_in_place_selected()
+        if import_data_in_place:
+            organized_directory = dialog.get_organized_directory()
+            parameter_template_name = dialog.get_parameter_template_name()
+            study = Study.from_organized_directory(self._analysis_type,
+                                organized_directory, parameter_template_name)
+            subjects = None
+        else:
+            study = ApplicationStudy(self._analysis_type)
+            subjects = dialog.get_subjects()
+        self._edit_imported_study_action_handler = \
+                EditImportedStudyActionHandler(study, self._analysis_type,
+                                        subjects, import_data_in_place)
+        self._edit_imported_study_action_handler.terminated.connect(\
+            self._on_edit_imported_study_action_handler_terminated)
+        self._edit_imported_study_action_handler.study_updated.connect(\
+            self._on_edit_imported_study_action_handler_study_updated)
+        self._edit_imported_study_action_handler.start()
+
+    @QtCore.Slot()
+    def _on_edit_imported_study_action_handler_terminated(self):
+        self.terminated.emit()
+        self._edit_imported_study_action_handler = None
+
+    @QtCore.Slot(Study)
+    def _on_edit_imported_study_action_handler_study_updated(self, study):
+        self.study_updated.emit(study)
+        
+
 class MainWindow(QtGui.QMainWindow):
     uifile = os.path.join(ui_directory, 'main_window.ui')
 
@@ -40,8 +161,9 @@ class MainWindow(QtGui.QMainWindow):
         if ApplicationStudy is None: self._init_class()
         self.ui = loadUi(self.uifile, self)
 
-        self.analysis_type = analysis_type
-        self.study = ApplicationStudy(self.analysis_type)
+        self._init_action_handlers()
+        self._analysis_type = analysis_type
+        self.study = ApplicationStudy(self._analysis_type)
         self.runner = self._create_runner(self.study)
         self.study_model = LazyStudyModel(self.study, self.runner)
         self.analysis_model = LazyAnalysisModel()
@@ -70,6 +192,11 @@ class MainWindow(QtGui.QMainWindow):
         if study_directory is not None:
             self._try_open_study_from_directory(study_directory)
 
+    def _init_action_handlers(self):
+        self._new_study_action_handler = None
+        self._import_study_action_handler = None
+        self._edit_study_action_handler = None
+
     def _try_open_study_from_directory(self, study_directory):
         try:
             study = ApplicationStudy.from_study_directory(study_directory)
@@ -86,73 +213,49 @@ class MainWindow(QtGui.QMainWindow):
     # this slot is automagically connected
     @QtCore.Slot()
     def on_action_new_study_triggered(self):
-        msg = 'Stop current running analysis and create a new study ?'
+        msg = 'Stop current running analysis and edit the current study ?'
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
-        study = ApplicationStudy(self.analysis_type)
-        dialog = StudyEditorDialog(study, parent=self,
-                            editor_mode=StudyEditor.NEW_STUDY)
-        dialog.ui.accepted.connect(self.on_study_dialog_accepted)
-        dialog.ui.show()
-        self.dialogs['study_editor_dialog'] = dialog
+        self._new_study_action_handler = NewStudyActionHandler(self.study,
+                                            self._analysis_type, self)
+        self._new_study_action_handler.study_updated.connect(\
+            self.on_study_action_handler_study_updated)
+        self._new_study_action_handler.start()
        
     # this slot is automagically connected
     @QtCore.Slot()
     def on_action_import_study_triggered(self):
         msg = 'Stop current running analysis and import a study ?'
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
-        param_template_name = self.study.analysis_cls().get_default_parameter_template_name()
-        dialog = ImportStudyDialog(self, self.study.default_outputdir, self.analysis_type,
-                                   selected_template_name=param_template_name)
-        dialog.accepted.connect(self.on_import_study_dialog_accepted)
-        dialog.show()
-        self.dialogs['import_study_dialog'] = dialog
-        
-    @QtCore.Slot()
-    def on_import_study_dialog_accepted(self):
-        dialog = self.dialogs['import_study_dialog']
-        if dialog.is_import_in_place_selected():
-            organized_directory = dialog.get_organized_directory()
-            parameter_template_name = dialog.get_parameter_template_name()
-            study = Study.from_organized_directory(self.analysis_type, organized_directory, 
-                                                   parameter_template_name)
-            dialog = ImportStudyEditorDialog(study, parent=self)
-        else:
-            study = ApplicationStudy(self.analysis_type)
-            subjects = dialog.get_subjects()
-            dialog = ImportStudyEditorDialog(study, parent=self, in_place=False, 
-                                             subjects=subjects)
-        dialog.ui.accepted.connect(self.on_study_dialog_accepted)
-        dialog.ui.show()
-        self.dialogs['study_editor_dialog'] = dialog
-    
+        self._import_study_action_handler = ImportStudyActionHandler(\
+                                             self._analysis_type, self)
+        self._import_study_action_handler.study_updated.connect(\
+            self.on_study_action_handler_study_updated)
+        self._import_study_action_handler.start()
+   
     # this slot is automagically connected
     @QtCore.Slot()
     def on_action_edit_study_triggered(self):
         msg = 'Stop current running analysis and edit the current study ?'
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
-        dialog = StudyEditorDialog(self.study,
-                    parent=self, editor_mode=StudyEditor.EDIT_STUDY)
-        dialog.ui.accepted.connect(self.on_study_dialog_accepted)
-        dialog.ui.show()
-        self.dialogs['study_editor_dialog'] = dialog
+        self._edit_study_action_handler = EditStudyActionHandler(self.study,
+                                                                    self)
+        self._edit_study_action_handler.study_updated.connect(\
+            self.on_study_action_handler_study_updated)
+        self._edit_study_action_handler.start()
 
-    @QtCore.Slot()
-    def on_study_dialog_accepted(self):
-        dialog = self.dialogs['study_editor_dialog']
-        study = dialog.create_updated_study()
+    @QtCore.Slot(Study)
+    def on_study_action_handler_study_updated(self, study):
         self.set_study(study)
         self._try_save_to_backup_file()
-        del self.dialogs['study_editor_dialog']
 
     # this slot is automagically connected
     @QtCore.Slot()
     def on_action_open_study_triggered(self):
         msg = 'Stop current running analysis and open a study ?'
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
-        study_directory = QtGui.QFileDialog.getExistingDirectory(parent=self.ui, 
-                                                caption="Open a study directory", 
-                                                directory="", 
-                                                options=QtGui.QFileDialog.DontUseNativeDialog)
+        study_directory = QtGui.QFileDialog.getExistingDirectory(parent=self.ui,
+                                caption="Open a study directory", directory="", 
+                                options=QtGui.QFileDialog.DontUseNativeDialog)
         if study_directory:
             self._try_open_study_from_directory(study_directory)
 
