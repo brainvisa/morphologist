@@ -115,7 +115,7 @@ class MainWindow(QtGui.QMainWindow):
                                                    parameter_template_name)
             dialog = ImportStudyEditorDialog(study, parent=self)
         else:
-            study = self._create_study()
+            study = ApplicationStudy(self.analysis_type)
             subjects = dialog.get_subjects()
             dialog = ImportStudyEditorDialog(study, parent=self, in_place=False, 
                                              subjects=subjects)
