@@ -99,8 +99,9 @@ class MainWindow(QtGui.QMainWindow):
     def on_action_import_study_triggered(self):
         msg = 'Stop current running analysis and import a study ?'
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
+        param_template_name = self.study.analysis_cls().get_default_parameter_template_name()
         dialog = ImportStudyDialog(self, self.study.default_outputdir, self.analysis_type,
-                                   selected_template_name=self.study.parameter_template.name)
+                                   selected_template_name=param_template_name)
         dialog.accepted.connect(self.on_import_study_dialog_accepted)
         dialog.show()
         self.dialogs['import_study_dialog'] = dialog
