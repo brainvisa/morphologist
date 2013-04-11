@@ -46,7 +46,7 @@
             <item>
              <widget class="QLabel" name="outputdir_label">
               <property name="text">
-               <string>Output directory:</string>
+               <string>Study directory:</string>
               </property>
              </widget>
             </item>
@@ -157,7 +157,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Output directory organization:</string>
+           <string>Study directory organization:</string>
           </property>
          </widget>
         </item>
