@@ -4,7 +4,7 @@ from morphologist.core.utils import remove_all_extensions
 
 
 class Subject(object):
-    DEFAULT_GROUP = "group1"
+    DEFAULT_GROUP = "undef"
     
     def __init__(self, name, groupname, filename):
         self.name = name 
