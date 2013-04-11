@@ -41,6 +41,9 @@ class Runner(object):
     def is_running(self, subject_id=None, step_id=None, update_status=True):
         raise NotImplementedError("Runner is an abstract class.")
     
+    def get_running_step_ids(self, subject_id, update_status=True):
+        raise NotImplementedError("Runner is an abstract class.")
+        
     def wait(self, subject_id=None, step_id=None):
         raise NotImplementedError("Runner is an abstract class.")
     
@@ -239,7 +242,13 @@ class  SomaWorkflowRunner(Runner):
     def is_running(self, subject_id=None, step_id=None, update_status=True):
         status = self.get_status(subject_id, step_id, update_status)
         return status == Runner.RUNNING
-            
+
+    def get_running_step_ids(self, subject_id, update_status=True):
+        if update_status:
+            self._update_jobs_status()
+        running_step_ids = self._get_subject_filtered_step_ids(subject_id, [Runner.RUNNING])
+        return running_step_ids
+                    
     def wait(self, subject_id=None, step_id=None):
         if subject_id is None and step_id is None:
             Helper.wait_workflow(self._workflow_id, self._workflow_controller)
@@ -388,13 +397,15 @@ class  SomaWorkflowRunner(Runner):
                 status = Runner.FAILED
         elif sw_status == sw.constants.DONE:
             status = Runner.SUCCESS
-        elif sw_status in [sw.constants.RUNNING, sw.constants.NOT_SUBMITTED, 
-                           sw.constants.QUEUED_ACTIVE, sw.constants.SUBMISSION_PENDING]:
+        # XXX status UNDERTERMINED  is supposed to be a transitory status 
+        # after or before the running status
+        elif sw_status in [sw.constants.RUNNING, sw.constants.QUEUED_ACTIVE, 
+                           sw.constants.SUBMISSION_PENDING, sw.constants.UNDETERMINED]:
             status = Runner.RUNNING
-        elif sw_status in [sw.constants.WARNING, sw.constants.UNDETERMINED]:
-            status = Runner.UNKNOWN
+        elif sw_status == sw.constants.NOT_SUBMITTED:
+            status = Runner.NOT_STARTED
         else: 
-            # SYSTEM_ON_HOLD, USER_ON_HOLD,
+            # WARNING, SYSTEM_ON_HOLD, USER_ON_HOLD,
             # USER_SYSTEM_ON_HOLD, SYSTEM_SUSPENDED, USER_SUSPENDED,
             # USER_SYSTEM_SUSPENDED
             status = Runner.UNKNOWN
