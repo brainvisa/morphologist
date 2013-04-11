@@ -46,20 +46,16 @@ class StudyPropertiesEditor(object):
     def __init__(self, study):
         self.name = study.name
         self.outputdir = study.outputdir
-        self.backup_filename = study.backup_filename 
-        self.parameter_template_name = study.parameter_template.name
-        # FIXME: store analysis name rather than class ?
-        self._analysis_cls = study.analysis_cls()
-
-    @property
-    def analysis_cls(self):
-        return self._analysis_cls
+        self.backup_filename = study.backup_filename
+        self.parameter_templates = study.analysis_cls().PARAMETER_TEMPLATES
+        self.parameter_template_index = self.parameter_templates.index(study.parameter_template.__class__)
 
     def update_study(self, study):
         study.name = self.name
         study.outputdir = self.outputdir
         study.backup_filename = self.backup_filename
-        study.parameter_template = study.analysis_cls().create_parameter_template(self.parameter_template_name, 
+        parameter_template = self.parameter_templates[self.parameter_template_index]
+        study.parameter_template = study.analysis_cls().create_parameter_template(parameter_template.name, 
                                                                                   self.outputdir)
 
     def get_consistency_status(self, editor_mode):

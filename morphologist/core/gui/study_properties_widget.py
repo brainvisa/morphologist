@@ -40,7 +40,7 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self._create_parameter_template_combobox()
 
     def _create_parameter_template_combobox(self):
-        parameter_templates = self._study_properties_editor.analysis_cls.PARAMETER_TEMPLATES
+        parameter_templates = self._study_properties_editor.parameter_templates
         for param_template in parameter_templates:
             param_template_name = param_template.name 
             self.ui.parameter_template_combobox.addItem(param_template_name)
@@ -55,7 +55,7 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self._mapper.addMapping(self.ui.outputdir_lineEdit, 1)
         self._mapper.addMapping(self.ui.backup_filename_lineEdit, 2)
         self._mapper.addMapping(self.ui.parameter_template_combobox, 3,
-                                                        "currentText")
+                                                        "currentIndex")
         self.ui.studyname_lineEdit.textChanged.connect(self._mapper.submit)
         self.ui.outputdir_lineEdit.textChanged.connect(self._mapper.submit)
         self.ui.backup_filename_lineEdit.textChanged.connect(self._mapper.submit)
@@ -152,7 +152,7 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
     OUTPUTDIR_COL = 1
     BACKUP_FILENAME_COL = 2
     PARAMETER_TEMPLATE_NAME_COL = 3
-    attributes = ["name", "outputdir", "backup_filename", "parameter_template_name"]
+    attributes = ["name", "outputdir", "backup_filename", "parameter_template_index"]
     status_changed = QtCore.pyqtSignal(bool)
 
     def __init__(self, study_properties_editor, parent=None):
