@@ -357,7 +357,7 @@ class GreySurface(Step):
         super(GreySurface, self).__init__()
         self.name = 'grey_surface'
         self.inputs.side = side
-        self.description = "<h4>White surface using morphologist.intra_analysis.commands.grey_surface.</h4>"
+        self.description = "<h4>Grey surface using morphologist.intra_analysis.commands.grey_surface.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: some commands may not be found.</li>
 <li>Normally, this step should not fail...</li>
