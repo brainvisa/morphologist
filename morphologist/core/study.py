@@ -7,7 +7,7 @@ from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.subject import Subject
 
 
-STUDY_FORMAT_VERSION = '0.2'
+STUDY_FORMAT_VERSION = '0.3'
 
 
 class Study(object):
@@ -73,7 +73,8 @@ class Study(object):
             raise StudySerializationError(msg)
         study = cls(analysis_type=serialized['analysis_type'], 
                     name=serialized['name'],
-                    outputdir=serialized['outputdir'])
+                    outputdir=serialized['outputdir'], 
+                    parameter_template_name=serialized['parameter_template_name'])
         for subject_id, serialized_subject in serialized['subjects'].iteritems():
             subject = Subject.unserialize(serialized_subject, study.outputdir)
             study.subjects[subject_id] = subject
@@ -96,7 +97,8 @@ class Study(object):
 
     @classmethod
     def from_organized_directory(cls, analysis_type, organized_directory, parameter_template_name):
-        new_study = cls(analysis_type, outputdir=organized_directory, parameter_template_name=parameter_template_name)
+        new_study = cls(analysis_type, outputdir=organized_directory, 
+                        parameter_template_name=parameter_template_name)
         parameter_template = new_study.parameter_template
         subjects = parameter_template.get_subjects(exact_match=True)
         for subject in subjects:
@@ -115,6 +117,7 @@ class Study(object):
         serialized = {}
         serialized['study_format_version'] = STUDY_FORMAT_VERSION
         serialized['analysis_type'] = self.analysis_type
+        serialized['parameter_template_name'] = self.parameter_template.name
         serialized['name'] = self.name
         serialized['outputdir'] = self.outputdir
         serialized['subjects'] = {}
