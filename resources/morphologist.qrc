@@ -3,5 +3,6 @@
     <file>icons/open.png</file>
     <file>icons/link.png</file>
     <file>icons/unlink.png</file>
+    <file>icons/running.gif</file>
   </qresource>
 </RCC>

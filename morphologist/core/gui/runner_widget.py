@@ -11,6 +11,8 @@ class RunnerView(QtGui.QWidget):
     def __init__(self, model, parent=None):
         super(RunnerView, self).__init__(parent)
         self.ui = loadUi(self.uifile, self)
+        self._running_movie = QtGui.QMovie(":/icons/running.gif")
+        self.ui.status_label.setMovie(self._running_movie)
         self._init_model(model)
 
     def _init_model(self, model):
@@ -86,11 +88,15 @@ class RunnerView(QtGui.QWidget):
         self.ui.run_button.setEnabled(False)
         self.ui.stop_button.setEnabled(True)
         self.ui.erase_button.setEnabled(False)
+        self._running_movie.start()
+        self.ui.status_label.setVisible(True)
 
     def _set_not_running_state(self):
         self._set_run_button_if_needed()
         self.ui.stop_button.setEnabled(False)
         self._set_erase_button_if_needed()
+        self._running_movie.stop()
+        self.ui.status_label.setVisible(False)
 
     def _set_run_button_if_needed(self):
         selected_subject_ids = self._runner_model.get_selected_subject_ids()
