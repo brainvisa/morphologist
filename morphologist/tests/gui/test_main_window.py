@@ -5,7 +5,7 @@ import os
 from morphologist.core.subject import Subject
 from morphologist.core.gui.qt_backend import QtGui, QtCore, QtTest
 from morphologist.core.tests.study import MockStudyTestCase
-from morphologist.gui.main_window import create_main_window
+from morphologist.gui.main_window import MainWindow
 from morphologist.tests.gui import TestGui
 from morphologist.tests.gui.test_study_editor_widget import TestStudyGui
 from morphologist.tests.intra_analysis.study import IntraAnalysisStudyTestCase
@@ -30,7 +30,7 @@ class TestStudyWidget(TestGui):
         self.test_case.create_study()
         self.test_case.add_subjects()
         self.test_case.study.clear_results()
-        main_window = create_main_window(self.test_case.analysis_type)
+        main_window = MainWindow(self.test_case.analysis_type)
         self.keep_widget_alive(main_window)
         main_window.set_study(self.test_case.study)
         main_window.show()
@@ -43,7 +43,7 @@ class TestStudyWidget(TestGui):
 
     @TestGui.start_qt_and_test
     def test_create_new_study(self):
-        main_window = create_main_window(self.test_case.analysis_type)
+        main_window = MainWindow(self.test_case.analysis_type)
         self.keep_widget_alive(main_window)
         main_window.show()
         QtTest.QTest.keyClicks(main_window, "n", QtCore.Qt.ControlModifier, 10 )
