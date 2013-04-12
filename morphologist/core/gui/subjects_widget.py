@@ -37,6 +37,8 @@ class SubjectsTableView(QtGui.QTableView):
 
     # overrided Qt method
     def selectionCommand(self, index, event):
+        if not index.isValid():
+            return QtGui.QItemSelectionModel.NoUpdate
         row, column = index.row(), index.column()
         table_model = self.model()
         if column != table_model.SELECTION_COL:
