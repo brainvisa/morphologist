@@ -66,9 +66,6 @@
     <addaction name="action_import_study"/>
     <addaction name="separator"/>
     <addaction name="action_edit_study"/>
-    <addaction name="separator"/>
-    <addaction name="action_save_study"/>
-    <addaction name="action_save_as_study"/>
    </widget>
    <widget class="QMenu" name="menuConfig">
     <property name="title">

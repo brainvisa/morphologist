@@ -35,7 +35,7 @@ class MainWindow(QtGui.QMainWindow):
         else:
             ApplicationStudy = Study
 
-    def __init__(self, analysis_type, study_file=None):
+    def __init__(self, analysis_type, study_directory=None):
         super(MainWindow, self).__init__()
         if ApplicationStudy is None: self._init_class()
         self.ui = loadUi(self.uifile, self)
@@ -67,15 +67,15 @@ class MainWindow(QtGui.QMainWindow):
         
         self.study_model.current_subject_changed.connect(self.on_current_subject_changed)
         self.on_current_subject_changed()
-        if study_file is not None:
-            self._try_open_study_from_file(study_file)
+        if study_directory is not None:
+            self._try_open_study_from_directory(study_directory)
 
-    def _try_open_study_from_file(self, study_file):
+    def _try_open_study_from_directory(self, study_directory):
         try:
-            study = ApplicationStudy.from_file(study_file)
+            study = ApplicationStudy.from_study_directory(study_directory)
         except StudySerializationError, e:
             title = "Cannot load study"
-            msg = "'%s':\n%s" % (study_file, e)
+            msg = "'%s':\n%s" % (study_directory, e)
             QtGui.QMessageBox.critical(self, title, msg)
         else:
             self.set_study(study)
@@ -149,11 +149,12 @@ class MainWindow(QtGui.QMainWindow):
     def on_action_open_study_triggered(self):
         msg = 'Stop current running analysis and open a study ?'
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
-        backup_filepath = QtGui.QFileDialog.getOpenFileName(self.ui,
-                                caption="Open a study", directory="", 
-                                options=QtGui.QFileDialog.DontUseNativeDialog)
-        if backup_filepath:
-            self._try_open_study_from_file(backup_filepath)
+        study_directory = QtGui.QFileDialog.getExistingDirectory(parent=self.ui, 
+                                                caption="Open a study directory", 
+                                                directory="", 
+                                                options=QtGui.QFileDialog.DontUseNativeDialog)
+        if study_directory:
+            self._try_open_study_from_directory(study_directory)
 
     def _runner_still_running_after_stopping_asked_to_user(self,
                         msg='Stop current running analysis ?'):
@@ -167,21 +168,6 @@ class MainWindow(QtGui.QMainWindow):
             else:
                 return True
         return False
-
-    # this slot is automagically connected
-    @QtCore.Slot()
-    def on_action_save_study_triggered(self):
-        self._try_save_to_backup_file()
-
-    # this slot is automagically connected
-    @QtCore.Slot()
-    def on_action_save_as_study_triggered(self):
-        backup_filepath = QtGui.QFileDialog.getSaveFileName(self.ui,
-                                caption="Save a study", directory="", 
-                                options=QtGui.QFileDialog.DontUseNativeDialog)
-        if backup_filepath:
-            self._try_save_to_backup_file()
-            shutil.copy(self.backup_filepath, backup_filepath)
 
     def _try_save_to_backup_file(self):
         try:

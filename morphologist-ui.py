@@ -11,7 +11,7 @@ def option_parser():
     parser = optparse.OptionParser()
 
     parser.add_option('-s', '--study', 
-                      dest="study_file", metavar="STUDY_FILE", default=None, 
+                      dest="study_directory", metavar="STUDY_DIRECTORY", default=None, 
                       help="Opens the interface with the study loaded.")
     
     group_neurospin = optparse.OptionGroup(parser, "Neurospin specific options")
@@ -49,7 +49,7 @@ def main():
     
     qApp = QtGui.QApplication(sys.argv)
     main_window = MainWindow(analysis_type="IntraAnalysis",
-                            study_file=options.study_file)
+                            study_directory=options.study_directory)
     main_window.show()
     sys.exit(qApp.exec_())
 
