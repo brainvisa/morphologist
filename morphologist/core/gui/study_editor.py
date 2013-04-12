@@ -2,6 +2,8 @@ import os
 from collections import namedtuple
 
 from morphologist.core.analysis import ImportationError
+from morphologist.core.utils.design_patterns import Observable, \
+                                            ObserverNotification
 
 
 class StudyEditor(object):
@@ -33,7 +35,12 @@ class StudyEditor(object):
         self._subjects_editor.update_study(self.study, \
                                 self.study_update_policy)
         return self.study
+
+    def add_observer(self, observer):
+        self._subjects_editor.add_observer(observer)
     
+    def remove_observer(self, observer):
+        self._subjects_editor.remove_observer(observer)
 
 class StudyPropertiesEditor(object):
     # check status to build a study
@@ -70,10 +77,11 @@ class StudyPropertiesEditor(object):
         return status
  
  
-class SubjectsEditor(object):
+class SubjectsEditor(Observable):
     IdentifiedSubject = namedtuple('SubjectOrigin', ['id', 'subject'])
    
     def __init__(self, study):
+        super(SubjectsEditor, self).__init__()
         self._subjects_origin = []
         self._subjects = []
         self._removed_subjects_id = []
@@ -144,21 +152,28 @@ class SubjectsEditor(object):
 
         if len(self._renamed_subjects()):
             assert(0) # existing subjects can't be renamed from GUI
- 
-        subjects_importation_failed = []
-        for subject in self._added_subjects():
+
+        added_subjects = self._added_subjects()
+        subjects_to_be_imported_n = len(added_subjects)
+        importation_start_notification = ImportationStartNotification(\
+                                            subjects_to_be_imported_n)
+        self._notify_observers(importation_start_notification)
+        for subject in added_subjects:
+            importation_subject_start_notification = \
+                    ImportationStartSubjectNotification(subject)
+            self._notify_observers(importation_subject_start_notification)
             try:
                 study.add_subject(subject)
             except ImportationError, e:
-                subjects_importation_failed.append(subject)
+                status_ok = False
             else:
+                status_ok = True
                 self._has_imported_some_subjects = True
-        if subjects_importation_failed:
-            str_subjects = []
-            for subject in subjects_importation_failed:
-                str_subjects.append(str(subject))
-            raise ImportationError("The importation failed for the " + \
-                "following subjects:\n%s." % ", ".join(str_subjects))
+            importation_subject_end_notification = \
+                    ImportationEndSubjectNotification(subject, status_ok)
+            self._notify_observers(importation_subject_end_notification)
+        importation_end_notification = ImportationEndNotification()
+        self._notify_observers(importation_end_notification)
 
     def _added_subjects(self):
         added_subjects = []
@@ -199,4 +214,30 @@ class SubjectsEditor(object):
         for n in self._similar_subjects_n.values():
             if n != 1: return True
         return False
- 
+
+
+class ImportationStartNotification(ObserverNotification):
+
+    def __init__(self, subjects_to_be_imported_n):
+        self.subjects_to_be_imported_n = subjects_to_be_imported_n
+        
+
+class ImportationEndNotification(ObserverNotification):
+    pass
+
+
+class ImportationSubjectNotification(ObserverNotification):
+
+    def __init__(self, subject):
+        self.subject = subject
+        
+
+class ImportationStartSubjectNotification(ImportationSubjectNotification):
+    pass
+
+
+class ImportationEndSubjectNotification(ImportationSubjectNotification):
+
+    def __init__(self, subject, status_ok):
+        super(ImportationEndSubjectNotification, self).__init__(subject)
+        self.status_ok = status_ok

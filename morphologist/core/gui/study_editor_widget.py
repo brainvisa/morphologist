@@ -24,6 +24,7 @@ class StudyEditorDialog(QtGui.QDialog):
 
     def __init__(self, study, parent=None, editor_mode=StudyEditor.NEW_STUDY):
         super(StudyEditorDialog, self).__init__(parent)
+        self._dialogs = {}
         self._init_ui()
         self.study_editor = StudyEditor(study, editor_mode)
         self._set_window_title(editor_mode)
@@ -82,25 +83,10 @@ class StudyEditorDialog(QtGui.QDialog):
     def _set_window_title(self, mode):
         self.setWindowTitle(self.window_title_from_mode[mode])
 
-    def create_updated_study(self):
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
-        try:
-            study = self.study_editor.create_updated_study()
-        except ImportationError, e:
-            QtGui.QApplication.restoreOverrideCursor()
-            title = "Cannot import some images"
-            msg = "%s" %(e)
-            QtGui.QMessageBox.critical(self, title, msg)
-        else:
-            QtGui.QApplication.restoreOverrideCursor()
-        if self.study_editor.subjects_editor.has_imported_some_subjects():
-            title = "Images importation"
-            msg = "The images have been imported in %s directory." % \
-                                                        study.outputdir
-            msgbox = QtGui.QMessageBox(QtGui.QMessageBox.Information,
-                                       title, msg, QtGui.QMessageBox.Ok, self)
-            msgbox.show()
-        return study
+    @QtCore.Slot()
+    def on_import_subject_dialog_accepted(self):
+        del self._dialogs['import_subject_dialog']
+        self._create_updated_study_threaded.res()
         
     @QtCore.Slot("const QModelIndex &", "int", "int")
     def on_subjects_tablemodel_rows_changed(self):

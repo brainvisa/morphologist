@@ -16,6 +16,7 @@ from morphologist.core.gui.study_editor_widget import StudyEditorDialog, \
                                                       StudyEditor
 from morphologist.core.gui.import_study_widget import ImportStudyDialog, \
                                                       ImportStudyEditorDialog
+from morphologist.core.gui.import_subjects_widget import ImportSubjectsDialog
 
 from morphologist.gui import ui_directory 
 from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
@@ -24,6 +25,19 @@ from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
 
 ApplicationStudy = None # dynamically defined
 
+
+class FuncQThread(QtCore.QThread):
+
+    def __init__(self, func, args=(), kwargs={}):
+        super(FuncQThread, self).__init__()
+        self._func = func
+        self._args = args
+        self._kwargs = kwargs
+        self.res = None
+
+    def run(self):
+        self.res = self._func(*self._args, **self._kwargs)
+        
 
 class ActionHandler(QtCore.QObject):
     terminated = QtCore.pyqtSignal()
@@ -40,13 +54,35 @@ class StudyActionHandler(ActionHandler):
         super(StudyActionHandler, self).__init__(parent)
         self._study = study
         self._study_editor_dialog = None
+        self._import_subjects_dialog = None
+        self._create_updated_study_thread = None
 
     @QtCore.Slot()
     def _on_study_dialog_accepted(self):
-        study = self._study_editor_dialog.create_updated_study()
+        study_editor = self._study_editor_dialog.study_editor
+        dialog = ImportSubjectsDialog(study_editor, parent=self.parent())
+        dialog.ui.accepted.connect(self._on_import_subjects_dialog_accepted)
+        dialog.show()
+        self._import_subjects_dialog = dialog
         self._study_editor_dialog = None
-        self.study_updated.emit(study)
+        self._create_updated_study_thread = FuncQThread(\
+                    study_editor.create_updated_study)
+        self._create_updated_study_thread.finished.connect(\
+            self._on_create_updated_study_thread_finished)
+        self._create_updated_study_thread.start()
+
+    @QtCore.Slot()
+    def _on_import_subjects_dialog_accepted(self):
+        self._import_subjects_dialog = None
         self.terminated.emit()
+
+    @QtCore.Slot()
+    def _on_create_updated_study_thread_finished(self):
+        study = self._create_updated_study_thread.res
+        self.study_updated.emit(study)
+        self._create_updated_study_thread = None
+
+
 
 
 class NewStudyActionHandler(StudyActionHandler):
