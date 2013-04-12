@@ -7,7 +7,7 @@ from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.subject import Subject
 
 
-STUDY_FORMAT_VERSION = '0.3'
+STUDY_FORMAT_VERSION = '0.4'
 
 
 class Study(object):
@@ -15,8 +15,7 @@ class Study(object):
                                 'morphologist/studies/study')
     
     def __init__(self, analysis_type, name="undefined study", 
-                 outputdir=default_outputdir, backup_filename=None, 
-                 parameter_template_name=None):
+                 outputdir=default_outputdir, parameter_template_name=None):
         self.analysis_type = analysis_type # string : name of the analysis class
         self.name = name
         self.outputdir = outputdir
@@ -26,9 +25,6 @@ class Study(object):
         else:
             self.parameter_template = self.analysis_cls().create_parameter_template(parameter_template_name, 
                                                                                     self.outputdir)
-        if backup_filename is None:
-            backup_filename = self.default_backup_filename_from_outputdir(outputdir)
-        self.backup_filename = backup_filename
         self.analyses = {}
 
     def analysis_cls(self):
@@ -36,33 +32,36 @@ class Study(object):
     
     def _create_analysis(self):
         return AnalysisFactory.create_analysis(self.analysis_type, self.parameter_template)
-        
+       
+    @property 
+    def backup_filepath(self):
+        return self._get_backup_filepath_from_outputdir(self.outputdir)
+    
     @staticmethod
-    def default_backup_filename_from_outputdir(outputdir):
+    def _get_backup_filepath_from_outputdir(outputdir):
         return os.path.join(outputdir, 'study.json')
-
+    
     @staticmethod
-    def default_outputdir_from_backup_filename(backup_filename):
-        return os.path.dirname(backup_filename)
+    def _get_outputdir_from_backup_filepath(backup_filepath):
+        return os.path.dirname(backup_filepath)
 
     @classmethod
-    def from_file(cls, backup_filename):
+    def from_file(cls, backup_filepath):
+        outputdir = cls._get_outputdir_from_backup_filepath(backup_filepath)
         try:
-            with open(backup_filename, "r") as fd:
+            with open(backup_filepath, "r") as fd:
                     serialized_study = json.load(fd)
         except Exception, e:
             raise StudySerializationError("%s" %(e))
         try:
-            study = cls.unserialize(serialized_study)
+            study = cls.unserialize(serialized_study, outputdir)
         except KeyError, e:
             raise StudySerializationError("file content does not "
                                           "match with study file format.")
-        else:
-            study.backup_filename = backup_filename
         return study
-
+    
     @classmethod
-    def unserialize(cls, serialized):
+    def unserialize(cls, serialized, outputdir):
         try:
             version = serialized['study_format_version']
         except:
@@ -73,7 +72,7 @@ class Study(object):
             raise StudySerializationError(msg)
         study = cls(analysis_type=serialized['analysis_type'], 
                     name=serialized['name'],
-                    outputdir=serialized['outputdir'], 
+                    outputdir=outputdir, 
                     parameter_template_name=serialized['parameter_template_name'])
         for subject_id, serialized_subject in serialized['subjects'].iteritems():
             subject = Subject.unserialize(serialized_subject, study.outputdir)
@@ -96,6 +95,11 @@ class Study(object):
         return study
 
     @classmethod
+    def from_study_directory(cls, study_directory):
+        backup_filepath = cls._get_backup_filepath_from_outputdir(study_directory)
+        return cls.from_file(backup_filepath)
+    
+    @classmethod
     def from_organized_directory(cls, analysis_type, organized_directory, parameter_template_name):
         new_study = cls(analysis_type, outputdir=organized_directory, 
                         parameter_template_name=parameter_template_name)
@@ -108,7 +112,7 @@ class Study(object):
     def save_to_backup_file(self):
         serialized_study = self.serialize()
         try:
-            with open(self.backup_filename, "w") as fd:
+            with open(self.backup_filepath, "w") as fd:
                 json.dump(serialized_study, fd, indent=4, sort_keys=True)
         except Exception, e:
             raise StudySerializationError("%s" %(e))
@@ -119,7 +123,6 @@ class Study(object):
         serialized['analysis_type'] = self.analysis_type
         serialized['parameter_template_name'] = self.parameter_template.name
         serialized['name'] = self.name
-        serialized['outputdir'] = self.outputdir
         serialized['subjects'] = {}
         for subject_id, subject in self.subjects.iteritems():
             serialized['subjects'][subject_id] = subject.serialize(self.outputdir)

@@ -40,20 +40,16 @@ class StudyPropertiesEditor(object):
     STUDY_PROPERTIES_VALID = 0x0
     OUTPUTDIR_NOT_EXISTS = 0x1
     OUTPUTDIR_NOT_EMPTY = 0x2
-    BACKUP_FILENAME_DIR_NOT_EXISTS = 0x4
-    BACKUP_FILENAME_EXISTS = 0x8
     
     def __init__(self, study):
         self.name = study.name
         self.outputdir = study.outputdir
-        self.backup_filename = study.backup_filename
         self.parameter_templates = study.analysis_cls().PARAMETER_TEMPLATES
         self.parameter_template_index = self.parameter_templates.index(study.parameter_template.__class__)
 
     def update_study(self, study):
         study.name = self.name
         study.outputdir = self.outputdir
-        study.backup_filename = self.backup_filename
         parameter_template = self.parameter_templates[self.parameter_template_index]
         study.parameter_template = study.analysis_cls().create_parameter_template(parameter_template.name, 
                                                                                   self.outputdir)
@@ -61,7 +57,6 @@ class StudyPropertiesEditor(object):
     def get_consistency_status(self, editor_mode):
         if editor_mode == StudyEditor.NEW_STUDY:
             status = self._outputdir_consistency_status()
-            status |= self._backup_filename_consistency_status()
         elif editor_mode == StudyEditor.EDIT_STUDY:
             status = StudyPropertiesEditor.STUDY_PROPERTIES_VALID
         return status
@@ -72,15 +67,6 @@ class StudyPropertiesEditor(object):
             status |= StudyPropertiesEditor.OUTPUTDIR_NOT_EXISTS
         elif len(os.listdir(self.outputdir)) != 0:
             status |= StudyPropertiesEditor.OUTPUTDIR_NOT_EMPTY
-        return status
-            
-    def _backup_filename_consistency_status(self):
-        status = StudyPropertiesEditor.STUDY_PROPERTIES_VALID
-        backup_filename_directory = os.path.dirname(self.backup_filename)
-        if not os.path.exists(backup_filename_directory):
-            status |= StudyPropertiesEditor.BACKUP_FILENAME_DIR_NOT_EXISTS
-        elif os.path.exists(self.backup_filename):
-            status |= StudyPropertiesEditor.BACKUP_FILENAME_EXISTS
         return status
  
  

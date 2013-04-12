@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from morphologist.core.settings import settings
 from morphologist.core.runner import SomaWorkflowRunner
@@ -148,11 +149,11 @@ class MainWindow(QtGui.QMainWindow):
     def on_action_open_study_triggered(self):
         msg = 'Stop current running analysis and open a study ?'
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
-        backup_filename = QtGui.QFileDialog.getOpenFileName(self.ui,
+        backup_filepath = QtGui.QFileDialog.getOpenFileName(self.ui,
                                 caption="Open a study", directory="", 
                                 options=QtGui.QFileDialog.DontUseNativeDialog)
-        if backup_filename:
-            self._try_open_study_from_file(backup_filename)
+        if backup_filepath:
+            self._try_open_study_from_file(backup_filepath)
 
     def _runner_still_running_after_stopping_asked_to_user(self,
                         msg='Stop current running analysis ?'):
@@ -175,12 +176,12 @@ class MainWindow(QtGui.QMainWindow):
     # this slot is automagically connected
     @QtCore.Slot()
     def on_action_save_as_study_triggered(self):
-        backup_filename = QtGui.QFileDialog.getSaveFileName(self.ui,
+        backup_filepath = QtGui.QFileDialog.getSaveFileName(self.ui,
                                 caption="Save a study", directory="", 
                                 options=QtGui.QFileDialog.DontUseNativeDialog)
-        if backup_filename:
-            self.study.backup_filename = backup_filename
+        if backup_filepath:
             self._try_save_to_backup_file()
+            shutil.copy(self.backup_filepath, backup_filepath)
 
     def _try_save_to_backup_file(self):
         try:

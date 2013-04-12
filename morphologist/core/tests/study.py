@@ -65,7 +65,7 @@ class MockStudyTestCase(AbstractStudyTestCase):
         self.outputdir = '/tmp/morphologist_output_mock_study_test_case'
         self.subjectnames = ['bla', 'blabla', 'blablabla'] 
         self.filenames = ['/tmp/morphologist_output_mock_study_test_case/foo'] * len(self.subjectnames)
-        self.groupnames = ['group1'] * len(self.subjectnames)
+        self.groupnames = [Subject.DEFAULT_GROUP] * len(self.subjectnames)
         reset_directory(self.outputdir)
 
     def parameter_template_name(self):

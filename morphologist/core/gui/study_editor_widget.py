@@ -228,8 +228,6 @@ class StudyEditorDialog(QtGui.QDialog):
         study_properties_editor = self.study_editor.study_properties_editor
         subjects_editor = self.study_editor.subjects_editor
         outputdir = study_properties_editor.outputdir
-        backup_filename = study_properties_editor.backup_filename
-        backup_filename_directory = os.path.dirname(backup_filename)
         editor_mode = self.study_editor.mode
         status = study_properties_editor.get_consistency_status(editor_mode)
         if status == StudyPropertiesEditor.STUDY_PROPERTIES_VALID:
@@ -242,11 +240,6 @@ class StudyEditorDialog(QtGui.QDialog):
             msg = "The output directory '%s' does not exist." % outputdir
         elif status & StudyPropertiesEditor.OUTPUTDIR_NOT_EMPTY:
             msg = "The output directory '%s' is not empty." % outputdir
-        elif status & StudyPropertiesEditor.BACKUP_FILENAME_DIR_NOT_EXISTS:
-            msg = "The backup filename directory '%s' does not exist." % \
-                                                backup_filename_directory
-        elif status & StudyPropertiesEditor.BACKUP_FILENAME_EXISTS:
-            msg = "The backup filename already '%s' exists." % backup_filename
         else:
             assert(0)
         QtGui.QMessageBox.critical(self, "Study consistency error", msg)

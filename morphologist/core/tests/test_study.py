@@ -1,6 +1,7 @@
 import unittest
 import os
 import filecmp
+import shutil
 
 from morphologist.core.study import SubjectExistsError
 from morphologist.core.subject import Subject
@@ -32,14 +33,14 @@ class TestStudy(unittest.TestCase):
     def test_save_load_study(self):
         self.test_case.add_subjects()
         
-        studyfilepath = self.study.backup_filename
+        studyfilepath = self.study.backup_filepath
         studyfilepath2 = studyfilepath + "_2"
         if os.path.isfile(studyfilepath): os.remove(studyfilepath)
         if os.path.isfile(studyfilepath2): os.remove(studyfilepath2)
         self.study.save_to_backup_file()
+        shutil.move(studyfilepath, studyfilepath2)
         
-        loaded_study = Study.from_file(studyfilepath)
-        loaded_study.backup_filename = studyfilepath2
+        loaded_study = Study.from_file(studyfilepath2)
         loaded_study.save_to_backup_file()
 
         self.assert_(filecmp.cmp(studyfilepath, studyfilepath2))
