@@ -155,6 +155,9 @@ class View(object):
     def clear(self):
         self._backend.clear_view(self._backend_view)
     
+    def reset_camera(self):
+        self._backend.reset_view_camera(self._backend_view)
+        
     def center_on_object(self, object):
         position = object.get_center_position()
         self.set_position(position)

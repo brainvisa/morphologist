@@ -41,8 +41,19 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
     @classmethod
     def clear_view(cls, backend_view):
         backend_view.removeObjects(backend_view.objects)
-        
 
+    @classmethod
+    def reset_view_camera(self, backend_view):
+        if backend_view.windowType == ViewType.AXIAL:
+            backend_view.internalRep.muteAxial()
+        elif backend_view.windowType == ViewType.CORONAL:
+            backend_view.internalRep.muteCoronal()
+        elif backend_view.windowType == ViewType.SAGITTAL:
+            backend_view.internalRep.muteSagittal()
+        elif backend_view.windowType == ViewType.THREE_D:
+            backend_view.internalRep.mute3D()
+        backend_view.camera(zoom=1)
+        
     @classmethod
     def set_bgcolor_view(cls, backend_view, rgba_color):
         cls.anatomist.execute('WindowConfig',

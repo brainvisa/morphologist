@@ -131,8 +131,12 @@ class IntraAnalysisViewportView(QtGui.QWidget):
 
     @QtCore.Slot()
     def on_model_changed(self):
-        for view in self._views.values():
+        views_2d = [self.RAW_MRI_ACPC, self.BIAS_CORRECTED, self.BRAIN_MASK, 
+                    self.SPLIT_MASK, self.GREY_WHITE]
+        for view_name, view in self._views.iteritems():
             view.clear()
+            if view_name in views_2d:
+                view.reset_camera()
     
     @QtCore.Slot(list)
     def on_parameter_changed(self, parameter_name_list):
