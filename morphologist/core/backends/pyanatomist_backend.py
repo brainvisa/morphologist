@@ -1,6 +1,7 @@
 import os
 
 import anatomist.direct.api as ana
+from anatomist.cpp.simplecontrols import Simple2DControl, Simple3DControl
 from soma import aims
 
 from morphologist.core.gui.qt_backend import QtCore
@@ -33,6 +34,14 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
     @classmethod
     def _init_anatomist(cls):
         cls.anatomist = ana.Anatomist("-b")
+        cls._init_view_controls()
+        
+    @classmethod
+    def _init_view_controls(cls):
+        # register controls
+        control_manager = ana.cpp.ControlManager.instance()
+        control_manager.addControl( 'QAGLWidget3D', '', 'Simple2DControl' )
+        control_manager.addControl( 'QAGLWidget3D', '', 'Simple3DControl' )
 
     @classmethod
     def add_object_in_view(cls, backend_object, backend_view):
@@ -73,12 +82,16 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         cls.anatomist.execute(cmd)
         window = cmd.createdWindow()
         window.setWindowFlags(QtCore.Qt.Widget)
+        window.setAcceptDrops( False )
         awindow = cls.anatomist.AWindow(cls.anatomist, window)
         parent.layout().addWidget(awindow.getInternalRep())
         if view_type == ViewType.THREE_D:
+            cls.anatomist.execute( 'SetControl', windows=[awindow], control='Simple3DControl' )
             awindow.camera(zoom=1.5, 
                            view_quaternion=[0.558559238910675,0.141287177801132,\
                                             0.196735754609108,0.793312430381775])
+        else:
+            cls.anatomist.execute( 'SetControl', windows=[awindow], control='Simple2DControl' )
         return awindow
 
 ### objects loader backend    
@@ -142,5 +155,4 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
                                                "hierarchy", "sulcal_root_colors.hie")
         cls.anatomist.execute("GraphParams", label_attribute="label")
         return cls.load_object(sulci_colormap_filename) 
-        
         
