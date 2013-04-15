@@ -83,11 +83,6 @@ class StudyEditorDialog(QtGui.QDialog):
     def _set_window_title(self, mode):
         self.setWindowTitle(self.window_title_from_mode[mode])
 
-    @QtCore.Slot()
-    def on_import_subject_dialog_accepted(self):
-        del self._dialogs['import_subject_dialog']
-        self._create_updated_study_threaded.res()
-        
     @QtCore.Slot("const QModelIndex &", "int", "int")
     def on_subjects_tablemodel_rows_changed(self):
         self._on_table_model_changed()

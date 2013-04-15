@@ -87,7 +87,6 @@ class SubjectsEditor(Observable):
         self._removed_subjects_id = []
         self._similar_subjects_n = {}
         # FIXME: store this information in ImportationError
-        self._has_imported_some_subjects = False
         for subject_id, subject in study.subjects.iteritems():
             subject_copy = subject.copy()
             self._subjects.append(subject_copy)
@@ -154,24 +153,35 @@ class SubjectsEditor(Observable):
             assert(0) # existing subjects can't be renamed from GUI
 
         added_subjects = self._added_subjects()
-        subjects_to_be_imported_n = len(added_subjects)
-        importation_start_notification = ImportationStartNotification(\
-                                            subjects_to_be_imported_n)
-        self._notify_observers(importation_start_notification)
+        self._notify_start_importation(added_subjects)
         for subject in added_subjects:
-            importation_subject_start_notification = \
-                    ImportationStartSubjectNotification(subject)
-            self._notify_observers(importation_subject_start_notification)
+            self._notify_start_subject_importation(subject)
             try:
                 study.add_subject(subject)
             except ImportationError, e:
                 status_ok = False
             else:
                 status_ok = True
-                self._has_imported_some_subjects = True
+            self._notify_end_subject_importation(subject, status_ok)
+        self._notify_end_importation()
+
+    def _notify_start_importation(self, added_subjects):
+        subjects_to_be_imported_n = len(added_subjects)
+        importation_start_notification = ImportationStartNotification(\
+                                            subjects_to_be_imported_n)
+        self._notify_observers(importation_start_notification)
+
+    def _notify_start_subject_importation(self, subject):
+            importation_subject_start_notification = \
+                    ImportationStartSubjectNotification(subject)
+            self._notify_observers(importation_subject_start_notification)
+
+    def _notify_end_subject_importation(self, subject, status_ok):
             importation_subject_end_notification = \
                     ImportationEndSubjectNotification(subject, status_ok)
             self._notify_observers(importation_subject_end_notification)
+
+    def _notify_end_importation(self):
         importation_end_notification = ImportationEndNotification()
         self._notify_observers(importation_end_notification)
 
@@ -195,11 +205,16 @@ class SubjectsEditor(Observable):
         return renamed_subjects
 
     def has_subjects_to_be_removed(self):
-        return len(self._removed_subjects_id)
+        return len(self._removed_subjects_id) != 0
 
-    # FIXME: store this information in ImportationError
-    def has_imported_some_subjects(self):
-        return self._has_imported_some_subjects
+    def has_subjects_to_be_imported(self):
+        added_subjects = []
+        for index, _ in enumerate(self):
+            subject = self._subjects[index]
+            origin = self._subjects_origin[index]
+            if origin is None:
+                return True
+        return False
 
     def _removed_subjects_from_study(self, study, subject_id,
                                         study_update_policy):

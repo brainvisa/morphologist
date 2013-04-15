@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import collections
 import os
-
 from ordered_dict import OrderedDict
+
+from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
 
 
 class BidiMap(collections.MutableMapping):
@@ -186,3 +187,16 @@ def create_directory_if_missing(dir_path):
 def create_directories_if_missing(dir_path):
     if not os.path.isdir(dir_path):
         os.makedirs(dir_path)
+
+
+class FuncQThread(QtCore.QThread):
+
+    def __init__(self, func, args=(), kwargs={}):
+        super(FuncQThread, self).__init__()
+        self._func = func
+        self._args = args
+        self._kwargs = kwargs
+        self.res = None
+
+    def run(self):
+        self.res = self._func(*self._args, **self._kwargs)

@@ -59,6 +59,7 @@ class ImportSubjectsDialog(QtGui.QDialog, Observer):
             self.ui.setMinimumHeight(0)
             self.ui.setMaximumHeight(16777215)
 
+    # TODO : add comment
     def on_notify_observers(self, notification):
         self.notified.emit(notification)
 
