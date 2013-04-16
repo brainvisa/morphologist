@@ -55,8 +55,16 @@
     </property>
     <addaction name="action_runner_settings"/>
    </widget>
+   <widget class="QMenu" name="menuMorphometry">
+    <property name="title">
+     <string>Morphometry</string>
+    </property>
+    <addaction name="action_export_morphometry"/>
+    <addaction name="action_export_selection_morphometry"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuConfig"/>
+   <addaction name="menuMorphometry"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="runner_widget_dock">
@@ -151,6 +159,16 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="action_export_morphometry">
+   <property name="text">
+    <string>Export (csv)...</string>
+   </property>
+  </action>
+  <action name="action_export_selection_morphometry">
+   <property name="text">
+    <string>Export selection (csv)...</string>
    </property>
   </action>
  </widget>
