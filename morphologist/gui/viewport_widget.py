@@ -1,11 +1,11 @@
 import os
 
 from morphologist.core.backends.mixins import ColorMap, ViewType
-from morphologist.core.gui.object3d import Object3D, APCObject, View
-from morphologist.core.gui.vector_graphics import Histogram, VectorView
-from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi
-from morphologist.core.gui.viewport_widget import AnalysisViewportModel
-from morphologist.gui import ui_directory 
+from morphologist.core.gui.object3d import Object3D, APCObject
+from morphologist.core.gui.vector_graphics import Histogram
+from morphologist.core.gui.viewport_widget import AnalysisViewportModel, \
+                                    Object3DViewportView, VectorViewportView, \
+                                    AnalysisViewportWidget
 from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
 
 
@@ -56,118 +56,19 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
                     changed_parameters.pop(sulci)
 
 
-class IntraAnalysisViewportWidget(QtGui.QFrame):
-    style_sheet = '''
-        #viewport_widget {
-            background: white;
-        }
-        '''
-    
-    def __init__(self, model, parent=None):
-        super(IntraAnalysisViewportWidget, self).__init__(parent)
-        self.setObjectName("viewport_widget")
-        self._init_widget(model)
+class IntraAnalysisViewportWidget(AnalysisViewportWidget):
 
-    def _init_widget(self, model):
-        grid_layout = QtGui.QGridLayout(self)
-        grid_layout.setMargin(3)
-        grid_layout.setSpacing(3)
-        grid_layout.addWidget(RawMriACPCView(model),0 ,0)
-        grid_layout.addWidget(BiasCorrectedMriView(model),0, 1)
-        grid_layout.addWidget(HistoAnalysisView(model),0, 2)
-        grid_layout.addWidget(BrainMaskView(model),0, 3)
-        grid_layout.addWidget(SplitMaskView(model),1, 0)
-        grid_layout.addWidget(GreyWhiteView(model),1, 1)
-        grid_layout.addWidget(GreySurfaceView(model),1, 2)
-        grid_layout.addWidget(SulciView(model),1, 3)
-        self.setStyleSheet(self.style_sheet)
+    def _init_views(self, model):
+        self._grid_layout.addWidget(RawMriACPCView(model),0 ,0)
+        self._grid_layout.addWidget(BiasCorrectedMriView(model),0, 1)
+        self._grid_layout.addWidget(HistoAnalysisView(model),0, 2)
+        self._grid_layout.addWidget(BrainMaskView(model),0, 3)
+        self._grid_layout.addWidget(SplitMaskView(model),1, 0)
+        self._grid_layout.addWidget(GreyWhiteView(model),1, 1)
+        self._grid_layout.addWidget(GreySurfaceView(model),1, 2)
+        self._grid_layout.addWidget(SulciView(model),1, 3)
 
 
-class ViewportView(QtGui.QFrame):
-    uifile = os.path.join(ui_directory, 'viewport_view.ui')
-    bg_color = [0., 0., 0., 1.]
-    frame_style_sheet = '''
-        #view_frame {
-            border: 3px solid black;
-            border-radius: 10px;
-            background: black;
-       }
-        #view_label {
-            color: white;
-            background: black;
-        }
-    '''
-
-    def __init__(self, model, parent=None):
-        super(ViewportView, self).__init__(parent)
-        self.ui = loadUi(self.uifile, self)
-        self._view = None
-        self._observed_parameters = []
-        self._init_widget()
-        self._init_model(model)
-
-    def _init_widget(self):
-        self.ui.setStyleSheet(self.frame_style_sheet)
-        layout = QtGui.QVBoxLayout(self.ui.view_hook)
-        layout.setMargin(0)
-        layout.setSpacing(0)
-                
-    def _init_model(self, model):
-        self._viewport_model = model
-        self._viewport_model.changed.connect(self.on_model_changed)
-        self._viewport_model.parameter_changed.connect(self.on_parameter_changed)
-        
-    def set_title(self, title):
-        self.ui.view_label.setText(title)
-        
-    def set_tooltip(self, tooltip):
-        self.ui.view_label.setToolTip(tooltip)
-
-    @QtCore.Slot()
-    def on_model_changed(self):
-        self._view.clear()
-    
-    @QtCore.Slot(list)
-    def on_parameter_changed(self, changed_parameter_names):
-        for parameter_name in self._observed_parameters:
-            if parameter_name in changed_parameter_names:
-                self.update()
-                break
-    
-    def update(self):
-        raise NotImplementedError("ViewportView is an abstract class.")
-    
-    
-class Object3DViewportView(ViewportView):
-    
-    def __init__(self, model, parent=None, view_type=ViewType.AXIAL):
-        super(Object3DViewportView, self).__init__(model, parent)
-        self._view = View(self.ui.view_hook, view_type)
-        self._view.set_bgcolor(self.bg_color)
-        self._temp_object = None
-    
-    def on_model_changed(self):
-        super(Object3DViewportView, self).on_model_changed()
-        self._temp_object = None
-        if self._view.view_type != ViewType.THREE_D:
-                self._view.reset_camera()
-                
-                
-class VectorViewportView(ViewportView):
-    
-    def __init__(self, model, parent=None):
-        super(VectorViewportView, self).__init__(model, parent)
-        self._view = VectorView(self.ui.view_hook)
-        self._view.set_bgcolor(self.bg_color)
-        
-    def update(self):
-        self._view.clear()
-        for parameter_name in self._observed_parameters:
-            observed_object = self._viewport_model.observed_objects[parameter_name]
-            if observed_object is not None:
-                self._view.add_object(observed_object)
-        
-        
 class RawMriACPCView(Object3DViewportView):
     
     def __init__(self, model, parent=None, view_type=ViewType.AXIAL):
