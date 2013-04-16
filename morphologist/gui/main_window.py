@@ -21,7 +21,7 @@ from morphologist.core.gui.import_subjects_widget import ImportSubjectsDialog
 
 from morphologist.gui import ui_directory 
 from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
-                             IntraAnalysisViewportView
+                             IntraAnalysisViewportWidget
 
 
 ApplicationStudy = None # dynamically defined
@@ -199,11 +199,11 @@ class MainWindow(QtGui.QMainWindow):
         self.runner = self._create_runner(self.study)
         self.study_model = LazyStudyModel(self.study, self.runner)
         self.analysis_model = LazyAnalysisModel()
-        
+
         self.viewport_model = IntraAnalysisViewportModel(self.analysis_model)
-        self.viewport_view = IntraAnalysisViewportView(self.viewport_model, 
-                                                       self.ui.viewport_frame)
- 
+        self.viewport_view = IntraAnalysisViewportWidget(self.viewport_model, self)
+        self.setCentralWidget(self.viewport_view)
+        
         self.study_view = SubjectsWidget(self.study_model)
         self.ui.study_widget_dock.setWidget(self.study_view)
         
@@ -216,7 +216,6 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.runner_widget_dock.setWidget(self.runner_view)
 
         self.setWindowTitle(self._window_title())
-        
         self.dialogs = {}
         
         self.study_model.current_subject_changed.connect(self.on_current_subject_changed)

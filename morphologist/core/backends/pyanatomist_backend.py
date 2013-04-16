@@ -94,6 +94,9 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
             cls.anatomist.execute( 'SetControl', windows=[awindow], control='Simple2DControl' )
         return awindow
 
+    def get_view_type(self, backend_view):
+        return backend_view.windowType
+        
 ### objects loader backend    
     @classmethod
     def reload_object(cls, backend_object):

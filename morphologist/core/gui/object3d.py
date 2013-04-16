@@ -149,6 +149,10 @@ class View(object):
         self._backend = Backend.display_backend()
         self._backend_view = self._backend.create_view(parent, view_type)
         
+    @property
+    def view_type(self):
+        return self._backend.get_view_type(self._backend_view)
+        
     def add_object(self, object):
         object._friend_accept_visitor(self)
                 
