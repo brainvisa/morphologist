@@ -146,6 +146,19 @@ class ViewportView(QtGui.QFrame):
             if observed_object is not None:
                 self._view.add_object(observed_object)
     
+    # This slot is automagically connected
+    @QtCore.Slot()            
+    def on_extend_view_button_clicked(self):
+        window = self.create_extended_view()
+        window.show()
+        
+    def create_extended_view(self):
+        window = self.__class__(self._viewport_model, self)
+        window.setWindowFlags(QtCore.Qt.Window)
+        window.ui.extend_view_button.setVisible(False)
+        window.update()
+        return window
+    
     
 class Object3DViewportView(ViewportView):
     
@@ -163,6 +176,32 @@ class Object3DViewportView(ViewportView):
         if self._view.view_type != ViewType.THREE_D:
                 self._view.reset_camera()
                 
+    def create_extended_view(self):
+        window = ExtendedObject3DViewportView(self._viewport_model, 
+                                              view_class=self.__class__,
+                                              parent=self)
+        window.setWindowFlags(QtCore.Qt.Window)
+        return window        
+          
+          
+class ExtendedObject3DViewportView(AnalysisViewportWidget):
+    
+    def __init__(self, model, view_class, parent=None):
+        self._view_class = view_class
+        super(ExtendedObject3DViewportView, self).__init__(model, parent)
+        
+    def _init_views(self, model):
+        for view_type, line, column in [(ViewType.CORONAL, 0, 0), 
+                                        (ViewType.SAGITTAL, 0, 1), 
+                                        (ViewType.AXIAL, 1, 0), 
+                                        (ViewType.THREE_D, 1, 1)]:
+            view = self._view_class(model, parent=self, view_type=view_type)
+            view.ui.extend_view_button.setVisible(False)
+            view.ui.view_label.setVisible(False)
+            view.update()
+            self._grid_layout.addWidget(view, line, column)
+        self.setWindowTitle(view.ui.view_label.text())
+          
                 
 class VectorViewportView(ViewportView):
     
