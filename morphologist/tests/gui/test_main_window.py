@@ -1,6 +1,7 @@
 import sys
 import unittest
 import os
+import time
 
 from morphologist.core.subject import Subject
 from morphologist.core.gui.qt_backend import QtGui, QtCore, QtTest
@@ -53,6 +54,13 @@ class TestStudyWidget(TestGui):
                                                      self.test_case.studyname, 
                                                      self.test_case.outputdir,
                                                      self.test_case.filenames)
+        import_dialog = main_window.findChild(QtGui.QDialog, 'ImportSubjectsDialog')
+        close_button = import_dialog.ui.close_buttonBox
+        while not close_button.isEnabled():
+            time.sleep(1)
+            QtGui.QApplication.processEvents()
+        QtTest.QTest.mouseClick(close_button, QtCore.Qt.LeftButton)
+        
         self.assertEqual(main_window.study.name, self.test_case.studyname)
         self.assertEqual(main_window.study.outputdir, self.test_case.outputdir)
         self._assert_subjects_exist(main_window.study)
