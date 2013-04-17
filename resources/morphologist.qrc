@@ -2,5 +2,6 @@
   <qresource>
     <file>icons/open.png</file>
     <file>icons/running.gif</file>
+    <file>icons/expand.png</file>
   </qresource>
 </RCC>
