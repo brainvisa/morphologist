@@ -1,5 +1,4 @@
 import os
-import shutil
 
 from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.settings import settings
@@ -19,7 +18,7 @@ from morphologist.core.gui.study_editor_widget import StudyEditorDialog, \
 from morphologist.core.gui.import_study_widget import ImportStudyDialog, \
                                                       ImportStudyEditorDialog
 from morphologist.core.gui.import_subjects_widget import ImportSubjectsDialog
-
+from morphologist.core.backends.mixins import ViewType
 from morphologist.gui import ui_directory 
 from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
                                              IntraAnalysisViewportWidget
@@ -196,6 +195,9 @@ class MainWindow(QtGui.QMainWindow):
         super(MainWindow, self).__init__()
         if ApplicationStudy is None: self._init_class()
         self.ui = loadUi(self.uifile, self)
+        toolbar_action_group = QtGui.QActionGroup(self)
+        toolbar_action_group.addAction(self.ui.action_axial_view)
+        toolbar_action_group.addAction(self.ui.action_coronal_view)
 
         self._init_action_handlers()
         self._analysis_type = analysis_type
@@ -205,8 +207,8 @@ class MainWindow(QtGui.QMainWindow):
         self.analysis_model = LazyAnalysisModel()
 
         self.viewport_model = IntraAnalysisViewportModel(self.analysis_model)
-        self.viewport_view = IntraAnalysisViewportWidget(self.viewport_model, self)
-        self.setCentralWidget(self.viewport_view)
+        self.viewport_widget = IntraAnalysisViewportWidget(self.viewport_model, self)
+        self.setCentralWidget(self.viewport_widget)
         
         self.study_view = SubjectsWidget(self.study_model)
         self.ui.study_widget_dock.setWidget(self.study_view)
@@ -384,3 +386,15 @@ class MainWindow(QtGui.QMainWindow):
     def on_action_runner_settings_triggered(self):
         dialog = RunnerSettingsDialog(settings, self)
         dialog.show()
+    
+    # this slot is automagically connected
+    @QtCore.Slot(bool)        
+    def on_action_axial_view_toggled(self, checked):
+        if checked:
+            self.viewport_widget.set_object3d_views_view_type(ViewType.AXIAL)
+
+    # this slot is automagically connected
+    @QtCore.Slot(bool)        
+    def on_action_coronal_view_toggled(self, checked):
+        if checked:
+            self.viewport_widget.set_object3d_views_view_type(ViewType.CORONAL)

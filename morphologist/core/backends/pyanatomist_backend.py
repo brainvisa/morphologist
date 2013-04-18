@@ -52,15 +52,8 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         backend_view.removeObjects(backend_view.objects)
 
     @classmethod
-    def reset_view_camera(self, backend_view):
-        if backend_view.windowType == ViewType.AXIAL:
-            backend_view.internalRep.muteAxial()
-        elif backend_view.windowType == ViewType.CORONAL:
-            backend_view.internalRep.muteCoronal()
-        elif backend_view.windowType == ViewType.SAGITTAL:
-            backend_view.internalRep.muteSagittal()
-        elif backend_view.windowType == ViewType.THREE_D:
-            backend_view.internalRep.mute3D()
+    def reset_view_camera(cls, backend_view):
+        cls.set_view_type(backend_view, backend_view.windowType)
         backend_view.camera(zoom=1)
         
     @classmethod
@@ -96,8 +89,20 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
             cls.anatomist.execute( 'SetControl', windows=[awindow], control=control )
         return awindow
 
-    def get_view_type(self, backend_view):
+    @classmethod
+    def get_view_type(cls, backend_view):
         return backend_view.windowType
+    
+    @classmethod
+    def set_view_type(cls, backend_view, view_type):
+        if view_type == ViewType.AXIAL:
+            backend_view.internalRep.muteAxial()
+        elif view_type == ViewType.CORONAL:
+            backend_view.internalRep.muteCoronal()
+        elif view_type == ViewType.SAGITTAL:
+            backend_view.internalRep.muteSagittal()
+        elif view_type == ViewType.THREE_D:
+            backend_view.internalRep.mute3D()
         
 ### objects loader backend    
     @classmethod

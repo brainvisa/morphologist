@@ -59,14 +59,17 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
 class IntraAnalysisViewportWidget(AnalysisViewportWidget):
 
     def _init_views(self, model):
-        self._grid_layout.addWidget(RawMriACPCView(model),0 ,0)
-        self._grid_layout.addWidget(BiasCorrectedMriView(model),0, 1)
-        self._grid_layout.addWidget(HistoAnalysisView(model),0, 2)
-        self._grid_layout.addWidget(BrainMaskView(model),0, 3)
-        self._grid_layout.addWidget(SplitMaskView(model),1, 0)
-        self._grid_layout.addWidget(GreyWhiteView(model),1, 1)
-        self._grid_layout.addWidget(GreySurfaceView(model),1, 2)
-        self._grid_layout.addWidget(SulciView(model),1, 3)
+        for view_class, line, column in [(RawMriACPCView, 0 ,0), 
+                                         (BiasCorrectedMriView,0, 1), 
+                                         (HistoAnalysisView,0, 2),
+                                         (BrainMaskView,0, 3), 
+                                         (SplitMaskView,1, 0), 
+                                         (GreyWhiteView,1, 1), 
+                                         (GreySurfaceView,1, 2), 
+                                         (SulciView,1, 3)]:
+            view = view_class(model)
+            self._views.append(view)
+            self._grid_layout.addWidget(view, line, column)
 
 
 class RawMriACPCView(Object3DViewportView):

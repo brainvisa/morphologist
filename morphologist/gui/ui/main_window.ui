@@ -109,6 +109,19 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents"/>
   </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="action_axial_view"/>
+   <addaction name="action_coronal_view"/>
+  </widget>
   <action name="action_new_study">
    <property name="text">
     <string>&amp;New...</string>
@@ -171,7 +184,54 @@
     <string>Export selection (csv)...</string>
    </property>
   </action>
+  <action name="action_axial_view">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../resources/morphologist.qrc">
+     <normaloff>:/icons/axial.xpm</normaloff>:/icons/axial.xpm</iconset>
+   </property>
+   <property name="text">
+    <string>Axial</string>
+   </property>
+   <property name="toolTip">
+    <string>Switch to axial point of view</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
+   </property>
+   <property name="autoRepeat">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="action_coronal_view">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../resources/morphologist.qrc">
+     <normaloff>:/icons/coronal.xpm</normaloff>:/icons/coronal.xpm</iconset>
+   </property>
+   <property name="text">
+    <string>Coronal</string>
+   </property>
+   <property name="toolTip">
+    <string>Switch to coronal view</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+   <property name="autoRepeat">
+    <bool>false</bool>
+   </property>
+  </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../../resources/morphologist.qrc"/>
+ </resources>
  <connections/>
 </ui>

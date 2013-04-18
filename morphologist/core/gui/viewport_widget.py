@@ -76,6 +76,7 @@ class AnalysisViewportWidget(QtGui.QFrame):
         super(AnalysisViewportWidget, self).__init__(parent)
         self.setObjectName("viewport_widget")
         self._init_widget()
+        self._views = []
         self._init_views(model)
     
     def _init_widget(self):
@@ -87,7 +88,12 @@ class AnalysisViewportWidget(QtGui.QFrame):
     def _init_views(self, model):
         raise NotImplementedError("AnalysisViewportWidget is an abstract class.")
 
-
+    def set_object3d_views_view_type(self, view_type):
+        for view in self._views:
+            if isinstance(view, Object3DViewportView):
+                view.set_view_type(view_type)
+    
+    
 class ViewportView(QtGui.QFrame):
     uifile = os.path.join(ui_directory, 'viewport_view.ui')
     bg_color = [0., 0., 0., 1.]
@@ -182,7 +188,11 @@ class Object3DViewportView(ViewportView):
                                               view_class=self.__class__,
                                               parent=self)
         window.setWindowFlags(QtCore.Qt.Window)
-        return window        
+        return window
+    
+    def set_view_type(self, view_type):
+        if self._view.view_type != ViewType.THREE_D:
+            self._view.view_type = view_type
           
           
 class ExtendedObject3DViewportView(AnalysisViewportWidget):

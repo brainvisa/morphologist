@@ -3,5 +3,7 @@
     <file>icons/open.png</file>
     <file>icons/running.gif</file>
     <file>icons/expand.png</file>
+    <file>icons/axial.xpm</file>
+    <file>icons/coronal.xpm</file>
   </qresource>
 </RCC>

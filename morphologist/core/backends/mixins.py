@@ -21,6 +21,9 @@ class DisplayManagerMixin(object):
     def get_view_type(self, backend_view):
         raise NotImplementedError("DisplayManagerMixin is an abstract class")
     
+    def set_view_type(self, backend_view, view_type):
+        raise NotImplementedError("DisplayManagerMixin is an abstract class")
+    
     
 class ObjectsManagerMixin(object):
         
