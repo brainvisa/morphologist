@@ -209,8 +209,7 @@ class StudyEditorDialog(QtGui.QDialog):
         study_properties_editor = self.study_editor.study_properties_editor
         subjects_editor = self.study_editor.subjects_editor
         outputdir = study_properties_editor.outputdir
-        editor_mode = self.study_editor.mode
-        status = study_properties_editor.get_consistency_status(editor_mode)
+        status = study_properties_editor.get_consistency_status()
         if status == StudyPropertiesEditor.STUDY_PROPERTIES_VALID:
             if subjects_editor.are_some_subjects_duplicated():
                 QtGui.QMessageBox.critical(self, "Study consistency error",

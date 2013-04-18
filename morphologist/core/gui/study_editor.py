@@ -18,7 +18,7 @@ class StudyEditor(object):
         study_update_policy=ON_SUBJECT_REMOVED_DO_NOTHING):
         self.study = study
         self.study_update_policy = study_update_policy 
-        self._study_properties_editor = StudyPropertiesEditor(study)
+        self._study_properties_editor = StudyPropertiesEditor(study, mode)
         self._subjects_editor = SubjectsEditor(study)
         self.mode = mode
 
@@ -48,11 +48,12 @@ class StudyPropertiesEditor(object):
     OUTPUTDIR_NOT_EXISTS = 0x1
     OUTPUTDIR_NOT_EMPTY = 0x2
     
-    def __init__(self, study):
+    def __init__(self, study, mode):
         self.name = study.name
         self.outputdir = study.outputdir
         self.parameter_templates = study.analysis_cls().PARAMETER_TEMPLATES
         self.parameter_template_index = self.parameter_templates.index(study.parameter_template.__class__)
+        self.mode = mode
 
     def update_study(self, study):
         study.name = self.name
@@ -61,10 +62,10 @@ class StudyPropertiesEditor(object):
         study.parameter_template = study.analysis_cls().create_parameter_template(parameter_template.name, 
                                                                                   self.outputdir)
 
-    def get_consistency_status(self, editor_mode):
-        if editor_mode == StudyEditor.NEW_STUDY:
+    def get_consistency_status(self):
+        if self.mode == StudyEditor.NEW_STUDY:
             status = self._outputdir_consistency_status()
-        elif editor_mode == StudyEditor.EDIT_STUDY:
+        elif self.mode == StudyEditor.EDIT_STUDY:
             status = StudyPropertiesEditor.STUDY_PROPERTIES_VALID
         return status
 

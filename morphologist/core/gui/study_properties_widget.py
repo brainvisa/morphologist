@@ -1,5 +1,6 @@
 import os
 
+from morphologist.core.utils import create_filename_compatible_string
 from morphologist.core.gui.qt_backend import QtGui, QtCore
 from morphologist.core.gui.study_editor import StudyEditor
 
@@ -160,17 +161,29 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
 
     # overrided Qt method
     def setData(self, index, value, role=QtCore.Qt.EditRole):
+        row = index.row()
         column = index.column() 
-        attribute = self.attributes[column]
         old_status = self._status
         if role != QtCore.Qt.EditRole: return
-        self._study_properties_editor.__setattr__(attribute, value)
-        self.dataChanged.emit(index, index)
+        self._set_value(row, column, value)
+        if (column == self.NAME_COL and 
+            self._study_properties_editor.mode == StudyEditor.NEW_STUDY):
+            outputdir = self._study_properties_editor.outputdir
+            basedir = os.path.dirname(outputdir)
+            new_basename = create_filename_compatible_string(value)
+            new_value = os.path.join(basedir, new_basename)
+            self._set_value(row, self.OUTPUTDIR_COL, new_value)
         self._status = not self._invalid_value(value) 
         if old_status != self._status:
             self.status_changed.emit(self._status)
         return True
 
+    def _set_value(self, row, column, value):
+        attrib = self.attributes[column]
+        self._study_properties_editor.__setattr__(attrib, value)
+        changed_index = self.index(row, column)
+        self.dataChanged.emit(changed_index, changed_index)
+        
     def is_data_colorable(self, index):
         column = index.column()
         return column in [self.NAME_COL, self.OUTPUTDIR_COL]

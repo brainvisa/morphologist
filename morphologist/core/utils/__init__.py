@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import collections
 import os
+import re
 from ordered_dict import OrderedDict
 
 from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
@@ -187,6 +188,10 @@ def create_directory_if_missing(dir_path):
 def create_directories_if_missing(dir_path):
     if not os.path.isdir(dir_path):
         os.makedirs(dir_path)
+
+
+def create_filename_compatible_string(base_string):
+    return re.sub("[^a-zA-Z0-9\-_]", "_", base_string)
 
 
 class FuncQThread(QtCore.QThread):

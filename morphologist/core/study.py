@@ -101,7 +101,8 @@ class Study(object):
     
     @classmethod
     def from_organized_directory(cls, analysis_type, organized_directory, parameter_template_name):
-        new_study = cls(analysis_type, outputdir=organized_directory, 
+        name = os.path.basename(organized_directory)
+        new_study = cls(analysis_type, name=name, outputdir=organized_directory, 
                         parameter_template_name=parameter_template_name)
         parameter_template = new_study.parameter_template
         subjects = parameter_template.get_subjects(exact_match=True)
