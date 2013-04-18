@@ -162,9 +162,10 @@ class ViewportView(QtGui.QFrame):
     
 class Object3DViewportView(ViewportView):
     
-    def __init__(self, model, parent=None, view_type=ViewType.AXIAL):
+    def __init__(self, model, parent=None, view_type=ViewType.AXIAL, 
+                 restricted_controls=True):
         super(Object3DViewportView, self).__init__(model, parent)
-        self._view = View(self.ui.view_hook, view_type)
+        self._view = View(self.ui.view_hook, view_type, restricted_controls)
         self._view.set_bgcolor(self.bg_color)
         # XXX The view update method might need to create new object (eg. fusion)
         # Such object is stored in temp_object to prevent its deletion (due to Anatomist backend).
@@ -195,7 +196,8 @@ class ExtendedObject3DViewportView(AnalysisViewportWidget):
                                         (ViewType.SAGITTAL, 0, 1), 
                                         (ViewType.AXIAL, 1, 0), 
                                         (ViewType.THREE_D, 1, 1)]:
-            view = self._view_class(model, parent=self, view_type=view_type)
+            view = self._view_class(model, parent=self, view_type=view_type, 
+                                    restricted_controls=False)
             view.ui.extend_view_button.setVisible(False)
             view.ui.view_label.setVisible(False)
             view.update()

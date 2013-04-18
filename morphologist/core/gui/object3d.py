@@ -145,9 +145,10 @@ class APCObject(GroupObject):
     
 class View(object):
     
-    def __init__(self, parent, view_type):
+    def __init__(self, parent, view_type, restricted_controls=True):
         self._backend = Backend.display_backend()
-        self._backend_view = self._backend.create_view(parent, view_type)
+        self._backend_view = self._backend.create_view(parent, view_type, 
+                                                       restricted_controls)
         
     @property
     def view_type(self):

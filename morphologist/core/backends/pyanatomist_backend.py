@@ -75,7 +75,7 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         backend_view.moveLinkedCursor(position)
         
     @classmethod
-    def create_view(cls, parent, view_type):
+    def create_view(cls, parent, view_type, restricted_controls=True):
         cmd = ana.cpp.CreateWindowCommand(view_type, -1, None,
                 [], 1, parent, 2, 0,
                 { '__syntax__' : 'dictionary',  'no_decoration' : 1})
@@ -86,12 +86,14 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         awindow = cls.anatomist.AWindow(cls.anatomist, window)
         parent.layout().addWidget(awindow.getInternalRep())
         if view_type == ViewType.THREE_D:
-            cls.anatomist.execute( 'SetControl', windows=[awindow], control='Simple3DControl' )
+            control = "Simple3DControl"
             awindow.camera(zoom=1.5, 
                            view_quaternion=[0.558559238910675,0.141287177801132,\
                                             0.196735754609108,0.793312430381775])
         else:
-            cls.anatomist.execute( 'SetControl', windows=[awindow], control='Simple2DControl' )
+            control = 'Simple2DControl'
+        if restricted_controls:
+            cls.anatomist.execute( 'SetControl', windows=[awindow], control=control )
         return awindow
 
     def get_view_type(self, backend_view):

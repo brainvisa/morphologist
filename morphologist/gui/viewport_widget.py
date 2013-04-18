@@ -71,8 +71,10 @@ class IntraAnalysisViewportWidget(AnalysisViewportWidget):
 
 class RawMriACPCView(Object3DViewportView):
     
-    def __init__(self, model, parent=None, view_type=ViewType.AXIAL):
-        super(RawMriACPCView, self).__init__(model, parent, view_type)
+    def __init__(self, model, parent=None, view_type=ViewType.AXIAL, 
+                 restricted_controls=True):
+        super(RawMriACPCView, self).__init__(model, parent, view_type, 
+                                             restricted_controls)
         self._observed_parameters = [IntraAnalysisParameterNames.MRI, 
                                      IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
         self.set_title(" 1 ) Raw MRI, AC/PC")
@@ -95,8 +97,10 @@ class RawMriACPCView(Object3DViewportView):
     
 class BiasCorrectedMriView(Object3DViewportView):
     
-    def __init__(self, model, parent=None, view_type=ViewType.AXIAL):
-        super(BiasCorrectedMriView, self).__init__(model, parent, view_type)
+    def __init__(self, model, parent=None, view_type=ViewType.AXIAL, 
+                 restricted_controls=True):
+        super(BiasCorrectedMriView, self).__init__(model, parent, view_type, 
+                                                   restricted_controls)
         self._observed_parameters = [IntraAnalysisParameterNames.CORRECTED_MRI]
         self.set_title(" 2 ) Bias corrected MRI")
         
@@ -121,8 +125,10 @@ class HistoAnalysisView(VectorViewportView):
 
 class BrainMaskView(Object3DViewportView):
     
-    def __init__(self, model, parent=None, view_type=ViewType.AXIAL):
-        super(BrainMaskView, self).__init__(model, parent, view_type)
+    def __init__(self, model, parent=None, view_type=ViewType.AXIAL, 
+                 restricted_controls=True):
+        super(BrainMaskView, self).__init__(model, parent, view_type, 
+                                            restricted_controls)
         self._observed_parameters = [IntraAnalysisParameterNames.BRAIN_MASK, 
                                      IntraAnalysisParameterNames.CORRECTED_MRI]
         self.set_title(" 4 ) Brain mask")
@@ -143,8 +149,10 @@ class BrainMaskView(Object3DViewportView):
 
 class SplitMaskView(Object3DViewportView):
     
-    def __init__(self, model, parent=None, view_type=ViewType.AXIAL):
-        super(SplitMaskView, self).__init__(model, parent, view_type)
+    def __init__(self, model, parent=None, view_type=ViewType.AXIAL, 
+                 restricted_controls=True):
+        super(SplitMaskView, self).__init__(model, parent, view_type, 
+                                            restricted_controls)
         self._observed_parameters = [IntraAnalysisParameterNames.SPLIT_MASK, 
                                      IntraAnalysisParameterNames.CORRECTED_MRI]
         self.set_title(" 5 ) Hemispheres mask")
@@ -166,8 +174,10 @@ class SplitMaskView(Object3DViewportView):
 
 class GreyWhiteView(Object3DViewportView):
     
-    def __init__(self, model, parent=None, view_type=ViewType.AXIAL):
-        super(GreyWhiteView, self).__init__(model, parent, view_type)
+    def __init__(self, model, parent=None, view_type=ViewType.AXIAL, 
+                 restricted_controls=True):
+        super(GreyWhiteView, self).__init__(model, parent, view_type, 
+                                            restricted_controls)
         self._observed_parameters = [IntraAnalysisParameterNames.LEFT_GREY_WHITE,
                                      IntraAnalysisParameterNames.RIGHT_GREY_WHITE,
                                      IntraAnalysisParameterNames.CORRECTED_MRI]
@@ -194,8 +204,10 @@ class GreyWhiteView(Object3DViewportView):
 
 class GreySurfaceView(Object3DViewportView):
     
-    def __init__(self, model, parent=None, view_type=ViewType.THREE_D):
-        super(GreySurfaceView, self).__init__(model, parent, view_type)
+    def __init__(self, model, parent=None, view_type=ViewType.THREE_D, 
+                 restricted_controls=True):
+        super(GreySurfaceView, self).__init__(model, parent, view_type, 
+                                              restricted_controls)
         self._observed_parameters = [IntraAnalysisParameterNames.LEFT_GREY_SURFACE,
                                      IntraAnalysisParameterNames.RIGHT_GREY_SURFACE,
                                      IntraAnalysisParameterNames.CORRECTED_MRI]
@@ -220,8 +232,10 @@ class GreySurfaceView(Object3DViewportView):
         
 class SulciView(Object3DViewportView):
     
-    def __init__(self, model, parent=None, view_type=ViewType.THREE_D):
-        super(SulciView, self).__init__(model, parent, view_type)
+    def __init__(self, model, parent=None, view_type=ViewType.THREE_D, 
+                 restricted_controls=True):
+        super(SulciView, self).__init__(model, parent, view_type, 
+                                        restricted_controls)
         self._observed_parameters = [IntraAnalysisParameterNames.LEFT_WHITE_SURFACE,
                                      IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE,
                                      IntraAnalysisParameterNames.LEFT_SULCI,
