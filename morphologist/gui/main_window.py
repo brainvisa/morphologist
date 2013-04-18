@@ -152,8 +152,10 @@ class ImportStudyActionHandler(ActionHandler):
         if import_data_in_place:
             organized_directory = dialog.get_organized_directory()
             parameter_template_name = dialog.get_parameter_template_name()
-            study = Study.from_organized_directory(self._analysis_type,
-                                organized_directory, parameter_template_name)
+            study = ApplicationStudy.from_organized_directory(\
+                                            self._analysis_type,
+                                            organized_directory,
+                                            parameter_template_name)
             subjects = None
         else:
             study = ApplicationStudy(self._analysis_type)

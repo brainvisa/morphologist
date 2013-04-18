@@ -20,3 +20,9 @@ class MockStudy(Study):
         return AnalysisFactory.create_analysis(mock_analysis_type,
                                             self.parameter_template)
  
+    @classmethod
+    def from_organized_directory(cls, analysis_type, organized_directory,
+                                                parameter_template_name):
+        mock_analysis_type = self._mockified_analysis_type(self.analysis_type)
+        Study.from_organized_directory(mock_analysis_type, organized_directory,
+                                                parameter_template_name)
