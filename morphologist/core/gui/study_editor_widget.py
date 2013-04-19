@@ -48,7 +48,7 @@ class StudyEditorDialog(QtGui.QDialog):
                                     self, editor_mode)
 
         self._study_properties_editor_widget.validity_changed.connect(self.on_study_properties_editor_validity_changed)
-        self._update_nb_subjects()
+        self._update_nb_subjects_label()
         self._init_subjects_from_directory_dialog(study)
         self._init_db_dialog(settings.study_editor.brainomics)
 
@@ -87,11 +87,10 @@ class StudyEditorDialog(QtGui.QDialog):
     @QtCore.Slot("const QModelIndex &", "int", "int")
     def on_subjects_tablemodel_rows_removed(self):
         self._on_table_model_changed()
-        self._update_nb_subjects()
 
     @QtCore.Slot("const QModelIndex &", "int", "int")
     def on_subjects_tablemodel_rows_inserted(self):
-        self._update_nb_subjects()
+        self._update_nb_subjects_label()
 
     @QtCore.Slot()
     def on_subjects_tablemodel_changed(self):
@@ -103,10 +102,13 @@ class StudyEditorDialog(QtGui.QDialog):
         dummy_item_selection = QtGui.QItemSelection()
         self.on_subjects_selection_changed(empty_item_selection,
                                            dummy_item_selection)
+        self._update_nb_subjects_label()
                                   
-    def _update_nb_subjects(self):
+    def _update_nb_subjects_label(self):
         nb_subjects = self._subjects_tablemodel.rowCount()
-        nb_subjects_text = "%d subject" % nb_subjects
+        nb_selected_subjects = len(self._selection_model.selectedRows())
+        nb_subjects_text = "%d selected / %d subject" % (nb_selected_subjects, 
+                                                         nb_subjects)
         if nb_subjects > 1:
             nb_subjects_text += "s"
         self.ui.nb_subjects_label.setText(nb_subjects_text)
@@ -144,6 +146,7 @@ class StudyEditorDialog(QtGui.QDialog):
         self.ui.edit_subjects_name_button.setEnabled(enable_rename)
         self.ui.edit_subjects_group_button.setEnabled(enable_rename)
         self.ui.remove_subjects_button.setEnabled(enable_remove)
+        self._update_nb_subjects_label()
            
     # this slot is automagically connected
     @QtCore.Slot()
