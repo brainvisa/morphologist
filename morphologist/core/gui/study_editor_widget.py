@@ -206,25 +206,47 @@ class StudyEditorDialog(QtGui.QDialog):
                                                     self.default_group)
 
     def _check_study_consistency(self):
+        subjects_ok = self._check_study_subjects_consistency()
+        if not subjects_ok:
+            return False
+        properties_ok = self._check_study_properties_consistency()
+        return properties_ok
+
+    def _check_study_properties_consistency(self):
         study_properties_editor = self.study_editor.study_properties_editor
-        subjects_editor = self.study_editor.subjects_editor
         outputdir = study_properties_editor.outputdir
         status = study_properties_editor.get_consistency_status()
         if status == StudyPropertiesEditor.STUDY_PROPERTIES_VALID:
-            if subjects_editor.are_some_subjects_duplicated():
-                QtGui.QMessageBox.critical(self, "Study consistency error",
-                    "Some subjects have the same identifier")
-                return False
             return True
         elif status & StudyPropertiesEditor.OUTPUTDIR_NOT_EXISTS:
-            msg = "The output directory '%s' does not exist." % outputdir
+            msg = "The study directory '%s' does not exist." % outputdir +\
+            "\nDo you want to create it ?"
+            answer = QtGui.QMessageBox.question(self, "Create the study directory ?", msg, 
+                                                QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+            if answer == QtGui.QMessageBox.Ok:
+                try:
+                    os.makedirs(outputdir)
+                except OSError:
+                    msg = "The directory %s cannot be created." % outputdir
+                else:
+                    return True
+            else:
+                return False
         elif status & StudyPropertiesEditor.OUTPUTDIR_NOT_EMPTY:
-            msg = "The output directory '%s' is not empty." % outputdir
+            msg = "The study directory '%s' is not empty." % outputdir
         else:
             assert(0)
         QtGui.QMessageBox.critical(self, "Study consistency error", msg)
         return False
 
+    def _check_study_subjects_consistency(self):
+        subjects_editor = self.study_editor.subjects_editor
+        if subjects_editor.are_some_subjects_duplicated():
+            QtGui.QMessageBox.critical(self, "Study consistency error",
+                                       "Some subjects have the same identifier")
+            return False
+        return True
+        
 
 class SubjectsEditorSelectionModel(QtGui.QItemSelectionModel):
 
