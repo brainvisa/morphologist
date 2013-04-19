@@ -1,6 +1,7 @@
 import os
 import shutil
 
+from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.settings import settings
 from morphologist.core.utils import FuncQThread
 from morphologist.core.runner import SomaWorkflowRunner
@@ -21,7 +22,8 @@ from morphologist.core.gui.import_subjects_widget import ImportSubjectsDialog
 
 from morphologist.gui import ui_directory 
 from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
-                             IntraAnalysisViewportWidget
+                                             IntraAnalysisViewportWidget
+from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
 
 
 ApplicationStudy = None # dynamically defined
@@ -310,6 +312,44 @@ class MainWindow(QtGui.QMainWindow):
             self.study.save_to_backup_file()
         except StudySerializationError, e:
             QtGui.QMessageBox.critical(self, "Cannot save the study", "%s" %(e))
+
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_action_export_morphometry_triggered(self):
+        self.save_morphometry(ALL_SUBJECTS)
+
+    # this slot is automagically connected
+    @QtCore.Slot()
+    def on_action_export_selection_morphometry_triggered(self):
+        subject_ids = self.study_model.get_selected_subject_ids()
+        self.save_morphometry(subject_ids)
+
+    def save_morphometry(self, subject_ids):
+        msg = 'Stop current running analysis and save ' + \
+              'availables morphometry data ?'
+        if self._runner_still_running_after_stopping_asked_to_user(msg): return
+        filter = 'CSV (*.csv)'
+        morphometry_filepath = QtGui.QFileDialog.getSaveFileName(self.ui,
+                    caption="Choose morphometry output file", directory="",
+                    options=QtGui.QFileDialog.DontUseNativeDialog,
+                    filter=filter)
+        if morphometry_filepath == '': return
+        if subject_ids is ALL_SUBJECTS:
+            subject_ids = self.study.subjects.iterkeys()
+        command = ['python', '-m',
+                   'morphologist.intra_analysis.commands.morphometry-concat',
+                   '-o', morphometry_filepath]
+        for subject_id in subject_ids:
+            analysis = self.study.analyses[subject_id]
+            for csv_filepath in [\
+                analysis.outputs[IntraAnalysisParameterNames.LEFT_NATIVE_MORPHOMETRY_CSV],
+                analysis.outputs[IntraAnalysisParameterNames.RIGHT_NATIVE_MORPHOMETRY_CSV],
+                analysis.outputs[IntraAnalysisParameterNames.LEFT_NORMALIZED_MORPHOMETRY_CSV],
+                analysis.outputs[IntraAnalysisParameterNames.RIGHT_NORMALIZED_MORPHOMETRY_CSV]]:
+            # ignore none-existing files
+                if os.path.isfile(csv_filepath):
+                    command.append(csv_filepath)
+        os.system(' '.join(command))
 
     @QtCore.Slot()
     def on_current_subject_changed(self):
