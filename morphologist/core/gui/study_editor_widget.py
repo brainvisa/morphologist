@@ -10,7 +10,7 @@ from morphologist.core.gui.qt_backend import QtGui, QtCore, loadUi
 from morphologist.core.gui import ui_directory
 from morphologist.core.subject import Subject
 from morphologist.core.formats import FormatsManager
-from morphologist.core.analysis import ImportationError, AnalysisFactory
+from morphologist.core.analysis import AnalysisFactory
 from morphologist.core.gui.study_editor import StudyEditor, StudyPropertiesEditor
 from morphologist.core.gui.study_properties_widget import StudyPropertiesEditorWidget
 
@@ -32,7 +32,8 @@ class StudyEditorDialog(QtGui.QDialog):
 
         self._subjects_tablemodel = SubjectsEditorTableModel(\
                             self.study_editor.subjects_editor)
-        self._subjects_tablemodel.rowsRemoved.connect(self.on_subjects_tablemodel_rows_changed)
+        self._subjects_tablemodel.rowsRemoved.connect(self.on_subjects_tablemodel_rows_removed)
+        self._subjects_tablemodel.rowsInserted.connect(self.on_subjects_tablemodel_rows_inserted)
         self._subjects_tablemodel.modelReset.connect(self.on_subjects_tablemodel_changed)
         self.ui.subjects_tableview.setModel(self._subjects_tablemodel)
         tablewidget_header = self.ui.subjects_tableview.horizontalHeader()
@@ -47,7 +48,7 @@ class StudyEditorDialog(QtGui.QDialog):
                                     self, editor_mode)
 
         self._study_properties_editor_widget.validity_changed.connect(self.on_study_properties_editor_validity_changed)
-
+        self._update_nb_subjects()
         self._init_subjects_from_directory_dialog(study)
         self._init_db_dialog(settings.study_editor.brainomics)
 
@@ -84,8 +85,13 @@ class StudyEditorDialog(QtGui.QDialog):
         self.setWindowTitle(self.window_title_from_mode[mode])
 
     @QtCore.Slot("const QModelIndex &", "int", "int")
-    def on_subjects_tablemodel_rows_changed(self):
+    def on_subjects_tablemodel_rows_removed(self):
         self._on_table_model_changed()
+        self._update_nb_subjects()
+
+    @QtCore.Slot("const QModelIndex &", "int", "int")
+    def on_subjects_tablemodel_rows_inserted(self):
+        self._update_nb_subjects()
 
     @QtCore.Slot()
     def on_subjects_tablemodel_changed(self):
@@ -97,7 +103,14 @@ class StudyEditorDialog(QtGui.QDialog):
         dummy_item_selection = QtGui.QItemSelection()
         self.on_subjects_selection_changed(empty_item_selection,
                                            dummy_item_selection)
-                                          
+                                  
+    def _update_nb_subjects(self):
+        nb_subjects = self._subjects_tablemodel.rowCount()
+        nb_subjects_text = "%d subject" % nb_subjects
+        if nb_subjects > 1:
+            nb_subjects_text += "s"
+        self.ui.nb_subjects_label.setText(nb_subjects_text)
+                        
     @QtCore.Slot("bool")
     def on_study_properties_editor_validity_changed(self, valid):
         self.ui.apply_button.setEnabled(valid)
