@@ -456,3 +456,31 @@ class SulciLabelling(Step):
                    self.outputs.labeled_sulci,
                    self.inputs.side]
         return command
+
+
+class Morphometry(Step):
+
+    def __init__(self, side, normalized):
+        super(Morphometry, self).__init__()
+        self.name = 'morphometry'
+        self.inputs.side = side
+        self.inputs.normalized = normalized
+        self.description = "<h4>Morphometry using morphologist.intra_analysis.commands.morphometry.</h4>"
+        self.help_message = '' #TODO
+
+    def _get_inputs(self):
+        file_inputs = ['labeled_sulci']
+        other_inputs = ['side', 'normalized']
+        return file_inputs, other_inputs
+
+    def _get_outputs(self):
+        return ['morphometry']
+
+    def get_command(self):
+        command = ['python', '-m', 'morphologist.intra_analysis.commands.morphometry',
+                   self.inputs.labeled_sulci,
+                   self.inputs.side,
+                   self.outputs.morphometry]
+        if self.inputs.normalized:
+            command.append('--normalized')
+        return command

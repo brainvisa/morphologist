@@ -1,12 +1,13 @@
 import shutil
 
 from morphologist.core.subject import Subject
-from morphologist.intra_analysis import IntraAnalysis
+from morphologist.intra_analysis import IntraAnalysis, constants
+from morphologist.intra_analysis.steps import Morphometry
 from morphologist.intra_analysis.parameters import BrainvisaIntraAnalysisParameterTemplate, \
                                                     IntraAnalysisParameterNames    
 from morphologist.tests.intra_analysis.mocks.steps import MockSpatialNormalization, \
     MockBiasCorrection, MockHistogramAnalysis, MockBrainSegmentation, MockSplitBrain, \
-    MockGreyWhite, MockGrey, MockGreySurface, MockWhiteSurface, MockSulci, MockSulciLabelling
+    MockGreyWhite, MockGrey, MockGreySurface, MockWhiteSurface, MockSulci, MockSulciLabelling 
 
 
 class MockIntraAnalysis(IntraAnalysis):
@@ -61,6 +62,14 @@ class MockIntraAnalysis(IntraAnalysis):
         self._right_sulci_labelling = MockSulciLabelling(\
             ref_results[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI],
             ref_results[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI_DATA])
+        self._left_native_morphometry = Morphometry(constants.LEFT,
+                                                    normalized=False)
+        self._right_native_morphometry = Morphometry(constants.RIGHT,
+                                                     normalized=False)
+        self._left_normalized_morphometry = Morphometry(constants.LEFT,
+                                                        normalized=True)
+        self._right_normalized_morphometry = Morphometry(constants.RIGHT,
+                                                         normalized=True)
         self._steps = [self._normalization, 
                        self._bias_correction, 
                        self._histogram_analysis, 
@@ -77,7 +86,12 @@ class MockIntraAnalysis(IntraAnalysis):
                        self._left_sulci,
                        self._right_sulci,
                        self._left_sulci_labelling,
-                       self._right_sulci_labelling]
+                       self._right_sulci_labelling,
+                       self._left_native_morphometry,
+                       self._right_native_morphometry,
+                       self._left_normalized_morphometry,
+                       self._right_normalized_morphometry,
+                    ]
 
     def import_data(self, subject):
         target_filename = self.parameter_template.get_subject_filename(subject)

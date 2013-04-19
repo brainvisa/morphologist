@@ -42,6 +42,10 @@ class IntraAnalysisParameterNames:
     RIGHT_SULCI_DATA = 'right_sulci_data'
     LEFT_LABELED_SULCI_DATA = 'left_labeled_sulci_data'
     RIGHT_LABELED_SULCI_DATA = 'right_labeled_sulci_data'
+    LEFT_NATIVE_MORPHOMETRY_CSV = 'left_native_morphometry'
+    RIGHT_NATIVE_MORPHOMETRY_CSV = 'right_native_morphometry'
+    LEFT_NORMALIZED_MORPHOMETRY_CSV = 'left_normalized_morphometry'
+    RIGHT_NORMALIZED_MORPHOMETRY_CSV = 'right_normalized_morphometry'
     
     @classmethod
     def get_input_file_parameter_names(cls):
@@ -80,7 +84,12 @@ class IntraAnalysisParameterNames:
                 cls.LEFT_LABELED_SULCI,
                 cls.RIGHT_LABELED_SULCI,
                 cls.LEFT_LABELED_SULCI_DATA,
-                cls.RIGHT_LABELED_SULCI_DATA]
+                cls.RIGHT_LABELED_SULCI_DATA,
+                cls.LEFT_NATIVE_MORPHOMETRY_CSV,
+                cls.RIGHT_NATIVE_MORPHOMETRY_CSV,
+                cls.LEFT_NORMALIZED_MORPHOMETRY_CSV,
+                cls.RIGHT_NORMALIZED_MORPHOMETRY_CSV,
+                ]
 
 
 class IntraAnalysisParameterTemplate(ParameterTemplate):
@@ -192,6 +201,14 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
                         session_auto_path, "L%s_default_session_auto.data" % subject.name)
         parameters[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI_DATA] = os.path.join(\
                         session_auto_path, "R%s_default_session_auto.data" % subject.name)
+        parameters[IntraAnalysisParameterNames.LEFT_NATIVE_MORPHOMETRY_CSV] = \
+            os.path.join(session_auto_path, 'left_native_morphometry_%s.dat' % subject.name)
+        parameters[IntraAnalysisParameterNames.RIGHT_NATIVE_MORPHOMETRY_CSV] = \
+            os.path.join(session_auto_path, 'right_native_morphometry_%s.dat' % subject.name)
+        parameters[IntraAnalysisParameterNames.LEFT_NORMALIZED_MORPHOMETRY_CSV] = \
+            os.path.join(session_auto_path, 'left_normalized_morphometry_%s.dat' % subject.name)
+        parameters[IntraAnalysisParameterNames.RIGHT_NORMALIZED_MORPHOMETRY_CSV] = \
+            os.path.join(session_auto_path, 'right_normalized_morphometry_%s.dat' % subject.name)
         return parameters
 
     def create_outputdirs(self, subject):
@@ -321,6 +338,14 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         parameters[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI_DATA] = os.path.join(\
                 subject_path, "right_labeled_sulci_%s.data" % subject.name) 
 
+        parameters[IntraAnalysisParameterNames.LEFT_NATIVE_MORPHOMETRY_CSV] = \
+            os.path.join(subject_path, 'left_native_morphometry_%s.dat' % subject.name)
+        parameters[IntraAnalysisParameterNames.RIGHT_NATIVE_MORPHOMETRY_CSV] = \
+            os.path.join(subject_path, 'right_native_morphometry_%s.dat' % subject.name)
+        parameters[IntraAnalysisParameterNames.LEFT_NORMALIZED_MORPHOMETRY_CSV] = \
+            os.path.join(subject_path, 'left_normalized_morphometry_%s.dat' % subject.name)
+        parameters[IntraAnalysisParameterNames.RIGHT_NORMALIZED_MORPHOMETRY_CSV] = \
+            os.path.join(subject_path, 'right_normalized_morphometry_%s.dat' % subject.name)
         return parameters
 
     def create_outputdirs(self, subject):

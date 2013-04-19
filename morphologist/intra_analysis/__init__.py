@@ -9,7 +9,7 @@ from morphologist.core.analysis import Analysis, Parameters, \
 from morphologist.core.utils import create_directory_if_missing, create_directories_if_missing
 from morphologist.intra_analysis.steps import ImageImportation, \
     BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
-    GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface, Sulci, SulciLabelling
+    GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface, Sulci, SulciLabelling, Morphometry
 from morphologist.intra_analysis import constants
 from morphologist.intra_analysis.parameters import BrainvisaIntraAnalysisParameterTemplate, \
                                                     DefaultIntraAnalysisParameterTemplate, \
@@ -44,6 +44,14 @@ class IntraAnalysis(Analysis):
         self._right_sulci = Sulci(constants.RIGHT)
         self._left_sulci_labelling = SulciLabelling(constants.LEFT)
         self._right_sulci_labelling = SulciLabelling(constants.RIGHT)
+        self._left_native_morphometry = Morphometry(constants.LEFT,
+                                                    normalized=False)
+        self._right_native_morphometry = Morphometry(constants.RIGHT,
+                                                     normalized=False)
+        self._left_normalized_morphometry = Morphometry(constants.LEFT,
+                                                        normalized=True)
+        self._right_normalized_morphometry = Morphometry(constants.RIGHT,
+                                                         normalized=True)
         self._steps = [self._normalization, 
                        self._bias_correction, 
                        self._histogram_analysis, 
@@ -60,7 +68,12 @@ class IntraAnalysis(Analysis):
                        self._left_sulci,
                        self._right_sulci,
                        self._left_sulci_labelling,
-                       self._right_sulci_labelling]
+                       self._right_sulci_labelling,
+                       self._left_native_morphometry,
+                       self._right_native_morphometry,
+                       self._left_normalized_morphometry,
+                       self._right_normalized_morphometry,
+                    ]
 
     @classmethod
     def get_default_parameter_template_name(cls):
@@ -183,3 +196,14 @@ class IntraAnalysis(Analysis):
         self._right_sulci_labelling.outputs.labeled_sulci = self.outputs[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI]
         self._right_sulci_labelling.outputs.labeled_sulci_data = self.outputs[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI_DATA]
 
+        self._left_native_morphometry.inputs.labeled_sulci = self.outputs[IntraAnalysisParameterNames.LEFT_LABELED_SULCI]
+        self._left_native_morphometry.outputs.morphometry = self.outputs[IntraAnalysisParameterNames.LEFT_NATIVE_MORPHOMETRY_CSV]
+
+        self._right_native_morphometry.inputs.labeled_sulci = self.outputs[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI]
+        self._right_native_morphometry.outputs.morphometry = self.outputs[IntraAnalysisParameterNames.RIGHT_NATIVE_MORPHOMETRY_CSV]
+
+        self._left_normalized_morphometry.inputs.labeled_sulci = self.outputs[IntraAnalysisParameterNames.LEFT_LABELED_SULCI]
+        self._left_normalized_morphometry.outputs.morphometry = self.outputs[IntraAnalysisParameterNames.LEFT_NORMALIZED_MORPHOMETRY_CSV]
+
+        self._right_normalized_morphometry.inputs.labeled_sulci = self.outputs[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI]
+        self._right_normalized_morphometry.outputs.morphometry = self.outputs[IntraAnalysisParameterNames.RIGHT_NORMALIZED_MORPHOMETRY_CSV]
