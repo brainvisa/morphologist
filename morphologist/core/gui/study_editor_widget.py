@@ -152,7 +152,7 @@ class StudyEditorDialog(QtGui.QDialog):
     @QtCore.Slot()
     def on_edit_subjects_name_button_clicked(self):
         subjectname, ok = QtGui.QInputDialog.getText(self, 
-                "Enter the subject name", "Subject name:")
+                "Name", "Enter the subject name:")
         if not ok: return
         rows = [index.row() for index in \
                 self._selection_model.new_selected_subjects_rows()]
@@ -162,7 +162,7 @@ class StudyEditorDialog(QtGui.QDialog):
     @QtCore.Slot()
     def on_edit_subjects_group_button_clicked(self): 
         groupname, ok = QtGui.QInputDialog.getText(self,
-                "Enter the group name", "Group name:")
+                "Group", "Enter the group name:")
         if not ok: return
         rows = [index.row() for index in \
                 self._selection_model.new_selected_subjects_rows()]
