@@ -3,6 +3,7 @@ import os
 from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
 from morphologist.core.gui import ui_directory 
 from morphologist.core.runner import MissingInputFileError
+from morphologist.core.constants import ALL_SUBJECTS
 
 
 class RunnerView(QtGui.QWidget):
@@ -80,9 +81,18 @@ class RunnerView(QtGui.QWidget):
     def on_erase_button_clicked(self):
         assert(self._runner_model is not None)
         selected_subject_ids = self._runner_model.get_selected_subject_ids()
-        self._runner_model.study.clear_results(selected_subject_ids)
-        # XXX: this buttun could remain enabled if some files are added manually
-        self._set_not_running_state()
+        if selected_subject_ids == ALL_SUBJECTS:
+            msg = "All subjects results will be erased."
+        else:
+            msg = "The results will be erased for the %d selected subjects." \
+                               % len(selected_subject_ids)
+        msg += "\nDo you really want to erase these results ?"
+        answer = QtGui.QMessageBox.question(self, "Really erase results ?", msg, 
+                                            QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+        if answer == QtGui.QMessageBox.Ok:
+            self._runner_model.study.clear_results(selected_subject_ids)
+            # XXX: this buttun could remain enabled if some files are added manually
+            self._set_not_running_state()
 
     def _set_running_state(self):
         self.ui.run_button.setEnabled(False)
