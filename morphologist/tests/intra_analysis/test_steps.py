@@ -10,12 +10,12 @@ from brainvisa.processes import defaultContext
 from brainvisa.configuration import neuroConfig
 from brainvisa.data import neuroHierarchy
 
-from morphologist.core.study import Subject
+from morphologist.core.subject import Subject
 from morphologist.intra_analysis.steps import ImageImportation, \
     SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation,\
     SplitBrain, GreyWhite, Grey, WhiteSurface, GreySurface, Sulci, SulciLabelling
-from morphologist.intra_analysis import BrainvisaIntraAnalysisParameterTemplate, \
-                                        IntraAnalysis    
+from morphologist.intra_analysis.parameters import BrainvisaIntraAnalysisParameterTemplate, \
+                                                    IntraAnalysisParameterNames    
 from morphologist.tests.utils.graph_comparison import same_graphs
 from morphologist.intra_analysis import constants
 
@@ -34,13 +34,14 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         os.makedirs(self.output_directory)
   
         subject = Subject(self.subjectname, self.groupname, self.raw_mri)
-        self.ref_outputs = BrainvisaIntraAnalysisParameterTemplate.get_outputs(subject, self.bv_db_directory)
-        self.test_outputs = BrainvisaIntraAnalysisParameterTemplate.get_outputs(subject, self.output_directory)
+        ref_param_template = BrainvisaIntraAnalysisParameterTemplate(self.bv_db_directory)
+        test_param_template = BrainvisaIntraAnalysisParameterTemplate(self.output_directory)
+        self.ref_outputs = ref_param_template.get_outputs(subject)
+        self.test_outputs = test_param_template.get_outputs(subject)
         
-        BrainvisaIntraAnalysisParameterTemplate.create_outputdirs(subject, 
-                                                                  self.output_directory)
-        self.ref_mri = BrainvisaIntraAnalysisParameterTemplate.get_mri_path(subject, self.bv_db_directory)
-        self.test_mri = BrainvisaIntraAnalysisParameterTemplate.get_mri_path(subject, self.output_directory)
+        test_param_template.create_outputdirs(subject)
+        self.ref_mri = ref_param_template.get_subject_filename(subject)
+        self.test_mri = test_param_template.get_subject_filename(subject)
         
         if not os.path.exists(self.bv_db_directory):
             self._create_ref_database()
@@ -86,8 +87,8 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         nodes.child('CorticalFoldsGraph').setSelected(0)
         defaultContext().runProcess(pipeline, t1mri)
         # Save the white ridge in another file because it will be re-written
-        bv_white_ridges = self.ref_outputs[IntraAnalysis.REFINED_WHITE_RIDGES]
-        raw_white_ridges = self.ref_outputs[IntraAnalysis.WHITE_RIDGES]
+        bv_white_ridges = self.ref_outputs[IntraAnalysisParameterNames.REFINED_WHITE_RIDGES]
+        raw_white_ridges = self.ref_outputs[IntraAnalysisParameterNames.WHITE_RIDGES]
         shutil.copy(bv_white_ridges, raw_white_ridges) 
         shutil.copy(bv_white_ridges + ".minf", raw_white_ridges + ".minf") 
         
@@ -119,72 +120,72 @@ class TestIntraAnalysisSteps(unittest.TestCase):
 
         normalization.inputs.mri = self.ref_mri
 
-        normalization.outputs.commissure_coordinates = self.test_outputs[IntraAnalysis.COMMISSURE_COORDINATES]
-        normalization.outputs.talairach_transformation = self.test_outputs[IntraAnalysis.TALAIRACH_TRANSFORMATION]
+        normalization.outputs.commissure_coordinates = self.test_outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
+        normalization.outputs.talairach_transformation = self.test_outputs[IntraAnalysisParameterNames.TALAIRACH_TRANSFORMATION]
         self.assert_(normalization.run() == 0)
-        self._assert_same_results([IntraAnalysis.COMMISSURE_COORDINATES, 
-                                  IntraAnalysis.TALAIRACH_TRANSFORMATION],
+        self._assert_same_results([IntraAnalysisParameterNames.COMMISSURE_COORDINATES, 
+                                  IntraAnalysisParameterNames.TALAIRACH_TRANSFORMATION],
                                   self._same_files)
 
     def test_bias_correction(self):
         bias_correction = BiasCorrection()
 
         bias_correction.inputs.mri = self.ref_mri
-        bias_correction.inputs.commissure_coordinates = self.ref_outputs[IntraAnalysis.COMMISSURE_COORDINATES]
+        bias_correction.inputs.commissure_coordinates = self.ref_outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
         bias_correction.inputs.fix_random_seed = True
         
-        bias_correction.outputs.hfiltered = self.test_outputs[IntraAnalysis.HFILTERED] 
-        bias_correction.outputs.white_ridges = self.test_outputs[IntraAnalysis.WHITE_RIDGES]
-        bias_correction.outputs.edges = self.test_outputs[IntraAnalysis.EDGES] 
-        bias_correction.outputs.variance = self.test_outputs[IntraAnalysis.VARIANCE]  
-        bias_correction.outputs.corrected_mri = self.test_outputs[IntraAnalysis.CORRECTED_MRI]  
+        bias_correction.outputs.hfiltered = self.test_outputs[IntraAnalysisParameterNames.HFILTERED] 
+        bias_correction.outputs.white_ridges = self.test_outputs[IntraAnalysisParameterNames.WHITE_RIDGES]
+        bias_correction.outputs.edges = self.test_outputs[IntraAnalysisParameterNames.EDGES] 
+        bias_correction.outputs.variance = self.test_outputs[IntraAnalysisParameterNames.VARIANCE]  
+        bias_correction.outputs.corrected_mri = self.test_outputs[IntraAnalysisParameterNames.CORRECTED_MRI]  
         self.assert_(bias_correction.run() == 0)
-        self._assert_same_results([IntraAnalysis.HFILTERED,
-                IntraAnalysis.EDGES, IntraAnalysis.VARIANCE,
-                IntraAnalysis.CORRECTED_MRI, IntraAnalysis.WHITE_RIDGES],
+        self._assert_same_results([IntraAnalysisParameterNames.HFILTERED,
+                IntraAnalysisParameterNames.EDGES, IntraAnalysisParameterNames.VARIANCE,
+                IntraAnalysisParameterNames.CORRECTED_MRI, IntraAnalysisParameterNames.WHITE_RIDGES],
                 self._same_files)
         
     def test_histogram_analysis(self):
         histo_analysis = HistogramAnalysis()
-        histo_analysis.inputs.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
-        histo_analysis.inputs.hfiltered = self.ref_outputs[IntraAnalysis.HFILTERED]
-        histo_analysis.inputs.white_ridges = self.ref_outputs[IntraAnalysis.WHITE_RIDGES]
+        histo_analysis.inputs.corrected_mri = self.ref_outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        histo_analysis.inputs.hfiltered = self.ref_outputs[IntraAnalysisParameterNames.HFILTERED]
+        histo_analysis.inputs.white_ridges = self.ref_outputs[IntraAnalysisParameterNames.WHITE_RIDGES]
         histo_analysis.inputs.fix_random_seed = True
-        histo_analysis.outputs.histo_analysis = self.test_outputs[IntraAnalysis.HISTO_ANALYSIS]
-        histo_analysis.outputs.histogram = self.test_outputs[IntraAnalysis.HISTOGRAM]
+        histo_analysis.outputs.histo_analysis = self.test_outputs[IntraAnalysisParameterNames.HISTO_ANALYSIS]
+        histo_analysis.outputs.histogram = self.test_outputs[IntraAnalysisParameterNames.HISTOGRAM]
         self.assert_(histo_analysis.run() == 0)
-        self._assert_same_results([IntraAnalysis.HISTO_ANALYSIS,
-                                   IntraAnalysis.HISTOGRAM],
+        self._assert_same_results([IntraAnalysisParameterNames.HISTO_ANALYSIS,
+                                   IntraAnalysisParameterNames.HISTOGRAM],
                                    self._same_files)
         
     def test_brain_segmentation(self):
         brain_segmentation = BrainSegmentation()
-        brain_segmentation.inputs.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
-        brain_segmentation.inputs.commissure_coordinates = self.ref_outputs[IntraAnalysis.COMMISSURE_COORDINATES]
-        brain_segmentation.inputs.edges = self.ref_outputs[IntraAnalysis.EDGES]
-        brain_segmentation.inputs.variance = self.ref_outputs[IntraAnalysis.VARIANCE]
-        brain_segmentation.inputs.histo_analysis = self.ref_outputs[IntraAnalysis.HISTO_ANALYSIS]
+        brain_segmentation.inputs.corrected_mri = self.ref_outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        brain_segmentation.inputs.commissure_coordinates = self.ref_outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
+        brain_segmentation.inputs.edges = self.ref_outputs[IntraAnalysisParameterNames.EDGES]
+        brain_segmentation.inputs.variance = self.ref_outputs[IntraAnalysisParameterNames.VARIANCE]
+        brain_segmentation.inputs.histo_analysis = self.ref_outputs[IntraAnalysisParameterNames.HISTO_ANALYSIS]
         brain_segmentation.inputs.fix_random_seed = True
-        brain_segmentation.inputs.white_ridges = self.ref_outputs[IntraAnalysis.WHITE_RIDGES]
-        brain_segmentation.outputs.brain_mask = self.test_outputs[IntraAnalysis.BRAIN_MASK]
-        brain_segmentation.outputs.white_ridges = self.test_outputs[IntraAnalysis.REFINED_WHITE_RIDGES]
+        brain_segmentation.inputs.white_ridges = self.ref_outputs[IntraAnalysisParameterNames.WHITE_RIDGES]
+        brain_segmentation.outputs.brain_mask = self.test_outputs[IntraAnalysisParameterNames.BRAIN_MASK]
+        brain_segmentation.outputs.white_ridges = self.test_outputs[IntraAnalysisParameterNames.REFINED_WHITE_RIDGES]
         self.assert_(brain_segmentation.run() == 0)
-        self._assert_same_results([IntraAnalysis.BRAIN_MASK, 
-                                   IntraAnalysis.REFINED_WHITE_RIDGES],
+        self._assert_same_results([IntraAnalysisParameterNames.BRAIN_MASK, 
+                                   IntraAnalysisParameterNames.REFINED_WHITE_RIDGES],
                                    self._same_files)
 
     def test_split_brain(self):
         split_brain = SplitBrain()
 
-        split_brain.inputs.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
-        split_brain.inputs.commissure_coordinates = self.ref_outputs[IntraAnalysis.COMMISSURE_COORDINATES]
-        split_brain.inputs.brain_mask = self.ref_outputs[IntraAnalysis.BRAIN_MASK]
-        split_brain.inputs.white_ridges = self.ref_outputs[IntraAnalysis.REFINED_WHITE_RIDGES]
-        split_brain.inputs.histo_analysis = self.ref_outputs[IntraAnalysis.HISTO_ANALYSIS]
+        split_brain.inputs.corrected_mri = self.ref_outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        split_brain.inputs.commissure_coordinates = self.ref_outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
+        split_brain.inputs.brain_mask = self.ref_outputs[IntraAnalysisParameterNames.BRAIN_MASK]
+        split_brain.inputs.white_ridges = self.ref_outputs[IntraAnalysisParameterNames.REFINED_WHITE_RIDGES]
+        split_brain.inputs.histo_analysis = self.ref_outputs[IntraAnalysisParameterNames.HISTO_ANALYSIS]
         split_brain.inputs.fix_random_seed = True
-        split_brain.outputs.split_mask = self.test_outputs[IntraAnalysis.SPLIT_MASK]
+        split_brain.outputs.split_mask = self.test_outputs[IntraAnalysisParameterNames.SPLIT_MASK]
         self.assert_(split_brain.run() == 0)
-        self._assert_same_results([IntraAnalysis.SPLIT_MASK], self._same_files)
+        self._assert_same_results([IntraAnalysisParameterNames.SPLIT_MASK], self._same_files)
 
     def test_grey_white(self):
         left_grey_white = GreyWhite(constants.LEFT)
@@ -192,22 +193,22 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         self._init_test_grey_white(left_grey_white)
         self._init_test_grey_white(right_grey_white)
 
-        left_grey_white.outputs.grey_white = self.test_outputs[IntraAnalysis.LEFT_GREY_WHITE]
-        right_grey_white.outputs.grey_white = self.test_outputs[IntraAnalysis.RIGHT_GREY_WHITE]
+        left_grey_white.outputs.grey_white = self.test_outputs[IntraAnalysisParameterNames.LEFT_GREY_WHITE]
+        right_grey_white.outputs.grey_white = self.test_outputs[IntraAnalysisParameterNames.RIGHT_GREY_WHITE]
                 
         self.assert_(left_grey_white.run() == 0)
         self.assert_(right_grey_white.run() == 0)
         
-        self._assert_same_results([IntraAnalysis.LEFT_GREY_WHITE, 
-                                   IntraAnalysis.RIGHT_GREY_WHITE],
+        self._assert_same_results([IntraAnalysisParameterNames.LEFT_GREY_WHITE, 
+                                   IntraAnalysisParameterNames.RIGHT_GREY_WHITE],
                                    self._same_files)
 
     def _init_test_grey_white(self, step):
-        step.inputs.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
-        step.inputs.commissure_coordinates = self.ref_outputs[IntraAnalysis.COMMISSURE_COORDINATES]
-        step.inputs.histo_analysis = self.ref_outputs[IntraAnalysis.HISTO_ANALYSIS]
-        step.inputs.split_mask = self.ref_outputs[IntraAnalysis.SPLIT_MASK]
-        step.inputs.edges = self.ref_outputs[IntraAnalysis.EDGES]
+        step.inputs.corrected_mri = self.ref_outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        step.inputs.commissure_coordinates = self.ref_outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
+        step.inputs.histo_analysis = self.ref_outputs[IntraAnalysisParameterNames.HISTO_ANALYSIS]
+        step.inputs.split_mask = self.ref_outputs[IntraAnalysisParameterNames.SPLIT_MASK]
+        step.inputs.edges = self.ref_outputs[IntraAnalysisParameterNames.EDGES]
         step.inputs.fix_random_seed = True
        
     def test_grey(self):
@@ -216,116 +217,116 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         self._init_test_grey(left_grey)
         self._init_test_grey(right_grey)
 
-        left_grey.inputs.grey_white = self.ref_outputs[IntraAnalysis.LEFT_GREY_WHITE]
-        left_grey.outputs.grey = self.test_outputs[IntraAnalysis.LEFT_GREY]
-        right_grey.inputs.grey_white = self.ref_outputs[IntraAnalysis.RIGHT_GREY_WHITE]
-        right_grey.outputs.grey = self.test_outputs[IntraAnalysis.RIGHT_GREY]
+        left_grey.inputs.grey_white = self.ref_outputs[IntraAnalysisParameterNames.LEFT_GREY_WHITE]
+        left_grey.outputs.grey = self.test_outputs[IntraAnalysisParameterNames.LEFT_GREY]
+        right_grey.inputs.grey_white = self.ref_outputs[IntraAnalysisParameterNames.RIGHT_GREY_WHITE]
+        right_grey.outputs.grey = self.test_outputs[IntraAnalysisParameterNames.RIGHT_GREY]
                 
         self.assert_(left_grey.run() == 0)
         self.assert_(right_grey.run() == 0)
         
-        self._assert_same_results([IntraAnalysis.LEFT_GREY, 
-                                   IntraAnalysis.RIGHT_GREY],
+        self._assert_same_results([IntraAnalysisParameterNames.LEFT_GREY, 
+                                   IntraAnalysisParameterNames.RIGHT_GREY],
                                    self._same_files)
        
     def _init_test_grey(self, step):
-        step.inputs.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
-        step.inputs.histo_analysis = self.ref_outputs[IntraAnalysis.HISTO_ANALYSIS]
+        step.inputs.corrected_mri = self.ref_outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        step.inputs.histo_analysis = self.ref_outputs[IntraAnalysisParameterNames.HISTO_ANALYSIS]
         step.inputs.fix_random_seed = True
         
     def test_white_surface(self):
         left_white_surface = WhiteSurface()
         right_white_surface = WhiteSurface()
         
-        left_white_surface.inputs.grey = self.ref_outputs[IntraAnalysis.LEFT_GREY]
-        right_white_surface.inputs.grey = self.ref_outputs[IntraAnalysis.RIGHT_GREY]
-        left_white_surface.outputs.white_surface = self.test_outputs[IntraAnalysis.LEFT_WHITE_SURFACE]
-        right_white_surface.outputs.white_surface = self.test_outputs[IntraAnalysis.RIGHT_WHITE_SURFACE]
+        left_white_surface.inputs.grey = self.ref_outputs[IntraAnalysisParameterNames.LEFT_GREY]
+        right_white_surface.inputs.grey = self.ref_outputs[IntraAnalysisParameterNames.RIGHT_GREY]
+        left_white_surface.outputs.white_surface = self.test_outputs[IntraAnalysisParameterNames.LEFT_WHITE_SURFACE]
+        right_white_surface.outputs.white_surface = self.test_outputs[IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE]
         
         self.assert_(left_white_surface.run() == 0)
         self.assert_(right_white_surface.run() == 0)
         
-        self._assert_same_results([IntraAnalysis.LEFT_WHITE_SURFACE, 
-                                   IntraAnalysis.RIGHT_WHITE_SURFACE],
+        self._assert_same_results([IntraAnalysisParameterNames.LEFT_WHITE_SURFACE, 
+                                   IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE],
                                    self._same_files)
 
     def test_grey_surface(self):
         left_grey_surface = GreySurface(constants.LEFT)
         right_grey_surface = GreySurface(constants.RIGHT)
        
-        left_grey_surface.inputs.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
-        right_grey_surface.inputs.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
-        left_grey_surface.inputs.split_mask = self.ref_outputs[IntraAnalysis.SPLIT_MASK] 
-        right_grey_surface.inputs.split_mask = self.ref_outputs[IntraAnalysis.SPLIT_MASK] 
-        left_grey_surface.inputs.grey = self.ref_outputs[IntraAnalysis.LEFT_GREY]
-        right_grey_surface.inputs.grey = self.ref_outputs[IntraAnalysis.RIGHT_GREY]
-        left_grey_surface.outputs.grey_surface = self.test_outputs[IntraAnalysis.LEFT_GREY_SURFACE]
-        right_grey_surface.outputs.grey_surface = self.test_outputs[IntraAnalysis.RIGHT_GREY_SURFACE]
+        left_grey_surface.inputs.corrected_mri = self.ref_outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        right_grey_surface.inputs.corrected_mri = self.ref_outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        left_grey_surface.inputs.split_mask = self.ref_outputs[IntraAnalysisParameterNames.SPLIT_MASK] 
+        right_grey_surface.inputs.split_mask = self.ref_outputs[IntraAnalysisParameterNames.SPLIT_MASK] 
+        left_grey_surface.inputs.grey = self.ref_outputs[IntraAnalysisParameterNames.LEFT_GREY]
+        right_grey_surface.inputs.grey = self.ref_outputs[IntraAnalysisParameterNames.RIGHT_GREY]
+        left_grey_surface.outputs.grey_surface = self.test_outputs[IntraAnalysisParameterNames.LEFT_GREY_SURFACE]
+        right_grey_surface.outputs.grey_surface = self.test_outputs[IntraAnalysisParameterNames.RIGHT_GREY_SURFACE]
         
         self.assert_(left_grey_surface.run() == 0)
         self.assert_(right_grey_surface.run() == 0)
         
-        self._assert_same_results([IntraAnalysis.LEFT_GREY_SURFACE, 
-                                   IntraAnalysis.RIGHT_GREY_SURFACE],
+        self._assert_same_results([IntraAnalysisParameterNames.LEFT_GREY_SURFACE, 
+                                   IntraAnalysisParameterNames.RIGHT_GREY_SURFACE],
                                    self._same_files)
 
     def test_sulci_left(self):
         left_sulci = Sulci(constants.LEFT)
          
-        left_sulci.inputs.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
-        left_sulci.inputs.split_mask = self.ref_outputs[IntraAnalysis.SPLIT_MASK] 
-        left_sulci.inputs.talairach_transformation = self.ref_outputs[IntraAnalysis.TALAIRACH_TRANSFORMATION]
-        left_sulci.inputs.commissure_coordinates = self.ref_outputs[IntraAnalysis.COMMISSURE_COORDINATES]
-        left_sulci.inputs.grey_white = self.ref_outputs[IntraAnalysis.LEFT_GREY_WHITE]
-        left_sulci.inputs.grey = self.ref_outputs[IntraAnalysis.LEFT_GREY]
-        left_sulci.inputs.grey_surface = self.ref_outputs[IntraAnalysis.LEFT_GREY_SURFACE]
-        left_sulci.inputs.white_surface = self.ref_outputs[IntraAnalysis.LEFT_WHITE_SURFACE]
+        left_sulci.inputs.corrected_mri = self.ref_outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        left_sulci.inputs.split_mask = self.ref_outputs[IntraAnalysisParameterNames.SPLIT_MASK] 
+        left_sulci.inputs.talairach_transformation = self.ref_outputs[IntraAnalysisParameterNames.TALAIRACH_TRANSFORMATION]
+        left_sulci.inputs.commissure_coordinates = self.ref_outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
+        left_sulci.inputs.grey_white = self.ref_outputs[IntraAnalysisParameterNames.LEFT_GREY_WHITE]
+        left_sulci.inputs.grey = self.ref_outputs[IntraAnalysisParameterNames.LEFT_GREY]
+        left_sulci.inputs.grey_surface = self.ref_outputs[IntraAnalysisParameterNames.LEFT_GREY_SURFACE]
+        left_sulci.inputs.white_surface = self.ref_outputs[IntraAnalysisParameterNames.LEFT_WHITE_SURFACE]
 
-        left_sulci.outputs.sulci = self.test_outputs[IntraAnalysis.LEFT_SULCI]
+        left_sulci.outputs.sulci = self.test_outputs[IntraAnalysisParameterNames.LEFT_SULCI]
         
         self.assert_(left_sulci.run() == 0)
        
-        self._assert_same_results([IntraAnalysis.LEFT_SULCI],
+        self._assert_same_results([IntraAnalysisParameterNames.LEFT_SULCI],
                                   same_graphs) 
 
     def test_sulci_right(self):
         right_sulci = Sulci(constants.RIGHT)
          
-        right_sulci.inputs.corrected_mri = self.ref_outputs[IntraAnalysis.CORRECTED_MRI]
-        right_sulci.inputs.split_mask = self.ref_outputs[IntraAnalysis.SPLIT_MASK] 
-        right_sulci.inputs.talairach_transformation = self.ref_outputs[IntraAnalysis.TALAIRACH_TRANSFORMATION]
-        right_sulci.inputs.commissure_coordinates = self.ref_outputs[IntraAnalysis.COMMISSURE_COORDINATES]
-        right_sulci.inputs.grey_white = self.ref_outputs[IntraAnalysis.RIGHT_GREY_WHITE]
-        right_sulci.inputs.grey = self.ref_outputs[IntraAnalysis.RIGHT_GREY]
-        right_sulci.inputs.grey_surface = self.ref_outputs[IntraAnalysis.RIGHT_GREY_SURFACE]
-        right_sulci.inputs.white_surface = self.ref_outputs[IntraAnalysis.RIGHT_WHITE_SURFACE]
+        right_sulci.inputs.corrected_mri = self.ref_outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
+        right_sulci.inputs.split_mask = self.ref_outputs[IntraAnalysisParameterNames.SPLIT_MASK] 
+        right_sulci.inputs.talairach_transformation = self.ref_outputs[IntraAnalysisParameterNames.TALAIRACH_TRANSFORMATION]
+        right_sulci.inputs.commissure_coordinates = self.ref_outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
+        right_sulci.inputs.grey_white = self.ref_outputs[IntraAnalysisParameterNames.RIGHT_GREY_WHITE]
+        right_sulci.inputs.grey = self.ref_outputs[IntraAnalysisParameterNames.RIGHT_GREY]
+        right_sulci.inputs.grey_surface = self.ref_outputs[IntraAnalysisParameterNames.RIGHT_GREY_SURFACE]
+        right_sulci.inputs.white_surface = self.ref_outputs[IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE]
 
-        right_sulci.outputs.sulci = self.test_outputs[IntraAnalysis.RIGHT_SULCI]
+        right_sulci.outputs.sulci = self.test_outputs[IntraAnalysisParameterNames.RIGHT_SULCI]
         
         self.assert_(right_sulci.run() == 0)
        
-        self._assert_same_results([IntraAnalysis.RIGHT_SULCI],
+        self._assert_same_results([IntraAnalysisParameterNames.RIGHT_SULCI],
                                   same_graphs) 
 
     def test_sulci_labelling_left(self):
         left_sulci_labelling = SulciLabelling(constants.LEFT)
     
-        left_sulci_labelling.inputs.sulci = self.ref_outputs[IntraAnalysis.LEFT_SULCI] 
-        left_sulci_labelling.outputs.labeled_sulci = self.test_outputs[IntraAnalysis.LEFT_LABELED_SULCI] 
+        left_sulci_labelling.inputs.sulci = self.ref_outputs[IntraAnalysisParameterNames.LEFT_SULCI] 
+        left_sulci_labelling.outputs.labeled_sulci = self.test_outputs[IntraAnalysisParameterNames.LEFT_LABELED_SULCI] 
         self.assert_(left_sulci_labelling.run() == 0)
         
-        self._assert_same_results([IntraAnalysis.LEFT_LABELED_SULCI],
+        self._assert_same_results([IntraAnalysisParameterNames.LEFT_LABELED_SULCI],
                                    self._same_graphs) 
 
     def test_sulci_labelling_right(self):
         right_sulci_labelling = SulciLabelling(constants.RIGHT)
     
-        right_sulci_labelling.inputs.sulci = self.ref_outputs[IntraAnalysis.RIGHT_SULCI] 
-        right_sulci_labelling.outputs.labeled_sulci = self.test_outputs[IntraAnalysis.RIGHT_LABELED_SULCI] 
+        right_sulci_labelling.inputs.sulci = self.ref_outputs[IntraAnalysisParameterNames.RIGHT_SULCI] 
+        right_sulci_labelling.outputs.labeled_sulci = self.test_outputs[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI] 
  
         self.assert_(right_sulci_labelling.run() == 0)
         
-        self._assert_same_results([IntraAnalysis.RIGHT_LABELED_SULCI],
+        self._assert_same_results([IntraAnalysisParameterNames.RIGHT_LABELED_SULCI],
                                    self._same_graphs) 
 
     def _assert_same_results(self, results, comparison_function):

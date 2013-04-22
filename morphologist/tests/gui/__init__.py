@@ -13,7 +13,7 @@ class TestGuiBase(unittest.TestCase):
         cls._widgets_kept_alive.append(widget)
         
 
-if settings['debug']['start_qt_event_loop_for_tests']:
+if settings.tests.start_qt_event_loop:
     class TestGui(TestGuiBase):
 
         @staticmethod

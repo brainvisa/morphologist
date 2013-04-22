@@ -5,17 +5,26 @@ class DisplayManagerMixin(object):
    
     def clear_view(self, backend_view):
         raise NotImplementedError("DisplayManagerMixin is an abstract class")
-
+        
+    def reset_view_camera(self, backend_view):
+        raise NotImplementedError("DisplayManagerMixin is an abstract class")
+    
     def set_bgcolor_view(self, backend_view, rgba_color):
         raise NotImplementedError("DisplayManagerMixin is an abstract class")
     
     def set_position(self, backend_view, position):
         raise NotImplementedError("DisplayManagerMixin is an abstract class")
 
-    def create_view(self, parent, view_type):
+    def create_view(self, parent, view_type, restricted_controls=True):
         raise NotImplementedError("DisplayManagerMixin is an abstract class")
-        
-
+    
+    def get_view_type(self, backend_view):
+        raise NotImplementedError("DisplayManagerMixin is an abstract class")
+    
+    def set_view_type(self, backend_view, view_type):
+        raise NotImplementedError("DisplayManagerMixin is an abstract class")
+    
+    
 class ObjectsManagerMixin(object):
         
     def reload_object(self, backend_object):

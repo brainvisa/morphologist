@@ -30,8 +30,7 @@ class LazyAnalysisModel(QtCore.QObject):
         QtCore.QTimer.singleShot(100, self._timer.timeout.emit) 
 
     def remove_analysis(self):
-        if self._analysis is not None:
-            self._timer.timeout.disconnect(self._check_output_files_changed)
+        self._timer.stop()
         self._analysis = None
         self.changed.emit()
               

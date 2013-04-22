@@ -4,14 +4,14 @@ import optparse
 
 from morphologist.core.settings import settings
 from morphologist.core.gui.qt_backend import QtGui
-from morphologist.gui.main_window import create_main_window
+from morphologist.gui.main_window import MainWindow
 
 
 def option_parser():
     parser = optparse.OptionParser()
 
     parser.add_option('-s', '--study', 
-                      dest="study_file", metavar="STUDY_FILE", default=None, 
+                      dest="study_directory", metavar="STUDY_DIRECTORY", default=None, 
                       help="Opens the interface with the study loaded.")
     
     group_neurospin = optparse.OptionGroup(parser, "Neurospin specific options")
@@ -31,20 +31,25 @@ def option_parser():
 
 
 def mock_option_callback(self, option, value, parser):
-    settings['debug']['mock'] = True
+    settings.commandline.mock = True
 
 
 def brainomics_option_callback(self, option, value, parser):
-    settings['application']['brainomics'] = True
+    settings.commandline.brainomics = True
 
 
 def main():
     parser = option_parser()
     options, args = parser.parse_args(sys.argv)
-    if not settings['settings_validation']: return
+    if not settings.are_valid():
+        print "Warning: unvalid settings!"
+        print "         User settings will be ignored, switch to default. "
+        print "         Try to remove it or fix it."
+        settings.load_default()
     
     qApp = QtGui.QApplication(sys.argv)
-    main_window = create_main_window(options.study_file)
+    main_window = MainWindow(analysis_type="IntraAnalysis",
+                            study_directory=options.study_directory)
     main_window.show()
     sys.exit(qApp.exec_())
 

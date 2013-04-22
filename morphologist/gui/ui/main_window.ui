@@ -23,24 +23,6 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout" stretch="0">
-    <property name="spacing">
-     <number>0</number>
-    </property>
-    <property name="margin">
-     <number>0</number>
-    </property>
-    <item>
-     <widget class="QFrame" name="viewport_frame">
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
-      </property>
-     </widget>
-    </item>
-   </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="enabled">
@@ -59,15 +41,30 @@
      <bool>true</bool>
     </property>
     <property name="title">
-     <string>Study</string>
+     <string>&amp;Study</string>
     </property>
     <addaction name="action_new_study"/>
-    <addaction name="action_edit_study"/>
     <addaction name="action_open_study"/>
-    <addaction name="action_save_study"/>
-    <addaction name="action_save_as_study"/>
+    <addaction name="action_import_study"/>
+    <addaction name="separator"/>
+    <addaction name="action_edit_study"/>
+   </widget>
+   <widget class="QMenu" name="menuConfig">
+    <property name="title">
+     <string>&amp;Settings</string>
+    </property>
+    <addaction name="action_runner_settings"/>
+   </widget>
+   <widget class="QMenu" name="menuMorphometry">
+    <property name="title">
+     <string>Morphometry</string>
+    </property>
+    <addaction name="action_export_morphometry"/>
+    <addaction name="action_export_selection_morphometry"/>
    </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuConfig"/>
+   <addaction name="menuMorphometry"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="runner_widget_dock">
@@ -112,6 +109,19 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents"/>
   </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="action_axial_view"/>
+   <addaction name="action_coronal_view"/>
+  </widget>
   <action name="action_new_study">
    <property name="text">
     <string>&amp;New...</string>
@@ -134,28 +144,6 @@
     <string>Ctrl+O</string>
    </property>
   </action>
-  <action name="action_save_study">
-   <property name="text">
-    <string>&amp;Save</string>
-   </property>
-   <property name="toolTip">
-    <string>Save the current study</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+S</string>
-   </property>
-  </action>
-  <action name="action_save_as_study">
-   <property name="text">
-    <string>Save &amp;As...</string>
-   </property>
-   <property name="toolTip">
-    <string>Save the current study under a new file name</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+A</string>
-   </property>
-  </action>
   <action name="action_edit_study">
    <property name="text">
     <string>&amp;Edit...</string>
@@ -167,7 +155,83 @@
     <string>Ctrl+E</string>
    </property>
   </action>
+  <action name="action_runner_settings">
+   <property name="text">
+    <string>&amp;Calculations</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="action_import_study">
+   <property name="text">
+    <string>Import...</string>
+   </property>
+   <property name="toolTip">
+    <string>Import a study from an organized directory</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="action_export_morphometry">
+   <property name="text">
+    <string>Export (csv)...</string>
+   </property>
+  </action>
+  <action name="action_export_selection_morphometry">
+   <property name="text">
+    <string>Export selection (csv)...</string>
+   </property>
+  </action>
+  <action name="action_axial_view">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../resources/morphologist.qrc">
+     <normaloff>:/icons/axial.xpm</normaloff>:/icons/axial.xpm</iconset>
+   </property>
+   <property name="text">
+    <string>Axial</string>
+   </property>
+   <property name="toolTip">
+    <string>Switch to axial point of view</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
+   </property>
+   <property name="autoRepeat">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="action_coronal_view">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../resources/morphologist.qrc">
+     <normaloff>:/icons/coronal.xpm</normaloff>:/icons/coronal.xpm</iconset>
+   </property>
+   <property name="text">
+    <string>Coronal</string>
+   </property>
+   <property name="toolTip">
+    <string>Switch to coronal view</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+   <property name="autoRepeat">
+    <bool>false</bool>
+   </property>
+  </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../../resources/morphologist.qrc"/>
+ </resources>
  <connections/>
 </ui>
