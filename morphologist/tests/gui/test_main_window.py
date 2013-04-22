@@ -1,14 +1,15 @@
 import sys
 import unittest
 import os
+import time
 
-from morphologist.core.study import Subject, Study
+from morphologist.core.subject import Subject
 from morphologist.core.gui.qt_backend import QtGui, QtCore, QtTest
-from morphologist.gui.main_window import create_main_window
+from morphologist.core.tests.study import MockStudyTestCase
+from morphologist.gui.main_window import MainWindow
 from morphologist.tests.gui import TestGui
 from morphologist.tests.gui.test_study_editor_widget import TestStudyGui
 from morphologist.tests.intra_analysis.study import IntraAnalysisStudyTestCase
-from morphologist.core.tests.study import MockStudyTestCase
 
 
 class TestStudyWidget(TestGui):
@@ -30,7 +31,7 @@ class TestStudyWidget(TestGui):
         self.test_case.create_study()
         self.test_case.add_subjects()
         self.test_case.study.clear_results()
-        main_window = create_main_window()
+        main_window = MainWindow(self.test_case.analysis_type)
         self.keep_widget_alive(main_window)
         main_window.set_study(self.test_case.study)
         main_window.show()
@@ -43,7 +44,7 @@ class TestStudyWidget(TestGui):
 
     @TestGui.start_qt_and_test
     def test_create_new_study(self):
-        main_window = create_main_window()
+        main_window = MainWindow(self.test_case.analysis_type)
         self.keep_widget_alive(main_window)
         main_window.show()
         QtTest.QTest.keyClicks(main_window, "n", QtCore.Qt.ControlModifier, 10 )
@@ -53,6 +54,13 @@ class TestStudyWidget(TestGui):
                                                      self.test_case.studyname, 
                                                      self.test_case.outputdir,
                                                      self.test_case.filenames)
+        import_dialog = main_window.findChild(QtGui.QDialog, 'ImportSubjectsDialog')
+        close_button = import_dialog.ui.close_buttonBox
+        while not close_button.isEnabled():
+            time.sleep(1)
+            QtGui.QApplication.processEvents()
+        QtTest.QTest.mouseClick(close_button, QtCore.Qt.LeftButton)
+        
         self.assertEqual(main_window.study.name, self.test_case.studyname)
         self.assertEqual(main_window.study.outputdir, self.test_case.outputdir)
         self._assert_subjects_exist(main_window.study)

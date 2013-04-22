@@ -37,6 +37,8 @@ class SubjectsTableView(QtGui.QTableView):
 
     # overrided Qt method
     def selectionCommand(self, index, event):
+        if not index.isValid():
+            return QtGui.QItemSelectionModel.NoUpdate
         row, column = index.row(), index.column()
         table_model = self.model()
         if column != table_model.SELECTION_COL:
@@ -122,7 +124,7 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
             if column == SubjectsTableModel.SUBJECTNAME_COL:
                 return subject.name
             if column == SubjectsTableModel.SUBJECTSTATUS_COL:
-                return self._study_model.get_status(row)
+                return self._study_model.get_status_text(row)
         elif role == QtCore.Qt.ToolTipRole:
             if column == SubjectsTableModel.SUBJECTSTATUS_COL:
                 return self._study_model.get_status_tooltip(row)

@@ -109,7 +109,7 @@ class TestRunnerOnSuccessStudy(TestRunner):
                 status = self.runner.get_status(subject_id, step_id, update_status=False)
                 if status == Runner.SUCCESS:
                     self.assertTrue(step.outputs.all_file_exists())
-                elif status == Runner.KILLED_BY_USER:
+                elif status == Runner.STOPPED_BY_USER:
                     self.assertTrue(not step.outputs.some_file_exists())
                 else:
                     self.assertTrue(0)

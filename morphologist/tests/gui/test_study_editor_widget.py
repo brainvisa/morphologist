@@ -17,8 +17,7 @@ class TestStudyGui(TestGui):
 
     @TestGui.start_qt_and_test
     def test_defining_new_content_for_an_empty_study(self):
-        study_cls = self.test_case.study_cls()
-        study = study_cls()
+        study = self.test_case.create_study()
 
         study_editor_dialog = StudyEditorDialog(study)
         self.keep_widget_alive(study_editor_dialog)
@@ -27,7 +26,7 @@ class TestStudyGui(TestGui):
         self.action_define_new_study_content(study_editor_dialog.ui,
             self.test_case.studyname, self.test_case.outputdir,
             self.test_case.filenames)
-        new_study = study_editor_dialog.create_updated_study()
+        new_study = study_editor_dialog.study_editor.create_updated_study()
         study_editor_dialog.ui.close()
 
         self._assert_study_is_conformed_to_test_case(new_study)
@@ -39,7 +38,7 @@ class TestStudyGui(TestGui):
         study_editor_dialog = StudyEditorDialog(study)
         self.keep_widget_alive(study_editor_dialog)
         study_editor_dialog.ui.show()
-        new_study = study_editor_dialog.create_updated_study()
+        new_study = study_editor_dialog.study_editor.create_updated_study()
         study_editor_dialog.ui.close()
 
         self._assert_study_is_conformed_to_test_case(new_study)
@@ -47,13 +46,14 @@ class TestStudyGui(TestGui):
     @TestGui.start_qt_and_test        
     def test_changing_parameter_template(self):
         study = self.test_case.create_study()
-        parameter_template = self.test_case.parameter_template()
+        parameter_template_name = self.test_case.parameter_template_name()
         study_editor_dialog = StudyEditorDialog(study)
-        self._action_change_parameter_template(study_editor_dialog, parameter_template)
+        self._action_change_parameter_template(study_editor_dialog, parameter_template_name)
         
-        study_properties_editor = study_editor_dialog.study_editor.study_properties_editor
-        self.assertEqual(study_properties_editor.parameter_template,
-                                                parameter_template)
+        study_prop_editor = study_editor_dialog.study_editor.study_properties_editor
+        editor_param_template_name = study_prop_editor.parameter_templates[\
+                                                study_prop_editor.parameter_template_index].name
+        self.assertEqual(editor_param_template_name, parameter_template_name)
                 
     @staticmethod
     def action_define_new_study_content(study_editor_dialog_ui,

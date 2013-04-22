@@ -2,14 +2,15 @@ from morphologist.core.settings import settings
 
 
 class Backend(object):
-    DISPLAY_ROLE = 'display_backend'
-    OBJECTS_LOADER_ROLE = 'objects_backend'
-    VECTOR_GRAPHICS_ROLE = 'vector_graphics_backend'
+    DISPLAY_ROLE = 'display'
+    OBJECTS_LOADER_ROLE = 'objects'
+    VECTOR_GRAPHICS_ROLE = 'vector_graphics'
     _backend_instance = {}
     _backend_loading_info = {
         'pyanatomist' : ('morphologist.core.backends.pyanatomist_backend',
                                                     'PyanatomistBackend'),
-        'morphologist_common' : ('morphologist.core.backends.morphologist_common_backend', 'MorphologistCommonBackend')
+        'morphologist_common' : ('morphologist.core.backends.morphologist_common_backend', 'MorphologistCommonBackend'), 
+        'mock_object_display' : ('morphologist.core.backends.mock_object_display_backend', 'MockObjectDisplayBackend')
     }
 
     @classmethod
@@ -41,7 +42,8 @@ class Backend(object):
         try:
             instance = cls._backend_instance[role]
         except KeyError:
-            cls.select_backend_from_role(role, settings['backend'][role])
+            backend_name = settings.backends.__getattr__(role)
+            cls.select_backend_from_role(role, backend_name)
             instance = cls._backend_instance[role]
         return instance
 

@@ -1,5 +1,5 @@
 from morphologist.core.backends import Backend
-from morphologist.core.utils import Visitable
+from morphologist.core.utils.design_patterns import Visitable
 
 
 class AbstractObject3D(Visitable):
@@ -145,9 +145,18 @@ class APCObject(GroupObject):
     
 class View(object):
     
-    def __init__(self, parent, view_type):
+    def __init__(self, parent, view_type, restricted_controls=True):
         self._backend = Backend.display_backend()
-        self._backend_view = self._backend.create_view(parent, view_type)
+        self._backend_view = self._backend.create_view(parent, view_type, 
+                                                       restricted_controls)
+        
+    @property
+    def view_type(self):
+        return self._backend.get_view_type(self._backend_view)
+        
+    @view_type.setter
+    def view_type(self, view_type):
+        self._backend.set_view_type(self._backend_view, view_type)
         
     def add_object(self, object):
         object._friend_accept_visitor(self)
@@ -155,6 +164,9 @@ class View(object):
     def clear(self):
         self._backend.clear_view(self._backend_view)
     
+    def reset_camera(self):
+        self._backend.reset_view_camera(self._backend_view)
+        
     def center_on_object(self, object):
         position = object.get_center_position()
         self.set_position(position)

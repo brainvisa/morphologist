@@ -1,6 +1,7 @@
 import os
 
 import anatomist.direct.api as ana
+from anatomist.cpp.simplecontrols import Simple2DControl, Simple3DControl
 from soma import aims
 
 from morphologist.core.gui.qt_backend import QtCore
@@ -33,6 +34,14 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
     @classmethod
     def _init_anatomist(cls):
         cls.anatomist = ana.Anatomist("-b")
+        cls._init_view_controls()
+        
+    @classmethod
+    def _init_view_controls(cls):
+        # register controls
+        control_manager = ana.cpp.ControlManager.instance()
+        control_manager.addControl( 'QAGLWidget3D', '', 'Simple2DControl' )
+        control_manager.addControl( 'QAGLWidget3D', '', 'Simple3DControl' )
 
     @classmethod
     def add_object_in_view(cls, backend_object, backend_view):
@@ -41,8 +50,12 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
     @classmethod
     def clear_view(cls, backend_view):
         backend_view.removeObjects(backend_view.objects)
-        
 
+    @classmethod
+    def reset_view_camera(cls, backend_view):
+        cls.set_view_type(backend_view, backend_view.windowType)
+        backend_view.camera(zoom=1)
+        
     @classmethod
     def set_bgcolor_view(cls, backend_view, rgba_color):
         cls.anatomist.execute('WindowConfig',
@@ -55,21 +68,42 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         backend_view.moveLinkedCursor(position)
         
     @classmethod
-    def create_view(cls, parent, view_type):
+    def create_view(cls, parent, view_type, restricted_controls=True):
         cmd = ana.cpp.CreateWindowCommand(view_type, -1, None,
                 [], 1, parent, 2, 0,
                 { '__syntax__' : 'dictionary',  'no_decoration' : 1})
         cls.anatomist.execute(cmd)
         window = cmd.createdWindow()
         window.setWindowFlags(QtCore.Qt.Widget)
+        window.setAcceptDrops( False )
         awindow = cls.anatomist.AWindow(cls.anatomist, window)
         parent.layout().addWidget(awindow.getInternalRep())
         if view_type == ViewType.THREE_D:
+            control = "Simple3DControl"
             awindow.camera(zoom=1.5, 
                            view_quaternion=[0.558559238910675,0.141287177801132,\
                                             0.196735754609108,0.793312430381775])
+        else:
+            control = 'Simple2DControl'
+        if restricted_controls:
+            cls.anatomist.execute( 'SetControl', windows=[awindow], control=control )
         return awindow
 
+    @classmethod
+    def get_view_type(cls, backend_view):
+        return backend_view.windowType
+    
+    @classmethod
+    def set_view_type(cls, backend_view, view_type):
+        if view_type == ViewType.AXIAL:
+            backend_view.internalRep.muteAxial()
+        elif view_type == ViewType.CORONAL:
+            backend_view.internalRep.muteCoronal()
+        elif view_type == ViewType.SAGITTAL:
+            backend_view.internalRep.muteSagittal()
+        elif view_type == ViewType.THREE_D:
+            backend_view.internalRep.mute3D()
+        
 ### objects loader backend    
     @classmethod
     def reload_object(cls, backend_object):
@@ -131,5 +165,4 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
                                                "hierarchy", "sulcal_root_colors.hie")
         cls.anatomist.execute("GraphParams", label_attribute="label")
         return cls.load_object(sulci_colormap_filename) 
-        
         

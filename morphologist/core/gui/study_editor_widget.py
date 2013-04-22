@@ -4,73 +4,36 @@ import zipfile
 import shutil
 import tempfile
 import numpy
-from collections import namedtuple
 
+from morphologist.core.settings import settings
 from morphologist.core.gui.qt_backend import QtGui, QtCore, loadUi
 from morphologist.core.gui import ui_directory
-from morphologist.core.study import Study, Subject
+from morphologist.core.subject import Subject
 from morphologist.core.formats import FormatsManager
-from morphologist.core.analysis import ImportationError
-
-
-class StudyEditor(object):
-    # study edition mode
-    NEW_STUDY = 0
-    EDIT_STUDY = 1
-    # update policy
-    ON_SUBJECT_REMOVED_DELETE_FILES = 0
-    ON_SUBJECT_REMOVED_DO_NOTHING = 1
-
-    def __init__(self, study, mode=NEW_STUDY,
-        study_update_policy=ON_SUBJECT_REMOVED_DO_NOTHING):
-        self.study = study
-        self.study_update_policy = study_update_policy 
-        self._study_properties_editor = StudyPropertiesEditor(study)
-        self._subjects_editor = SubjectsEditor(study)
-        self.mode = mode
-
-    @property
-    def subjects_editor(self):
-        return self._subjects_editor
-
-    @property
-    def study_properties_editor(self):
-        return self._study_properties_editor
-
-    def create_updated_study(self):
-        self._study_properties_editor.update_study(self.study)
-        self._subjects_editor.update_study(self.study, \
-                                self.study_update_policy)
-        return self.study
+from morphologist.core.analysis import AnalysisFactory
+from morphologist.core.gui.study_editor import StudyEditor, StudyPropertiesEditor
+from morphologist.core.gui.study_properties_widget import StudyPropertiesEditorWidget
 
 
 class StudyEditorDialog(QtGui.QDialog):
     window_title_from_mode = [\
         "Create a new study",
         "Edit current study"]
-    on_apply_cancel_buttons_clicked_map = {}
     default_group = Subject.DEFAULT_GROUP
     group_column_width = 100
 
-    @classmethod
-    def _init_class(cls):
-        apply_role = QtGui.QDialogButtonBox.ApplyRole
-        reject_role = QtGui.QDialogButtonBox.RejectRole
-        role_map = cls.on_apply_cancel_buttons_clicked_map
-        role_map[apply_role] = cls.on_apply_button_clicked
-        role_map[reject_role] = cls.on_cancel_button_clicked
-
-    def __init__(self, study, parent=None, editor_mode=StudyEditor.NEW_STUDY,
-                        enable_brainomics_db=False):
+    def __init__(self, study, parent=None, editor_mode=StudyEditor.NEW_STUDY):
         super(StudyEditorDialog, self).__init__(parent)
+        self._dialogs = {}
         self._init_ui()
         self.study_editor = StudyEditor(study, editor_mode)
         self._set_window_title(editor_mode)
-        self._default_parameter_template = study.analysis_cls().PARAMETER_TEMPLATES[0]
+        self._default_parameter_template_name = study.analysis_cls().get_default_parameter_template_name()
 
         self._subjects_tablemodel = SubjectsEditorTableModel(\
                             self.study_editor.subjects_editor)
-        self._subjects_tablemodel.rowsRemoved.connect(self.on_subjects_tablemodel_rows_changed)
+        self._subjects_tablemodel.rowsRemoved.connect(self.on_subjects_tablemodel_rows_removed)
+        self._subjects_tablemodel.rowsInserted.connect(self.on_subjects_tablemodel_rows_inserted)
         self._subjects_tablemodel.modelReset.connect(self.on_subjects_tablemodel_changed)
         self.ui.subjects_tableview.setModel(self._subjects_tablemodel)
         tablewidget_header = self.ui.subjects_tableview.horizontalHeader()
@@ -85,9 +48,9 @@ class StudyEditorDialog(QtGui.QDialog):
                                     self, editor_mode)
 
         self._study_properties_editor_widget.validity_changed.connect(self.on_study_properties_editor_validity_changed)
-
-        self._init_subjects_from_study_dialog(study)
-        self._init_db_dialog(enable_brainomics_db)
+        self._update_nb_subjects_label()
+        self._init_subjects_from_directory_dialog(study)
+        self._init_db_dialog(settings.study_editor.brainomics)
 
     def _init_ui(self):
         uifile = os.path.join(ui_directory, 'study_editor_widget.ui')
@@ -96,6 +59,8 @@ class StudyEditorDialog(QtGui.QDialog):
         cancel_id = QtGui.QDialogButtonBox.Cancel
         self.ui.apply_button = self.ui.apply_cancel_buttons.button(apply_id)
         self.ui.cancel_button = self.ui.apply_cancel_buttons.button(cancel_id)
+        self.ui.apply_button.clicked.connect(self.on_apply_button_clicked)
+        self.ui.cancel_button.clicked.connect(self.on_cancel_button_clicked)
 
     def _init_db_dialog(self, enable_brainomics_db):
         if enable_brainomics_db:
@@ -108,41 +73,24 @@ class StudyEditorDialog(QtGui.QDialog):
         else:
             self.ui.add_subjects_from_database_button.hide()    
              
-    def _init_subjects_from_study_dialog(self, study):
+    def _init_subjects_from_directory_dialog(self, study):
         outputdir = study.outputdir
-        parameter_templates = study.analysis_cls().PARAMETER_TEMPLATES
-        selected_template = self._default_parameter_template
-        self._subjects_from_study_dialog = SelectStudyDirectoryDialog(self.ui,
-                            outputdir, parameter_templates, selected_template)
-        self._subjects_from_study_dialog.accepted.connect(\
-            self.on_subjects_from_study_dialog_accepted)
+        selected_template_name = self._default_parameter_template_name
+        self._subjects_from_directory_dialog = SelectOrganizedDirectoryDialog(self.ui,
+                            outputdir, study.analysis_type, selected_template_name)
+        self._subjects_from_directory_dialog.accepted.connect(\
+            self.on_subjects_from_directory_dialog_accepted)
 
     def _set_window_title(self, mode):
         self.setWindowTitle(self.window_title_from_mode[mode])
 
-    def create_updated_study(self):
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
-        try:
-            study = self.study_editor.create_updated_study()
-        except ImportationError, e:
-            QtGui.QApplication.restoreOverrideCursor()
-            title = "Cannot import some images"
-            msg = "%s" %(e)
-            QtGui.QMessageBox.critical(self, title, msg)
-        else:
-            QtGui.QApplication.restoreOverrideCursor()
-        if self.study_editor.subjects_editor.has_imported_some_subjects():
-            title = "Images importation"
-            msg = "The images have been imported in %s directory." % \
-                                                        study.outputdir
-            msgbox = QtGui.QMessageBox(QtGui.QMessageBox.Information,
-                                       title, msg, QtGui.QMessageBox.Ok, self)
-            msgbox.show()
-        return study
- 
     @QtCore.Slot("const QModelIndex &", "int", "int")
-    def on_subjects_tablemodel_rows_changed(self):
+    def on_subjects_tablemodel_rows_removed(self):
         self._on_table_model_changed()
+
+    @QtCore.Slot("const QModelIndex &", "int", "int")
+    def on_subjects_tablemodel_rows_inserted(self):
+        self._update_nb_subjects_label()
 
     @QtCore.Slot()
     def on_subjects_tablemodel_changed(self):
@@ -154,7 +102,17 @@ class StudyEditorDialog(QtGui.QDialog):
         dummy_item_selection = QtGui.QItemSelection()
         self.on_subjects_selection_changed(empty_item_selection,
                                            dummy_item_selection)
-                                          
+        self._update_nb_subjects_label()
+                                  
+    def _update_nb_subjects_label(self):
+        nb_subjects = self._subjects_tablemodel.rowCount()
+        nb_selected_subjects = len(self._selection_model.selectedRows())
+        nb_subjects_text = "%d selected / %d subject" % (nb_selected_subjects, 
+                                                         nb_subjects)
+        if nb_subjects > 1:
+            nb_subjects_text += "s"
+        self.ui.nb_subjects_label.setText(nb_subjects_text)
+                        
     @QtCore.Slot("bool")
     def on_study_properties_editor_validity_changed(self, valid):
         self.ui.apply_button.setEnabled(valid)
@@ -168,18 +126,13 @@ class StudyEditorDialog(QtGui.QDialog):
 
     # this slot is automagically connected
     @QtCore.Slot()
-    def on_add_subjects_from_a_study_directory_button_clicked(self):
-        self._subjects_from_study_dialog.show()
+    def on_add_subjects_from_organized_directory_button_clicked(self):
+        self._subjects_from_directory_dialog.show()
         
     # this slot is automagically connected
     @QtCore.Slot()
-    def on_subjects_from_study_dialog_accepted(self):
-        study_directory = self._subjects_from_study_dialog.get_study_directory()
-        parameter_template_name = self._subjects_from_study_dialog.get_study_parameter_template()
-        parameter_template = self.study_editor.study_properties_editor.analysis_cls.param_template_map[parameter_template_name]
-        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-        subjects = parameter_template.get_subjects(study_directory)
-        QtGui.QApplication.restoreOverrideCursor()
+    def on_subjects_from_directory_dialog_accepted(self):
+        subjects = self._subjects_from_directory_dialog.get_subjects()
         if not subjects:
             QtGui.QMessageBox.warning(self, "No subjects", 
                                       "Cannot find subjects in this directory.")
@@ -193,12 +146,13 @@ class StudyEditorDialog(QtGui.QDialog):
         self.ui.edit_subjects_name_button.setEnabled(enable_rename)
         self.ui.edit_subjects_group_button.setEnabled(enable_rename)
         self.ui.remove_subjects_button.setEnabled(enable_remove)
+        self._update_nb_subjects_label()
            
     # this slot is automagically connected
     @QtCore.Slot()
     def on_edit_subjects_name_button_clicked(self):
         subjectname, ok = QtGui.QInputDialog.getText(self, 
-                "Enter the subject name", "Subject name:")
+                "Name", "Enter the subject name:")
         if not ok: return
         rows = [index.row() for index in \
                 self._selection_model.new_selected_subjects_rows()]
@@ -208,7 +162,7 @@ class StudyEditorDialog(QtGui.QDialog):
     @QtCore.Slot()
     def on_edit_subjects_group_button_clicked(self): 
         groupname, ok = QtGui.QInputDialog.getText(self,
-                "Enter the group name", "Group name:")
+                "Group", "Enter the group name:")
         if not ok: return
         rows = [index.row() for index in \
                 self._selection_model.new_selected_subjects_rows()]
@@ -230,12 +184,6 @@ class StudyEditorDialog(QtGui.QDialog):
         self._subjects_tablemodel.add_subjects_from_filenames(\
                             self._subject_from_db_dialog.get_filenames(), 
                             self._subject_from_db_dialog.get_group())
-
-    # this slot is automagically connected
-    @QtCore.Slot("QAbstractButton *")
-    def on_apply_cancel_buttons_clicked(self, button):
-        role = self.ui.apply_cancel_buttons.buttonRole(button)
-        self.on_apply_cancel_buttons_clicked_map[role](self)
 
     def on_apply_button_clicked(self):
         if not self._check_study_consistency():
@@ -274,318 +222,47 @@ class StudyEditorDialog(QtGui.QDialog):
                                                     self.default_group)
 
     def _check_study_consistency(self):
+        subjects_ok = self._check_study_subjects_consistency()
+        if not subjects_ok:
+            return False
+        properties_ok = self._check_study_properties_consistency()
+        return properties_ok
+
+    def _check_study_properties_consistency(self):
         study_properties_editor = self.study_editor.study_properties_editor
-        subjects_editor = self.study_editor.subjects_editor
         outputdir = study_properties_editor.outputdir
-        backup_filename = study_properties_editor.backup_filename
-        backup_filename_directory = os.path.dirname(backup_filename)
-        editor_mode = self.study_editor.mode
-        status = study_properties_editor.get_consistency_status(editor_mode)
+        status = study_properties_editor.get_consistency_status()
         if status == StudyPropertiesEditor.STUDY_PROPERTIES_VALID:
-            if subjects_editor.are_some_subjects_duplicated():
-                QtGui.QMessageBox.critical(self, "Study consistency error",
-                    "Some subjects have the same identifier")
-                return False
             return True
         elif status & StudyPropertiesEditor.OUTPUTDIR_NOT_EXISTS:
-            msg = "The output directory '%s' does not exist." % outputdir
+            msg = "The study directory '%s' does not exist." % outputdir +\
+            "\nDo you want to create it ?"
+            answer = QtGui.QMessageBox.question(self, "Create the study directory ?", msg, 
+                                                QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+            if answer == QtGui.QMessageBox.Ok:
+                try:
+                    os.makedirs(outputdir)
+                except OSError:
+                    msg = "The directory %s cannot be created." % outputdir
+                else:
+                    return True
+            else:
+                return False
         elif status & StudyPropertiesEditor.OUTPUTDIR_NOT_EMPTY:
-            msg = "The output directory '%s' is not empty." % outputdir
-        elif status & StudyPropertiesEditor.BACKUP_FILENAME_DIR_NOT_EXISTS:
-            msg = "The backup filename directory '%s' does not exist." % \
-                                                backup_filename_directory
-        elif status & StudyPropertiesEditor.BACKUP_FILENAME_EXISTS:
-            msg = "The backup filename already '%s' exists." % backup_filename
+            msg = "The study directory '%s' is not empty." % outputdir
         else:
             assert(0)
         QtGui.QMessageBox.critical(self, "Study consistency error", msg)
         return False
 
-
-class StudyPropertiesEditorWidget(QtGui.QWidget):
-    validity_changed = QtCore.pyqtSignal(bool)
-
-    def __init__(self, study_properties_editor, parent=None,
-                editor_mode=StudyEditor.NEW_STUDY):
-        super(StudyPropertiesEditorWidget, self).__init__(parent)
-        self._study_properties_editor = study_properties_editor
-        self._item_model = StudyPropertiesEditorItemModel(study_properties_editor, self)
-        self._item_delegate = StudyPropertiesEditorItemDelegate(self)
-        self._init_ui(parent, editor_mode)
-        self._init_mapper()
-        self.ui.link_button.toggled.connect(self.on_link_button_toggled)
-        self._item_model.status_changed.connect(self.on_item_model_status_changed)
-    
-    # FIXME: better: move those widgets in a separate .ui
-    def _init_ui(self, parent, editor_mode):
-        # create dummy ui attribute
-        self.ui = type('dummy UI', (QtGui.QWidget,), {})()
-        self.ui.studyname_lineEdit = parent.ui.studyname_lineEdit
-        self.ui.outputdir_lineEdit = parent.ui.outputdir_lineEdit
-        self.ui.outputdir_button = parent.ui.outputdir_button
-        self.ui.backup_filename_lineEdit = parent.ui.backup_filename_lineEdit
-        self.ui.backup_filename_button = parent.ui.backup_filename_button
-        self.ui.link_button = parent.ui.link_button
-        self.ui.parameter_template_combobox = parent.ui.parameter_template_combobox
-        if editor_mode == StudyEditor.EDIT_STUDY:
-            self.ui.outputdir_lineEdit.setEnabled(False)
-            self.ui.outputdir_button.setEnabled(False)
-            self.ui.backup_filename_lineEdit.setEnabled(False)
-            self.ui.backup_filename_button.setEnabled(False)
-            self.ui.link_button.setEnabled(False)
-            self.ui.parameter_template_combobox.setEnabled(False)
-        self._create_parameter_template_combobox()
-
-    def _create_parameter_template_combobox(self):
-        parameter_templates = self._study_properties_editor.analysis_cls.PARAMETER_TEMPLATES
-        for param_template_name in parameter_templates: 
-            self.ui.parameter_template_combobox.addItem(param_template_name)
-
-    def _init_mapper(self):
-        self._mapper = StudyPropertiesEditorWidgetMapper(self)
-        # XXX: AutoSubmit used here, in order that commitData works/is enable
-        self._mapper.setSubmitPolicy(QtGui.QDataWidgetMapper.AutoSubmit)
-        self._mapper.setModel(self._item_model)        
-        self._mapper.setItemDelegate(self._item_delegate)
-        self._mapper.addMapping(self.ui.studyname_lineEdit, 0)
-        self._mapper.addMapping(self.ui.outputdir_lineEdit, 1)
-        self._mapper.addMapping(self.ui.backup_filename_lineEdit, 2)
-        self._mapper.addMapping(self.ui.parameter_template_combobox, 3,
-                                                        "currentText")
-        self.ui.studyname_lineEdit.textChanged.connect(self._mapper.submit)
-        self.ui.outputdir_lineEdit.textChanged.connect(self._mapper.submit)
-        self.ui.backup_filename_lineEdit.textChanged.connect(self._mapper.submit)
-        self.ui.parameter_template_combobox.currentIndexChanged.connect(self._mapper.submit)
-        self.ui.outputdir_button.clicked.connect(self.on_outputdir_button_clicked)
-        self.ui.backup_filename_button.clicked.connect(self.on_backup_filename_button_clicked)
-        self._mapper.toFirst()
-
-    @QtCore.Slot("bool")
-    def on_item_model_status_changed(self, status):
-        self.validity_changed.emit(status)
-
-    @QtCore.Slot("bool")
-    def on_link_button_toggled(self, checked):
-        self._item_model.linked_inputs = (not checked)
-
-    @QtCore.Slot()
-    def on_outputdir_button_clicked(self):
-        caption = 'Select study output directory'
-        default_directory = self._study_properties_editor.outputdir
-        if default_directory == '':
-            default_directory = os.getcwd()
-        selected_directory = QtGui.QFileDialog.getExistingDirectory(self.ui,
-                                                caption, default_directory) 
-        if selected_directory != '':
-            self._item_model.set_data(\
-                StudyPropertiesEditorItemModel.OUTPUTDIR_COL,
-                selected_directory)
-
-    @QtCore.Slot()
-    def on_backup_filename_button_clicked(self):
-        caption = 'Select study backup filename'
-        default_filename = self._study_properties_editor.backup_filename
-        if default_filename == '':
-            default_filename = os.path.join(os.getcwd(), 'study.json')
-        selected_filename = QtGui.QFileDialog.getSaveFileName(self.ui,
-                                                caption, default_filename) 
-        if selected_filename != '':
-            self._item_model.set_data(\
-                StudyPropertiesEditorItemModel.BACKUP_FILENAME_COL,
-                selected_filename)
-
-
-class StudyPropertiesEditorWidgetMapper(QtGui.QDataWidgetMapper):
-
-    def __init__(self, parent=None):
-        super(StudyPropertiesEditorWidgetMapper, self).__init__(parent)
- 
-    # overrided Qt method
-    def submit(self):
-        obj = self.sender()
-        delegate = self.itemDelegate()
-        model = self.model()
-        if not model.isEdited():
-            delegate.commitData.emit(obj)
-
-
-class StudyPropertiesEditorItemDelegate(QtGui.QItemDelegate):
-
-    def __init__(self, parent=None):
-        super(StudyPropertiesEditorItemDelegate, self).__init__(parent)
-        
-    # overrided Qt method
-    def setEditorData(self, editor, index):
-        model = index.model()
-        value = model.data(index, QtCore.Qt.EditRole)
-        property = editor.metaObject().userProperty().name()
-        # don't update editor if not needed: fix cursor issue
-        if value != editor.property(property):
-            editor.setProperty(property, value)
-        if model.is_data_colorable(index):
-            bg_color = model.data(index, QtCore.Qt.BackgroundRole)
-            style_sheet = '''
-            QLineEdit { 
-                background-color: %s;
-                border: 1px solid grey;
-                border-radius: 4px;
-                padding: 2px;
-                margin: 1px;
-            }
-            QLineEdit:focus {
-                background-color: %s;
-                border: 1px solid #ff7777;
-                border-radius: 4px;
-                padding: 2px;
-                margin: 1px;
-            }
-        ''' % tuple([bg_color.name()] * 2)
-            editor.setStyleSheet(style_sheet)
- 
-
-class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
-    NAME_COL = 0
-    OUTPUTDIR_COL = 1
-    BACKUP_FILENAME_COL = 2
-    PARAMETER_TEMPLATE_COL = 3
-    attributes = ["name", "outputdir", "backup_filename", "parameter_template"]
-    status_changed = QtCore.pyqtSignal(bool)
-
-    def __init__(self, study_properties_editor, parent=None):
-        super(StudyPropertiesEditorItemModel, self).__init__(parent)
-        self._study_properties_editor = study_properties_editor
-        self.linked_inputs = True # model for the link button
-        self._is_edited = False
-        self._status = True # ok si 3 first attributes != ''
-
-    # overrided Qt method
-    def columnCount(self):
-        return 4
-
-    # overrided Qt method
-    def rowCount(self, parent=QtCore.QModelIndex()):
-        return 1
-
-    # overrided Qt method
-    def index(self, row, column, parent=QtCore.QModelIndex()):
-        return self.createIndex(row, column, self)
-
-    # overrided Qt method
-    def parent(self, index=QtCore.QModelIndex()):
-        return QtCore.QModelIndex()
-
-    # overrided Qt method
-    def data(self, index, role=QtCore.Qt.DisplayRole):
-        column = index.column()
-        value = self._study_properties_editor.__getattribute__(self.attributes[column])
-        if role in [QtCore.Qt.DisplayRole, QtCore.Qt.EditRole]:
-            return value
-        elif role == QtCore.Qt.BackgroundRole:
-            if column in [self.NAME_COL, self.OUTPUTDIR_COL,
-                                self.BACKUP_FILENAME_COL]:
-                if self._invalid_value(value):
-                    return QtGui.QColor('#ffaaaa')
-                else:
-                    return QtGui.QColor('white')
-
-    # overrided Qt method
-    def setData(self, index, value, role=QtCore.Qt.EditRole):
-        self._is_edited = True
-        column = index.column() 
-        attribute = self.attributes[column]
-        old_status = self._status
-        if role != QtCore.Qt.EditRole: return
-        self._study_properties_editor.__setattr__(attribute, value)
-        self.dataChanged.emit(index, index)
-        if self.linked_inputs:
-            if column == self.OUTPUTDIR_COL:
-                backup_filename = Study.default_backup_filename_from_outputdir(value)
-                column_to_be_updated = self.BACKUP_FILENAME_COL
-                attrib = self.attributes[column_to_be_updated]
-                self._study_properties_editor.__setattr__(attrib, backup_filename)
-                changed_index = self.index(index.row(), column_to_be_updated)
-                self.dataChanged.emit(changed_index, changed_index)
-            elif column == self.BACKUP_FILENAME_COL:
-                outputdir = Study.default_outputdir_from_backup_filename(value)
-                column_to_be_updated = self.OUTPUTDIR_COL
-                attrib = self.attributes[column_to_be_updated]
-                self._study_properties_editor.__setattr__(attrib, outputdir)
-                changed_index = self.index(index.row(), column_to_be_updated)
-                self.dataChanged.emit(changed_index, changed_index)
-        self._is_edited = False
-        self._status = not self._invalid_value(value) 
-        if old_status != self._status:
-            self.status_changed.emit(self._status)
+    def _check_study_subjects_consistency(self):
+        subjects_editor = self.study_editor.subjects_editor
+        if subjects_editor.are_some_subjects_duplicated():
+            QtGui.QMessageBox.critical(self, "Study consistency error",
+                                       "Some subjects have the same identifier")
+            return False
         return True
-
-    def is_data_colorable(self, index):
-        column = index.column()
-        return column in [self.NAME_COL, self.OUTPUTDIR_COL,
-                                    self.BACKUP_FILENAME_COL]
-
-    def set_data(self, col, value):
-        row = 0
-        index = self.index(row, col)
-        return self.setData(index, value)
-
-    def _invalid_value(self, value):
-        return value == ''
-
-    def isEdited(self):
-        return self._is_edited
-
-
-class StudyPropertiesEditor(object):
-    # check status to build a study
-    STUDY_PROPERTIES_VALID = 0x0
-    OUTPUTDIR_NOT_EXISTS = 0x1
-    OUTPUTDIR_NOT_EMPTY = 0x2
-    BACKUP_FILENAME_DIR_NOT_EXISTS = 0x4
-    BACKUP_FILENAME_EXISTS = 0x8
-    
-    def __init__(self, study):
-        self.name = study.name
-        self.outputdir = study.outputdir
-        self.backup_filename = study.backup_filename 
-        self.parameter_template = study.parameter_template
-        # FIXME: store analysis name rather than class ?
-        self._analysis_cls = study.analysis_cls()
-
-    @property
-    def analysis_cls(self):
-        return self._analysis_cls
-
-    def update_study(self, study):
-        study.name = self.name
-        study.outputdir = self.outputdir
-        study.backup_filename = self.backup_filename 
-        study.parameter_template = self.parameter_template
-
-    def get_consistency_status(self, editor_mode):
-        if editor_mode == StudyEditor.NEW_STUDY:
-            status = self._outputdir_consistency_status()
-            status |= self._backup_filename_consistency_status()
-        elif editor_mode == StudyEditor.EDIT_STUDY:
-            status = StudyPropertiesEditor.STUDY_PROPERTIES_VALID
-        return status
-
-    def _outputdir_consistency_status(self):
-        status = StudyPropertiesEditor.STUDY_PROPERTIES_VALID
-        if not os.path.exists(self.outputdir):
-            status |= StudyPropertiesEditor.OUTPUTDIR_NOT_EXISTS
-        elif len(os.listdir(self.outputdir)) != 0:
-            status |= StudyPropertiesEditor.OUTPUTDIR_NOT_EMPTY
-        return status
-            
-    def _backup_filename_consistency_status(self):
-        status = StudyPropertiesEditor.STUDY_PROPERTIES_VALID
-        backup_filename_directory = os.path.dirname(self.backup_filename)
-        if not os.path.exists(backup_filename_directory):
-            status |= StudyPropertiesEditor.BACKUP_FILENAME_DIR_NOT_EXISTS
-        elif os.path.exists(self.backup_filename):
-            status |= StudyPropertiesEditor.BACKUP_FILENAME_EXISTS
-        return status
-
+        
 
 class SubjectsEditorSelectionModel(QtGui.QItemSelectionModel):
 
@@ -716,138 +393,7 @@ class SubjectsEditorTableModel(QtCore.QAbstractTableModel):
         range_list.sort(reverse=True)
         for start_row, count in range_list:
             self.removeRows(start_row, count)
-
-
-class SubjectsEditor(object):
-    IdentifiedSubject = namedtuple('SubjectOrigin', ['id', 'subject'])
-   
-    def __init__(self, study):
-        self._subjects_origin = []
-        self._subjects = []
-        self._removed_subjects_id = []
-        self._similar_subjects_n = {}
-        # FIXME: store this information in ImportationError
-        self._has_imported_some_subjects = False
-        for subject_id, subject in study.subjects.iteritems():
-            subject_copy = subject.copy()
-            self._subjects.append(subject_copy)
-            origin = self.IdentifiedSubject(subject_id, subject)
-            self._subjects_origin.append(origin)
-            self._similar_subjects_n.setdefault(subject_id, 0)
-            self._similar_subjects_n[subject_id] += 1
-
-    def __len__(self):
-        return len(self._subjects)
-
-    def __getitem__(self, index): 
-        return self._subjects[index]
-
-    def __delitem__(self, index): 
-        subject = self._subjects[index]
-        subject_id = subject.id()
-        self._similar_subjects_n[subject_id] -= 1
-        if self._similar_subjects_n[subject_id] == 0:
-            del self._similar_subjects_n[subject_id]
-        origin = self._subjects_origin[index]
-        if origin is not None:
-            self._removed_subjects_id.append(origin.id)
-        del self._subjects_origin[index]
-        del self._subjects[index]
-
-    def __iter__(self):
-        for subject in self._subjects:
-            yield subject
-
-    def append(self, subject):
-        self._subjects.append(subject)
-        self._subjects_origin.append(None)
-        subject_id = subject.id()
-        self._similar_subjects_n.setdefault(subject_id, 0)
-        self._similar_subjects_n[subject_id] += 1
-
-    def is_ith_subject_duplicated(self, index):
-        subject = self._subjects[index]
-        subject_id = subject.id()
-        return self._similar_subjects_n[subject_id] != 1
-
-    def is_ith_subject_new(self, index):
-        return self._subjects_origin[index] is None
-
-    def update_ith_subject_property(self, index, property, value):
-        subject = self._subjects[index] 
-        old_subject_id = subject.id()
-        subject.__setattr__(property, value)
-        new_subject_id = subject.id()
-        self._similar_subjects_n[old_subject_id] -= 1
-        if self._similar_subjects_n[old_subject_id] == 0:
-            del self._similar_subjects_n[old_subject_id]
-        self._similar_subjects_n.setdefault(new_subject_id, 0)
-        self._similar_subjects_n[new_subject_id] += 1
-
-    def update_study(self, study, study_update_policy):
-        # XXX: operations order is important : del, rename, add
-        for subject_id in self._removed_subjects_id:
-            self._removed_subjects_from_study(study,
-                        subject_id, study_update_policy)
-
-        if len(self._renamed_subjects()):
-            assert(0) # existing subjects can't be renamed from GUI
- 
-        subjects_importation_failed = []
-        for subject in self._added_subjects():
-            try:
-                study.add_subject(subject)
-            except ImportationError, e:
-                subjects_importation_failed.append(subject)
-            else:
-                self._has_imported_some_subjects = True
-        if subjects_importation_failed:
-            str_subjects = []
-            for subject in subjects_importation_failed:
-                str_subjects.append(str(subject))
-            raise ImportationError("The importation failed for the " + \
-                "following subjects:\n%s." % ", ".join(str_subjects))
-
-    def _added_subjects(self):
-        added_subjects = []
-        for index, _ in enumerate(self):
-            subject = self._subjects[index]
-            origin = self._subjects_origin[index]
-            if origin is None:
-                added_subjects.append(subject)
-        return added_subjects
-
-    def _renamed_subjects(self):
-        renamed_subjects = []
-        for index, _ in enumerate(self):
-            subject = self._subjects[index]
-            origin = self._subjects_origin[index]
-            if origin is None: continue
-            if subject != origin.subject:
-                renamed_subjects.append((origin, subject))
-        return renamed_subjects
-
-    def has_subjects_to_be_removed(self):
-        return len(self._removed_subjects_id)
-
-    # FIXME: store this information in ImportationError
-    def has_imported_some_subjects(self):
-        return self._has_imported_some_subjects
-
-    def _removed_subjects_from_study(self, study, subject_id,
-                                        study_update_policy):
-        if study_update_policy == StudyEditor.ON_SUBJECT_REMOVED_DELETE_FILES:
-            study.remove_subject_and_files_from_id(subject_id)
-        elif study_update_policy == StudyEditor.ON_SUBJECT_REMOVED_DO_NOTHING:
-            study.remove_subject_from_id(subject_id)
-        else:
-            assert(0)
-
-    def are_some_subjects_duplicated(self):
-        for n in self._similar_subjects_n.values():
-            if n != 1: return True
-        return False
-
+            
 
 class SelectSubjectsDialog(QtGui.QFileDialog):
     
@@ -880,39 +426,54 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
         return final_filter
 
 
-class SelectStudyDirectoryDialog(QtGui.QDialog):
+class SelectOrganizedDirectoryDialog(QtGui.QDialog):
     
-    def __init__(self, parent, default_study_directory, 
-                 parameter_templates, selected_template):
-        super(SelectStudyDirectoryDialog, self).__init__(parent)
+    def __init__(self, parent, default_directory, analysis_type,
+                 selected_template_name):
+        super(SelectOrganizedDirectoryDialog, self).__init__(parent)
         
-        uifile = os.path.join(ui_directory, 'select_study_directory.ui')
+        uifile = os.path.join(ui_directory, 'select_organized_directory.ui')
         self.ui = loadUi(uifile, self)
         
-        self.ui.study_directory_lineEdit.setText(default_study_directory)
+        self.ui.organized_directory_lineEdit.setText(default_directory)
+        self.ui.in_place_checkbox.setVisible(False)
         
-        for param_template_name in parameter_templates:
+        self._analysis_type = analysis_type
+        parameter_templates = AnalysisFactory.get_analysis_cls(analysis_type).PARAMETER_TEMPLATES
+        for param_template in parameter_templates:
+            param_template_name = param_template.name
             self.ui.parameter_template_combobox.addItem(param_template_name)
-            if param_template_name == selected_template:
+            if param_template_name == selected_template_name:
                 self.ui.parameter_template_combobox.setCurrentIndex(self.ui.parameter_template_combobox.count()-1)
     
-    def get_study_directory(self):
-        return self.ui.study_directory_lineEdit.text()
+    def get_organized_directory(self):
+        return self.ui.organized_directory_lineEdit.text()
     
-    def get_study_parameter_template(self):
+    def get_parameter_template_name(self):
         return self.ui.parameter_template_combobox.currentText()
-
+        
+    def get_subjects(self):
+        organized_directory = self.get_organized_directory()
+        parameter_template_name = self.get_parameter_template_name()
+        analysis_cls = AnalysisFactory.get_analysis_cls(self._analysis_type)
+        parameter_template = analysis_cls.create_parameter_template(parameter_template_name, 
+                                                                    organized_directory)
+        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        subjects = parameter_template.get_subjects()
+        QtGui.QApplication.restoreOverrideCursor()
+        return subjects
+        
     # this slot is automagically connected
     @QtCore.Slot()
-    def on_study_directory_button_clicked(self):
+    def on_organized_directory_button_clicked(self):
         selected_directory = QtGui.QFileDialog.getExistingDirectory(self.ui,
                                 caption="Select a study directory", 
-                                directory=self.get_study_directory(), 
+                                directory=self.get_organized_directory(), 
                                 options=QtGui.QFileDialog.DontUseNativeDialog)
         if selected_directory != '':
-            self.ui.study_directory_lineEdit.setText(selected_directory)
-
-
+            self.ui.organized_directory_lineEdit.setText(selected_directory)
+    
+    
 class SubjectsFromDatabaseDialog(QtGui.QDialog):
 
     def __init__(self, parent):
@@ -995,6 +556,3 @@ class SubjectsFromDatabaseDialog(QtGui.QDialog):
 
 class LoadSubjectsFromDatabaseError(Exception):
     pass        
-
-
-StudyEditorDialog._init_class()
