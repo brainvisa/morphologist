@@ -7,7 +7,8 @@ from morphologist.core.gui.viewport_widget import AnalysisViewportModel, \
                                     Object3DViewportView, VectorViewportView, \
                                     AnalysisViewportWidget
 from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
-
+from morphologist_common.gui.histo_analysis_editor \
+    import create_histo_widget
 
 class IntraAnalysisViewportModel(AnalysisViewportModel):
 
@@ -123,8 +124,35 @@ class HistoAnalysisView(VectorViewportView):
         super(HistoAnalysisView, self).__init__(model, parent)
         self._observed_parameters = [IntraAnalysisParameterNames.HISTO_ANALYSIS]
         self.set_title(" 3 ) Histogram")
-        self.set_tooltip("Histogram analysis")
-        
+        self.set_tooltip("""<p>Histogram analysis</p>
+<p>Histogram curve in blue, it should contain two peaks: one (green analysis) for grey matter, one (red analysis) for white matter.</p>""")
+
+    def create_extended_view(self):
+        window = create_histo_widget()
+        #window = HistoAnalysisEditorView(self._viewport_model, self)
+        window.setParent( self )
+        from PyQt4 import QtCore
+        window.setWindowFlags(QtCore.Qt.Window)
+        #window.ui.extend_view_button.setVisible(False)
+        #window.update()
+        histo = self._viewport_model.observed_objects[
+            IntraAnalysisParameterNames.HISTO_ANALYSIS]
+        window.set_histo_data( histo._friend_backend_object )
+        nobias = self._viewport_model.observed_objects[
+            IntraAnalysisParameterNames.CORRECTED_MRI]
+        window.set_bias_corrected_image(
+            nobias._friend_backend_object.fileName() )
+        return window
+
+class HistoAnalysisEditorView(VectorViewportView):
+
+    def __init__(self, model, parent=None):
+        super(HistoAnalysisEditorView, self).__init__(model, parent)
+        self._observed_parameters = [IntraAnalysisParameterNames.HISTO_ANALYSIS,
+            IntraAnalysisParameterNames.CORRECTED_MRI]
+        self.set_title(" 3b ) Histogram edition")
+        self.set_tooltip("""<p>Histogram analysis edition</p>
+<p>Histogram curve in blue, it should contain two peaks: one (green analysis) for grey matter, one (red analysis) for white matter.</p>""")
 
 class BrainMaskView(Object3DViewportView):
     
