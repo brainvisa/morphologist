@@ -1,5 +1,5 @@
-from morphologist_common.histo_analysis_widget import load_histo_data, \
-                                                      create_histo_view
+from morphologist_common.gui.histo_analysis_widget import load_histo_data, \
+                                                          create_histo_view
 
 from morphologist.core.gui.qt_backend import QtGui
 from morphologist.core.backends import Backend
