@@ -58,7 +58,7 @@ class VectorExtendedView(object):
         self._backend.clear_view(self._backend_view)
 
     def set_bgcolor(self, color):
-        self._backend.set_bgcolor_view(self._backend_view, color)
+        self._backend.set_bgcolor_editor(self._backend_view, color)
 
     def _friend_visit(self, vector_graphic):
         self._backend.add_object_in_editor(vector_graphic._friend_backend_object, self._backend_view)

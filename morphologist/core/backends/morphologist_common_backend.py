@@ -16,11 +16,6 @@ class MorphologistCommonBackend(Backend, VectorGraphicsManagerMixin):
     def create_view(self, parent):
         return create_histo_view(parent)
 
-    def create_extended_view(self, parent):
-        view = create_histo_editor()
-        view.setParent(parent)
-        return view
-
     def clear_view(self, backend_view):
         backend_view.clear()
 
@@ -32,11 +27,28 @@ class MorphologistCommonBackend(Backend, VectorGraphicsManagerMixin):
         palette = QtGui.QPalette(QtGui.QColor(*color))
         backend_view.setPalette(palette)
 
+    def create_extended_view(self, parent):
+        view = create_histo_editor()
+        view.setParent(parent)
+        if parent is not None:
+            parent.layout().addWidget( view )
+        return view
+
     def add_object_in_editor(self, backend_object, backend_view):
         if isinstance( backend_object, HistoData ):
             backend_view.set_histo_data(backend_object, nbins=100)
         else:
             backend_view.set_bias_corrected_image( backend_object.fileName() )
+            self.set_bgcolor_editor(backend_view, [0,0,0,1.])
+
+    def set_bgcolor_editor(self, backend_view, color):
+        palette = QtGui.QPalette(QtGui.QColor(*color))
+        backend_view.setPalette(palette)
+        awin = backend_view.awindow()
+        if awin is not None:
+            anatomist = awin.anatomistinstance
+            anatomist.execute('WindowConfig',
+                windows=[awin], light={'background' : color})
 
 ### objects loader
     def load_histogram(self, filename):
