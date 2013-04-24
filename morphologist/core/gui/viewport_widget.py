@@ -221,4 +221,3 @@ class VectorViewportView(ViewportView):
         super(VectorViewportView, self).__init__(model, parent)
         self._view = VectorView(self.ui.view_hook)
         self._view.set_bgcolor(self.bg_color)
-        

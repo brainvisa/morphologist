@@ -2,13 +2,14 @@ import os
 
 from morphologist.core.backends.mixins import ColorMap, ViewType
 from morphologist.core.gui.object3d import Object3D, APCObject
-from morphologist.core.gui.vector_graphics import Histogram
+from morphologist.core.gui.vector_graphics import Histogram, VectorExtendedView
+from morphologist.core.backends import Backend
 from morphologist.core.gui.viewport_widget import AnalysisViewportModel, \
                                     Object3DViewportView, VectorViewportView, \
-                                    AnalysisViewportWidget
+                                    AnalysisViewportWidget, ViewportView
 from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
 from morphologist_common.gui.histo_analysis_editor \
-    import create_histo_widget
+    import create_histo_editor
 
 class IntraAnalysisViewportModel(AnalysisViewportModel):
 
@@ -128,31 +129,38 @@ class HistoAnalysisView(VectorViewportView):
 <p>Histogram curve in blue, it should contain two peaks: one (green analysis) for grey matter, one (red analysis) for white matter.</p>""")
 
     def create_extended_view(self):
-        window = create_histo_widget()
-        #window = HistoAnalysisEditorView(self._viewport_model, self)
-        window.setParent( self )
+        window = create_histo_editor()
+        window = HistoAnalysisEditorView(self._viewport_model, self)
+        #window.setParent( self )
         from PyQt4 import QtCore
         window.setWindowFlags(QtCore.Qt.Window)
-        #window.ui.extend_view_button.setVisible(False)
-        #window.update()
-        histo = self._viewport_model.observed_objects[
-            IntraAnalysisParameterNames.HISTO_ANALYSIS]
-        window.set_histo_data( histo._friend_backend_object )
-        nobias = self._viewport_model.observed_objects[
-            IntraAnalysisParameterNames.CORRECTED_MRI]
-        window.set_bias_corrected_image(
-            nobias._friend_backend_object.fileName() )
+        window.ui.extend_view_button.setVisible(False)
+        window.update()
+        #histo = self._viewport_model.observed_objects[
+            #IntraAnalysisParameterNames.HISTO_ANALYSIS]
+        #window.set_histo_data( histo._friend_backend_object )
+        #nobias = self._viewport_model.observed_objects[
+            #IntraAnalysisParameterNames.CORRECTED_MRI]
+        #window.set_bias_corrected_image(
+            #nobias._friend_backend_object.fileName() )
         return window
 
-class HistoAnalysisEditorView(VectorViewportView):
+class HistoAnalysisEditorView(ViewportView):
 
     def __init__(self, model, parent=None):
         super(HistoAnalysisEditorView, self).__init__(model, parent)
+        self._view = VectorExtendedView(self.ui.view_hook)
+        self._view.set_bgcolor(self.bg_color)
         self._observed_parameters = [IntraAnalysisParameterNames.HISTO_ANALYSIS,
             IntraAnalysisParameterNames.CORRECTED_MRI]
+        print 'ui:', self.ui
+        print 'label:', self.ui.view_label
         self.set_title(" 3b ) Histogram edition")
         self.set_tooltip("""<p>Histogram analysis edition</p>
 <p>Histogram curve in blue, it should contain two peaks: one (green analysis) for grey matter, one (red analysis) for white matter.</p>""")
+
+    def _friend_visit(self, vector_graphic):
+        self._backend.add_object_in_editor(vector_graphic._friend_backend_object, self._backend_view)
 
 class BrainMaskView(Object3DViewportView):
     
