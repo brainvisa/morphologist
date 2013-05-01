@@ -102,10 +102,34 @@ class ViewportView(QtGui.QFrame):
             border: 3px solid black;
             border-radius: 10px;
             background: black;
-       }
+        }
         #view_label {
             color: white;
             background: black;
+        }
+        QLabel {
+            color: white;
+            background-color: black;
+        }
+        QSlider {
+            color: white;
+            background-color: black;
+        }
+        QSlider::handle:vertical {
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b0b0b0, stop:1 #707070);
+            border: 1px solid #5c5c5c;
+            height: 10px;
+            margin: 2px;
+            border-radius: 4px;
+        }
+        QSlider::handle:vertical:hover {
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #d0d0d0, stop:1 #909090);
+        }
+        QSlider::groove:vertical {
+            border: 0px solid black;
+            width: 18px;
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 black, stop:0.34 black, stop:0.35 #606060, stop:0.65 #707070, stop:0.66 black, stop:1 black);
+            margin: 0 2px;
         }
     '''
 

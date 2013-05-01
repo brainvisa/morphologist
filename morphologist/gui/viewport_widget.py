@@ -129,23 +129,71 @@ class HistoAnalysisView(VectorViewportView):
 <p>Histogram curve in blue, it should contain two peaks: one (green analysis) for grey matter, one (red analysis) for white matter.</p>""")
 
     def create_extended_view(self):
-        window = create_histo_editor()
         window = HistoAnalysisEditorView(self._viewport_model, self)
-        #window.setParent( self )
         from PyQt4 import QtCore
         window.setWindowFlags(QtCore.Qt.Window)
         window.ui.extend_view_button.setVisible(False)
         window.update()
-        #histo = self._viewport_model.observed_objects[
-            #IntraAnalysisParameterNames.HISTO_ANALYSIS]
-        #window.set_histo_data( histo._friend_backend_object )
-        #nobias = self._viewport_model.observed_objects[
-            #IntraAnalysisParameterNames.CORRECTED_MRI]
-        #window.set_bias_corrected_image(
-            #nobias._friend_backend_object.fileName() )
         return window
 
 class HistoAnalysisEditorView(ViewportView):
+
+    frame_style_sheet = ViewportView.frame_style_sheet + '''
+        QPushButton {
+            color: white;
+            background-color: #606060;
+        }
+        QPushButton:hover {
+            background-color: #808080;
+        }
+        QToolButton {
+            color: white;
+            background-color: black;
+        }
+        QToolButton:checked {
+            color: white;
+            background-color: #606060;
+        }
+        QToolButton:hover {
+            color: white;
+            background-color: #808080;
+        }
+        QToolBar {
+            color: #808080;
+            background: black;
+        }
+        QMenu {
+            color: white;
+            background-color: #606060;
+        }
+        QMenu::item:selected {
+            color: white;
+            background-color: #909090;
+        }
+        QMenuBar {
+            color: white;
+            background-color: #404040;
+        }
+        QMenuBar::item {
+            border-radius: 2px;
+            border-width: 2px;
+            border-color: black;
+            spacing: 3px;
+            padding: 1px 4px;
+            background: transparent;
+        }
+        QMenuBar::item:selected {
+            background: #808080;
+            border-radius: 2px;
+            border-color: black;
+        }
+        QLineEdit {
+            background-color: #909090;
+        }
+        QStatusBar {
+            color: #a0a0a0;
+        }
+    '''
 
     def __init__(self, model, parent=None):
         super(HistoAnalysisEditorView, self).__init__(model, parent)
@@ -153,8 +201,6 @@ class HistoAnalysisEditorView(ViewportView):
         self._view.set_bgcolor(self.bg_color)
         self._observed_parameters = [IntraAnalysisParameterNames.HISTO_ANALYSIS,
             IntraAnalysisParameterNames.CORRECTED_MRI]
-        print 'ui:', self.ui
-        print 'label:', self.ui.view_label
         self.set_title(" 3b ) Histogram edition")
         self.set_tooltip("""<p>Histogram analysis edition</p>
 <p>Histogram curve in blue, it should contain two peaks: one (green analysis) for grey matter, one (red analysis) for white matter.</p>""")

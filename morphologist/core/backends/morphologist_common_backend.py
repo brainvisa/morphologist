@@ -31,7 +31,9 @@ class MorphologistCommonBackend(Backend, VectorGraphicsManagerMixin):
         view = create_histo_editor()
         view.setParent(parent)
         if parent is not None:
-            parent.layout().addWidget( view )
+            parent.layout().addWidget(view)
+            if parent.parent() is not None:
+                view.closed.connect(parent.parent().close)
         return view
 
     def add_object_in_editor(self, backend_object, backend_view):
