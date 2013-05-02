@@ -115,21 +115,37 @@ class ViewportView(QtGui.QFrame):
             color: white;
             background-color: black;
         }
-        QSlider::handle:vertical {
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b0b0b0, stop:1 #707070);
-            border: 1px solid #5c5c5c;
-            height: 10px;
-            margin: 2px;
-            border-radius: 4px;
+        QSlider::handle {
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #909090, stop:1 #202020);
+            border: 0px;
+            height: 12px;
+            width: 12px;
+            margin: -4px;
+            border-radius: 6px;
         }
-        QSlider::handle:vertical:hover {
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #d0d0d0, stop:1 #909090);
+        QSlider::handle:hover {
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b0b0b0, stop:1 #404040);
+            border-width: 1px;
+            border-style: solid;
+            border-color: #00f0ff;
         }
         QSlider::groove:vertical {
-            border: 0px solid black;
-            width: 18px;
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 black, stop:0.34 black, stop:0.35 #606060, stop:0.65 #707070, stop:0.66 black, stop:1 black);
-            margin: 0 2px;
+            border-width: 1px;
+            border-radius: 3px;
+            border-style: solid;
+            border-color: #202020 gray gray #202020;
+            width: 4px;
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #303030, stop:1 #505050);
+            margin: 6px;
+        }
+        QSlider::groove:horizontal {
+            border-width: 1px;
+            border-radius: 3px;
+            border-style: solid;
+            border-color: #202020 gray gray #202020;
+            height: 4px;
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #303030, stop:1 #505050);
+            margin: 6px;
         }
     '''
 
