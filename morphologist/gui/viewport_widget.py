@@ -133,6 +133,7 @@ class HistoAnalysisView(VectorViewportView):
         from PyQt4 import QtCore
         window.setWindowFlags(QtCore.Qt.Window)
         window.ui.extend_view_button.setVisible(False)
+        window.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         window.update()
         return window
 
@@ -204,6 +205,7 @@ class HistoAnalysisEditorView(ViewportView):
         self.set_title(" 3b ) Histogram edition")
         self.set_tooltip("""<p>Histogram analysis edition</p>
 <p>Histogram curve in blue, it should contain two peaks: one (green analysis) for grey matter, one (red analysis) for white matter.</p>""")
+        self.resize(800, 500)
 
     def _friend_visit(self, vector_graphic):
         self._backend.add_object_in_editor(vector_graphic._friend_backend_object, self._backend_view)
