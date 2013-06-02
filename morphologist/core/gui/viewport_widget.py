@@ -102,9 +102,52 @@ class ViewportView(QtGui.QFrame):
             border: 3px solid black;
             border-radius: 10px;
             background: black;
-       }
+        }
         #view_label {
             color: white;
+            background: black;
+        }
+        QLabel {
+            color: white;
+            background-color: black;
+        }
+        QSlider {
+            color: white;
+            background-color: black;
+        }
+        QSlider::handle {
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #909090, stop:1 #202020);
+            border: 0px;
+            height: 12px;
+            width: 12px;
+            margin: -4px;
+            border-radius: 6px;
+        }
+        QSlider::handle:hover {
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b0b0b0, stop:1 #404040);
+            border-width: 1px;
+            border-style: solid;
+            border-color: #00f0ff;
+        }
+        QSlider::groove:vertical {
+            border-width: 1px;
+            border-radius: 3px;
+            border-style: solid;
+            border-color: #202020 gray gray #202020;
+            width: 4px;
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #303030, stop:1 #505050);
+            margin: 6px;
+        }
+        QSlider::groove:horizontal {
+            border-width: 1px;
+            border-radius: 3px;
+            border-style: solid;
+            border-color: #202020 gray gray #202020;
+            height: 4px;
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #303030, stop:1 #505050);
+            margin: 6px;
+        }
+        QGraphicsView {
             background: black;
         }
     '''
@@ -221,4 +264,3 @@ class VectorViewportView(ViewportView):
         super(VectorViewportView, self).__init__(model, parent)
         self._view = VectorView(self.ui.view_hook)
         self._view.set_bgcolor(self.bg_color)
-        

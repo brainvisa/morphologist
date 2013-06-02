@@ -191,7 +191,8 @@ class MainWindow(QtGui.QMainWindow):
         else:
             ApplicationStudy = Study
 
-    def __init__(self, analysis_type, study_directory=None):
+    def __init__(self, analysis_type, study_directory=None, 
+            import_study=False):
         super(MainWindow, self).__init__()
         if ApplicationStudy is None: self._init_class()
         self.ui = loadUi(self.uifile, self)
@@ -227,7 +228,10 @@ class MainWindow(QtGui.QMainWindow):
         self.study_model.current_subject_changed.connect(self.on_current_subject_changed)
         self.on_current_subject_changed()
         if study_directory is not None:
-            self._try_open_study_from_directory(study_directory)
+            if import_study:
+                self._create_inplace_study(study_directory, 'brainvisa')
+            else:
+                self._try_open_study_from_directory(study_directory)
 
     def _init_action_handlers(self):
         self._new_study_action_handler = None
@@ -243,6 +247,14 @@ class MainWindow(QtGui.QMainWindow):
             QtGui.QMessageBox.critical(self, title, msg)
         else:
             self.set_study(study)
+
+    def _create_inplace_study(self, study_directory, parameter_template_name):
+        study = ApplicationStudy.from_organized_directory(\
+                                        self._analysis_type,
+                                        study_directory,
+                                        parameter_template_name)
+        self.set_study(study)
+        study.save_to_backup_file()
 
     def _create_runner(self, study):
         return SomaWorkflowRunner(study)

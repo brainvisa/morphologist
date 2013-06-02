@@ -2,12 +2,14 @@ import os
 
 from morphologist.core.backends.mixins import ColorMap, ViewType
 from morphologist.core.gui.object3d import Object3D, APCObject
-from morphologist.core.gui.vector_graphics import Histogram
+from morphologist.core.gui.vector_graphics import Histogram, VectorExtendedView
+from morphologist.core.backends import Backend
 from morphologist.core.gui.viewport_widget import AnalysisViewportModel, \
                                     Object3DViewportView, VectorViewportView, \
-                                    AnalysisViewportWidget
+                                    AnalysisViewportWidget, ViewportView
 from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
-
+from morphologist_common.gui.histo_analysis_editor \
+    import create_histo_editor
 
 class IntraAnalysisViewportModel(AnalysisViewportModel):
 
@@ -123,8 +125,90 @@ class HistoAnalysisView(VectorViewportView):
         super(HistoAnalysisView, self).__init__(model, parent)
         self._observed_parameters = [IntraAnalysisParameterNames.HISTO_ANALYSIS]
         self.set_title(" 3 ) Histogram")
-        self.set_tooltip("Histogram analysis")
-        
+        self.set_tooltip("""<p>Histogram analysis</p>
+<p>Histogram curve in blue, it should contain two peaks: one (green analysis) for grey matter, one (red analysis) for white matter.</p>""")
+
+    def create_extended_view(self):
+        window = HistoAnalysisEditorView(self._viewport_model, self)
+        from PyQt4 import QtCore
+        window.setWindowFlags(QtCore.Qt.Window)
+        window.ui.extend_view_button.setVisible(False)
+        window.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        window.update()
+        return window
+
+class HistoAnalysisEditorView(ViewportView):
+
+    frame_style_sheet = ViewportView.frame_style_sheet + '''
+        QPushButton {
+            color: white;
+            background-color: #606060;
+        }
+        QPushButton:hover {
+            background-color: #808080;
+        }
+        QToolButton {
+            color: white;
+            background-color: black;
+        }
+        QToolButton:checked {
+            color: white;
+            background-color: #606060;
+        }
+        QToolButton:hover {
+            color: white;
+            background-color: #808080;
+        }
+        QToolBar {
+            color: #808080;
+            background: black;
+        }
+        QMenu {
+            color: white;
+            background-color: #606060;
+        }
+        QMenu::item:selected {
+            color: white;
+            background-color: #909090;
+        }
+        QMenuBar {
+            color: white;
+            background-color: #404040;
+        }
+        QMenuBar::item {
+            border-radius: 2px;
+            border-width: 2px;
+            border-color: black;
+            spacing: 3px;
+            padding: 1px 4px;
+            background: transparent;
+        }
+        QMenuBar::item:selected {
+            background: #808080;
+            border-radius: 2px;
+            border-color: black;
+        }
+        QLineEdit {
+            background-color: #909090;
+        }
+        QStatusBar {
+            color: #a0a0a0;
+        }
+    '''
+
+    def __init__(self, model, parent=None):
+        super(HistoAnalysisEditorView, self).__init__(model, parent)
+        self._view = VectorExtendedView(self.ui.view_hook)
+        self._view.set_bgcolor(self.bg_color)
+        self._observed_parameters = [IntraAnalysisParameterNames.HISTO_ANALYSIS,
+            IntraAnalysisParameterNames.CORRECTED_MRI]
+        self.set_title(" 3b ) Histogram edition")
+        self.set_tooltip("""<p>Histogram analysis edition</p>
+<p>Histogram curve in blue, it should contain two peaks: one (green analysis) for grey matter, one (red analysis) for white matter.</p>""")
+        self.resize(800, 500)
+
+    def _friend_visit(self, vector_graphic):
+        self._backend.add_object_in_editor(vector_graphic._friend_backend_object, self._backend_view)
 
 class BrainMaskView(Object3DViewportView):
     
