@@ -13,6 +13,9 @@ def option_parser():
     parser.add_option('-s', '--study', 
                       dest="study_directory", metavar="STUDY_DIRECTORY", default=None, 
                       help="Opens the interface with the study loaded.")
+    parser.add_option('-i', '--import', 
+                      dest="import_study_directory", metavar="IMPORT_STUDY_DIRECTORY", default=None, 
+                      help="Opens the interface with a new study loaded, based on an imported brainvisa directory.")
     
     group_neurospin = optparse.OptionGroup(parser, "Neurospin specific options")
     parser.add_option_group(group_neurospin)
@@ -46,10 +49,22 @@ def main():
         print "         User settings will be ignored, switch to default. "
         print "         Try to remove it or fix it."
         settings.load_default()
-    
+    if options.study_directory is not None \
+            and options.import_study_directory is not None:
+      print "-i and -s options are incompatible."
+      parser.print_help()
+      sys.exit(1)
+
     qApp = QtGui.QApplication(sys.argv)
+    if options.import_study_directory is not None:
+        study_directory = options.import_study_directory
+        import_study = True
+    else:
+        study_directory = options.study_directory
+        import_study = False
     main_window = MainWindow(analysis_type="IntraAnalysis",
-                            study_directory=options.study_directory)
+                            study_directory=study_directory,
+                            import_study=import_study)
     main_window.show()
     sys.exit(qApp.exec_())
 
