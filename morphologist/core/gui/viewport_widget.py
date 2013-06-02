@@ -147,6 +147,9 @@ class ViewportView(QtGui.QFrame):
             background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #303030, stop:1 #505050);
             margin: 6px;
         }
+        QGraphicsView {
+            background: black;
+        }
     '''
 
     def __init__(self, model, parent=None):
