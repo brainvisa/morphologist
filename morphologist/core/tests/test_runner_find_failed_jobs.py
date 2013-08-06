@@ -3,7 +3,7 @@ import sys
 import unittest
 import optparse
 
-import soma.workflow as sw
+import soma_workflow as sw
 
 from morphologist.core.runner import SomaWorkflowRunner
 from morphologist.core.utils import Graph

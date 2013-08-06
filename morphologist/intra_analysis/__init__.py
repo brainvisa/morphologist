@@ -116,12 +116,11 @@ class IntraAnalysis(Analysis):
         self._brain_segmentation.inputs.erosion_size = self.inputs[IntraAnalysisParameterNames.EROSION_SIZE]
         self._brain_segmentation.inputs.white_ridges = self.outputs[IntraAnalysisParameterNames.WHITE_RIDGES]
         self._brain_segmentation.outputs.brain_mask = self.outputs[IntraAnalysisParameterNames.BRAIN_MASK]
-        self._brain_segmentation.outputs.white_ridges = self.outputs[IntraAnalysisParameterNames.REFINED_WHITE_RIDGES]
 
         self._split_brain.inputs.corrected_mri = self.outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
         self._split_brain.inputs.commissure_coordinates = self.outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
         self._split_brain.inputs.brain_mask = self.outputs[IntraAnalysisParameterNames.BRAIN_MASK] 
-        self._split_brain.inputs.white_ridges = self.outputs[IntraAnalysisParameterNames.REFINED_WHITE_RIDGES]
+        self._split_brain.inputs.white_ridges = self.outputs[IntraAnalysisParameterNames.WHITE_RIDGES]
         self._split_brain.inputs.histo_analysis = self.outputs[IntraAnalysisParameterNames.HISTO_ANALYSIS]
         self._split_brain.inputs.bary_factor = self.inputs[IntraAnalysisParameterNames.BARY_FACTOR]
         self._split_brain.outputs.split_mask = self.outputs[IntraAnalysisParameterNames.SPLIT_MASK]

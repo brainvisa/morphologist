@@ -13,7 +13,7 @@ from brainvisa.data import neuroHierarchy
 from morphologist.core.subject import Subject
 from morphologist.intra_analysis.steps import ImageImportation, \
     SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation,\
-    SplitBrain, GreyWhite, Grey, WhiteSurface, GreySurface, Sulci, SulciLabelling
+    #SplitBrain, GreyWhite, Grey, WhiteSurface, GreySurface, Sulci, SulciLabelling
 from morphologist.intra_analysis.parameters import BrainvisaIntraAnalysisParameterTemplate, \
                                                     IntraAnalysisParameterNames    
 from morphologist.tests.utils.graph_comparison import same_graphs
@@ -87,9 +87,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         nodes.child('CorticalFoldsGraph').setSelected(0)
         defaultContext().runProcess(pipeline, t1mri)
         # Save the white ridge in another file because it will be re-written
-        bv_white_ridges = self.ref_outputs[IntraAnalysisParameterNames.REFINED_WHITE_RIDGES]
-        raw_white_ridges = self.ref_outputs[IntraAnalysisParameterNames.WHITE_RIDGES]
-        shutil.copy(bv_white_ridges, raw_white_ridges) 
+        bv_white_ridges = self.ref_outputs[IntraAnalysisParameterNames.WHITE_RIDGES]
         shutil.copy(bv_white_ridges + ".minf", raw_white_ridges + ".minf") 
         
         print "* Then run the rest of the pipeline"
@@ -168,10 +166,8 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         brain_segmentation.inputs.fix_random_seed = True
         brain_segmentation.inputs.white_ridges = self.ref_outputs[IntraAnalysisParameterNames.WHITE_RIDGES]
         brain_segmentation.outputs.brain_mask = self.test_outputs[IntraAnalysisParameterNames.BRAIN_MASK]
-        brain_segmentation.outputs.white_ridges = self.test_outputs[IntraAnalysisParameterNames.REFINED_WHITE_RIDGES]
         self.assert_(brain_segmentation.run() == 0)
-        self._assert_same_results([IntraAnalysisParameterNames.BRAIN_MASK, 
-                                   IntraAnalysisParameterNames.REFINED_WHITE_RIDGES],
+        self._assert_same_results([IntraAnalysisParameterNames.BRAIN_MASK],
                                    self._same_files)
 
     def test_split_brain(self):
@@ -180,7 +176,7 @@ class TestIntraAnalysisSteps(unittest.TestCase):
         split_brain.inputs.corrected_mri = self.ref_outputs[IntraAnalysisParameterNames.CORRECTED_MRI]
         split_brain.inputs.commissure_coordinates = self.ref_outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
         split_brain.inputs.brain_mask = self.ref_outputs[IntraAnalysisParameterNames.BRAIN_MASK]
-        split_brain.inputs.white_ridges = self.ref_outputs[IntraAnalysisParameterNames.REFINED_WHITE_RIDGES]
+        split_brain.inputs.white_ridges = self.ref_outputs[IntraAnalysisParameterNames.WHITE_RIDGES]
         split_brain.inputs.histo_analysis = self.ref_outputs[IntraAnalysisParameterNames.HISTO_ANALYSIS]
         split_brain.inputs.fix_random_seed = True
         split_brain.outputs.split_mask = self.test_outputs[IntraAnalysisParameterNames.SPLIT_MASK]

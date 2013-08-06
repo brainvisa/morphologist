@@ -17,7 +17,6 @@ class IntraAnalysisParameterNames:
     BARY_FACTOR = 'bary_factor'
     HFILTERED = 'hfiltered'
     WHITE_RIDGES = 'white_ridges'
-    REFINED_WHITE_RIDGES = 'refined_white_ridges'
     EDGES = 'edges'
     VARIANCE = 'variance'
     CORRECTED_MRI = 'corrected_mri'
@@ -61,7 +60,6 @@ class IntraAnalysisParameterNames:
                 cls.TALAIRACH_TRANSFORMATION,
                 cls.HFILTERED,
                 cls.WHITE_RIDGES,
-                cls.REFINED_WHITE_RIDGES,
                 cls.EDGES,
                 cls.VARIANCE,
                 cls.CORRECTED_MRI,
@@ -152,8 +150,6 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         parameters[IntraAnalysisParameterNames.HFILTERED] = os.path.join(default_analysis_path, 
                                             "hfiltered_%s.nii" % subject.name)
         parameters[IntraAnalysisParameterNames.WHITE_RIDGES] = os.path.join(default_analysis_path, 
-                                            "raw_whiteridge_%s.nii" % subject.name)
-        parameters[IntraAnalysisParameterNames.REFINED_WHITE_RIDGES] = os.path.join(default_analysis_path, 
                                             "whiteridge_%s.nii" % subject.name)
         parameters[IntraAnalysisParameterNames.EDGES] = os.path.join(default_analysis_path, 
                                             "edges_%s.nii" % subject.name)
@@ -288,9 +284,7 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         parameters[IntraAnalysisParameterNames.HFILTERED] = os.path.join(subject_path, 
                                             "hfiltered_%s.nii" % subject.name)
         parameters[IntraAnalysisParameterNames.WHITE_RIDGES] = os.path.join(subject_path, 
-                                            "raw_whiteridge_%s.nii" % subject.name)
-        parameters[IntraAnalysisParameterNames.REFINED_WHITE_RIDGES] = os.path.join(subject_path, 
-                                            "refined_whiteridge_%s.nii" % subject.name)
+                                            "whiteridge_%s.nii" % subject.name)
         parameters[IntraAnalysisParameterNames.EDGES] = os.path.join(subject_path, 
                                             "edges_%s.nii" % subject.name)
         parameters[IntraAnalysisParameterNames.CORRECTED_MRI] = os.path.join(subject_path, 
