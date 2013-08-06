@@ -170,7 +170,7 @@ class BrainSegmentation(Step):
         return file_inputs, other_inputs
 
     def _get_outputs(self):
-        return ['brain_mask', 'white_ridges']
+        return ['brain_mask']
  
     def get_command(self):
         command = ['VipGetBrain',
@@ -182,7 +182,6 @@ class BrainSegmentation(Step):
                    '-hname',  self.inputs.histo_analysis,
                    '-bname', self.outputs.brain_mask,
                    '-Ridge', self.inputs.white_ridges,
-                   '-output-Ridge', self.outputs.white_ridges,
                    '-analyse', 'r', 
                    '-First', "0",
                    '-Last', "0", 
