@@ -4,8 +4,8 @@ import time
 import threading
 import multiprocessing
 
-import soma.workflow as sw
-from soma.workflow.client import WorkflowController, Helper, Workflow, Job, Group
+import soma_workflow as sw
+from soma_workflow.client import WorkflowController, Helper, Workflow, Job, Group
 
 from morphologist.core.settings import settings
 from morphologist.core.utils import BidiMap
