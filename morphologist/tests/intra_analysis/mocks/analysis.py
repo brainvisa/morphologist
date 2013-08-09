@@ -32,7 +32,8 @@ class MockIntraAnalysis(IntraAnalysis):
             ref_results[IntraAnalysisParameterNames.HISTO_ANALYSIS],
             ref_results[IntraAnalysisParameterNames.HISTOGRAM])
         self._brain_segmentation = MockBrainSegmentation(\
-            ref_results[IntraAnalysisParameterNames.BRAIN_MASK])
+            ref_results[IntraAnalysisParameterNames.BRAIN_MASK],
+            ref_results[IntraAnalysisParameterNames.WHITE_RIDGES])
         self._split_brain = MockSplitBrain(\
             ref_results[IntraAnalysisParameterNames.SPLIT_MASK])
         self._left_grey_white = MockGreyWhite(\

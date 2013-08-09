@@ -78,10 +78,10 @@ class MockHistogramAnalysis(HistogramAnalysis):
 class MockBrainSegmentation(BrainSegmentation):
     __metaclass__ = MetaAutomockStep
     
-    def __init__(self, ref_brain_mask, ref_refined_white_ridges):
+    def __init__(self, ref_brain_mask, ref_white_ridges):
         super(MockBrainSegmentation, self).__init__()
         self.inputs.brain_mask = ref_brain_mask
-        self.inputs.white_ridges = ref_refined_white_ridges
+        self.inputs.white_ridges = ref_white_ridges
  
 
 class MockSplitBrain(SplitBrain):
