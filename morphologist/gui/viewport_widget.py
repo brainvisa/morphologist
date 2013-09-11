@@ -8,7 +8,7 @@ from morphologist.core.gui.viewport_widget import AnalysisViewportModel, \
                                     Object3DViewportView, VectorViewportView, \
                                     AnalysisViewportWidget, ViewportView
 from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
-from morphologist_common.gui.histo_analysis_editor \
+from brainvisa.morphologist.qt4gui.histo_analysis_editor \
     import create_histo_editor
 
 class IntraAnalysisViewportModel(AnalysisViewportModel):

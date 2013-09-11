@@ -1,6 +1,6 @@
-from morphologist_common.gui.histo_analysis_widget \
+from brainvisa.morphologist.qt4gui.histo_analysis_widget \
     import load_histo_data, create_histo_view, HistoData
-from morphologist_common.gui.histo_analysis_editor import create_histo_editor
+from brainvisa.morphologist.qt4gui.histo_analysis_editor import create_histo_editor
 
 from morphologist.core.gui.qt_backend import QtGui
 from morphologist.core.backends import Backend
