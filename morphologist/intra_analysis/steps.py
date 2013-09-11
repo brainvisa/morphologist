@@ -16,7 +16,8 @@ class ImageImportation(Step):
         return ['output']
 
     def get_command(self):
-        command = ["python", "-m", "corist.image_importation", 
+        command = ["python", "-m",
+                   "brainvisa.tools.data_management.image_importation",
                    self.inputs.input, 
                    self.outputs.output]
         return command
