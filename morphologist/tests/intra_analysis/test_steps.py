@@ -12,10 +12,10 @@ from brainvisa.data import neuroHierarchy
 
 from morphologist.core.subject import Subject
 from morphologist.intra_analysis.steps import ImageImportation, \
-    SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation,\
+    SpatialNormalization, BiasCorrection, HistogramAnalysis, BrainSegmentation
     #SplitBrain, GreyWhite, Grey, WhiteSurface, GreySurface, Sulci, SulciLabelling
 from morphologist.intra_analysis.parameters import BrainvisaIntraAnalysisParameterTemplate, \
-                                                    IntraAnalysisParameterNames    
+    IntraAnalysisParameterNames
 from morphologist.tests.utils.graph_comparison import same_graphs
 from morphologist.intra_analysis import constants
 

@@ -12,9 +12,6 @@ BRAINVISA_COPY_PYTHON_DIRECTORY( "${CMAKE_CURRENT_SOURCE_DIR}/morphologist"
     ${PROJECT_NAME}
     python/morphologist )
 
-BRAINVISA_COPY_FILES( ${PROJECT_NAME} "morphologist-ui.py"
-    SOURCE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    DESTINATION bin)
-
-
+BRAINVISA_ADD_EXECUTABLE( "morphologist-ui.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/morphologist-ui.py" IS_SCRIPT )
 
