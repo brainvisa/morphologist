@@ -1,7 +1,8 @@
 import os
 
 import anatomist.direct.api as ana
-from anatomist.cpp.simplecontrols import Simple2DControl, Simple3DControl
+from anatomist.cpp.simplecontrols import Simple2DControl, Simple3DControl, \
+    registerSimpleControls
 from soma import aims
 
 from morphologist.core.gui.qt_backend import QtCore
@@ -39,6 +40,7 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
     @classmethod
     def _init_view_controls(cls):
         # register controls
+        registerSimpleControls()
         control_manager = ana.cpp.ControlManager.instance()
         control_manager.addControl( 'QAGLWidget3D', '', 'Simple2DControl' )
         control_manager.addControl( 'QAGLWidget3D', '', 'Simple3DControl' )
