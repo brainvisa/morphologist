@@ -316,7 +316,8 @@ class Grey(Step):
                    '-classif', self.inputs.grey_white,
                    '-hana', self.inputs.histo_analysis,
                    '-output', self.outputs.grey,
-                   '-mode', 'C', '-writeformat', 't']
+                   '-mode', 'C', '-writeformat', 't',
+                   '-version', '2' ]
 
         if self.inputs.fix_random_seed:
             command.extend(['-srand', '10'])  

@@ -38,7 +38,8 @@ class GreySurface(object):
         GreySurface._run_command(command)
 
         command = ['VipSkeleton', '-i', grey, '-so', skeleton.name, 
-                   '-vo', roots.name, '-g', braing.name, '-w', 't' ]
+                   '-vo', roots.name, '-g', braing.name, '-w', 't',
+                   '-version', '2']
         if fix_random_seed:
             command.extend(['-srand', '10'])
         GreySurface._run_command(command)
