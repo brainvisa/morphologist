@@ -24,14 +24,14 @@ class AnalysisFactory(object):
             return analysis_class
         except KeyError:
             raise UnknownAnalysisError(analysis_type)
-    
-    
+
+
 class UnknownAnalysisError(Exception):
     pass
 
 
 class AnalysisMetaClass(type):
-    
+
     def __init__(cls, name, bases, dct):
         AnalysisFactory.register_analysis(name, cls)
         super(AnalysisMetaClass, cls).__init__(name, bases, dct)
@@ -40,12 +40,12 @@ class AnalysisMetaClass(type):
 
 
 class Analysis(object):
-    # XXX the metaclass automatically register the Analysis class in the AnalysisFactory
-    # and intialize the param_template_map
+    # XXX the metaclass automatically registers the Analysis class in the
+    # AnalysisFactory and intializes the param_template_map
     __metaclass__ = AnalysisMetaClass
     PARAMETER_TEMPLATES = []
     _param_template_map = {}
-    
+
     def __init__(self, parameter_template):
         self._init_steps()
         self._init_step_ids()
@@ -65,20 +65,21 @@ class Analysis(object):
     @classmethod
     def get_default_parameter_template_name(cls):
         raise NotImplementedError("Analysis is an Abstract class.")
-    
+
     @classmethod
     def create_default_parameter_template(cls, base_directory):
-        return cls.create_parameter_template(cls.get_default_parameter_template_name(), 
-                                             base_directory)
-       
+        return cls.create_parameter_template(
+            cls.get_default_parameter_template_name(), base_directory)
+
     @classmethod
     def create_parameter_template(cls, parameter_template_name, base_directory):
-        param_template_cls = cls._param_template_map.get(parameter_template_name, None)
+        param_template_cls = \
+            cls._param_template_map.get(parameter_template_name, None)
         if param_template_cls is None:
             raise UnknownParameterTemplate(parameter_template_name)
         param_template = param_template_cls(base_directory)
         return param_template
-        
+
     def step_from_id(self, step_id):
         return self._step_ids[step_id]
 
@@ -90,9 +91,10 @@ class Analysis(object):
                 continue
             command = step.get_command()
             yield command, step_id
-    
-    def import_data(self, subject):        
-        new_subject_filename = self.parameter_template.get_subject_filename(subject)
+
+    def import_data(self, subject):
+        new_subject_filename = \
+            self.parameter_template.get_subject_filename(subject)
         self.parameter_template.create_outputdirs(subject)
         shutil.copy(subject.filename, new_subject_filename)
         return new_subject_filename
@@ -111,7 +113,7 @@ class Analysis(object):
 
     def propagate_parameters(self):
         raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redefined.") 
- 
+
     def _check_parameter_values_filled(self):
         missing_parameters = []
         missing_parameters.extend(self.inputs.list_missing_parameter_values())  
@@ -120,13 +122,13 @@ class Analysis(object):
             separator = " ,"
             message = separator.join(missing_parameters)
             raise MissingParameterValueError(message)
-        
+
     def has_some_results(self):
         return self.outputs.some_file_exists()
-        
+
     def has_all_results(self):
         return self.outputs.all_file_exists()
-            
+
     def clear_results(self, step_ids=None):
         if step_ids:
             for step_id in step_ids:
@@ -134,14 +136,14 @@ class Analysis(object):
                 step.outputs.clear_files()
         else:
             self.outputs.clear_files()
-                
-                
+
+
 class ParameterTemplate(object):
     name = None
-    
+
     def __init__(self, base_directory):
         self._base_directory = base_directory
-        
+
     @classmethod
     def get_empty_inputs(cls):
         raise NotImplementedError("ParameterTemplate is an abstract class")
@@ -149,22 +151,22 @@ class ParameterTemplate(object):
     @classmethod
     def get_empty_outputs(cls):
         raise NotImplementedError("ParameterTemplate is an abstract class")
-    
+
     def get_subject_filename(self, subject):
         raise NotImplementedError("ParameterTemplate is an abstract class")
-        
+
     def get_inputs(self, subject):
         raise NotImplementedError("ParameterTemplate is an abstract class")
 
     def get_outputs(self, subject):
         raise NotImplementedError("ParameterTemplate is an abstract class")
-    
+
     def create_outputdirs(self, subject):
         raise NotImplementedError("ParameterTemplate is an abstract class")
-    
+
     def remove_dirs(self, subject):
         raise NotImplementedError("ParameterTemplate is an abstract class")
-    
+
     def get_subjects(self, exact_match=False):
         raise NotImplementedError("ParameterTemplate is an abstract class")
 
@@ -182,7 +184,7 @@ class ImportationError(Exception):
 
 
 class Parameters(object):
-    
+
     def __init__(self, file_param_names, other_param_names=None):
         self._file_param_names = file_param_names
         self._parameter_names = copy.copy(self._file_param_names)
@@ -245,14 +247,14 @@ class Parameters(object):
         for param_name in self.list_file_parameter_names():
             filename = self.get_value(param_name)
             self._clear_file(filename)
-                
+
     @classmethod
     def _clear_file(cls, filename):
         if os.path.isfile(filename):
             os.remove(filename)
         elif os.path.isdir(filename):
             shutil.rmtree(filename)
-                     
+
     @classmethod
     def unserialize(cls, serialized, relative_directory=None):
         file_param_names = serialized['file_param_names']
@@ -267,7 +269,7 @@ class Parameters(object):
             if relative_directory and param_name in file_param_names:
                 value = os.path.join(relative_directory, value)
             parameters.set_value(param_name, value)
-        return parameters          
+        return parameters
 
     def serialize(self, relative_directory=None):
         serialized = {}
@@ -280,7 +282,7 @@ class Parameters(object):
                 value = os.path.relpath(value, relative_directory)
             serialized['parameter_values'][param_name] = value
         return serialized
-        
-    
+
+
 class UnknownParameterName(Exception):
     pass

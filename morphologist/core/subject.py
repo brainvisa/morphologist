@@ -5,7 +5,7 @@ from morphologist.core.utils import remove_all_extensions
 
 class Subject(object):
     DEFAULT_GROUP = "undef"
-    
+
     def __init__(self, name, groupname, filename):
         self.name = name 
         self.groupname = groupname
@@ -19,17 +19,17 @@ class Subject(object):
     @staticmethod
     def _define_subjectname_from_filename(filename):
         return remove_all_extensions(filename)
- 
+
     def id(self):
         return self.groupname + "-" + self.name
-        
+
     def __repr__(self):
         s = "(%s, %s, %s)" % (self.groupname, self.name, self.filename)
         return s
 
     def __str__(self):
         return self.id()
-    
+
     def __eq__(self, other):
         for attr in ['name', 'groupname', 'filename']:
             value = self.__getattribute__(attr)
@@ -46,7 +46,8 @@ class Subject(object):
         serialized['name'] = self.name
         serialized['groupname'] = self.groupname
         if relative_directory:
-            serialized['filename'] = os.path.relpath(self.filename, relative_directory)
+            serialized['filename'] = os.path.relpath(
+                self.filename, relative_directory)
         else:
             serialized['filename'] = self.filename
         return serialized
