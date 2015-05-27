@@ -36,6 +36,8 @@ class Study(StudyConfig):
         self.input_directory = output_directory
         self.input_fom = "brainvisa-auto-1.0"
         self.output_fom = "brainvisa-auto-1.0"
+        self.volumes_format = "NIFTI"
+        self.meshes_format = "GIFTI"
         self.add_trait("subjects", traits.Trait(OrderedDict()))
         self.subjects = OrderedDict()
         self.add_trait('parameter_template_name', traits.Unicode())
@@ -150,7 +152,7 @@ class Study(StudyConfig):
         for subject in subjects:
             new_study.add_subject(subject, import_data=False)
         return new_study
-    
+
     def save_to_backup_file(self):
         serialized_study = self.serialize()
         try:
@@ -158,7 +160,7 @@ class Study(StudyConfig):
                 json.dump(serialized_study, fd, indent=4, sort_keys=True)
         except Exception, e:
             raise StudySerializationError("%s" %(e))
-  
+
     def serialize(self):
         serialized = self.export_to_dict(
             exclude_undefined=True, exclude_none=True, exclude_transient=True,
