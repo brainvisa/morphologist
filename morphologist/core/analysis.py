@@ -7,16 +7,16 @@ from morphologist.core.utils import OrderedDict
 
 class AnalysisFactory(object):
     _registered_analyses = {}
-    
+
     @classmethod
     def register_analysis(cls, analysis_type, analysis_class):
         cls._registered_analyses[analysis_type] = analysis_class
-        
+
     @classmethod
-    def create_analysis(cls, analysis_type, parameter_template):
+    def create_analysis(cls, analysis_type, parameter_template, study):
         analysis_cls = cls.get_analysis_cls(analysis_type) 
-        return analysis_cls(parameter_template)
- 
+        return analysis_cls(parameter_template, study)
+
     @classmethod
     def get_analysis_cls(cls, analysis_type):
         try:
@@ -46,9 +46,11 @@ class Analysis(object):
     PARAMETER_TEMPLATES = []
     _param_template_map = {}
 
-    def __init__(self, parameter_template):
+    def __init__(self, parameter_template, study):
         self._init_steps()
         self._init_step_ids()
+        self.study = study
+        self.pipeline = None  # should be a ProcessWithFom
         self.parameter_template = parameter_template
         self.inputs = Parameters(file_param_names=[])
         self.outputs = Parameters(file_param_names=[])
@@ -67,17 +69,18 @@ class Analysis(object):
         raise NotImplementedError("Analysis is an Abstract class.")
 
     @classmethod
-    def create_default_parameter_template(cls, base_directory):
+    def create_default_parameter_template(cls, base_directory, study):
         return cls.create_parameter_template(
-            cls.get_default_parameter_template_name(), base_directory)
+            cls.get_default_parameter_template_name(), base_directory, study)
 
     @classmethod
-    def create_parameter_template(cls, parameter_template_name, base_directory):
+    def create_parameter_template(
+            cls, parameter_template_name, base_directory, study):
         param_template_cls = \
             cls._param_template_map.get(parameter_template_name, None)
         if param_template_cls is None:
             raise UnknownParameterTemplate(parameter_template_name)
-        param_template = param_template_cls(base_directory)
+        param_template = param_template_cls(base_directory, study)
         return param_template
 
     def step_from_id(self, step_id):
@@ -141,8 +144,9 @@ class Analysis(object):
 class ParameterTemplate(object):
     name = None
 
-    def __init__(self, base_directory):
+    def __init__(self, base_directory, study):
         self._base_directory = base_directory
+        self.study = study
 
     @classmethod
     def get_empty_inputs(cls):

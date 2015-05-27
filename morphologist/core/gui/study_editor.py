@@ -59,8 +59,9 @@ class StudyPropertiesEditor(object):
         study.study_name = self.study_name
         study.output_directory = self.output_directory
         parameter_template = self.parameter_templates[self.parameter_template_index]
-        study.parameter_template = study.analysis_cls().create_parameter_template(parameter_template.name, 
-                                                                                  self.output_directory)
+        study.parameter_template = \
+            study.analysis_cls().create_parameter_template(
+                parameter_template.name, self.output_directory, study)
 
     def get_consistency_status(self):
         if self.mode == StudyEditor.NEW_STUDY:

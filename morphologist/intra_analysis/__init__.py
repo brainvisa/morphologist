@@ -9,22 +9,34 @@ from morphologist.core.analysis import Analysis, Parameters, \
 from morphologist.core.utils import create_directory_if_missing, create_directories_if_missing
 from morphologist.intra_analysis.steps import ImageImportation, \
     BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
-    GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface, Sulci, SulciLabelling, Morphometry
+    GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface, Sulci, \
+    SulciLabelling, Morphometry
 from morphologist.intra_analysis import constants
-from morphologist.intra_analysis.parameters import BrainvisaIntraAnalysisParameterTemplate, \
-                                                    DefaultIntraAnalysisParameterTemplate, \
-                                                    IntraAnalysisParameterTemplate, \
-                                                    IntraAnalysisParameterNames
+from morphologist.intra_analysis.parameters import \
+    BrainvisaIntraAnalysisParameterTemplate, \
+    DefaultIntraAnalysisParameterTemplate, \
+    IntraAnalysisParameterTemplate, \
+    IntraAnalysisParameterNames
+
+# CAPSUL
+from capsul.process.process_with_fom import ProcessWithFom
+
+# CAPSUL morphologist
+from morphologist.process.customized.morphologist import \
+    CustomMorphologist as Morphologist
 
 
 class IntraAnalysis(Analysis):
     PARAMETER_TEMPLATES = [BrainvisaIntraAnalysisParameterTemplate, 
                            DefaultIntraAnalysisParameterTemplate]
-    
-    def __init__(self, parameter_template):
-        super(IntraAnalysis, self).__init__(parameter_template) 
+
+    def __init__(self, parameter_template, study):
+        super(IntraAnalysis, self).__init__(parameter_template, study)
+
         self.inputs = IntraAnalysisParameterTemplate.get_empty_inputs()
         self.outputs = IntraAnalysisParameterTemplate.get_empty_outputs()
+        pipeline = Morphologist()
+        self.pipeline = ProcessWithFom(pipeline, self.study)
 
     def _init_steps(self):
         self._normalization = SpatialNormalization()
@@ -78,11 +90,12 @@ class IntraAnalysis(Analysis):
     @classmethod
     def get_default_parameter_template_name(cls):
         return BrainvisaIntraAnalysisParameterTemplate.name
-        
+
     def import_data(self, subject):
         import_step = ImageImportation()
         import_step.inputs.input = subject.filename
-        import_step.outputs.output = self.parameter_template.get_subject_filename(subject)
+        import_step.outputs.output = \
+            self.parameter_template.get_subject_filename(subject)
         self.parameter_template.create_outputdirs(subject)
         if import_step.run() != 0:
             raise ImportationError("The importation failed for the subject %s."
@@ -93,7 +106,7 @@ class IntraAnalysis(Analysis):
         self._normalization.inputs.mri = self.inputs[IntraAnalysisParameterNames.MRI]
         self._normalization.outputs.commissure_coordinates = self.outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
         self._normalization.outputs.talairach_transformation = self.outputs[IntraAnalysisParameterNames.TALAIRACH_TRANSFORMATION]
-        
+
         self._bias_correction.inputs.mri = self.inputs[IntraAnalysisParameterNames.MRI]
         self._bias_correction.inputs.commissure_coordinates = self.outputs[IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
         self._bias_correction.outputs.hfiltered = self.outputs[IntraAnalysisParameterNames.HFILTERED]

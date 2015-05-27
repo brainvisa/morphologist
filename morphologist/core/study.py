@@ -18,7 +18,7 @@ STUDY_FORMAT_VERSION = '0.5'
 class Study(StudyConfig):
     default_output_directory = os.path.join(
         os.path.expanduser("~"), 'morphologist/studies/study')
-    
+
     def __init__(self, analysis_type, study_name="undefined study",
                  output_directory=default_output_directory,
                  parameter_template_name=None):
@@ -34,8 +34,9 @@ class Study(StudyConfig):
         self.study_name = study_name
         self.output_directory = output_directory
         self.input_directory = output_directory
-        self.input_fom = "brainvisa-auto-1.0"
-        self.output_fom = "brainvisa-auto-1.0"
+        self.input_fom = "morphologist-auto-1.0"
+        self.output_fom = "morphologist-auto-1.0"
+        self.shared_fom = "shared-brainvisa-1.0"
         self.volumes_format = "NIFTI"
         self.meshes_format = "GIFTI"
         self.add_trait("subjects", traits.Trait(OrderedDict()))
@@ -44,11 +45,11 @@ class Study(StudyConfig):
         if parameter_template_name is None:
             self.parameter_template = \
                 self.analysis_cls().create_default_parameter_template(
-                    self.output_directory)
+                    self.output_directory, self)
         else:
             self.parameter_template = \
                 self.analysis_cls().create_parameter_template(
-                    parameter_template_name, self.output_directory)
+                    parameter_template_name, self.output_directory, self)
         self.parameter_template_name = self.parameter_template.name
         self.analyses = {}
 
@@ -57,7 +58,7 @@ class Study(StudyConfig):
 
     def _create_analysis(self):
         return AnalysisFactory.create_analysis(
-            self.analysis_type, self.parameter_template)
+            self.analysis_type, self.parameter_template, self)
 
     @property 
     def backup_filepath(self):
@@ -85,6 +86,7 @@ class Study(StudyConfig):
             study = cls.unserialize(serialized_study, output_directory)
         except KeyError, e:
             print e
+            raise
             raise StudySerializationError("file content does not "
                                           "match with study file format.")
         return study

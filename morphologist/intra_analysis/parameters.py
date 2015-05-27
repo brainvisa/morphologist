@@ -45,15 +45,15 @@ class IntraAnalysisParameterNames:
     RIGHT_NATIVE_MORPHOMETRY_CSV = 'right_native_morphometry'
     LEFT_NORMALIZED_MORPHOMETRY_CSV = 'left_normalized_morphometry'
     RIGHT_NORMALIZED_MORPHOMETRY_CSV = 'right_normalized_morphometry'
-    
+
     @classmethod
     def get_input_file_parameter_names(cls):
         return [cls.MRI]
-    
+
     @classmethod
     def get_input_other_parameter_names(cls):
         return [cls.EROSION_SIZE, cls.BARY_FACTOR]
-    
+
     @classmethod
     def get_output_file_parameter_names(cls):
         return [cls.COMMISSURE_COORDINATES,
@@ -91,9 +91,12 @@ class IntraAnalysisParameterNames:
 
 
 class IntraAnalysisParameterTemplate(ParameterTemplate):
-    input_file_param_names = IntraAnalysisParameterNames.get_input_file_parameter_names()
-    input_other_param_names = IntraAnalysisParameterNames.get_input_other_parameter_names()
-    output_file_param_names = IntraAnalysisParameterNames.get_output_file_parameter_names()
+    input_file_param_names = \
+        IntraAnalysisParameterNames.get_input_file_parameter_names()
+    input_other_param_names = \
+        IntraAnalysisParameterNames.get_input_other_parameter_names()
+    output_file_param_names = \
+        IntraAnalysisParameterNames.get_output_file_parameter_names()
 
     @classmethod
     def get_empty_inputs(cls):
@@ -103,11 +106,12 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
     @classmethod
     def get_empty_outputs(cls):
         return IntraAnalysisParameters(cls.output_file_param_names)
-    
+
     def get_inputs(self, subject):
         parameters = IntraAnalysisParameters(self.input_file_param_names,
                                      self.input_other_param_names)
-        parameters[IntraAnalysisParameterNames.MRI] = self.get_subject_filename(subject)
+        parameters[IntraAnalysisParameterNames.MRI] = \
+            self.get_subject_filename(subject)
         parameters[IntraAnalysisParameterNames.EROSION_SIZE] = 1.8
         parameters[IntraAnalysisParameterNames.BARY_FACTOR] = 0.6
         return parameters
@@ -123,10 +127,11 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
     SURFACE = "mesh"
     FOLDS = os.path.join("folds", "3.1")
     SESSION_AUTO = "default_session_auto"
-    
+
     def get_subject_filename(self, subject):
-        return os.path.join(self._base_directory, subject.groupname, subject.name, 
-                            self.MODALITY, self.ACQUISITION, subject.name + ".nii")
+        return os.path.join(
+            self._base_directory, subject.groupname, subject.name,
+            self.MODALITY, self.ACQUISITION, subject.name + ".nii")
 
     def get_outputs(self, subject):
         default_acquisition_path = os.path.join(self._base_directory, subject.groupname,

@@ -381,11 +381,11 @@ class MainWindow(QtGui.QMainWindow):
         self.setWindowTitle(self._window_title())
 
     def _window_title(self):
-        title = "Morphologist - %s" % self.study.name
+        title = "Morphologist - %s" % self.study.study_name
         if settings.tests.mock:
             title += "--- MOCK MODE ---"
         return title
-    
+
     def closeEvent(self, event):
         msg = 'Stop current running analysis and quit ?'
         if self._runner_still_running_after_stopping_asked_to_user(msg): 
@@ -398,9 +398,9 @@ class MainWindow(QtGui.QMainWindow):
     def on_action_runner_settings_triggered(self):
         dialog = RunnerSettingsDialog(settings, self)
         dialog.show()
-    
+
     # this slot is automagically connected
-    @QtCore.Slot(bool)        
+    @QtCore.Slot(bool)
     def on_action_axial_view_toggled(self, checked):
         if checked:
             self.viewport_widget.set_object3d_views_view_type(ViewType.AXIAL)
