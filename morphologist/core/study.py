@@ -52,26 +52,28 @@ class Study(StudyConfig):
 
     def analysis_cls(self):
         return AnalysisFactory.get_analysis_cls(self.analysis_type)
-    
+
     def _create_analysis(self):
-        return AnalysisFactory.create_analysis(self.analysis_type, self.parameter_template)
-       
+        return AnalysisFactory.create_analysis(
+            self.analysis_type, self.parameter_template)
+
     @property 
     def backup_filepath(self):
         return self._get_backup_filepath_from_output_directory(
             self.output_directory)
-    
+
     @staticmethod
     def _get_backup_filepath_from_output_directory(output_directory):
         return os.path.join(output_directory, 'study.json')
-    
+
     @staticmethod
     def _get_output_directory_from_backup_filepath(backup_filepath):
         return os.path.dirname(backup_filepath)
 
     @classmethod
     def from_file(cls, backup_filepath):
-        output_directory = cls._get_output_directory_from_backup_filepath(backup_filepath)
+        output_directory = \
+            cls._get_output_directory_from_backup_filepath(backup_filepath)
         try:
             with open(backup_filepath, "r") as fd:
                     serialized_study = json.load(fd)
@@ -84,7 +86,7 @@ class Study(StudyConfig):
             raise StudySerializationError("file content does not "
                                           "match with study file format.")
         return study
-    
+
     @classmethod
     def unserialize(cls, serialized, output_directory):
         try:
@@ -107,7 +109,8 @@ class Study(StudyConfig):
         study.import_from_dict(serialized_dict, clear=False)
         for subject_id, serialized_subject in \
                 serialized['subjects'].iteritems():
-            subject = Subject.unserialize(serialized_subject, study.output_directory)
+            subject = Subject.unserialize(
+                serialized_subject, study.output_directory)
             study.subjects[subject_id] = subject
         for subject_id, subject in study.subjects.iteritems():
             if subject_id not in serialized['inputs']:
@@ -118,8 +121,10 @@ class Study(StudyConfig):
                                          " for subject %s" % str(subject))
             serialized_inputs = serialized['inputs'][subject_id] 
             serialized_outputs = serialized['outputs'][subject_id]
-            inputs = Parameters.unserialize(serialized_inputs, study.output_directory)
-            outputs = Parameters.unserialize(serialized_outputs, study.output_directory)
+            inputs = Parameters.unserialize(
+                serialized_inputs, study.output_directory)
+            outputs = Parameters.unserialize(
+                serialized_outputs, study.output_directory)
             analysis = study._create_analysis()
             analysis.inputs = inputs
             analysis.outputs = outputs
@@ -128,9 +133,10 @@ class Study(StudyConfig):
 
     @classmethod
     def from_study_directory(cls, study_directory):
-        backup_filepath = cls._get_backup_filepath_from_output_directory(study_directory)
+        backup_filepath = \
+            cls._get_backup_filepath_from_output_directory(study_directory)
         return cls.from_file(backup_filepath)
-    
+
     @classmethod
     def from_organized_directory(cls, analysis_type, organized_directory,
                                  parameter_template_name):
@@ -162,12 +168,15 @@ class Study(StudyConfig):
         serialized['parameter_template_name'] = self.parameter_template.name
         serialized['subjects'] = {}
         for subject_id, subject in self.subjects.iteritems():
-            serialized['subjects'][subject_id] = subject.serialize(self.output_directory)
+            serialized['subjects'][subject_id] = \
+                subject.serialize(self.output_directory)
         serialized['inputs'] = {}
         serialized['outputs'] = {}
         for subject_id, analysis in self.analyses.iteritems():
-            serialized['inputs'][subject_id] = analysis.inputs.serialize(self.output_directory)
-            serialized['outputs'][subject_id] = analysis.outputs.serialize(self.output_directory)
+            serialized['inputs'][subject_id] = \
+                analysis.inputs.serialize(self.output_directory)
+            serialized['outputs'][subject_id] = \
+                analysis.outputs.serialize(self.output_directory)
         return serialized 
 
     def add_subject(self, subject, import_data=True):
@@ -179,15 +188,16 @@ class Study(StudyConfig):
         self.analyses[subject_id].set_parameters(subject)
         if import_data:
             self._import_subject(subject_id, subject)
-            
+
     def _import_subject(self, subject_id, subject):
         try:
             new_imgname = self.analyses[subject_id].import_data(subject)
         except ImportationError:
             del self.subjects[subject_id]
             del self.analyses[subject_id]
-            raise ImportationError("Importation failed for the " +
-                        "following subject: %s." % str(subject))
+            raise ImportationError(
+                "Importation failed for the following subject: %s."
+                % str(subject))
         else:
             subject.filename = new_imgname
 
