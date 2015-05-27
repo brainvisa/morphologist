@@ -6,25 +6,48 @@ from morphologist.core.analysis import AnalysisFactory, Parameters, ImportationE
 from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.subject import Subject
 
+# CAPSUL
+from capsul.study_config import StudyConfig
 
-STUDY_FORMAT_VERSION = '0.4'
+import traits.api as traits
 
 
-class Study(object):
-    default_outputdir = os.path.join(os.path.expanduser("~"),
-                                'morphologist/studies/study')
+STUDY_FORMAT_VERSION = '0.5'
+
+
+class Study(StudyConfig):
+    default_output_directory = os.path.join(
+        os.path.expanduser("~"), 'morphologist/studies/study')
     
-    def __init__(self, analysis_type, name="undefined study", 
-                 outputdir=default_outputdir, parameter_template_name=None):
+    def __init__(self, analysis_type, study_name="undefined study",
+                 output_directory=default_output_directory,
+                 parameter_template_name=None):
+        default_config = {"use_soma_workflow": True}
+        super(Study, self).__init__(initial_config=default_config,
+            modules=StudyConfig.default_modules + \
+            ['BrainVISAConfig', 'FSLConfig', 'FomConfig'])
+
+        # study_name is marked as transient in StudyConfig. I don't know why.
+        self.trait('study_name').transient = False
+
         self.analysis_type = analysis_type # string : name of the analysis class
-        self.name = name
-        self.outputdir = outputdir
+        self.study_name = study_name
+        self.output_directory = output_directory
+        self.input_directory = output_directory
+        self.input_fom = "brainvisa-auto-1.0"
+        self.output_fom = "brainvisa-auto-1.0"
+        self.add_trait("subjects", traits.Trait(OrderedDict()))
         self.subjects = OrderedDict()
+        self.add_trait('parameter_template_name', traits.Unicode())
         if parameter_template_name is None:
-            self.parameter_template = self.analysis_cls().create_default_parameter_template(self.outputdir)
+            self.parameter_template = \
+                self.analysis_cls().create_default_parameter_template(
+                    self.output_directory)
         else:
-            self.parameter_template = self.analysis_cls().create_parameter_template(parameter_template_name, 
-                                                                                    self.outputdir)
+            self.parameter_template = \
+                self.analysis_cls().create_parameter_template(
+                    parameter_template_name, self.output_directory)
+        self.parameter_template_name = self.parameter_template.name
         self.analyses = {}
 
     def analysis_cls(self):
@@ -35,33 +58,35 @@ class Study(object):
        
     @property 
     def backup_filepath(self):
-        return self._get_backup_filepath_from_outputdir(self.outputdir)
+        return self._get_backup_filepath_from_output_directory(
+            self.output_directory)
     
     @staticmethod
-    def _get_backup_filepath_from_outputdir(outputdir):
-        return os.path.join(outputdir, 'study.json')
+    def _get_backup_filepath_from_output_directory(output_directory):
+        return os.path.join(output_directory, 'study.json')
     
     @staticmethod
-    def _get_outputdir_from_backup_filepath(backup_filepath):
+    def _get_output_directory_from_backup_filepath(backup_filepath):
         return os.path.dirname(backup_filepath)
 
     @classmethod
     def from_file(cls, backup_filepath):
-        outputdir = cls._get_outputdir_from_backup_filepath(backup_filepath)
+        output_directory = cls._get_output_directory_from_backup_filepath(backup_filepath)
         try:
             with open(backup_filepath, "r") as fd:
                     serialized_study = json.load(fd)
         except Exception, e:
             raise StudySerializationError("%s" %(e))
         try:
-            study = cls.unserialize(serialized_study, outputdir)
+            study = cls.unserialize(serialized_study, output_directory)
         except KeyError, e:
+            print e
             raise StudySerializationError("file content does not "
                                           "match with study file format.")
         return study
     
     @classmethod
-    def unserialize(cls, serialized, outputdir):
+    def unserialize(cls, serialized, output_directory):
         try:
             version = serialized['study_format_version']
         except:
@@ -71,11 +96,18 @@ class Study(object):
             msg = "find unsupported study format version '%s'" % version
             raise StudySerializationError(msg)
         study = cls(analysis_type=serialized['analysis_type'], 
-                    name=serialized['name'],
-                    outputdir=outputdir, 
-                    parameter_template_name=serialized['parameter_template_name'])
-        for subject_id, serialized_subject in serialized['subjects'].iteritems():
-            subject = Subject.unserialize(serialized_subject, study.outputdir)
+                    study_name=serialized['study_name'],
+                    output_directory=output_directory,
+                    parameter_template_name=serialized[
+                        'parameter_template_name'])
+        serialized_dict = dict(
+            [(key, value) for key, value in serialized.iteritems()
+             if key not in ('subjects', 'study_format_version',
+                            'analysis_type', 'inputs', 'outputs')])
+        study.import_from_dict(serialized_dict, clear=False)
+        for subject_id, serialized_subject in \
+                serialized['subjects'].iteritems():
+            subject = Subject.unserialize(serialized_subject, study.output_directory)
             study.subjects[subject_id] = subject
         for subject_id, subject in study.subjects.iteritems():
             if subject_id not in serialized['inputs']:
@@ -86,8 +118,8 @@ class Study(object):
                                          " for subject %s" % str(subject))
             serialized_inputs = serialized['inputs'][subject_id] 
             serialized_outputs = serialized['outputs'][subject_id]
-            inputs = Parameters.unserialize(serialized_inputs, study.outputdir) 
-            outputs = Parameters.unserialize(serialized_outputs, study.outputdir)
+            inputs = Parameters.unserialize(serialized_inputs, study.output_directory)
+            outputs = Parameters.unserialize(serialized_outputs, study.output_directory)
             analysis = study._create_analysis()
             analysis.inputs = inputs
             analysis.outputs = outputs
@@ -96,14 +128,17 @@ class Study(object):
 
     @classmethod
     def from_study_directory(cls, study_directory):
-        backup_filepath = cls._get_backup_filepath_from_outputdir(study_directory)
+        backup_filepath = cls._get_backup_filepath_from_output_directory(study_directory)
         return cls.from_file(backup_filepath)
     
     @classmethod
-    def from_organized_directory(cls, analysis_type, organized_directory, parameter_template_name):
-        name = os.path.basename(organized_directory)
-        new_study = cls(analysis_type, name=name, outputdir=organized_directory, 
-                        parameter_template_name=parameter_template_name)
+    def from_organized_directory(cls, analysis_type, organized_directory,
+                                 parameter_template_name):
+        study_name = os.path.basename(organized_directory)
+        new_study = cls(
+            analysis_type, study_name=study_name,
+            output_directory=organized_directory,
+            parameter_template_name=parameter_template_name)
         parameter_template = new_study.parameter_template
         subjects = parameter_template.get_subjects(exact_match=True)
         for subject in subjects:
@@ -119,19 +154,20 @@ class Study(object):
             raise StudySerializationError("%s" %(e))
   
     def serialize(self):
-        serialized = {}
+        serialized = self.export_to_dict(
+            exclude_undefined=True, exclude_none=True, exclude_transient=True,
+            exclude_empty=True, dict_class=dict)
         serialized['study_format_version'] = STUDY_FORMAT_VERSION
         serialized['analysis_type'] = self.analysis_type
         serialized['parameter_template_name'] = self.parameter_template.name
-        serialized['name'] = self.name
         serialized['subjects'] = {}
         for subject_id, subject in self.subjects.iteritems():
-            serialized['subjects'][subject_id] = subject.serialize(self.outputdir)
+            serialized['subjects'][subject_id] = subject.serialize(self.output_directory)
         serialized['inputs'] = {}
         serialized['outputs'] = {}
         for subject_id, analysis in self.analyses.iteritems():
-            serialized['inputs'][subject_id] = analysis.inputs.serialize(self.outputdir)
-            serialized['outputs'][subject_id] = analysis.outputs.serialize(self.outputdir)
+            serialized['inputs'][subject_id] = analysis.inputs.serialize(self.output_directory)
+            serialized['outputs'][subject_id] = analysis.outputs.serialize(self.output_directory)
         return serialized 
 
     def add_subject(self, subject, import_data=True):
@@ -193,8 +229,8 @@ class Study(object):
             analysis.clear_results()
 
     def __repr__(self):
-        s = 'name :' + str(self.name) + '\n'
-        s += 'outputdir :' + str(self.outputdir) + '\n'
+        s = 'study_name :' + str(self.study_name) + '\n'
+        s += 'output_directory :' + str(self.output_directory) + '\n'
         s += 'subjects :' + repr(self.subjects) + '\n'
         return s
 

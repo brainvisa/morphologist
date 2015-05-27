@@ -19,8 +19,8 @@ class TestStudyWidget(TestGui):
 
     def setUp(self):
         self.test_case = self._create_test_case()
-        if not os.path.exists(self.test_case.outputdir):
-            os.makedirs(self.test_case.outputdir)
+        if not os.path.exists(self.test_case.output_directory):
+            os.makedirs(self.test_case.output_directory)
 
 
     def _create_test_case(self):
@@ -52,7 +52,7 @@ class TestStudyWidget(TestGui):
         dialog = main_window.findChild(QtGui.QDialog, 'StudyEditorDialog')
         TestStudyGui.action_define_new_study_content(dialog, 
                                                      self.test_case.studyname, 
-                                                     self.test_case.outputdir,
+                                                     self.test_case.output_directory,
                                                      self.test_case.filenames)
         import_dialog = main_window.findChild(QtGui.QDialog, 'ImportSubjectsDialog')
         close_button = import_dialog.ui.close_buttonBox
@@ -62,7 +62,7 @@ class TestStudyWidget(TestGui):
         QtTest.QTest.mouseClick(close_button, QtCore.Qt.LeftButton)
         
         self.assertEqual(main_window.study.name, self.test_case.studyname)
-        self.assertEqual(main_window.study.outputdir, self.test_case.outputdir)
+        self.assertEqual(main_window.study.output_directory, self.test_case.output_directory)
         self._assert_subjects_exist(main_window.study)
         main_window.close()
         
@@ -74,7 +74,7 @@ class TestStudyWidget(TestGui):
             self.assert_(subject_id in study.subjects)
             study_subject = study.subjects[subject_id]
             self.assert_(os.path.exists(study_subject.filename))
-            self.assert_(study_subject.filename.startswith(self.test_case.outputdir))
+            self.assert_(study_subject.filename.startswith(self.test_case.output_directory))
 
 
 class TestStudyWidgetIntraAnalysis(TestStudyWidget):

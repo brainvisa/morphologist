@@ -49,31 +49,31 @@ class StudyPropertiesEditor(object):
     OUTPUTDIR_NOT_EMPTY = 0x2
     
     def __init__(self, study, mode):
-        self.name = study.name
-        self.outputdir = study.outputdir
+        self.study_name = study.study_name
+        self.output_directory = study.output_directory
         self.parameter_templates = study.analysis_cls().PARAMETER_TEMPLATES
         self.parameter_template_index = self.parameter_templates.index(study.parameter_template.__class__)
         self.mode = mode
 
     def update_study(self, study):
-        study.name = self.name
-        study.outputdir = self.outputdir
+        study.study_name = self.study_name
+        study.output_directory = self.output_directory
         parameter_template = self.parameter_templates[self.parameter_template_index]
         study.parameter_template = study.analysis_cls().create_parameter_template(parameter_template.name, 
-                                                                                  self.outputdir)
+                                                                                  self.output_directory)
 
     def get_consistency_status(self):
         if self.mode == StudyEditor.NEW_STUDY:
-            status = self._outputdir_consistency_status()
+            status = self._output_directory_consistency_status()
         elif self.mode == StudyEditor.EDIT_STUDY:
             status = StudyPropertiesEditor.STUDY_PROPERTIES_VALID
         return status
 
-    def _outputdir_consistency_status(self):
+    def _output_directory_consistency_status(self):
         status = StudyPropertiesEditor.STUDY_PROPERTIES_VALID
-        if not os.path.exists(self.outputdir):
+        if not os.path.exists(self.output_directory):
             status |= StudyPropertiesEditor.OUTPUTDIR_NOT_EXISTS
-        elif len(os.listdir(self.outputdir)) != 0:
+        elif len(os.listdir(self.output_directory)) != 0:
             status |= StudyPropertiesEditor.OUTPUTDIR_NOT_EMPTY
         return status
  

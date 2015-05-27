@@ -74,10 +74,10 @@ class StudyEditorDialog(QtGui.QDialog):
             self.ui.add_subjects_from_database_button.hide()    
              
     def _init_subjects_from_directory_dialog(self, study):
-        outputdir = study.outputdir
+        output_directory = study.output_directory
         selected_template_name = self._default_parameter_template_name
         self._subjects_from_directory_dialog = SelectOrganizedDirectoryDialog(self.ui,
-                            outputdir, study.analysis_type, selected_template_name)
+                            output_directory, study.analysis_type, selected_template_name)
         self._subjects_from_directory_dialog.accepted.connect(\
             self.on_subjects_from_directory_dialog_accepted)
 
@@ -230,26 +230,26 @@ class StudyEditorDialog(QtGui.QDialog):
 
     def _check_study_properties_consistency(self):
         study_properties_editor = self.study_editor.study_properties_editor
-        outputdir = study_properties_editor.outputdir
+        output_directory = study_properties_editor.output_directory
         status = study_properties_editor.get_consistency_status()
         if status == StudyPropertiesEditor.STUDY_PROPERTIES_VALID:
             return True
         elif status & StudyPropertiesEditor.OUTPUTDIR_NOT_EXISTS:
-            msg = "The study directory '%s' does not exist." % outputdir +\
+            msg = "The study directory '%s' does not exist." % output_directory +\
             "\nDo you want to create it ?"
             answer = QtGui.QMessageBox.question(self, "Create the study directory ?", msg, 
                                                 QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
             if answer == QtGui.QMessageBox.Ok:
                 try:
-                    os.makedirs(outputdir)
+                    os.makedirs(output_directory)
                 except OSError:
-                    msg = "The directory %s cannot be created." % outputdir
+                    msg = "The directory %s cannot be created." % output_directory
                 else:
                     return True
             else:
                 return False
         elif status & StudyPropertiesEditor.OUTPUTDIR_NOT_EMPTY:
-            msg = "The study directory '%s' is not empty." % outputdir
+            msg = "The study directory '%s' is not empty." % output_directory
         else:
             assert(0)
         QtGui.QMessageBox.critical(self, "Study consistency error", msg)

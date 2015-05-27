@@ -10,14 +10,14 @@ class AbstractStudyTestCase(object):
         self.study = None
         self.analysis_type = None
         self.studyname = None
-        self.outputdir = None
+        self.output_directory = None
         self.subjectnames = None
         self.groupnames = None
         self.filenames = None
 
     def create_study(self):
         self.study = Study(analysis_type=self.analysis_type, name=self.studyname, 
-                           outputdir=self.outputdir,
+                           output_directory=self.output_directory,
                            parameter_template_name=self.parameter_template_name())
         return self.study
 
@@ -62,11 +62,11 @@ class MockStudyTestCase(AbstractStudyTestCase):
         super(MockStudyTestCase, self).__init__()
         self.analysis_type = "MockAnalysis"
         self.studyname = 'mock_study'
-        self.outputdir = '/tmp/morphologist_output_mock_study_test_case'
+        self.output_directory = '/tmp/morphologist_output_mock_study_test_case'
         self.subjectnames = ['bla', 'blabla', 'blablabla'] 
         self.filenames = ['/tmp/morphologist_output_mock_study_test_case/foo'] * len(self.subjectnames)
         self.groupnames = [Subject.DEFAULT_GROUP] * len(self.subjectnames)
-        reset_directory(self.outputdir)
+        reset_directory(self.output_directory)
 
     def parameter_template_name(self):
         return MockParameterTemplate.name

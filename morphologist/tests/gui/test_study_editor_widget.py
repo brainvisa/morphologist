@@ -24,7 +24,7 @@ class TestStudyGui(TestGui):
         study_editor_dialog.ui.show()
         #FIXME: replace study_editor_dialog.ui by study_editor_dialog
         self.action_define_new_study_content(study_editor_dialog.ui,
-            self.test_case.studyname, self.test_case.outputdir,
+            self.test_case.studyname, self.test_case.output_directory,
             self.test_case.filenames)
         new_study = study_editor_dialog.study_editor.create_updated_study()
         study_editor_dialog.ui.close()
@@ -57,12 +57,12 @@ class TestStudyGui(TestGui):
                 
     @staticmethod
     def action_define_new_study_content(study_editor_dialog_ui,
-                                        studyname, outputdir, filenames):
+                                        studyname, output_directory, filenames):
         ui = study_editor_dialog_ui
 
         # set studyname and output dir
         ui.studyname_lineEdit.setText(studyname)
-        ui.outputdir_lineEdit.setText(outputdir)
+        ui.output_directory_lineEdit.setText(output_directory)
 
         # select some subjects
         for filename in filenames:
@@ -90,7 +90,7 @@ class TestStudyGui(TestGui):
 
     def _assert_study_is_conformed_to_test_case(self, study):
         self.assertEqual(study.name, self.test_case.studyname)
-        self.assertEqual(study.outputdir, self.test_case.outputdir)
+        self.assertEqual(study.output_directory, self.test_case.output_directory)
 
 
 class TestIntraAnalysisStudyGui(TestStudyGui):

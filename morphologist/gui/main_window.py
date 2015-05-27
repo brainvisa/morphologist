@@ -140,7 +140,7 @@ class ImportStudyActionHandler(ActionHandler):
         analysis_cls = AnalysisFactory.get_analysis_cls(self._analysis_type)
         parameter_template_name = analysis_cls.get_default_parameter_template_name()
         dialog = ImportStudyDialog(self.parent(),
-                ApplicationStudy.default_outputdir, self._analysis_type,
+                ApplicationStudy.default_output_directory, self._analysis_type,
                 selected_template_name=parameter_template_name)
         dialog.accepted.connect(self._on_import_study_dialog_accepted)
         dialog.show()

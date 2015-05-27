@@ -23,12 +23,12 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         # create dummy ui attribute
         self.ui = type('dummy UI', (QtGui.QWidget,), {})()
         self.ui.studyname_lineEdit = parent.ui.studyname_lineEdit
-        self.ui.outputdir_lineEdit = parent.ui.outputdir_lineEdit
-        self.ui.outputdir_button = parent.ui.outputdir_button
+        self.ui.output_directory_lineEdit = parent.ui.output_directory_lineEdit
+        self.ui.output_directory_button = parent.ui.output_directory_button
         self.ui.parameter_template_combobox = parent.ui.parameter_template_combobox
         if editor_mode == StudyEditor.EDIT_STUDY:
-            self.ui.outputdir_lineEdit.setEnabled(False)
-            self.ui.outputdir_button.setEnabled(False)
+            self.ui.output_directory_lineEdit.setEnabled(False)
+            self.ui.output_directory_button.setEnabled(False)
             self.ui.parameter_template_combobox.setEnabled(False)
         self._create_parameter_template_combobox()
 
@@ -45,13 +45,13 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self._mapper.setModel(self._item_model)        
         self._mapper.setItemDelegate(self._item_delegate)
         self._mapper.addMapping(self.ui.studyname_lineEdit, 0)
-        self._mapper.addMapping(self.ui.outputdir_lineEdit, 1)
+        self._mapper.addMapping(self.ui.output_directory_lineEdit, 1)
         self._mapper.addMapping(self.ui.parameter_template_combobox, 2,
                                                         "currentIndex")
         self.ui.studyname_lineEdit.textChanged.connect(self._mapper.submit)
-        self.ui.outputdir_lineEdit.textChanged.connect(self._mapper.submit)
+        self.ui.output_directory_lineEdit.textChanged.connect(self._mapper.submit)
         self.ui.parameter_template_combobox.currentIndexChanged.connect(self._mapper.submit)
-        self.ui.outputdir_button.clicked.connect(self.on_outputdir_button_clicked)
+        self.ui.output_directory_button.clicked.connect(self.on_output_directory_button_clicked)
         self._mapper.toFirst()
 
     @QtCore.Slot("bool")
@@ -59,9 +59,9 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self.validity_changed.emit(status)
 
     @QtCore.Slot()
-    def on_outputdir_button_clicked(self):
+    def on_output_directory_button_clicked(self):
         caption = 'Select study output directory'
-        default_directory = self._study_properties_editor.outputdir
+        default_directory = self._study_properties_editor.output_directory
         if default_directory == '':
             default_directory = os.getcwd()
         selected_directory = QtGui.QFileDialog.getExistingDirectory(self.ui,
@@ -122,7 +122,7 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
     NAME_COL = 0
     OUTPUTDIR_COL = 1
     PARAMETER_TEMPLATE_NAME_COL = 2
-    attributes = ["name", "outputdir", "parameter_template_index"]
+    attributes = ["study_name", "output_directory", "parameter_template_index"]
     status_changed = QtCore.pyqtSignal(bool)
 
     def __init__(self, study_properties_editor, parent=None):
@@ -168,8 +168,8 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
         self._set_value(row, column, value)
         if (column == self.NAME_COL and 
             self._study_properties_editor.mode == StudyEditor.NEW_STUDY):
-            outputdir = self._study_properties_editor.outputdir
-            basedir = os.path.dirname(outputdir)
+            output_directory = self._study_properties_editor.output_directory
+            basedir = os.path.dirname(output_directory)
             new_basename = create_filename_compatible_string(value)
             new_value = os.path.join(basedir, new_basename)
             self._set_value(row, self.OUTPUTDIR_COL, new_value)

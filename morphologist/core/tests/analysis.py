@@ -9,13 +9,13 @@ class AnalysisTestCase(object):
     ''' abstract class '''
     def __init__(self):
         self.analysis = None
-        self.outputdir = None
+        self.output_directory = None
 
     def analysis_cls(self):
         raise NotImplementedError("AnalysisTestCase is an abstract class")
 
     def create_analysis(self):
-        param_template = self.analysis_cls().create_default_parameter_template(self.outputdir)
+        param_template = self.analysis_cls().create_default_parameter_template(self.output_directory)
         self.analysis = self.analysis_cls()(param_template)
         return self.analysis
 
@@ -36,14 +36,14 @@ class MockAnalysisTestCase(AnalysisTestCase):
 
     def __init__(self):
         super(MockAnalysisTestCase, self).__init__()
-        self.outputdir = os.path.join('/tmp', 'mock_analysis_test_case_outputdir')
-        reset_directory(self.outputdir)
+        self.output_directory = os.path.join('/tmp', 'mock_analysis_test_case_output_directory')
+        reset_directory(self.output_directory)
 
     def analysis_cls(self):
         return MockAnalysis
 
     def set_analysis_parameters(self):
-        subject = Subject('foo', 'foo', os.path.join(self.outputdir, 'foo'))
+        subject = Subject('foo', 'foo', os.path.join(self.output_directory, 'foo'))
         self.analysis.set_parameters(subject=subject)
 
     def delete_some_parameter_values(self):

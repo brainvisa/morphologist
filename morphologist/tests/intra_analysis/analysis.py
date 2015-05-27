@@ -12,11 +12,11 @@ class IntraAnalysisTestCase(AnalysisTestCase):
 
     def __init__(self):
         super(IntraAnalysisTestCase, self).__init__()
-        self.outputdir = os.path.join('/neurospin', 'tmp', 
+        self.output_directory = os.path.join('/neurospin', 'tmp',
                                       'cati-dev-prod', 'morphologist', 
                                       'output_dirs', getpass.getuser(), 
                                       IntraAnalysis.get_default_parameter_template_name())
-        reset_directory(self.outputdir)
+        reset_directory(self.output_directory)
 
     def analysis_cls(self):
         return IntraAnalysis

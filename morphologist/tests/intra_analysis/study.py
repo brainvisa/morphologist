@@ -18,7 +18,7 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
         super(IntraAnalysisStudyTestCase, self).__init__()
         self.analysis_type = "IntraAnalysis"
         self.studyname = "study with param template: " + self.parameter_template_name() 
-        self.outputdir = os.path.join('/neurospin', 'tmp',  
+        self.output_directory = os.path.join('/neurospin', 'tmp',
                                       'cati-dev-prod', 'morphologist', 
                                       'output_dirs', getpass.getuser(), 
                                       self.parameter_template_name())
@@ -30,7 +30,7 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
         self.subjectnames = ['caca', 'chaos', 'dionysos2', 'hyperion']
         self.groupnames = ['group 1', 'group 2', 'group 3', 'group 4']
         
-        reset_directory(self.outputdir)
+        reset_directory(self.output_directory)
 
     def parameter_template_name(self):
         return DefaultIntraAnalysisParameterTemplate.name

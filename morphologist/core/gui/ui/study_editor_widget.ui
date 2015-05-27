@@ -40,17 +40,17 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QLabel" name="outputdir_label">
+         <widget class="QLabel" name="output_directory_label">
           <property name="text">
            <string>Study directory:</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="outputdir_lineEdit"/>
+         <widget class="QLineEdit" name="output_directory_lineEdit"/>
         </item>
         <item>
-         <widget class="QPushButton" name="outputdir_button">
+         <widget class="QPushButton" name="output_directory_button">
           <property name="text">
            <string/>
           </property>
