@@ -2,6 +2,19 @@
 import sys
 import optparse
 
+# remove sys.path[0] to import morphologist
+# this path is added by python, and may contain an incomplete morphologist
+# module, containing only morphologist-ui, and not morphologist-gpl
+first_path = sys.argv[0]
+del sys.path[0]
+try:
+    import morphologist
+except ImportError:
+    # if this doesn't work, then set back the initial path and retry
+    sys.path.insert(0, first_path)
+    import morphologist
+del first_path
+
 from morphologist.core.settings import settings
 from morphologist.core.gui.qt_backend import QtGui
 from morphologist.gui.main_window import MainWindow
