@@ -35,7 +35,11 @@ class IntraAnalysis(Analysis):
 
         self.inputs = IntraAnalysisParameterTemplate.get_empty_inputs()
         self.outputs = IntraAnalysisParameterTemplate.get_empty_outputs()
-        pipeline = Morphologist()
+        if study.template_pipeline is None:
+            study.template_pipeline = Morphologist()
+        # share the same instance of the pipeline to save memory and, most of
+        # all, instantiation time
+        pipeline = study.template_pipeline
         self.pipeline = ProcessWithFom(pipeline, self.study)
 
     def _init_steps(self):

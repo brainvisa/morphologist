@@ -119,7 +119,7 @@ class Analysis(object):
 
     def _check_parameter_values_filled(self):
         missing_parameters = []
-        missing_parameters.extend(self.inputs.list_missing_parameter_values())  
+        missing_parameters.extend(self.inputs.list_missing_parameter_values())
         missing_parameters.extend(self.outputs.list_missing_parameter_values())
         if missing_parameters:
             separator = " ,"

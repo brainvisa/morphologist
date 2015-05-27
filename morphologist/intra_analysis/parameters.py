@@ -126,120 +126,139 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
     SEGMENTATION = "segmentation"
     SURFACE = "mesh"
     FOLDS = os.path.join("folds", "3.1")
+    GRAPH_VERSION = "3.1"
     SESSION_AUTO = "default_session_auto"
+    FOLDS_SESSION = "default_session"
 
     def get_subject_filename(self, subject):
+        format = self.study.volumes_format or "NIFTI"
+        ext = self.study.modules_data.foms["input"].formats[format]
         return os.path.join(
             self._base_directory, subject.groupname, subject.name,
-            self.MODALITY, self.ACQUISITION, subject.name + ".nii")
+            self.MODALITY, self.ACQUISITION, subject.name + "." + ext)
 
     def get_outputs(self, subject):
-        default_acquisition_path = os.path.join(self._base_directory, subject.groupname,
-                                subject.name, self.MODALITY, self.ACQUISITION)
-        registration_path = os.path.join(default_acquisition_path, self.REGISTRATION)
-        default_analysis_path = os.path.join(default_acquisition_path, self.ANALYSIS) 
-          
-        segmentation_path = os.path.join(default_analysis_path, self.SEGMENTATION)
-        surface_path = os.path.join(segmentation_path, self.SURFACE)
+        analysis = self.study.analyses[subject.id()]
 
-        folds_path = os.path.join(default_analysis_path, self.FOLDS)
-  
-        session_auto_path = os.path.join(folds_path, self.SESSION_AUTO)
- 
+        pipeline = analysis.pipeline
+        pipeline.attributes['center'] = subject.groupname
+        pipeline.attributes['subject'] = subject.name
+        pipeline.attributes['acquisition'] = self.ACQUISITION
+        pipeline.attributes['analysis'] = self.ANALYSIS
+        pipeline.attributes['graph_version'] = self.GRAPH_VERSION
+        pipeline.attributes['sulci_recognition_session'] = self.FOLDS_SESSION
+
+        pipeline.create_completion()
+        mp = pipeline.process
+
         parameters = IntraAnalysisParameters(self.output_file_param_names)
-        parameters[IntraAnalysisParameterNames.COMMISSURE_COORDINATES] = os.path.join(default_acquisition_path, 
-                                                   "%s.APC" % subject.name)
-        parameters[IntraAnalysisParameterNames.TALAIRACH_TRANSFORMATION] = os.path.join(registration_path, 
-                                                         "RawT1-%s_%s_TO_Talairach-ACPC.trm" 
-                                                         % (subject.name, self.ACQUISITION))
-        parameters[IntraAnalysisParameterNames.HFILTERED] = os.path.join(default_analysis_path, 
-                                            "hfiltered_%s.nii" % subject.name)
-        parameters[IntraAnalysisParameterNames.WHITE_RIDGES] = os.path.join(default_analysis_path, 
-                                            "whiteridge_%s.nii" % subject.name)
-        parameters[IntraAnalysisParameterNames.EDGES] = os.path.join(default_analysis_path, 
-                                            "edges_%s.nii" % subject.name)
-        parameters[IntraAnalysisParameterNames.CORRECTED_MRI] = os.path.join(default_analysis_path, 
-                                            "nobias_%s.nii" % subject.name)
-        parameters[IntraAnalysisParameterNames.VARIANCE] = os.path.join(default_analysis_path, 
-                                            "variance_%s.nii" % subject.name)
-        parameters[IntraAnalysisParameterNames.HISTO_ANALYSIS] = os.path.join(default_analysis_path, 
-                                            "nobias_%s.han" % subject.name)
-        parameters[IntraAnalysisParameterNames.HISTOGRAM] = os.path.join(default_analysis_path, 
-                                            "nobias_%s.his" % subject.name)
-        parameters[IntraAnalysisParameterNames.BRAIN_MASK] = os.path.join(segmentation_path, 
-                                            "brain_%s.nii" % subject.name)
-        parameters[IntraAnalysisParameterNames.SPLIT_MASK] = os.path.join(segmentation_path, 
-                                            "voronoi_%s.nii" % subject.name)
-        parameters[IntraAnalysisParameterNames.LEFT_GREY_WHITE] = os.path.join(\
-                        segmentation_path, "Lgrey_white_%s.nii" % subject.name)
-        parameters[IntraAnalysisParameterNames.RIGHT_GREY_WHITE] = os.path.join(\
-                        segmentation_path, "Rgrey_white_%s.nii" % subject.name)
-        parameters[IntraAnalysisParameterNames.LEFT_GREY] = os.path.join(\
-                        segmentation_path, "Lcortex_%s.nii" % subject.name)
-        parameters[IntraAnalysisParameterNames.RIGHT_GREY] = os.path.join(\
-                        segmentation_path, "Rcortex_%s.nii" % subject.name)
-        parameters[IntraAnalysisParameterNames.LEFT_GREY_SURFACE] = os.path.join(\
-                        surface_path, "%s_Lhemi.gii" % subject.name)
-        parameters[IntraAnalysisParameterNames.RIGHT_GREY_SURFACE] = os.path.join(\
-                        surface_path, "%s_Rhemi.gii" % subject.name)
-        parameters[IntraAnalysisParameterNames.LEFT_WHITE_SURFACE] = os.path.join(\
-                        surface_path, "%s_Lwhite.gii" % subject.name)
-        parameters[IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE] = os.path.join(\
-                        surface_path, "%s_Rwhite.gii" % subject.name)
-        parameters[IntraAnalysisParameterNames.LEFT_SULCI] = os.path.join(\
-                        folds_path, "L%s.arg" % subject.name)
-        parameters[IntraAnalysisParameterNames.RIGHT_SULCI] = os.path.join(\
-                        folds_path, "R%s.arg" % subject.name)
-        parameters[IntraAnalysisParameterNames.LEFT_SULCI_DATA] = os.path.join(\
-                        folds_path, "L%s.data" % subject.name)
-        parameters[IntraAnalysisParameterNames.RIGHT_SULCI_DATA] = os.path.join(\
-                        folds_path, "R%s.data" % subject.name)
-        parameters[IntraAnalysisParameterNames.LEFT_LABELED_SULCI] = os.path.join(\
-                        session_auto_path, "L%s_default_session_auto.arg" % subject.name)
-        parameters[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI] = os.path.join(\
-                        session_auto_path, "R%s_default_session_auto.arg" % subject.name)
-        parameters[IntraAnalysisParameterNames.LEFT_LABELED_SULCI_DATA] = os.path.join(\
-                        session_auto_path, "L%s_default_session_auto.data" % subject.name)
-        parameters[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI_DATA] = os.path.join(\
-                        session_auto_path, "R%s_default_session_auto.data" % subject.name)
+
+        parameters[IntraAnalysisParameterNames.COMMISSURE_COORDINATES] \
+            = mp.commissure_coordinates
+        parameters[IntraAnalysisParameterNames.TALAIRACH_TRANSFORMATION] \
+            = mp.Talairach_transform
+        parameters[IntraAnalysisParameterNames.HFILTERED] \
+            = mp.BiasCorrection_hfiltered
+        parameters[IntraAnalysisParameterNames.WHITE_RIDGES] \
+            = mp.BiasCorrection_white_ridges
+        parameters[IntraAnalysisParameterNames.EDGES] \
+            = mp.BiasCorrection_edges
+        parameters[IntraAnalysisParameterNames.CORRECTED_MRI] = mp.t1mri_nobias
+        parameters[IntraAnalysisParameterNames.VARIANCE] \
+            = mp.BiasCorrection_variance
+        parameters[IntraAnalysisParameterNames.HISTO_ANALYSIS] \
+            = mp.histo_analysis
+        parameters[IntraAnalysisParameterNames.HISTOGRAM] \
+            = mp.HistoAnalysis_histo
+        parameters[IntraAnalysisParameterNames.BRAIN_MASK] \
+            = mp.BrainSegmentation_brain_mask
+        parameters[IntraAnalysisParameterNames.SPLIT_MASK] = mp.split_brain
+        parameters[IntraAnalysisParameterNames.LEFT_GREY_WHITE] \
+            = mp.GreyWhiteClassification_grey_white
+        parameters[IntraAnalysisParameterNames.RIGHT_GREY_WHITE] \
+            = mp.GreyWhiteClassification_1_grey_white
+        parameters[IntraAnalysisParameterNames.LEFT_GREY] \
+            = mp.GreyWhiteTopology_hemi_cortex
+        parameters[IntraAnalysisParameterNames.RIGHT_GREY] \
+            = mp.GreyWhiteTopology_1_hemi_cortex
+        parameters[IntraAnalysisParameterNames.LEFT_GREY_SURFACE] \
+            = mp.PialMesh_pial_mesh
+        parameters[IntraAnalysisParameterNames.RIGHT_GREY_SURFACE] \
+            = mp.PialMesh_1_pial_mesh
+        parameters[IntraAnalysisParameterNames.LEFT_WHITE_SURFACE] \
+            = mp.GreyWhiteMesh_white_mesh
+        parameters[IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE] \
+            = mp.GreyWhiteMesh_1_white_mesh
+        parameters[IntraAnalysisParameterNames.LEFT_SULCI] \
+            = mp.left_graph
+        parameters[IntraAnalysisParameterNames.RIGHT_SULCI] \
+            = mp.right_graph
+        parameters[IntraAnalysisParameterNames.LEFT_SULCI_DATA] \
+            = mp.left_graph[:mp.left_graph.rfind('.')] + ".data"
+        parameters[IntraAnalysisParameterNames.RIGHT_SULCI_DATA] \
+            = mp.right_graph[:mp.right_graph.rfind('.')] + ".data"
+        parameters[IntraAnalysisParameterNames.LEFT_LABELED_SULCI] \
+            = mp.left_labelled_graph
+        parameters[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI] \
+            = mp.right_labelled_graph
+        parameters[IntraAnalysisParameterNames.LEFT_LABELED_SULCI_DATA] \
+            = mp.left_labelled_graph[:mp.left_labelled_graph.rfind('.')] \
+                + ".data"
+        parameters[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI_DATA] \
+            = mp.right_labelled_graph[:mp.right_labelled_graph.rfind('.')] \
+                + ".data"
+
+        # TODO: use FOM for morphometry
+        session_auto_path = os.path.dirname(mp.left_labelled_graph)
         parameters[IntraAnalysisParameterNames.LEFT_NATIVE_MORPHOMETRY_CSV] = \
-            os.path.join(session_auto_path, 'left_native_morphometry_%s.dat' % subject.name)
+            os.path.join(session_auto_path,
+                         'left_native_morphometry_%s.dat' % subject.name)
         parameters[IntraAnalysisParameterNames.RIGHT_NATIVE_MORPHOMETRY_CSV] = \
-            os.path.join(session_auto_path, 'right_native_morphometry_%s.dat' % subject.name)
-        parameters[IntraAnalysisParameterNames.LEFT_NORMALIZED_MORPHOMETRY_CSV] = \
-            os.path.join(session_auto_path, 'left_normalized_morphometry_%s.dat' % subject.name)
-        parameters[IntraAnalysisParameterNames.RIGHT_NORMALIZED_MORPHOMETRY_CSV] = \
-            os.path.join(session_auto_path, 'right_normalized_morphometry_%s.dat' % subject.name)
+            os.path.join(session_auto_path,
+                         'right_native_morphometry_%s.dat' % subject.name)
+        parameters[
+            IntraAnalysisParameterNames.LEFT_NORMALIZED_MORPHOMETRY_CSV] = \
+                os.path.join(session_auto_path,
+                             'left_normalized_morphometry_%s.dat'
+                             % subject.name)
+        parameters[
+            IntraAnalysisParameterNames.RIGHT_NORMALIZED_MORPHOMETRY_CSV] = \
+                os.path.join(session_auto_path,
+                             'right_normalized_morphometry_%s.dat'
+                             % subject.name)
         return parameters
 
     def create_outputdirs(self, subject):
         group_path = os.path.join(self._base_directory, subject.groupname)
         create_directory_if_missing(group_path)
-        
+
         subject_path = os.path.join(group_path, subject.name)
         create_directory_if_missing(subject_path)
-        
+
         t1mri_path = os.path.join(subject_path, self.MODALITY)
         create_directory_if_missing(t1mri_path)
-        
+
         default_acquisition_path = os.path.join(t1mri_path, self.ACQUISITION)
         create_directory_if_missing(default_acquisition_path)
-        
-        registration_path = os.path.join(default_acquisition_path, self.REGISTRATION)
+
+        registration_path = os.path.join(
+            default_acquisition_path, self.REGISTRATION)
         create_directory_if_missing(registration_path)
-        
-        default_analysis_path = os.path.join(default_acquisition_path, self.ANALYSIS) 
+
+        default_analysis_path = os.path.join(
+            default_acquisition_path, self.ANALYSIS)
         create_directory_if_missing(default_analysis_path)
-        
-        segmentation_path = os.path.join(default_analysis_path, self.SEGMENTATION)
+
+        segmentation_path = os.path.join(
+            default_analysis_path, self.SEGMENTATION)
         create_directory_if_missing(segmentation_path)
-        
+
         surface_path = os.path.join(segmentation_path, self.SURFACE)
         create_directory_if_missing(surface_path)
 
         folds_path = os.path.join(default_analysis_path, self.FOLDS)
         create_directories_if_missing(folds_path)
-   
+
         session_auto_path = os.path.join(folds_path, self.SESSION_AUTO)
         create_directory_if_missing(session_auto_path)
 
@@ -252,24 +271,31 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         subjects = []
         any_dir = "([^/]+)"
         if exact_match:
-            glob_pattern = os.path.join(self._base_directory, "*", "*", self.MODALITY, self.ACQUISITION, "*.nii")
-            regexp=re.compile("^"+os.path.join(self._base_directory, any_dir, any_dir, self.MODALITY,
-                                           self.ACQUISITION, "\\2\.(?:nii)$"))
+            glob_pattern = os.path.join(
+                self._base_directory, "*", "*", self.MODALITY, self.ACQUISITION,
+                "*.nii")
+            regexp = re.compile(
+                "^"+os.path.join(self._base_directory, any_dir, any_dir,
+                                 self.MODALITY, self.ACQUISITION,
+                                 "\\2\.(?:nii)$"))
 
         else:
-            glob_pattern = os.path.join(self._base_directory, "*", "*", self.MODALITY, "*", "*.*")
-            regexp=re.compile("^"+os.path.join(self._base_directory, any_dir, any_dir, self.MODALITY,
-                                           any_dir, "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$"))
+            glob_pattern = os.path.join(
+                self._base_directory, "*", "*", self.MODALITY, "*", "*.*")
+            regexp = re.compile(
+                "^" + os.path.join(
+                    self._base_directory, any_dir, any_dir, self.MODALITY,
+                    any_dir, "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$"))
         for filename in glob.iglob(glob_pattern):
-            match=regexp.match(filename)
+            match = regexp.match(filename)
             if match:
                 groupname = match.group(1)
                 subjectname = match.group(2)
                 subject = Subject(subjectname, groupname, filename)
                 subjects.append(subject)
         return subjects
-           
-        
+
+
 class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
     name = "default"
 
@@ -363,12 +389,14 @@ class DefaultIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
         any_dir = "([^/]+)"
         if exact_match:
             glob_pattern = os.path.join(self._base_directory, "*", "*", "*.nii")
-            regexp=re.compile("^"+os.path.join(self._base_directory, any_dir, any_dir, 
-                                           "\\2\.(?:nii)$"))          
+            regexp=re.compile(
+                "^"+os.path.join(self._base_directory, any_dir, any_dir,
+                                 "\\2\.(?:nii)$"))
         else:
             glob_pattern = os.path.join(self._base_directory, "*", "*", "*.*")
-            regexp=re.compile("^"+os.path.join(self._base_directory, any_dir, any_dir, 
-                                           "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$"))
+            regexp=re.compile(
+                "^"+os.path.join(self._base_directory, any_dir, any_dir,
+                                 "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$"))
         for filename in glob.iglob(glob_pattern):
             match=regexp.match(filename)
             if match:

@@ -51,6 +51,7 @@ class Study(StudyConfig):
                 self.analysis_cls().create_parameter_template(
                     parameter_template_name, self.output_directory, self)
         self.parameter_template_name = self.parameter_template.name
+        self.template_pipeline = None
         self.analyses = {}
 
     def analysis_cls(self):
