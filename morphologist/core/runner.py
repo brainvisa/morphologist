@@ -364,7 +364,7 @@ class  SomaWorkflowRunner(Runner):
         if subject_jobs:
             job_id = subject_jobs[step_id, "step_id"]
             jobs_status = self._get_jobs_status(update_status)
-            status = jobs_status[job_id]       
+            status = jobs_status[job_id]
         return status
     
     def _get_subject_jobs(self, subject_id):
@@ -377,7 +377,8 @@ class  SomaWorkflowRunner(Runner):
         
     def _update_jobs_status(self):
         jobs_status = {} # job_id -> status
-        job_info_seq, _, _, _ = self._workflow_controller.workflow_elements_status(self._workflow_id)
+        job_info_seq = self._workflow_controller.workflow_elements_status(
+            self._workflow_id)[0]
         for job_id, sw_status, _, exit_info, _ in job_info_seq:
             exit_status, exit_value, _, _ = exit_info
             status = self._sw_status_to_runner_status(sw_status, exit_status, exit_value)
