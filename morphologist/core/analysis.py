@@ -61,7 +61,7 @@ class Analysis(object):
     def _init_step_ids(self):
         self._step_ids = OrderedDict()
         for i, step in enumerate(self._steps):
-            step_id = "%d_%s" % (i, step.name)
+            step_id = step.name  ##"%d_%s" % (i, step.name)
             self._step_ids[step_id] = step
 
     @classmethod
@@ -241,6 +241,8 @@ class Parameters(object):
         existing_files = {}
         for name in self._file_param_names:
             file_name = getattr(self, name)
+            if not file_name:
+                print '*** no file *** for:', name, type(file_name)
             if os.path.isfile(file_name) or os.path.isdir(file_name):
                 existing_files[name] = file_name
         return existing_files

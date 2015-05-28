@@ -33,7 +33,7 @@ class LazyAnalysisModel(QtCore.QObject):
         self._timer.stop()
         self._analysis = None
         self.changed.emit()
-              
+
     def _emit_input_files_changed(self):
         self.files_changed.emit(self._analysis.inputs.list_parameters_with_existing_files())
 

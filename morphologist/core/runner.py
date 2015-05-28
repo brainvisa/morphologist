@@ -222,7 +222,6 @@ class  SomaWorkflowRunner(Runner):
                 pipeline, study_config=study_config,
                 jobs_priority=priority)
             priority -= 100
-            self._set_steps_ids(wf.jobs, pipeline)
             workflow.jobs += wf.jobs
             workflow.dependencies += wf.dependencies
             group = Group(wf.root_group,
@@ -262,29 +261,19 @@ class  SomaWorkflowRunner(Runner):
                             #root_group=groups)
         return workflow
 
-    def _set_steps_ids(self, jobs, pipeline):
-        if not hasattr(pipeline, 'pipeline_steps'):
-            return
-        stepmap = {}
-        for step_name, step \
-                in pipeline.pipeline_steps.user_traits().iteritems():
-            nodes = step.nodes
-            stepmap.update(dict([(node, step_name) for node in nodes]))
-        for job in jobs:
-            job.user_storage = stepmap.get(job.name)
-
     def _build_jobid_to_step(self):
         self._jobid_to_step = {}
         workflow = self._workflow_controller.workflow(self._workflow_id)
         for group in workflow.groups:
             subjectid = group.user_storage
             if subjectid:
-                self._jobid_to_step[subjectid] = BidiMap('job_id', 'step_id')
+                self._jobid_to_step[subjectid] = BidiMap(
+                    'job_id', 'step_id')
                 job_list = group.elements
                 for job in job_list:
                     job_att = workflow.job_mapping.get(job)
                     if job_att:
-                        job_id = workflow.job_mapping[job].job_id
+                        job_id = job_att.job_id
                         step_id = job.user_storage or job.name
                         self._jobid_to_step[subjectid][job_id] = step_id
 
@@ -298,12 +287,14 @@ class  SomaWorkflowRunner(Runner):
     def get_running_step_ids(self, subject_id, update_status=True):
         if update_status:
             self._update_jobs_status()
-        running_step_ids = self._get_subject_filtered_step_ids(subject_id, Runner.RUNNING)
+        running_step_ids = self._get_subject_filtered_step_ids(
+            subject_id, Runner.RUNNING)
         return running_step_ids
 
     def wait(self, subject_id=None, step_id=None):
         if subject_id is None and step_id is None:
-            Helper.wait_workflow(self._workflow_id, self._workflow_controller)
+            Helper.wait_workflow(
+                self._workflow_id, self._workflow_controller)
         elif subject_id is not None:
             if step_id is None:
                 raise NotImplementedError
@@ -315,7 +306,7 @@ class  SomaWorkflowRunner(Runner):
     def _step_wait(self, subject_id, step_id):
         job_id = self._jobid_to_step[subject_id][step_id, 'step_id']
         self._workflow_controller.wait_job([job_id])
-        
+
     def has_failed(self, subject_id=None, step_id=None, update_status=True):
         status = self.get_status(subject_id, step_id, update_status)
         return status == Runner.FAILED
@@ -323,7 +314,8 @@ class  SomaWorkflowRunner(Runner):
     def get_failed_step_ids(self, subject_id, update_status=True):
         if update_status:
             self._update_jobs_status()
-        failed_step_ids = self._get_subject_filtered_step_ids(subject_id, Runner.FAILED)
+        failed_step_ids = self._get_subject_filtered_step_ids(
+            subject_id, Runner.FAILED)
         return failed_step_ids
 
     def stop(self, subject_id=None, step_id=None):
