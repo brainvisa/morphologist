@@ -58,7 +58,10 @@ class LazyStudyModel(QtCore.QObject):
         if step_id is not None:
             subject_id = self._subjects_row_index_to_id[row_index]
             step = self.study.analyses[subject_id].step_from_id(step_id)
-            status_text = status_text % step.name
+            if step:
+                status_text = status_text % step.name
+            else:
+                status_text = status_text % 'unknown step'
         return status_text
 
     def get_status_tooltip(self, row_index):
@@ -67,10 +70,16 @@ class LazyStudyModel(QtCore.QObject):
         if step_id is not None:
             subject_id = self._subjects_row_index_to_id[row_index]
             step = self.study.analyses[subject_id].step_from_id(step_id)
-            if status & self.FAILED:
-                tooltip = "%s\n\n%s" % (step.description, step.help_message)
+            if step:
+                description = step.description
+                help_message = step.help_message
             else:
-                tooltip = "%s" % step.description
+                description = 'unknown step'
+                help_message = ''
+            if status & self.FAILED:
+                tooltip = "%s\n\n%s" % (description, help_message)
+            else:
+                tooltip = "%s" % description
         return tooltip
     
     def get_subject(self, row_index):
