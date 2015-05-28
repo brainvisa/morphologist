@@ -84,7 +84,7 @@ class Analysis(object):
         return param_template
 
     def step_from_id(self, step_id):
-        return self._step_ids[step_id]
+        return self._step_ids.get(step_id)
 
     def remaining_commands_to_run(self):
         self.propagate_parameters()
@@ -136,7 +136,8 @@ class Analysis(object):
         if step_ids:
             for step_id in step_ids:
                 step = self.step_from_id(step_id)
-                step.outputs.clear_files()
+                if step:
+                    step.outputs.clear_files()
         else:
             self.outputs.clear_files()
 

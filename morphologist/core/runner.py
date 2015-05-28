@@ -8,6 +8,7 @@ import soma_workflow as sw
 from soma_workflow.client import WorkflowController, Helper, Workflow, Job, Group
 
 from capsul.pipeline import pipeline_workflow
+from capsul.pipeline import pipeline_tools
 
 from morphologist.core.settings import settings
 from morphologist.core.utils import BidiMap
@@ -200,20 +201,28 @@ class  SomaWorkflowRunner(Runner):
         return cpus_number
 
     def _create_workflow(self, subject_ids):
-        workflow = Workflow(name='Morphologist UI iteration', jobs=[])
-        workflow.root_group = []
         study_config = self._study
+        workflow = Workflow(
+            name='Morphologist UI - %s' % study_config.study_name,
+            jobs=[])
+        workflow.root_group = []
         initial_vol_format = study_config.volumes_format
 
+        priority = (len(subject_ids) - 1) * 100
         for subject_id in subject_ids:
             analysis = self._study.analyses[subject_id]
             subject = self._study.subjects[subject_id]
 
             analysis.set_parameters(subject)
-            pipeline = analysis.pipeline
+            pipeline = analysis.pipeline.process
+            pipeline.enable_all_pipeline_steps()
+            pipeline_tools.disable_runtime_steps_with_existing_outputs(pipeline)
 
             wf = pipeline_workflow.workflow_from_pipeline(
-                pipeline.process, study_config=study_config)
+                pipeline, study_config=study_config,
+                jobs_priority=priority)
+            priority -= 100
+            self._set_steps_ids(wf.jobs, pipeline)
             workflow.jobs += wf.jobs
             workflow.dependencies += wf.dependencies
             group = Group(wf.root_group,
@@ -252,6 +261,17 @@ class  SomaWorkflowRunner(Runner):
                             #name=self._define_workflow_name(),
                             #root_group=groups)
         return workflow
+
+    def _set_steps_ids(self, jobs, pipeline):
+        if not pipeline.hasattr('pipeline_steps'):
+            return
+        stepmap = {}
+        for step_name, step \
+                in pipeline.pipeline_steps.user_traits().iteritems():
+            nodes = step.nodes
+            stepmap.update(dict([(node, step_name) for node in nodes]))
+        for job in jobs:
+            job.user_storage = stepmap.get(job.name)
 
     def _build_jobid_to_step(self):
         self._jobid_to_step = {}

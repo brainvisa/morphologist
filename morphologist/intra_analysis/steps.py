@@ -6,6 +6,7 @@ class ImageImportation(Step):
     
     def __init__(self):
         super(ImageImportation, self).__init__()
+        self.name = 'importation'
 
     def _get_inputs(self):
         file_inputs = ['input']
@@ -28,7 +29,7 @@ class SpatialNormalization(Step):
 
     def __init__(self):
         super(SpatialNormalization, self).__init__()
-        self.name = 'normalization'
+        self.name = 'orientation'
         self.description = "<h4>Spatial normalization using SPM8 standalone.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p>You should check your SPM installation.</p>
@@ -154,7 +155,7 @@ class BrainSegmentation(Step):
 
     def __init__(self):
         super(BrainSegmentation, self).__init__()
-        self.name = 'brain_segmentation'
+        self.name = 'brain_extraction'
         self.inputs.erosion_size = 1.8
         self.inputs.fix_random_seed = False
         self.description = "<h4>Brain segmentation using VipGetBrain.</h4>"
@@ -199,7 +200,7 @@ class SplitBrain(Step):
 
     def __init__(self):
         super(SplitBrain, self).__init__()
-        self.name = 'split_brain'
+        self.name = 'hemispheres_split'
         self.inputs.bary_factor = 0.6
         self.inputs.fix_random_seed = False
         self.description = "<h4>Split brain using VipSplitBrain.</h4>"
@@ -247,7 +248,7 @@ class GreyWhite(Step):
 
     def __init__(self, side):
         super(GreyWhite, self).__init__()
-        self.name = 'grey_white'
+        self.name = 'grey_white_segmentation'
         self.inputs.side = side
         self.inputs.fix_random_seed = False
         self.description = "<h4>Grey and white matter segmentation using VipGreyWhiteClassif.</h4>"
