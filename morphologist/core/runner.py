@@ -263,7 +263,7 @@ class  SomaWorkflowRunner(Runner):
         return workflow
 
     def _set_steps_ids(self, jobs, pipeline):
-        if not pipeline.hasattr('pipeline_steps'):
+        if not hasattr(pipeline, 'pipeline_steps'):
             return
         stepmap = {}
         for step_name, step \
