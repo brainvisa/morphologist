@@ -109,13 +109,36 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
         return IntraAnalysisParameters(cls.output_file_param_names)
 
     def get_inputs(self, subject):
+        self.create_fom_completion(subject)
+        analysis = self.study.analyses[subject.id()]
+        pipeline = analysis.pipeline
+        mp = pipeline.process
+
         parameters = IntraAnalysisParameters(self.input_file_param_names,
                                      self.input_other_param_names)
-        parameters[IntraAnalysisParameterNames.MRI] = \
-            self.get_subject_filename(subject)
+        parameters[IntraAnalysisParameterNames.MRI] = mp.t1mri
+        parameters[IntraAnalysisParameterNames.MRI_REFERENTIAL] \
+            = mp.PrepareSubject_TalairachFromNormalization_source_referential
         parameters[IntraAnalysisParameterNames.EROSION_SIZE] = 1.8
         parameters[IntraAnalysisParameterNames.BARY_FACTOR] = 0.6
         return parameters
+
+    def create_fom_completion(self, subject):
+        analysis = self.study.analyses[subject.id()]
+        if hasattr(analysis, 'fom_completed') and analysis.fom_completed:
+            return
+
+        pipeline = analysis.pipeline
+        pipeline.attributes['center'] = subject.groupname
+        pipeline.attributes['subject'] = subject.name
+        pipeline.attributes['acquisition'] = self.ACQUISITION
+        pipeline.attributes['analysis'] = self.ANALYSIS
+        pipeline.attributes['graph_version'] = self.GRAPH_VERSION
+        pipeline.attributes['sulci_recognition_session'] = self.FOLDS_SESSION
+
+        pipeline.create_completion()
+        analysis.fom_completed = True
+
 
 
 class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
@@ -139,17 +162,9 @@ class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
             self.MODALITY, self.ACQUISITION, subject.name + "." + ext)
 
     def get_outputs(self, subject):
+        self.create_fom_completion(subject)
         analysis = self.study.analyses[subject.id()]
-
         pipeline = analysis.pipeline
-        pipeline.attributes['center'] = subject.groupname
-        pipeline.attributes['subject'] = subject.name
-        pipeline.attributes['acquisition'] = self.ACQUISITION
-        pipeline.attributes['analysis'] = self.ANALYSIS
-        pipeline.attributes['graph_version'] = self.GRAPH_VERSION
-        pipeline.attributes['sulci_recognition_session'] = self.FOLDS_SESSION
-
-        pipeline.create_completion()
         mp = pipeline.process
 
         parameters = IntraAnalysisParameters(self.output_file_param_names)
