@@ -22,8 +22,19 @@ class Study(StudyConfig):
     def __init__(self, analysis_type, study_name="undefined study",
                  output_directory=default_output_directory,
                  parameter_template_name=None):
-        default_config = {"use_soma_workflow": True}
-        super(Study, self).__init__(initial_config=default_config,
+        default_config = {
+            "use_soma_workflow": True,
+            "somaworkflow_computing_resource": "localhost",
+            "study_name": study_name,
+            "input_fom": "morphologist-auto-1.0",
+            "output_fom": "morphologist-auto-1.0",
+            "shared_fom": "shared-brainvisa-1.0",
+            "output_directory": output_directory,
+            "input_directory": output_directory,
+            "volumes_format": "NIFTI",
+            "meshes_format": "GIFTI",
+        }
+        super(Study, self).__init__(init_config=default_config,
             modules=StudyConfig.default_modules + \
             ['BrainVISAConfig', 'FSLConfig', 'FomConfig'])
 
@@ -31,14 +42,6 @@ class Study(StudyConfig):
         self.trait('study_name').transient = False
 
         self.analysis_type = analysis_type # string : name of the analysis class
-        self.study_name = study_name
-        self.output_directory = output_directory
-        self.input_directory = output_directory
-        self.input_fom = "morphologist-auto-1.0"
-        self.output_fom = "morphologist-auto-1.0"
-        self.shared_fom = "shared-brainvisa-1.0"
-        self.volumes_format = "NIFTI"
-        self.meshes_format = "GIFTI"
         self.add_trait("subjects", traits.Trait(OrderedDict()))
         self.subjects = OrderedDict()
         self.add_trait('parameter_template_name', traits.Unicode())
@@ -53,6 +56,10 @@ class Study(StudyConfig):
         self.parameter_template_name = self.parameter_template.name
         self.template_pipeline = None
         self.analyses = {}
+        self.on_trait_change(self._force_input_dir, 'output_directory')
+
+    def _force_input_dir(self, value):
+        self.input_directory = value
 
     def analysis_cls(self):
         return AnalysisFactory.get_analysis_cls(self.analysis_type)
@@ -165,6 +172,10 @@ class Study(StudyConfig):
             raise StudySerializationError("%s" %(e))
 
     def serialize(self):
+        if self.input_directory != self.output_directory:
+            print '** WARNING: input_directory != output_directory'
+            print 'input: ', self.input_directory
+            print 'output:', self.output_directory
         serialized = self.export_to_dict(
             exclude_undefined=True, exclude_none=True, exclude_transient=True,
             exclude_empty=True, dict_class=dict)
