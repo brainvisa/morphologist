@@ -100,6 +100,9 @@ class IntraAnalysis(Analysis):
         import_step.inputs.input = subject.filename
         import_step.outputs.output = \
             self.parameter_template.get_subject_filename(subject)
+        import_step.outputs.output_referential = \
+            self.pipeline.process. \
+                PrepareSubject_TalairachFromNormalization_source_referential
         self.parameter_template.create_outputdirs(subject)
         if import_step.run() != 0:
             raise ImportationError("The importation failed for the subject %s."

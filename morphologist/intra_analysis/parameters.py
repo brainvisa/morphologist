@@ -11,6 +11,7 @@ from morphologist.core.subject import Subject
 class IntraAnalysisParameterNames:
     # intra analysis parameters (inputs / outputs)
     MRI = 'mri'
+    MRI_REFERENTIAL = 'mri_referential'
     COMMISSURE_COORDINATES = 'commissure_coordinates'
     TALAIRACH_TRANSFORMATION = 'talairach_transformation'
     EROSION_SIZE = 'erosion_size' 
@@ -48,7 +49,7 @@ class IntraAnalysisParameterNames:
 
     @classmethod
     def get_input_file_parameter_names(cls):
-        return [cls.MRI]
+        return [cls.MRI, cls.MRI_REFERENTIAL]
 
     @classmethod
     def get_input_other_parameter_names(cls):

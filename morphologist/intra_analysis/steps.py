@@ -13,13 +13,14 @@ class ImageImportation(Step):
         return file_inputs, other_inputs
 
     def _get_outputs(self):
-        return ['output']
+        return ['output', 'output_referential']
 
     def get_command(self):
         command = ["python", "-m",
                    "brainvisa.tools.data_management.image_importation",
                    self.inputs.input, 
-                   self.outputs.output]
+                   self.outputs.output,
+                   self.outputs.output_referential]
         return command
     
     

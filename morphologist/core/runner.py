@@ -7,6 +7,8 @@ import multiprocessing
 import soma_workflow as sw
 from soma_workflow.client import WorkflowController, Helper, Workflow, Job, Group
 
+from capsul.pipeline import pipeline_workflow
+
 from morphologist.core.settings import settings
 from morphologist.core.utils import BidiMap
 from morphologist.core.constants import ALL_SUBJECTS
@@ -155,11 +157,12 @@ class  SomaWorkflowRunner(Runner):
         self._jobid_to_step = {} # subjectid -> (job_id -> step)
         self._cached_jobs_status = None
 
-    def _delete_old_workflows(self):        
-        for (workflow_id, (name, _)) in self._workflow_controller.workflows().iteritems():
+    def _delete_old_workflows(self):
+        for (workflow_id, (name, _)) \
+                in self._workflow_controller.workflows().iteritems():
             if name is not None and name.endswith(self.WORKFLOW_NAME_SUFFIX):
                 self._workflow_controller.delete_workflow(workflow_id)
-          
+
     def run(self, subject_ids=ALL_SUBJECTS):
         self._init_internal_parameters()
         cpus_number = self._cpus_number()
@@ -170,7 +173,8 @@ class  SomaWorkflowRunner(Runner):
         workflow = self._create_workflow(subject_ids)
         if self._workflow_id is not None:
             self._workflow_controller.delete_workflow(self._workflow_id)
-        self._workflow_id = self._workflow_controller.submit_workflow(workflow, name=workflow.name)
+        self._workflow_id = self._workflow_controller.submit_workflow(
+            workflow, name=workflow.name)
         self._build_jobid_to_step()
         # the status does not change immediately after run, 
         # so we wait for the status WORKFLOW_IN_PROGRESS or timeout
@@ -179,7 +183,8 @@ class  SomaWorkflowRunner(Runner):
         while ((status != sw.constants.WORKFLOW_IN_PROGRESS) and \
                                                 (try_count > 0)):
             time.sleep(0.25)
-            status = self._workflow_controller.workflow_status(self._workflow_id)
+            status = self._workflow_controller.workflow_status(
+                self._workflow_id)
             try_count -= 1
 
     def _cpus_number(self):
@@ -195,34 +200,57 @@ class  SomaWorkflowRunner(Runner):
         return cpus_number
 
     def _create_workflow(self, subject_ids):
-        jobs = []
-        dependencies = []
-        groups = []
-        
+        workflow = Workflow(name='Morphologist UI iteration', jobs=[])
+        workflow.root_group = []
+        study_config = self._study
+        initial_vol_format = study_config.volumes_format
+
         for subject_id in subject_ids:
             analysis = self._study.analyses[subject_id]
             subject = self._study.subjects[subject_id]
-            subject_jobs = []
-            previous_job = None
-            
-            for command, step_id in analysis.remaining_commands_to_run():
-                job = Job(command=command, name=step_id)
-                job.user_storage = step_id
-                subject_jobs.append(job)
-                if previous_job is not None:
-                    dependencies.append((previous_job, job))
-                previous_job = job
 
-            # skip finished analysis
-            if len(subject_jobs) != 0:
-                group = Group(name=str(subject), elements=subject_jobs)
-                group.user_storage = subject_id
-                groups.append(group)
-            jobs.extend(subject_jobs)
-        
-        workflow = Workflow(jobs=jobs, dependencies=dependencies, 
-                            name=self._define_workflow_name(),
-                            root_group=groups)
+            analysis.set_parameters(subject)
+            pipeline = analysis.pipeline
+
+            wf = pipeline_workflow.workflow_from_pipeline(
+                pipeline.process, study_config=study_config)
+            workflow.jobs += wf.jobs
+            workflow.dependencies += wf.dependencies
+            group = Group(wf.root_group,
+                          name='Morphologist %s' % str(subject))
+            group.user_storage = subject_id
+            workflow.root_group.append(group) # += wf.root_group
+            workflow.groups += [group] + wf.groups
+
+
+        #jobs = []
+        #dependencies = []
+        #groups = []
+
+        #for subject_id in subject_ids:
+            #analysis = self._study.analyses[subject_id]
+            #subject = self._study.subjects[subject_id]
+            #subject_jobs = []
+            #previous_job = None
+
+            #for command, step_id in analysis.remaining_commands_to_run():
+                #job = Job(command=command, name=step_id)
+                #job.user_storage = step_id
+                #subject_jobs.append(job)
+                #if previous_job is not None:
+                    #dependencies.append((previous_job, job))
+                #previous_job = job
+
+            ## skip finished analysis
+            #if len(subject_jobs) != 0:
+                #group = Group(name=str(subject), elements=subject_jobs)
+                #group.user_storage = subject_id
+                #groups.append(group)
+            #jobs.extend(subject_jobs)
+
+        #workflow = Workflow(jobs=jobs, dependencies=dependencies,
+                            #name=self._define_workflow_name(),
+                            #root_group=groups)
         return workflow
 
     def _build_jobid_to_step(self):
@@ -230,16 +258,19 @@ class  SomaWorkflowRunner(Runner):
         workflow = self._workflow_controller.workflow(self._workflow_id)
         for group in workflow.groups:
             subjectid = group.user_storage
-            self._jobid_to_step[subjectid] = BidiMap('job_id', 'step_id')
-            job_list = group.elements 
-            for job in job_list:
-                job_id = workflow.job_mapping[job].job_id
-                step_id = job.user_storage
-                self._jobid_to_step[subjectid][job_id] = step_id
+            if subjectid:
+                self._jobid_to_step[subjectid] = BidiMap('job_id', 'step_id')
+                job_list = group.elements
+                for job in job_list:
+                    job_att = workflow.job_mapping.get(job)
+                    if job_att:
+                        job_id = workflow.job_mapping[job].job_id
+                        step_id = job.user_storage or job.name
+                        self._jobid_to_step[subjectid][job_id] = step_id
 
     def _define_workflow_name(self): 
         return self._study.name + " " + self.WORKFLOW_NAME_SUFFIX
-            
+
     def is_running(self, subject_id=None, step_id=None, update_status=True):
         status = self.get_status(subject_id, step_id, update_status)
         return status == Runner.RUNNING
@@ -249,7 +280,7 @@ class  SomaWorkflowRunner(Runner):
             self._update_jobs_status()
         running_step_ids = self._get_subject_filtered_step_ids(subject_id, Runner.RUNNING)
         return running_step_ids
-                    
+
     def wait(self, subject_id=None, step_id=None):
         if subject_id is None and step_id is None:
             Helper.wait_workflow(self._workflow_id, self._workflow_controller)
