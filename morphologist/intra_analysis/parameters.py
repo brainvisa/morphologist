@@ -125,19 +125,24 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
 
     def create_fom_completion(self, subject):
         analysis = self.study.analyses[subject.id()]
-        if hasattr(analysis, 'fom_completed') and analysis.fom_completed:
-            return
-
         pipeline = analysis.pipeline
-        pipeline.attributes['center'] = subject.groupname
-        pipeline.attributes['subject'] = subject.name
-        pipeline.attributes['acquisition'] = self.ACQUISITION
-        pipeline.attributes['analysis'] = self.ANALYSIS
-        pipeline.attributes['graph_version'] = self.GRAPH_VERSION
-        pipeline.attributes['sulci_recognition_session'] = self.FOLDS_SESSION
-
-        pipeline.create_completion()
-        analysis.fom_completed = True
+        attributes_dict = {
+            'center': subject.groupname,
+            'subject': subject.name,
+            'acquisition': self.ACQUISITION,
+            'analysis': self.ANALYSIS,
+            'graph_version': self.GRAPH_VERSION,
+            'sulci_recognition_session': self.FOLDS_SESSION
+        }
+        do_completion = False
+        for attribute, value in attributes_dict.iteritems():
+            if pipeline.attributes[attribute] != value:
+                pipeline.attributes[attribute] = value
+                do_completion = True
+        if do_completion:
+            print 'create_completion for:', subject.id()
+            pipeline.create_completion()
+        else: print 'skip completion for:', subject.id()
 
 
 
