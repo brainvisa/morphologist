@@ -140,6 +140,7 @@ class Study(StudyConfig):
             analysis = study._create_analysis()
             analysis.inputs = inputs
             analysis.outputs = outputs
+            analysis.subject = subject
             study.analyses[subject_id] = analysis
         return study
 

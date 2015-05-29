@@ -137,7 +137,8 @@ class LazyStudyModel(QtCore.QObject):
         has_changed = False
         subject_id = self._subjects_row_index_to_id[row_index]
         if self.runner.is_running(subject_id, update_status=False):
-            step_ids = self.runner.get_running_step_ids(subject_id, update_status=False)
+            step_ids = self.runner.get_running_step_ids(
+                subject_id, update_status=False)
             step_id = step_ids[0]
             status = (self.RUNNING, step_id)
             has_changed = self._update_subject_status_if_needed(row_index, status)

@@ -362,14 +362,20 @@ class  SomaWorkflowRunner(Runner):
         return filtered_step_ids_by_subject_id
 
     def _get_subject_filtered_step_ids(self, subject_id, status):
-        step_ids = []
+        step_ids = set()
         subject_jobs = self._get_subject_jobs(subject_id)
+        if status == Runner.INTERRUPTED:
+            print 'int subject jobs for %s:' % subject_id
+            print subject_jobs
         jobs_status = self._get_jobs_status(update_status=False)
         for job_id in subject_jobs:
             job_status = jobs_status[job_id]
             if job_status & status:
-                step_ids.append(subject_jobs[job_id])
-        return step_ids
+                # FIXME sometimes this list is empty...
+                if status == Runner.INTERRUPTED:
+                    print '    job:', job_id, subject_jobs[job_id]
+                step_ids.add(subject_jobs[job_id])
+        return list(step_ids)
 
     def get_status(self, subject_id=None, step_id=None, update_status=True):
         if self._workflow_id is None:
@@ -383,10 +389,11 @@ class  SomaWorkflowRunner(Runner):
         else:
             status = self._get_step_status(subject_id, step_id, update_status)
         return status
-               
+
     def _get_workflow_status(self):
         sw_status = self._workflow_controller.workflow_status(self._workflow_id)
-        if (sw_status in [sw.constants.WORKFLOW_IN_PROGRESS, sw.constants.WORKFLOW_NOT_STARTED]):
+        if (sw_status in [sw.constants.WORKFLOW_IN_PROGRESS,
+                          sw.constants.WORKFLOW_NOT_STARTED]):
             status = Runner.RUNNING
         else:
             has_failed = (len(Helper.list_failed_jobs(self._workflow_id, 

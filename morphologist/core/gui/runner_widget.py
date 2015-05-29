@@ -88,7 +88,8 @@ class RunnerView(QtGui.QWidget):
                                % len(selected_subject_ids)
         msg += "\nDo you really want to erase these results ?"
         answer = QtGui.QMessageBox.question(self, "Really erase results ?", msg, 
-                                            QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+                                            QtGui.QMessageBox.Ok |
+                                            QtGui.QMessageBox.Cancel)
         if answer == QtGui.QMessageBox.Ok:
             self._runner_model.study.clear_results(selected_subject_ids)
             # XXX: this buttun could remain enabled if some files are added manually
@@ -117,7 +118,8 @@ class RunnerView(QtGui.QWidget):
 
     def _set_erase_button_if_needed(self):
         selected_subject_ids = self._runner_model.get_selected_subject_ids() 
-        enable_erase_button = self._runner_model.study.has_some_results(selected_subject_ids)
+        enable_erase_button \
+            = self._runner_model.study.has_some_results(selected_subject_ids)
         self.ui.erase_button.setEnabled(enable_erase_button)
 
 
