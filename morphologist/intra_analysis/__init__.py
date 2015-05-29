@@ -36,11 +36,11 @@ class IntraAnalysis(Analysis):
         self.inputs = IntraAnalysisParameterTemplate.get_empty_inputs()
         self.outputs = IntraAnalysisParameterTemplate.get_empty_outputs()
         if study.template_pipeline is None:
-            study.template_pipeline = Morphologist()
+            study.template_pipeline = ProcessWithFom(Morphologist(),
+                                                     self.study)
         # share the same instance of the pipeline to save memory and, most of
         # all, instantiation time
-        pipeline = study.template_pipeline
-        self.pipeline = ProcessWithFom(pipeline, self.study)
+        self.pipeline = study.template_pipeline
 
     def _init_steps(self):
         self._normalization = SpatialNormalization()
