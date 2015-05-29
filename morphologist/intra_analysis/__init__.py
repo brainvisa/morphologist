@@ -226,3 +226,4 @@ class IntraAnalysis(Analysis):
 
         self._right_normalized_morphometry.inputs.labeled_sulci = self.outputs[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI]
         self._right_normalized_morphometry.outputs.morphometry = self.outputs[IntraAnalysisParameterNames.RIGHT_NORMALIZED_MORPHOMETRY_CSV]
+

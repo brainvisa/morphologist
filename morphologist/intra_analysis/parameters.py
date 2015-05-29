@@ -145,7 +145,6 @@ class IntraAnalysisParameterTemplate(ParameterTemplate):
         else: print 'skip completion for:', subject.id()
 
 
-
 class BrainvisaIntraAnalysisParameterTemplate(IntraAnalysisParameterTemplate):
     name = "brainvisa"
     ACQUISITION = "default_acquisition"

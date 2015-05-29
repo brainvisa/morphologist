@@ -170,7 +170,7 @@ class  SomaWorkflowRunner(Runner):
         self._workflow_controller.scheduler_config.set_proc_nb(cpus_number)
         if subject_ids == ALL_SUBJECTS:
             subject_ids = self._study.subjects
-        self._check_input_files(subject_ids)
+        #self._check_input_files(subject_ids)
         workflow = self._create_workflow(subject_ids)
         if self._workflow_id is not None:
             self._workflow_controller.delete_workflow(self._workflow_id)
@@ -217,6 +217,11 @@ class  SomaWorkflowRunner(Runner):
             pipeline = analysis.pipeline.process
             pipeline.enable_all_pipeline_steps()
             pipeline_tools.disable_runtime_steps_with_existing_outputs(pipeline)
+
+            missing = pipeline_tools.nodes_with_missing_inputs(pipeline)
+            if missing:
+                print 'MISSING INPUTS IN NODES:', missing
+                raise MissingInputFileError("subject: %s" % subject_id)
 
             wf = pipeline_workflow.workflow_from_pipeline(
                 pipeline, study_config=study_config,
@@ -269,13 +274,20 @@ class  SomaWorkflowRunner(Runner):
             if subjectid:
                 self._jobid_to_step[subjectid] = BidiMap(
                     'job_id', 'step_id')
-                job_list = group.elements
-                for job in job_list:
-                    job_att = workflow.job_mapping.get(job)
-                    if job_att:
-                        job_id = job_att.job_id
-                        step_id = job.user_storage or job.name
-                        self._jobid_to_step[subjectid][job_id] = step_id
+                job_list = list(group.elements)
+                while job_list:
+                    job = job_list.pop(0)
+                    if isinstance(job, Group):
+                        job_list += job.elements
+                    else:
+                        job_att = workflow.job_mapping.get(job)
+                        if job_att:
+                            job_id = job_att.job_id
+                            step_id = job.user_storage or job.name
+                            self._jobid_to_step[subjectid][job_id] = step_id
+                        else:
+                            print 'job without mapping, subject: %s, job: %s' \
+                                % (subjectid, job.name)
 
     def _define_workflow_name(self): 
         return self._study.name + " " + self.WORKFLOW_NAME_SUFFIX
@@ -334,6 +346,7 @@ class  SomaWorkflowRunner(Runner):
     def _workflow_stop(self):
         self._workflow_controller.stop_workflow(self._workflow_id)
         interrupted_step_ids = self._get_filtered_step_ids(Runner.INTERRUPTED)
+        print 'interrupted_step_ids:', interrupted_step_ids
         for subject_id, step_ids in interrupted_step_ids.iteritems():
             analysis = self._study.analyses[subject_id]
             analysis.clear_results(step_ids)
@@ -343,20 +356,21 @@ class  SomaWorkflowRunner(Runner):
             self._update_jobs_status()
         filtered_step_ids_by_subject_id = {}
         for subject_id in self._jobid_to_step:
-            filtered_step_ids = self._get_subject_filtered_step_ids(subject_id, status)
+            filtered_step_ids = self._get_subject_filtered_step_ids(
+                subject_id, status)
             filtered_step_ids_by_subject_id[subject_id] = filtered_step_ids
-        return filtered_step_ids_by_subject_id       
-             
+        return filtered_step_ids_by_subject_id
+
     def _get_subject_filtered_step_ids(self, subject_id, status):
         step_ids = []
         subject_jobs = self._get_subject_jobs(subject_id)
-        jobs_status=self._get_jobs_status(update_status=False)
+        jobs_status = self._get_jobs_status(update_status=False)
         for job_id in subject_jobs:
             job_status = jobs_status[job_id]
             if job_status & status:
                 step_ids.append(subject_jobs[job_id])
         return step_ids
-           
+
     def get_status(self, subject_id=None, step_id=None, update_status=True):
         if self._workflow_id is None:
             status = Runner.NOT_STARTED

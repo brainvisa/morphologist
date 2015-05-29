@@ -4,7 +4,6 @@ import shutil
 
 from morphologist.core.utils import OrderedDict
 
-
 class AnalysisFactory(object):
     _registered_analyses = {}
 

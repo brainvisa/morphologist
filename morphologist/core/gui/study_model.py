@@ -62,7 +62,7 @@ class LazyStudyModel(QtCore.QObject):
                 status_text = status_text % step.name
             else:
                 print 'unknown step id:', step_id
-                status_text = status_text % 'unknown step'
+                status_text = status_text % step_id
         return status_text
 
     def get_status_tooltip(self, row_index):
