@@ -61,11 +61,15 @@ class RunnerView(QtGui.QWidget):
     def _run_analyses(self):
         run = False
         try:
-            selected_subject_ids = self._runner_model.get_selected_subject_ids()
+            selected_subject_ids \
+                = self._runner_model.get_selected_subject_ids()
             self._runner_model.runner.run(selected_subject_ids)
-            run = True
+            run = self._runner_model.runner._workflow_id is not None
+            if not run:
+                QtGui.QMessageBox.warning(
+                    self, "Already done", "Nothing to do, processing is finished.")
         except MissingInputFileError, e:
-            QtGui.QMessageBox.critical(self, "Run analysis error", 
+            QtGui.QMessageBox.critical(self, "Run analysis error",
                         "Some input files do not exist.\n%s" %(e))
         return run
  

@@ -172,8 +172,13 @@ class  SomaWorkflowRunner(Runner):
             subject_ids = self._study.subjects
         #self._check_input_files(subject_ids)
         workflow = self._create_workflow(subject_ids)
+        jobs = [j for j in workflow.jobs if isinstance(j, Job)]
         if self._workflow_id is not None:
             self._workflow_controller.delete_workflow(self._workflow_id)
+        if len(jobs) == 0:
+            # empty workflow: nothing to do
+            self._workflow_id = None
+            return
         self._workflow_id = self._workflow_controller.submit_workflow(
             workflow, name=workflow.name)
         self._build_jobid_to_step()
@@ -226,44 +231,17 @@ class  SomaWorkflowRunner(Runner):
             wf = pipeline_workflow.workflow_from_pipeline(
                 pipeline, study_config=study_config,
                 jobs_priority=priority)
-            priority -= 100
-            workflow.jobs += wf.jobs
-            workflow.dependencies += wf.dependencies
-            group = Group(wf.root_group,
-                          name='Morphologist %s' % str(subject))
-            group.user_storage = subject_id
-            workflow.root_group.append(group) # += wf.root_group
-            workflow.groups += [group] + wf.groups
+            njobs = len([j for j in wf.jobs if isinstance(j, Job)])
+            if njobs != 0:
+                priority -= 100
+                workflow.jobs += wf.jobs
+                workflow.dependencies += wf.dependencies
+                group = Group(wf.root_group,
+                            name='Morphologist %s' % str(subject))
+                group.user_storage = subject_id
+                workflow.root_group.append(group) # += wf.root_group
+                workflow.groups += [group] + wf.groups
 
-
-        #jobs = []
-        #dependencies = []
-        #groups = []
-
-        #for subject_id in subject_ids:
-            #analysis = self._study.analyses[subject_id]
-            #subject = self._study.subjects[subject_id]
-            #subject_jobs = []
-            #previous_job = None
-
-            #for command, step_id in analysis.remaining_commands_to_run():
-                #job = Job(command=command, name=step_id)
-                #job.user_storage = step_id
-                #subject_jobs.append(job)
-                #if previous_job is not None:
-                    #dependencies.append((previous_job, job))
-                #previous_job = job
-
-            ## skip finished analysis
-            #if len(subject_jobs) != 0:
-                #group = Group(name=str(subject), elements=subject_jobs)
-                #group.user_storage = subject_id
-                #groups.append(group)
-            #jobs.extend(subject_jobs)
-
-        #workflow = Workflow(jobs=jobs, dependencies=dependencies,
-                            #name=self._define_workflow_name(),
-                            #root_group=groups)
         return workflow
 
     def _build_jobid_to_step(self):
@@ -346,10 +324,10 @@ class  SomaWorkflowRunner(Runner):
     def _workflow_stop(self):
         self._workflow_controller.stop_workflow(self._workflow_id)
         interrupted_step_ids = self._get_filtered_step_ids(Runner.INTERRUPTED)
-        print 'interrupted_step_ids:', interrupted_step_ids
         for subject_id, step_ids in interrupted_step_ids.iteritems():
-            analysis = self._study.analyses[subject_id]
-            analysis.clear_results(step_ids)
+            if step_ids:
+                analysis = self._study.analyses[subject_id]
+                analysis.clear_results(step_ids)
 
     def _get_filtered_step_ids(self, status, update_status = True):
         if update_status:
@@ -364,16 +342,10 @@ class  SomaWorkflowRunner(Runner):
     def _get_subject_filtered_step_ids(self, subject_id, status):
         step_ids = set()
         subject_jobs = self._get_subject_jobs(subject_id)
-        if status == Runner.INTERRUPTED:
-            print 'int subject jobs for %s:' % subject_id
-            print subject_jobs
         jobs_status = self._get_jobs_status(update_status=False)
         for job_id in subject_jobs:
             job_status = jobs_status[job_id]
             if job_status & status:
-                # FIXME sometimes this list is empty...
-                if status == Runner.INTERRUPTED:
-                    print '    job:', job_id, subject_jobs[job_id]
                 step_ids.add(subject_jobs[job_id])
         return list(step_ids)
 
@@ -396,16 +368,16 @@ class  SomaWorkflowRunner(Runner):
                           sw.constants.WORKFLOW_NOT_STARTED]):
             status = Runner.RUNNING
         else:
-            has_failed = (len(Helper.list_failed_jobs(self._workflow_id, 
-                                                      self._workflow_controller, 
-                                                      include_aborted_jobs=True, 
-                                                      include_user_killed_jobs=True)) != 0)
+            has_failed = (len(Helper.list_failed_jobs(
+                self._workflow_id, self._workflow_controller,
+                include_aborted_jobs=True,
+                include_user_killed_jobs=True)) != 0)
             if has_failed:
                 status = Runner.FAILED
             else:
                 status = Runner.SUCCESS
         return status
-    
+
     def _get_subject_status(self, subject_id, update_status=True):
         status = Runner.NOT_STARTED
         subject_jobs = self._get_subject_jobs(subject_id)

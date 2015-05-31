@@ -250,21 +250,7 @@ class IntraAnalysis(Analysis):
         else: print 'skip completion for:', subject.id()
 
     def clear_results(self, step_ids=None):
-        pipeline = self.pipeline.process
-        subject = self.subject
-        self.create_fom_completion(subject)
-        pipeline.enable_all_pipeline_steps()
-        if step_ids:
-            print 'filtered clear, step_ids:', step_ids
-            print 'steps:', pipeline.pipeline_steps.user_traits().keys()
-            for pstep in pipeline.pipeline_steps.user_traits().keys():
-                if pstep not in step_ids:
-                    print 'disable step:', pstep
-                    setattr(pipeline.pipeline_steps, pstep, False)
-        outputs = pipeline_tools.nodes_with_existing_outputs(pipeline)
-        to_remove = set()
-        for node, item_list in outputs.iteritems():
-            to_remove.update([filename for param, filename in item_list])
+        to_remove = self.existing_results(step_ids)
         print 'files to be removed:'
         print to_remove
         for filename in to_remove:
@@ -289,15 +275,29 @@ class IntraAnalysis(Analysis):
         fname_base = filename[:ext_pos + 1]
         return [fname_base + ext for ext in exts] + [filename + '.minf']
 
-    def has_some_results(self):
+    def existing_results(self, step_ids=None):
         pipeline = self.pipeline.process
         subject = self.subject
         if subject is None:
             return False
         self.create_fom_completion(subject)
         pipeline.enable_all_pipeline_steps()
+        if step_ids:
+            for pstep in pipeline.pipeline_steps.user_traits().keys():
+                if pstep not in step_ids:
+                    setattr(pipeline.pipeline_steps, pstep, False)
         outputs = pipeline_tools.nodes_with_existing_outputs(pipeline)
-        return bool(outputs)
+        existing = set()
+        for node, item_list in outputs.iteritems():
+            # WARNING the main input may appear in outputs
+            # (reorientation steps)
+            existing.update([filename for param, filename in item_list])
+        if self.pipeline.process.t1mri in existing:
+            existing.remove(self.pipeline.process.t1mri)
+        return existing
+
+    def has_some_results(self):
+        return bool(self.existing_results())
 
     #def has_all_results(self):
 

@@ -118,7 +118,7 @@ class Study(StudyConfig):
             [(key, value) for key, value in serialized.iteritems()
              if key not in ('subjects', 'study_format_version',
                             'analysis_type', 'inputs', 'outputs')])
-        study.import_from_dict(serialized_dict, clear=False)
+        study.set_study_configuration(serialized_dict)
         for subject_id, serialized_subject in \
                 serialized['subjects'].iteritems():
             subject = Subject.unserialize(
