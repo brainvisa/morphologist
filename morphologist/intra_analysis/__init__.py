@@ -34,6 +34,7 @@ class IntraAnalysis(Analysis):
     def __init__(self, parameter_template, study):
         super(IntraAnalysis, self).__init__(parameter_template, study)
 
+        self.subject = None
         self.inputs = IntraAnalysisParameterTemplate.get_empty_inputs()
         self.outputs = IntraAnalysisParameterTemplate.get_empty_outputs()
         if study.template_pipeline is None:
@@ -291,6 +292,8 @@ class IntraAnalysis(Analysis):
     def has_some_results(self):
         pipeline = self.pipeline.process
         subject = self.subject
+        if subject is None:
+            return False
         self.create_fom_completion(subject)
         pipeline.enable_all_pipeline_steps()
         outputs = pipeline_tools.nodes_with_existing_outputs(pipeline)
