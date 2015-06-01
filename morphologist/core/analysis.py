@@ -85,15 +85,6 @@ class Analysis(object):
     def step_from_id(self, step_id):
         return self._step_ids.get(step_id)
 
-    def remaining_commands_to_run(self):
-        self.propagate_parameters()
-        for step_id, step in self._step_ids.items():
-            # skip finished steps
-            if step.has_all_results():
-                continue
-            command = step.get_command()
-            yield command, step_id
-
     def import_data(self, subject):
         new_subject_filename = \
             self.parameter_template.get_subject_filename(subject)
@@ -105,25 +96,8 @@ class Analysis(object):
         self.inputs = self.parameter_template.get_inputs(subject)
         self.outputs = self.parameter_template.get_outputs(subject)
 
-    def get_command_list(self):
-        self._check_parameter_values_filled()
-        self.propagate_parameters()
-        command_list = []
-        for step in self._steps:
-            command_list.append(step.get_command())
-        return command_list
-
     def propagate_parameters(self):
         raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redefined.") 
-
-    def _check_parameter_values_filled(self):
-        missing_parameters = []
-        missing_parameters.extend(self.inputs.list_missing_parameter_values())
-        missing_parameters.extend(self.outputs.list_missing_parameter_values())
-        if missing_parameters:
-            separator = " ,"
-            message = separator.join(missing_parameters)
-            raise MissingParameterValueError(message)
 
     def has_some_results(self):
         return self.outputs.some_file_exists()

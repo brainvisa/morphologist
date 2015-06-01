@@ -2,7 +2,8 @@ import os
 import json
 
 from morphologist.core.utils import OrderedDict
-from morphologist.core.analysis import AnalysisFactory, Parameters, ImportationError
+from morphologist.core.analysis \
+    import AnalysisFactory, Parameters, ImportationError
 from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.subject import Subject
 

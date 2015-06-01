@@ -1,4 +1,4 @@
-from morphologist.core.steps import Step
+from morphologist.core.steps import Step, StepHelp
 from morphologist.intra_analysis import constants
 
 
@@ -23,9 +23,9 @@ class ImageImportation(Step):
                    self.outputs.output,
                    self.outputs.output_referential]
         return command
-    
-    
-class SpatialNormalization(Step):
+
+
+class SpatialNormalization(StepHelp):
 
     def __init__(self):
         super(SpatialNormalization, self).__init__()
@@ -45,28 +45,12 @@ class SpatialNormalization(Step):
 <p>If the Matlab-based SPM still does not work at this point, you may check whether Matlab is working: you may encounter Matlab licence issues.</p>
 """
 
-    def _get_inputs(self):
-        file_inputs = ['mri']
-        other_inputs = []
-        return file_inputs, other_inputs
 
-    def _get_outputs(self):
-        return ['commissure_coordinates', 'talairach_transformation']
-
-    def get_command(self):
-        command = ['python', '-m', 'morphologist.intra_analysis.commands.normalization',
-                   self.inputs.mri, 
-                   self.outputs.commissure_coordinates, 
-                   self.outputs.talairach_transformation]
-        return command
-    
-        
-class BiasCorrection(Step):
+class BiasCorrection(StepHelp):
 
     def __init__(self):
         super(BiasCorrection, self).__init__()
         self.name = 'bias_correction'
-        self.inputs.fix_random_seed = False
         self.description = "<h4>Bias correction using VipT1BiasCorrection.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: the VipT1BiasCorrection command may not be found.</li>
@@ -79,48 +63,12 @@ class BiasCorrection(Step):
 </ul></p>
 """
 
-    def _get_inputs(self):
-        file_inputs = ['mri', 'commissure_coordinates']
-        other_inputs = ['fix_random_seed']
-        return file_inputs, other_inputs
 
-    def _get_outputs(self):
-        return ['hfiltered', 'white_ridges', 'edges',
-                'variance', 'corrected_mri']
-
-    def get_command(self):
-        command = ['VipT1BiasCorrection',
-                   '-i', self.inputs.mri,
-                   '-Points', self.inputs.commissure_coordinates,
-                   '-o', self.outputs.corrected_mri, 
-                   '-Wwrite', 'yes',
-                   '-wridge', self.outputs.white_ridges, 
-                   '-eWrite', 'yes',
-                   '-ename', self.outputs.edges, 
-                   '-vWrite', 'yes',
-                   '-vname', self.outputs.variance, 
-                   '-hWrite', 'yes',
-                   '-hname', self.outputs.hfiltered, 
-                   '-Kregul', "20.0",
-                   '-sampling', "16.0",
-                   '-Kcrest', "20.0",
-                   '-Grid', "2",
-                   '-ZregulTuning', "0.5",
-                   '-vp', "75",
-                   '-e', "3",
-                   '-Last', "auto"]
-        if self.inputs.fix_random_seed:
-            command.extend(['-srand', '10'])                
-        # TODO referentials ?
-        return command
-
-     
-class HistogramAnalysis(Step):
+class HistogramAnalysis(StepHelp):
 
     def __init__(self):
         super(HistogramAnalysis, self).__init__()
         self.name = 'histogram_analysis'
-        self.inputs.fix_random_seed = False
         self.description = "<h4>Histogram analysis using VipHistoAnalysis.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: the VipHistoAnalysis command may not be found.</li>
@@ -129,35 +77,12 @@ class HistogramAnalysis(Step):
 </ul></p>
 """
 
-    def _get_inputs(self):
-        file_inputs = ['corrected_mri', 'hfiltered', 'white_ridges']
-        other_inputs = ['fix_random_seed']
-        return file_inputs, other_inputs
 
-    def _get_outputs(self):
-        return ['histo_analysis', 'histogram']
-
-    def get_command(self):
-        command = ['VipHistoAnalysis',
-                   '-i', self.inputs.corrected_mri,
-                   '-Mask', self.inputs.hfiltered,
-                   '-Ridge', self.inputs.white_ridges,
-                   '-o', self.outputs.histo_analysis, 
-                   '-output-his', self.outputs.histogram, 
-                   '-Save', 'y',
-                   '-mode', 'i']
-        if self.inputs.fix_random_seed:
-            command.extend(['-srand', '10'])  
-        return command
-
-
-class BrainSegmentation(Step):
+class BrainSegmentation(StepHelp):
 
     def __init__(self):
         super(BrainSegmentation, self).__init__()
         self.name = 'brain_extraction'
-        self.inputs.erosion_size = 1.8
-        self.inputs.fix_random_seed = False
         self.description = "<h4>Brain segmentation using VipGetBrain.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: the VipGetBrain command may not be found.</li>
@@ -166,43 +91,12 @@ class BrainSegmentation(Step):
 </ul></p>
 """
 
-    def _get_inputs(self):
-        file_inputs = ['corrected_mri', 'commissure_coordinates',
-                       'edges', 'variance', 'histo_analysis', 'white_ridges']
-        other_inputs = ['erosion_size', 'fix_random_seed']
-        return file_inputs, other_inputs
 
-    def _get_outputs(self):
-        return ['brain_mask']
- 
-    def get_command(self):
-        command = ['VipGetBrain',
-                   '-i', self.inputs.corrected_mri,
-                   '-Points', self.inputs.commissure_coordinates,
-                   '-berosion', str(self.inputs.erosion_size),
-                   '-Edgesname', self.inputs.edges,
-                   '-Variancename', self.inputs.variance,
-                   '-hname',  self.inputs.histo_analysis,
-                   '-bname', self.outputs.brain_mask,
-                   '-Ridge', self.inputs.white_ridges,
-                   '-analyse', 'r', 
-                   '-First', "0",
-                   '-Last', "0", 
-                   '-layer', "0",
-                   '-m', "V"]
-        if self.inputs.fix_random_seed:
-            command.extend(['-srand', '10'])  
-        # TODO referentials ?
-        return command
-
-
-class SplitBrain(Step):
+class SplitBrain(StepHelp):
 
     def __init__(self):
         super(SplitBrain, self).__init__()
         self.name = 'hemispheres_split'
-        self.inputs.bary_factor = 0.6
-        self.inputs.fix_random_seed = False
         self.description = "<h4>Split brain using VipSplitBrain.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: the VipSplitBrain command may not be found.</li>
@@ -210,47 +104,13 @@ class SplitBrain(Step):
 <li>Check the <b>normalization step</b>: orientation in a common Talairach box is used in this step to localize and break the corpus callosum. If the orientation is not correctly determined, this split may fail.</li>
 </ul></p>
 """
-
-    def _get_inputs(self):
-        file_inputs = ['corrected_mri', 'commissure_coordinates',
-                       'brain_mask', 'white_ridges', 'histo_analysis']
-        other_inputs = ['bary_factor', 'fix_random_seed']
-        return file_inputs, other_inputs
-
-    def _get_outputs(self):
-        return ['split_mask']
-   
-    def get_command(self):
-        command = ['VipSplitBrain',
-                   '-input', self.inputs.corrected_mri,
-                   '-Points', self.inputs.commissure_coordinates,
-                   '-brain', self.inputs.brain_mask,
-                   '-Ridge', self.inputs.white_ridges,
-                   '-hname', self.inputs.histo_analysis,
-                   '-Bary', str(self.inputs.bary_factor),
-                   '-output', self.outputs.split_mask,
-                   '-analyse', 'r', 
-                   '-mode', 'Watershed (2011)',
-                   '-erosion', "2.0",
-                   '-ccsize', "500",
-                   '-walgo','b']
-        if self.inputs.fix_random_seed:
-            command.extend(['-srand', '10'])  
-        # TODO:
-        # useful option ?? 
-        # "-template", "share/brainvisa-share-4.4/hemitemplate/closedvoronoi.ima"
-        # "-TemplateUse", "y" 
-        # TODO referentials ?
-        return command
     
 
-class GreyWhite(Step):
+class GreyWhite(StepHelp):
 
-    def __init__(self, side):
+    def __init__(self):
         super(GreyWhite, self).__init__()
         self.name = 'grey_white_segmentation'
-        self.inputs.side = side
-        self.inputs.fix_random_seed = False
         self.description = "<h4>Grey and white matter segmentation using VipGreyWhiteClassif.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: the VipGreyWhiteClassif command may not be found.</li>
@@ -259,43 +119,12 @@ class GreyWhite(Step):
 </ul></p>
 """
 
-    def _get_inputs(self):
-        file_inputs = ['corrected_mri', 'commissure_coordinates',
-                       'histo_analysis', 'split_mask', 'edges']
-        other_inputs = ['fix_random_seed', 'side']
-        return file_inputs, other_inputs
 
-    def _get_outputs(self):
-        return ['grey_white']
-
-    def get_command(self):
-        command  = ['VipGreyWhiteClassif',
-                    '-input', self.inputs.corrected_mri,
-                    '-Points', self.inputs.commissure_coordinates,
-                    '-hana', self.inputs.histo_analysis,
-                    '-mask', self.inputs.split_mask,
-                    '-edges', self.inputs.edges,
-                    '-writeformat', 't',
-                    '-algo', 'N']
-        if self.inputs.side == constants.LEFT:
-            label = '2'
-        elif self.inputs.side == constants.RIGHT:
-            label = '1'
-        else:
-            assert(0)
-        command.extend(['-label', label, '-output', self.outputs.grey_white])
-        if self.inputs.fix_random_seed:
-            command.extend(['-srand', '10'])  
-        # TODO referentials ?
-        return command
-
-
-class Grey(Step):
+class Grey(StepHelp):
 
     def __init__(self):
         super(Grey, self).__init__()
         self.name = 'grey'
-        self.inputs.fix_random_seed = False
         self.description = "<h4>Grey mask computation using VipHomotopic.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: the VipHomotopic command may not be found.</li>
@@ -304,30 +133,8 @@ class Grey(Step):
 </ul></p>
 """
 
-    def _get_inputs(self):
-        file_inputs = ['corrected_mri', 'histo_analysis', 'grey_white']
-        other_inputs = ['fix_random_seed']
-        return file_inputs, other_inputs
 
-    def _get_outputs(self):
-        return ['grey']
-
-    def get_command(self):
-        command = ['VipHomotopic',
-                   '-input', self.inputs.corrected_mri,
-                   '-classif', self.inputs.grey_white,
-                   '-hana', self.inputs.histo_analysis,
-                   '-output', self.outputs.grey,
-                   '-mode', 'C', '-writeformat', 't',
-                   '-version', '2' ]
-
-        if self.inputs.fix_random_seed:
-            command.extend(['-srand', '10'])  
-        # TODO referentials ?
-        return command
-
-
-class WhiteSurface(Step):
+class WhiteSurface(StepHelp):
 
     def __init__(self):
         super(WhiteSurface, self).__init__()
@@ -339,27 +146,12 @@ class WhiteSurface(Step):
 </ul></p>
 """
 
-    def _get_inputs(self):
-        file_inputs = ['grey']
-        other_inputs = []
-        return file_inputs, other_inputs
 
-    def _get_outputs(self):
-        return ['white_surface']
- 
-    def get_command(self):
-        command = ['python', '-m', 'morphologist.intra_analysis.commands.surface',
-                   self.inputs.grey,
-                   self.outputs.white_surface]
-        return command
+class GreySurface(StepHelp):
 
-
-class GreySurface(Step):
-
-    def __init__(self, side):
+    def __init__(self):
         super(GreySurface, self).__init__()
         self.name = 'grey_surface'
-        self.inputs.side = side
         self.description = "<h4>Grey surface using morphologist.intra_analysis.commands.grey_surface.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: some commands may not be found.</li>
@@ -367,31 +159,12 @@ class GreySurface(Step):
 </ul></p>
 """
 
-    def _get_inputs(self):
-        file_inputs = ['corrected_mri', 'split_mask', 'grey']
-        other_inputs = ['side']
-        return file_inputs, other_inputs
 
-    def _get_outputs(self):
-        return ['grey_surface']
- 
-    def get_command(self):
-        command = ['python', '-m', 'morphologist.intra_analysis.commands.grey_surface',
-                   self.inputs.corrected_mri,
-                   self.inputs.split_mask,
-                   self.inputs.grey,
-                   self.outputs.grey_surface,
-                   self.inputs.side]
-        return command
+class Sulci(StepHelp):
 
-
-
-class Sulci(Step):
-
-    def __init__(self, side):
+    def __init__(self):
         super(Sulci, self).__init__()
         self.name = 'sulci'
-        self.inputs.side = side
         self.description = "<h4>Sulci extraction using morphologist.intra_analysis.commands.sulci.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: some commands may not be found.</li>
@@ -399,38 +172,12 @@ class Sulci(Step):
 </ul></p>
 """
 
-    def _get_inputs(self):
-        file_inputs = ['corrected_mri', 'split_mask', 'grey',
-                       'talairach_transformation', 'grey_white',
-                       'commissure_coordinates', 'white_surface',
-                       'grey_surface']
-        other_inputs = ['side']
-        return file_inputs, other_inputs
 
-    def _get_outputs(self):
-        return ['sulci', 'sulci_data']
+class SulciLabelling(StepHelp):
 
-    def get_command(self):
-        command = ['python', '-m', 'morphologist.intra_analysis.commands.sulci',
-                   self.inputs.corrected_mri,
-                   self.inputs.split_mask,
-                   self.inputs.grey,
-                   self.inputs.talairach_transformation,
-                   self.inputs.grey_white,
-                   self.inputs.commissure_coordinates,
-                   self.inputs.white_surface,
-                   self.inputs.grey_surface,
-                   self.outputs.sulci,
-                   self.inputs.side]
-        return command
-
-
-class SulciLabelling(Step):
-
-    def __init__(self, side):
+    def __init__(self):
         super(SulciLabelling, self).__init__()
         self.name = 'sulci_labelling'
-        self.inputs.side = side
         self.description = "<h4>Sulci labelling using morphologist.intra_analysis.commands.sulci_labelling.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: some commands may not be found.</li>
@@ -445,45 +192,28 @@ class SulciLabelling(Step):
 </ul></p>
 """
 
-    def _get_inputs(self):
-        file_inputs = ['sulci']
-        other_inputs = ['side']
-        return file_inputs, other_inputs
 
-    def _get_outputs(self):
-        return ['labeled_sulci', 'labeled_sulci_data']
+class Morphometry(StepHelp):
 
-    def get_command(self):
-        command = ['python', '-m', 'morphologist.intra_analysis.commands.sulci_labelling',
-                   self.inputs.sulci,
-                   self.outputs.labeled_sulci,
-                   self.inputs.side]
-        return command
-
-
-class Morphometry(Step):
-
-    def __init__(self, side, normalized):
+    def __init__(self):
         super(Morphometry, self).__init__()
         self.name = 'morphometry'
-        self.inputs.side = side
-        self.inputs.normalized = normalized
         self.description = "<h4>Morphometry using morphologist.intra_analysis.commands.morphometry.</h4>"
         self.help_message = '' #TODO
 
-    def _get_inputs(self):
-        file_inputs = ['labeled_sulci']
-        other_inputs = ['side', 'normalized']
-        return file_inputs, other_inputs
+    #def _get_inputs(self):
+        #file_inputs = ['labeled_sulci']
+        #other_inputs = ['side', 'normalized']
+        #return file_inputs, other_inputs
 
-    def _get_outputs(self):
-        return ['morphometry']
+    #def _get_outputs(self):
+        #return ['morphometry']
 
-    def get_command(self):
-        command = ['python', '-m', 'morphologist.intra_analysis.commands.morphometry',
-                   self.inputs.labeled_sulci,
-                   self.inputs.side,
-                   self.outputs.morphometry]
-        if self.inputs.normalized:
-            command.append('--normalized')
-        return command
+    #def get_command(self):
+        #command = ['python', '-m', 'morphologist.intra_analysis.commands.morphometry',
+                   #self.inputs.labeled_sulci,
+                   #self.inputs.side,
+                   #self.outputs.morphometry]
+        #if self.inputs.normalized:
+            #command.append('--normalized')
+        #return command

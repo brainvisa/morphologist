@@ -3,17 +3,24 @@ import os
 from morphologist.core.analysis import Parameters
 
 
-class Step(object):
+class StepHelp(object):
     ''' Abstract class '''
 
     def __init__(self):
+        self.name = 'unnamed step'
+        self.description = ""
+        self.help_message = ""
+
+
+class Step(StepHelp):
+    ''' Abstract class '''
+
+    def __init__(self):
+        super(Step, self).__init__()
         file_inputs, other_inputs = self._get_inputs()
         file_outputs = self._get_outputs()
         self.inputs = Parameters(file_inputs, other_inputs)
         self.outputs = Parameters(file_outputs)
-        self.name = 'unnamed step'
-        self.description = ""
-        self.help_message = ""
 
     def run(self):
         # WARNING do not overload: get_command should be used to run the step 

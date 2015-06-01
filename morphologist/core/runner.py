@@ -77,73 +77,8 @@ class Runner(object):
 class MissingInputFileError(Exception):
     pass
 
-    
-class ThreadRunner(Runner):
-    
-    def __init__(self, study):
-        super(ThreadRunner, self).__init__(study)
-        
-        self._execution_thread = threading.Thread(name = "analysis run",
-                                                  target = ThreadRunner._sync_run,
-                                                  args =([self]))
-        self._lock = threading.RLock()
-        self._interruption = False
-        self._last_run_failed = False
 
-    def _sync_run(self):
-        self._last_run_failed = False
-        command_list = []
-        for analysis in self._study.analyses.values():
-            command_list.extend(analysis.get_command_list())
-        for command in command_list:
-            with self._lock:
-                if self._interruption:
-                    self._interruption = False
-                    break
-            command_to_run = ""
-            for arg in command:
-                command_to_run += "\"%s\" " % arg
-            print "\nrun: " + repr(command_to_run)
-            return_value = os.system(command_to_run)
-            if return_value != 0:
-                self._last_run_failed = True
-                break
 
-    def run(self, subject_ids=ALL_SUBJECTS):
-        self._check_input_files()
-        if not self._execution_thread.is_alive():
-            self._execution_thread.setDaemon(True)
-            self._execution_thread.start()
-    
-    def is_running(self, subject_id=None, step_id=None, update_status=True):
-        _ = subject_id
-        _ = step_id
-        return self._execution_thread.is_alive() 
-    
-    def wait(self, subject_id=None, step_id=None):
-        _ = subject_id
-        _ = step_id
-        self._execution_thread.join()
-        
-    def has_failed(self, subject_id=None, step_id=None):
-        _ = subject_id
-        _ = step_id
-        return self._last_run_failed
-
-    def stop(self, subject_id=None, step_id=None):
-        _ = subject_id
-        _ = step_id
-        with self._lock:
-            self._interruption = True
-        self._execution_thread.join()
-        with self._lock:
-            if self._interruption:
-                # the thread ended without being interrupted
-                self._interruption = False
-            else:
-                self._study.clear_results()
-            
-              
 class  SomaWorkflowRunner(Runner):
     WORKFLOW_NAME_SUFFIX = "Morphologist user friendly analysis"
     
