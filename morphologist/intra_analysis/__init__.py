@@ -137,7 +137,8 @@ class IntraAnalysis(Analysis):
             for pstep in pipeline.pipeline_steps.user_traits().keys():
                 if pstep not in step_ids:
                     setattr(pipeline.pipeline_steps, pstep, False)
-        outputs = pipeline_tools.nodes_with_existing_outputs(pipeline)
+        outputs = pipeline_tools.nodes_with_existing_outputs(
+            pipeline, recursive=True, exclude_inputs=True)
         existing = set()
         for node, item_list in outputs.iteritems():
             # WARNING the main input may appear in outputs
