@@ -22,8 +22,7 @@ from capsul.process.process_with_fom import ProcessWithFom
 from capsul.pipeline import pipeline_tools
 
 # CAPSUL morphologist
-from morphologist.process.customized.morphologist import \
-    CustomMorphologist as Morphologist
+from morphologist.capsul.morphologist import Morphologist
 
 
 class IntraAnalysis(Analysis):
