@@ -35,8 +35,7 @@ class IntraAnalysis(Analysis):
         self.inputs = IntraAnalysisParameterTemplate.get_empty_inputs()
         self.outputs = IntraAnalysisParameterTemplate.get_empty_outputs()
         if study.template_pipeline is None:
-            study.template_pipeline = ProcessWithFom(Morphologist(),
-                                                     self.study)
+            study.template_pipeline = self.build_pipeline()
         # share the same instance of the pipeline to save memory and, most of
         # all, instantiation time
         self.pipeline = study.template_pipeline
@@ -56,6 +55,38 @@ class IntraAnalysis(Analysis):
             SulciLabelling(),
             Morphometry()
         ]
+
+    def build_pipeline(self):
+        pipeline = Morphologist()
+        # rework steps with finer grain
+        pipeline.remove_pipeline_step('grey_white_segmentation')
+        pipeline.remove_pipeline_step('white_mesh')
+        pipeline.remove_pipeline_step('pial_mesh')
+        pipeline.remove_pipeline_step('sulci')
+        pipeline.remove_pipeline_step('sulci_labelling')
+
+        pipeline.add_pipeline_step('grey_white_segmentation_left',
+                                   ['GreyWhiteClassification'])
+        pipeline.add_pipeline_step('grey_white_segmentation_right',
+                                   ['GreyWhiteClassification_1'])
+        pipeline.add_pipeline_step('grey_white_topology_left',
+                                   ['GreyWhiteTopology'])
+        pipeline.add_pipeline_step('grey_white_topology_right',
+                                   ['GreyWhiteTopology_1'])
+        pipeline.add_pipeline_step('white_mesh_left', ['GreyWhiteMesh'])
+        pipeline.add_pipeline_step('white_mesh_right', ['GreyWhiteMesh_1'])
+        pipeline.add_pipeline_step('pial_mesh_left', ['PialMesh'])
+        pipeline.add_pipeline_step('pial_mesh_right', ['PialMesh_1'])
+        pipeline.add_pipeline_step('sulci_skeleton_left', ['SulciSkeleton'])
+        pipeline.add_pipeline_step('sulci_skeleton_right', ['SulciSkeleton_1'])
+        pipeline.add_pipeline_step('sulci_left', ['CorticalFoldsGraph'])
+        pipeline.add_pipeline_step('sulci_right', ['CorticalFoldsGraph_1'])
+        pipeline.add_pipeline_step('sulci_labelling_left',
+                                   ['SulciRecognition'])
+        pipeline.add_pipeline_step('sulci_labelling_right',
+                                   ['SulciRecognition_1'])
+
+        return ProcessWithFom(pipeline, self.study)
 
     @classmethod
     def get_default_parameter_template_name(cls):
