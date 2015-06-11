@@ -28,7 +28,7 @@
         <item>
          <widget class="QLabel" name="studyname_label">
           <property name="text">
-           <string>Name:</string>
+           <string>Name: </string>
           </property>
          </widget>
         </item>
@@ -42,7 +42,7 @@
         <item>
          <widget class="QLabel" name="output_directory_label">
           <property name="text">
-           <string>Study directory:</string>
+           <string>Study directory: </string>
           </property>
          </widget>
         </item>
@@ -63,6 +63,67 @@
        </layout>
       </item>
       <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QLabel" name="volume_format_label">
+          <property name="text">
+           <string>Volumes format: </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="volume_format_combobox">
+          <item>
+           <property name="text">
+            <string>NIFTI</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>NIFTI gz</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MINC</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>GIS</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="mesh_format_label">
+          <property name="text">
+           <string>Meshes format: </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="mesh_format_combobox">
+          <item>
+           <property name="text">
+            <string>GIFTI</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MESH</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>PLY</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
          <widget class="QLabel" name="parameter_template_label">
@@ -73,12 +134,51 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Study directory organization:</string>
+           <string>Study directory organization: </string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QComboBox" name="parameter_template_combobox"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <widget class="QLabel" name="spm_label">
+          <property name="text">
+           <string>SPM: </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="spm_standalone_checkbox">
+          <property name="text">
+           <string>standalone </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="spm_exec_label">
+          <property name="text">
+           <string>Executable path: </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="spm_exec_lineedit"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="spm_exec_button">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="../../../../resources/morphologist.qrc">
+            <normaloff>:/icons/open.png</normaloff>:/icons/open.png</iconset>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -122,18 +222,6 @@
           <bool>true</bool>
          </attribute>
          <attribute name="verticalHeaderVisible">
-          <bool>false</bool>
-         </attribute>
-         <attribute name="verticalHeaderHighlightSections">
-          <bool>false</bool>
-         </attribute>
-         <attribute name="verticalHeaderVisible">
-          <bool>false</bool>
-         </attribute>
-         <attribute name="horizontalHeaderStretchLastSection">
-          <bool>true</bool>
-         </attribute>
-         <attribute name="horizontalHeaderHighlightSections">
           <bool>false</bool>
          </attribute>
          <attribute name="verticalHeaderHighlightSections">

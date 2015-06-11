@@ -54,10 +54,17 @@ class StudyPropertiesEditor(object):
         self.parameter_templates = study.analysis_cls().PARAMETER_TEMPLATES
         self.parameter_template_index = self.parameter_templates.index(study.parameter_template.__class__)
         self.mode = mode
+        self.volumes_format = study.volumes_format
+        self.meshes_format = study.meshes_format
+        self.spm_standalone = study.spm_standalone
+        self.spm_exec = study.spm_exec
 
     def update_study(self, study):
         study.study_name = self.study_name
         study.output_directory = self.output_directory
+        study.spm_exec = self.spm_exec
+        study.spm_standalone = self.spm_standalone
+        study.use_spm = True
         parameter_template = self.parameter_templates[self.parameter_template_index]
         study.parameter_template = \
             study.analysis_cls().create_parameter_template(

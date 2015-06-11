@@ -25,7 +25,13 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self.ui.studyname_lineEdit = parent.ui.studyname_lineEdit
         self.ui.output_directory_lineEdit = parent.ui.output_directory_lineEdit
         self.ui.output_directory_button = parent.ui.output_directory_button
-        self.ui.parameter_template_combobox = parent.ui.parameter_template_combobox
+        self.ui.volume_format_combobox = parent.ui.volume_format_combobox
+        self.ui.mesh_format_combobox = parent.ui.mesh_format_combobox
+        self.ui.parameter_template_combobox \
+            = parent.ui.parameter_template_combobox
+        self.ui.spm_standalone_checkbox = parent.ui.spm_standalone_checkbox
+        self.ui.spm_exec_lineedit = parent.ui.spm_exec_lineedit
+        self.ui.spm_exec_button = parent.ui.spm_exec_button
         if editor_mode == StudyEditor.EDIT_STUDY:
             self.ui.output_directory_lineEdit.setEnabled(False)
             self.ui.output_directory_button.setEnabled(False)
@@ -47,11 +53,30 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self._mapper.addMapping(self.ui.studyname_lineEdit, 0)
         self._mapper.addMapping(self.ui.output_directory_lineEdit, 1)
         self._mapper.addMapping(self.ui.parameter_template_combobox, 2,
-                                                        "currentIndex")
+                                "currentIndex")
+        self._mapper.addMapping(self.ui.volume_format_combobox, 3,
+                                "currentIndex")
+        self._mapper.addMapping(self.ui.mesh_format_combobox, 4,
+                                "currentIndex")
+        self._mapper.addMapping(self.ui.spm_standalone_checkbox, 5, "state")
+        self._mapper.addMapping(self.ui.spm_exec_lineedit, 6)
+
         self.ui.studyname_lineEdit.textChanged.connect(self._mapper.submit)
-        self.ui.output_directory_lineEdit.textChanged.connect(self._mapper.submit)
-        self.ui.parameter_template_combobox.currentIndexChanged.connect(self._mapper.submit)
-        self.ui.output_directory_button.clicked.connect(self.on_output_directory_button_clicked)
+        self.ui.output_directory_lineEdit.textChanged.connect(
+            self._mapper.submit)
+        self.ui.parameter_template_combobox.currentIndexChanged.connect(
+            self._mapper.submit)
+        self.ui.output_directory_button.clicked.connect(
+            self.on_output_directory_button_clicked)
+        self.ui.volume_format_combobox.currentIndexChanged.connect(
+            self._mapper.submit)
+        self.ui.mesh_format_combobox.currentIndexChanged.connect(
+            self._mapper.submit)
+        self.ui.spm_standalone_checkbox.stateChanged.connect(
+            self._mapper.submit)
+        self.ui.spm_exec_lineedit.textChanged.connect(self._mapper.submit)
+        self.ui.spm_exec_button.clicked.connect(
+            self.on_spm_exec_button_clicked)
         self._mapper.toFirst()
 
     @QtCore.Slot("bool")
@@ -70,6 +95,21 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
             self._item_model.set_data(\
                 StudyPropertiesEditorItemModel.OUTPUTDIR_COL,
                 selected_directory)
+
+    @QtCore.Slot()
+    def on_spm_exec_button_clicked(self):
+        caption = 'Select SPM standalone executable'
+        if self._study_properties_editor.spm_exec:
+            default_directory = os.path.dirname(
+                self._study_properties_editor.spm_exec)
+        else:
+            default_directory = ''
+        selected_file = QtGui.QFileDialog.getOpenFileName(
+            self.ui, caption, default_directory)
+        if selected_file != '':
+            self._item_model.set_data(\
+                StudyPropertiesEditorItemModel.SPM_EXEC_COL,
+                selected_file)
 
 
 class StudyPropertiesEditorWidgetMapper(QtGui.QDataWidgetMapper):
@@ -122,7 +162,13 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
     NAME_COL = 0
     OUTPUTDIR_COL = 1
     PARAMETER_TEMPLATE_NAME_COL = 2
-    attributes = ["study_name", "output_directory", "parameter_template_index"]
+    VOLUME_FORMAT_COL = 3
+    MESH_FORMAT_COL = 4
+    SPM_STANDALONE_COL = 5
+    SPM_EXEC_COL = 6
+    attributes = ["study_name", "output_directory", "parameter_template_index",
+                  "volumes_format", "meshes_format", "spm_standalone",
+                  "spm_exec"]
     status_changed = QtCore.pyqtSignal(bool)
 
     def __init__(self, study_properties_editor, parent=None):
@@ -132,7 +178,7 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
 
     # overrided Qt method
     def columnCount(self):
-        return 4
+        return 7
 
     # overrided Qt method
     def rowCount(self, parent=QtCore.QModelIndex()):
@@ -149,11 +195,13 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
     # overrided Qt method
     def data(self, index, role=QtCore.Qt.DisplayRole):
         column = index.column()
-        value = self._study_properties_editor.__getattribute__(self.attributes[column])
+        value = self._study_properties_editor.__getattribute__(
+            self.attributes[column])
         if role in [QtCore.Qt.DisplayRole, QtCore.Qt.EditRole]:
             return value
         elif role == QtCore.Qt.BackgroundRole:
-            if column in [self.NAME_COL, self.OUTPUTDIR_COL]:
+            if column in [self.NAME_COL, self.OUTPUTDIR_COL,
+                          self.SPM_EXEC_COL]:
                 if self._invalid_value(value):
                     return QtGui.QColor('#ffaaaa')
                 else:
@@ -162,8 +210,9 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
     # overrided Qt method
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         row = index.row()
-        column = index.column() 
+        column = index.column()
         old_status = self._status
+        print 'setData col:', column, role
         if role != QtCore.Qt.EditRole: return
         self._set_value(row, column, value)
         if (column == self.NAME_COL and 
@@ -186,7 +235,7 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
         
     def is_data_colorable(self, index):
         column = index.column()
-        return column in [self.NAME_COL, self.OUTPUTDIR_COL]
+        return column in [self.NAME_COL, self.OUTPUTDIR_COL, self.SPM_EXEC_COL]
 
     def set_data(self, col, value):
         row = 0
