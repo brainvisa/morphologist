@@ -37,6 +37,7 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
             self.ui.output_directory_button.setEnabled(False)
             self.ui.parameter_template_combobox.setEnabled(False)
         self._create_parameter_template_combobox()
+        self._create_format_comboboxes()
 
     def _create_parameter_template_combobox(self):
         parameter_templates = self._study_properties_editor.parameter_templates
@@ -44,11 +45,17 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
             param_template_name = param_template.name 
             self.ui.parameter_template_combobox.addItem(param_template_name)
 
+    def _create_format_comboboxes(self):
+        for format_name in self._study_properties_editor.volumes_formats:
+            self.ui.volume_format_combobox.addItem(format_name)
+        for format_name in self._study_properties_editor.meshes_formats:
+            self.ui.mesh_format_combobox.addItem(format_name)
+
     def _init_mapper(self):
         self._mapper = StudyPropertiesEditorWidgetMapper(self)
         # XXX: AutoSubmit used here, in order that commitData works/is enable
         self._mapper.setSubmitPolicy(QtGui.QDataWidgetMapper.AutoSubmit)
-        self._mapper.setModel(self._item_model)        
+        self._mapper.setModel(self._item_model)
         self._mapper.setItemDelegate(self._item_delegate)
         self._mapper.addMapping(self.ui.studyname_lineEdit, 0)
         self._mapper.addMapping(self.ui.output_directory_lineEdit, 1)
@@ -58,7 +65,7 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
                                 "currentIndex")
         self._mapper.addMapping(self.ui.mesh_format_combobox, 4,
                                 "currentIndex")
-        self._mapper.addMapping(self.ui.spm_standalone_checkbox, 5, "state")
+        self._mapper.addMapping(self.ui.spm_standalone_checkbox, 5, "checked")
         self._mapper.addMapping(self.ui.spm_exec_lineedit, 6)
 
         self.ui.studyname_lineEdit.textChanged.connect(self._mapper.submit)
@@ -167,8 +174,8 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
     SPM_STANDALONE_COL = 5
     SPM_EXEC_COL = 6
     attributes = ["study_name", "output_directory", "parameter_template_index",
-                  "volumes_format", "meshes_format", "spm_standalone",
-                  "spm_exec"]
+                  "volumes_format_index", "meshes_format_index",
+                  "spm_standalone", "spm_exec"]
     status_changed = QtCore.pyqtSignal(bool)
 
     def __init__(self, study_properties_editor, parent=None):
@@ -212,7 +219,6 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
         row = index.row()
         column = index.column()
         old_status = self._status
-        print 'setData col:', column, role
         if role != QtCore.Qt.EditRole: return
         self._set_value(row, column, value)
         if (column == self.NAME_COL and 

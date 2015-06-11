@@ -54,17 +54,25 @@ class StudyPropertiesEditor(object):
         self.parameter_templates = study.analysis_cls().PARAMETER_TEMPLATES
         self.parameter_template_index = self.parameter_templates.index(study.parameter_template.__class__)
         self.mode = mode
-        self.volumes_format = study.volumes_format
-        self.meshes_format = study.meshes_format
+        self.volumes_formats = ['NIFTI', 'NIFTI gz', 'MINC', 'GIS']
+        self.meshes_formats = ['GIFTI', 'MESH', 'PLY']
+        self.volumes_format_index \
+            = self.volumes_formats.index(study.volumes_format)
+        self.meshes_format_index \
+            = self.meshes_formats.index(study.meshes_format)
         self.spm_standalone = study.spm_standalone
         self.spm_exec = study.spm_exec
 
     def update_study(self, study):
+        print 'update_study'
         study.study_name = self.study_name
         study.output_directory = self.output_directory
+        study.volumes_format = self.volumes_formats[self.volumes_format_index]
+        study.meshes_format = self.meshes_formats[self.meshes_format_index]
         study.spm_exec = self.spm_exec
         study.spm_standalone = self.spm_standalone
         study.use_spm = True
+        print 'spm_standalone:', self.spm_standalone
         parameter_template = self.parameter_templates[self.parameter_template_index]
         study.parameter_template = \
             study.analysis_cls().create_parameter_template(

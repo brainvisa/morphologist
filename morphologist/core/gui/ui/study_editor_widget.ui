@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>562</width>
-    <height>570</height>
+    <height>756</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -72,28 +72,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="volume_format_combobox">
-          <item>
-           <property name="text">
-            <string>NIFTI</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>NIFTI gz</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>MINC</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>GIS</string>
-           </property>
-          </item>
-         </widget>
+         <widget class="QComboBox" name="volume_format_combobox"/>
         </item>
         <item>
          <widget class="QLabel" name="mesh_format_label">
@@ -103,23 +82,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="mesh_format_combobox">
-          <item>
-           <property name="text">
-            <string>GIFTI</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>MESH</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>PLY</string>
-           </property>
-          </item>
-         </widget>
+         <widget class="QComboBox" name="mesh_format_combobox"/>
         </item>
        </layout>
       </item>
