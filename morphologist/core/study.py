@@ -256,6 +256,10 @@ class Study(StudyConfig):
             analysis = self.analyses[subject_id]
             analysis.clear_results()
 
+    def get_available_computing_resources(self):
+        # TODO
+        return ['localhost']
+
     def __repr__(self):
         s = 'study_name :' + str(self.study_name) + '\n'
         s += 'output_directory :' + str(self.output_directory) + '\n'

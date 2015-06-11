@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>562</width>
+    <width>709</width>
     <height>756</height>
    </rect>
   </property>
@@ -142,6 +142,20 @@
             <normaloff>:/icons/open.png</normaloff>:/icons/open.png</iconset>
           </property>
          </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <item>
+         <widget class="QLabel" name="computing_resource_label">
+          <property name="text">
+           <string>Computing resource:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="computing_resource_combobox"/>
         </item>
        </layout>
       </item>

@@ -32,12 +32,15 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self.ui.spm_standalone_checkbox = parent.ui.spm_standalone_checkbox
         self.ui.spm_exec_lineedit = parent.ui.spm_exec_lineedit
         self.ui.spm_exec_button = parent.ui.spm_exec_button
+        self.ui.computing_resource_combobox \
+            = parent.ui.computing_resource_combobox
         if editor_mode == StudyEditor.EDIT_STUDY:
             self.ui.output_directory_lineEdit.setEnabled(False)
             self.ui.output_directory_button.setEnabled(False)
             self.ui.parameter_template_combobox.setEnabled(False)
         self._create_parameter_template_combobox()
         self._create_format_comboboxes()
+        self._create_computing_resources_combobox()
 
     def _create_parameter_template_combobox(self):
         parameter_templates = self._study_properties_editor.parameter_templates
@@ -50,6 +53,11 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
             self.ui.volume_format_combobox.addItem(format_name)
         for format_name in self._study_properties_editor.meshes_formats:
             self.ui.mesh_format_combobox.addItem(format_name)
+
+    def _create_computing_resources_combobox(self):
+        for resource_name \
+                in self._study_properties_editor.available_computing_resources:
+            self.ui.computing_resource_combobox.addItem(resource_name)
 
     def _init_mapper(self):
         self._mapper = StudyPropertiesEditorWidgetMapper(self)
@@ -67,6 +75,8 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
                                 "currentIndex")
         self._mapper.addMapping(self.ui.spm_standalone_checkbox, 5, "checked")
         self._mapper.addMapping(self.ui.spm_exec_lineedit, 6)
+        self._mapper.addMapping(self.ui.computing_resource_combobox, 7,
+                                "currentIndex")
 
         self.ui.studyname_lineEdit.textChanged.connect(self._mapper.submit)
         self.ui.output_directory_lineEdit.textChanged.connect(
@@ -84,6 +94,8 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self.ui.spm_exec_lineedit.textChanged.connect(self._mapper.submit)
         self.ui.spm_exec_button.clicked.connect(
             self.on_spm_exec_button_clicked)
+        self.ui.computing_resource_combobox.currentIndexChanged.connect(
+            self._mapper.submit)
         self._mapper.toFirst()
 
     @QtCore.Slot("bool")
@@ -173,9 +185,10 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
     MESH_FORMAT_COL = 4
     SPM_STANDALONE_COL = 5
     SPM_EXEC_COL = 6
+    COMPUTING_RESOURCE_COL = 7
     attributes = ["study_name", "output_directory", "parameter_template_index",
                   "volumes_format_index", "meshes_format_index",
-                  "spm_standalone", "spm_exec"]
+                  "spm_standalone", "spm_exec", "computing_resource_index"]
     status_changed = QtCore.pyqtSignal(bool)
 
     def __init__(self, study_properties_editor, parent=None):
@@ -185,7 +198,7 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
 
     # overrided Qt method
     def columnCount(self):
-        return 7
+        return 8
 
     # overrided Qt method
     def rowCount(self, parent=QtCore.QModelIndex()):
