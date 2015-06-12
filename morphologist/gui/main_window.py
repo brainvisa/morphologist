@@ -296,6 +296,7 @@ class MainWindow(QtGui.QMainWindow):
     def on_study_action_handler_study_updated(self, study):
         self.set_study(study)
         self._try_save_to_backup_file()
+        self.runner.set_study(study)
 
     # this slot is automagically connected
     @QtCore.Slot()

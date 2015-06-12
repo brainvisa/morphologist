@@ -6,6 +6,7 @@ import multiprocessing
 
 import soma_workflow as sw
 from soma_workflow.client import WorkflowController, Helper, Workflow, Job, Group
+from soma_workflow import configuration as swconf
 
 from capsul.pipeline import pipeline_workflow
 from capsul.pipeline import pipeline_tools
@@ -73,6 +74,9 @@ class Runner(object):
         if len(subjects_with_missing_inputs) != 0:
             raise MissingInputFileError("Subjects: %s" % ", ".join(subjects_with_missing_inputs))
 
+    def set_study(self, study):
+        self._study = study
+
  
 class MissingInputFileError(Exception):
     pass
@@ -81,17 +85,61 @@ class MissingInputFileError(Exception):
 
 class  SomaWorkflowRunner(Runner):
     WORKFLOW_NAME_SUFFIX = "Morphologist user friendly analysis"
-    
+
     def __init__(self, study):
         super(SomaWorkflowRunner, self).__init__(study)
-        self._workflow_controller = WorkflowController()
+
+        self._workflow_controller = None
         self._init_internal_parameters()
-        self._delete_old_workflows()
+
+    def get_soma_workflow_credentials(self):
+        resource_id = self._study.somaworkflow_computing_resource
+
+        config_file_path = swconf.Configuration.search_config_path()
+        resource_list = swconf.Configuration.get_configured_resources(
+            config_file_path)
+        login_list = swconf.Configuration.get_logins(config_file_path)
+        login = None
+        if login_list.has_key(resource_id):
+            login = login_list[resource_id]
+
+        password = None
+        rsa_key_pass = None
+
+        return resource_id, login, password, rsa_key_pass
 
     def _init_internal_parameters(self):
         self._workflow_id = None
         self._jobid_to_step = {} # subjectid -> (job_id -> step)
         self._cached_jobs_status = None
+
+    def resource_id(self):
+        if self._workflow_controller is None:
+            resource_id = None
+        else:
+            resource_id = self._workflow_controller._resource_id
+        return resource_id
+
+    def update_controller(self):
+        resource_id = self._study.somaworkflow_computing_resource
+        if resource_id != self.resource_id():
+            self._setup_soma_workflow_controller(create_new=True)
+
+    def set_study(self, study):
+        super(SomaWorkflowRunner, self).set_study(study)
+        self.update_controller()
+
+    def _setup_soma_workflow_controller(self, create_new=False):
+        resource_id, login, password, rsa_key_pass \
+            = self.get_soma_workflow_credentials()
+        config_file_path = swconf.Configuration.search_config_path()
+        sw_config = swconf.Configuration.load_from_file(
+            resource_id, config_file_path)
+        if self._workflow_controller is None or create_new:
+            self._workflow_controller = WorkflowController(
+                resource_id, login, password=None, config=sw_config,
+                rsa_key_pass=None)
+            self._delete_old_workflows()
 
     def _delete_old_workflows(self):
         for (workflow_id, (name, _)) \
@@ -100,6 +148,7 @@ class  SomaWorkflowRunner(Runner):
                 self._workflow_controller.delete_workflow(workflow_id)
 
     def run(self, subject_ids=ALL_SUBJECTS):
+        self._setup_soma_workflow_controller()
         self._init_internal_parameters()
         cpus_number = self._cpus_number()
         self._workflow_controller.scheduler_config.set_proc_nb(cpus_number)

@@ -257,8 +257,15 @@ class Study(StudyConfig):
             analysis.clear_results()
 
     def get_available_computing_resources(self):
-        # TODO
-        return ['localhost']
+        from soma_workflow import configuration
+        import socket
+        config_file_path = configuration.Configuration.search_config_path()
+        resource_list = configuration.Configuration.get_configured_resources(
+            config_file_path)
+        hostname = socket.gethostname()
+        if hostname not in resource_list:
+            resource_list.insert(0, hostname)
+        return resource_list
 
     def __repr__(self):
         s = 'study_name :' + str(self.study_name) + '\n'
