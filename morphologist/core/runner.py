@@ -133,8 +133,12 @@ class  SomaWorkflowRunner(Runner):
         resource_id, login, password, rsa_key_pass \
             = self.get_soma_workflow_credentials()
         config_file_path = swconf.Configuration.search_config_path()
-        sw_config = swconf.Configuration.load_from_file(
-            resource_id, config_file_path)
+        try:
+            sw_config = swconf.Configuration.load_from_file(
+                resource_id, config_file_path)
+        except swconf.ConfigurationError:
+            sw_config = None
+            resource_id = None
         if self._workflow_controller is None or create_new:
             self._workflow_controller = WorkflowController(
                 resource_id, login, password=None, config=sw_config,
@@ -205,7 +209,8 @@ class  SomaWorkflowRunner(Runner):
             analysis.set_parameters(subject)
             pipeline = analysis.pipeline.process
             pipeline.enable_all_pipeline_steps()
-            pipeline_tools.disable_runtime_steps_with_existing_outputs(pipeline)
+            pipeline_tools.disable_runtime_steps_with_existing_outputs(
+                pipeline)
 
             missing = pipeline_tools.nodes_with_missing_inputs(pipeline)
             if missing:
