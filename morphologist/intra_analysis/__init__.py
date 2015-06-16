@@ -7,7 +7,7 @@ from morphologist.core.subject import Subject
 from morphologist.core.analysis import Analysis, Parameters, \
                                   ImportationError, ParameterTemplate
 from morphologist.core.utils import create_directory_if_missing, create_directories_if_missing
-from morphologist.intra_analysis.steps import ImageImportation, \
+from morphologist.intra_analysis.steps import \
     BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
     GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface, Sulci, \
     SulciLabelling, Morphometry
@@ -93,18 +93,18 @@ class IntraAnalysis(Analysis):
         return BrainvisaIntraAnalysisParameterTemplate.name
 
     def import_data(self, subject):
-        import_step = ImageImportation()
-        import_step.inputs.input = subject.filename
-        import_step.outputs.output = \
-            self.parameter_template.get_subject_filename(subject)
-        import_step.outputs.output_referential = \
-            self.pipeline.process. \
-                PrepareSubject_TalairachFromNormalization_source_referential
-        self.parameter_template.create_outputdirs(subject)
-        if import_step.run() != 0:
-            raise ImportationError("The importation failed for the subject %s."
-                                   % str(subject))
-        return import_step.outputs.output
+        from capsul.process import get_process_instance
+        import_step = get_process_instance(
+            'morphologist.capsul.import_t1_mri.ImportT1Mri')
+
+        import_step.input = subject.filename
+        import_step.output \
+            = self.parameter_template.get_subject_filename(subject)
+        import_step.referential = self.pipeline.process. \
+            PrepareSubject_TalairachFromNormalization_source_referential
+        pipeline_tools.create_output_directories(import_step)
+        import_step() # run
+        return import_step.output
 
     def propagate_parameters(self):
         pass

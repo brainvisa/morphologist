@@ -2,29 +2,6 @@ from morphologist.core.steps import Step, StepHelp
 from morphologist.intra_analysis import constants
 
 
-class ImageImportation(Step):
-    
-    def __init__(self):
-        super(ImageImportation, self).__init__()
-        self.name = 'importation'
-
-    def _get_inputs(self):
-        file_inputs = ['input']
-        other_inputs = []
-        return file_inputs, other_inputs
-
-    def _get_outputs(self):
-        return ['output', 'output_referential']
-
-    def get_command(self):
-        command = ["python", "-m",
-                   "brainvisa.tools.data_management.image_importation",
-                   self.inputs.input, 
-                   self.outputs.output,
-                   self.outputs.output_referential]
-        return command
-
-
 class SpatialNormalization(StepHelp):
 
     def __init__(self):

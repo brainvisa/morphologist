@@ -189,13 +189,6 @@ class Parameters(object):
             raise UnknownParameterName(name)
         setattr(self, name, value)
 
-    def list_missing_parameter_values(self):
-        missing_values = []
-        for name in self._parameter_names:
-            if getattr(self, name) == None:
-                missing_values.append(name)
-        return missing_values
-
     def some_file_exists(self):
         for name in self._file_param_names:
             file_name = getattr(self, name)
