@@ -45,10 +45,8 @@ class AnalysisViewportModel(QtCore.QObject):
 
     @QtCore.Slot(dict)
     def on_analysis_model_files_changed(self, changed_parameters):
-        print 'on_analysis_model_files_changed:', changed_parameters
         updated_parameters = []
         self._remove_useless_parameters(changed_parameters)
-        print 'observed_objects:', self.observed_objects.keys()
         for parameter_name, filename in changed_parameters.iteritems():
             if parameter_name in self.observed_objects.keys():
                 self._update_observed_objects(parameter_name, filename)

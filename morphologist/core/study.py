@@ -5,7 +5,7 @@ import glob
 
 from morphologist.core.utils import OrderedDict
 from morphologist.core.analysis \
-    import AnalysisFactory, Parameters, ImportationError
+    import AnalysisFactory, ImportationError
 from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.subject import Subject
 

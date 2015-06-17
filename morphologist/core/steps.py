@@ -1,8 +1,5 @@
 import os
 
-from morphologist.core.analysis import Parameters
-
-
 class StepHelp(object):
     ''' Abstract class '''
 
