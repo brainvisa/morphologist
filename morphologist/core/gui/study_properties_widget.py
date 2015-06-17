@@ -27,8 +27,6 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self.ui.output_directory_button = parent.ui.output_directory_button
         self.ui.volume_format_combobox = parent.ui.volume_format_combobox
         self.ui.mesh_format_combobox = parent.ui.mesh_format_combobox
-        self.ui.parameter_template_combobox \
-            = parent.ui.parameter_template_combobox
         self.ui.spm_standalone_checkbox = parent.ui.spm_standalone_checkbox
         self.ui.spm_exec_lineedit = parent.ui.spm_exec_lineedit
         self.ui.spm_exec_button = parent.ui.spm_exec_button
@@ -37,16 +35,8 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         if editor_mode == StudyEditor.EDIT_STUDY:
             self.ui.output_directory_lineEdit.setEnabled(False)
             self.ui.output_directory_button.setEnabled(False)
-            self.ui.parameter_template_combobox.setEnabled(False)
-        self._create_parameter_template_combobox()
         self._create_format_comboboxes()
         self._create_computing_resources_combobox()
-
-    def _create_parameter_template_combobox(self):
-        parameter_templates = self._study_properties_editor.parameter_templates
-        for param_template in parameter_templates:
-            param_template_name = param_template.name 
-            self.ui.parameter_template_combobox.addItem(param_template_name)
 
     def _create_format_comboboxes(self):
         for format_name in self._study_properties_editor.volumes_formats:
@@ -67,21 +57,17 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self._mapper.setItemDelegate(self._item_delegate)
         self._mapper.addMapping(self.ui.studyname_lineEdit, 0)
         self._mapper.addMapping(self.ui.output_directory_lineEdit, 1)
-        self._mapper.addMapping(self.ui.parameter_template_combobox, 2,
+        self._mapper.addMapping(self.ui.volume_format_combobox, 2,
                                 "currentIndex")
-        self._mapper.addMapping(self.ui.volume_format_combobox, 3,
+        self._mapper.addMapping(self.ui.mesh_format_combobox, 3,
                                 "currentIndex")
-        self._mapper.addMapping(self.ui.mesh_format_combobox, 4,
-                                "currentIndex")
-        self._mapper.addMapping(self.ui.spm_standalone_checkbox, 5, "checked")
-        self._mapper.addMapping(self.ui.spm_exec_lineedit, 6)
-        self._mapper.addMapping(self.ui.computing_resource_combobox, 7,
+        self._mapper.addMapping(self.ui.spm_standalone_checkbox, 4, "checked")
+        self._mapper.addMapping(self.ui.spm_exec_lineedit, 5)
+        self._mapper.addMapping(self.ui.computing_resource_combobox, 6,
                                 "currentIndex")
 
         self.ui.studyname_lineEdit.textChanged.connect(self._mapper.submit)
         self.ui.output_directory_lineEdit.textChanged.connect(
-            self._mapper.submit)
-        self.ui.parameter_template_combobox.currentIndexChanged.connect(
             self._mapper.submit)
         self.ui.output_directory_button.clicked.connect(
             self.on_output_directory_button_clicked)
@@ -180,13 +166,12 @@ class StudyPropertiesEditorItemDelegate(QtGui.QItemDelegate):
 class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
     NAME_COL = 0
     OUTPUTDIR_COL = 1
-    PARAMETER_TEMPLATE_NAME_COL = 2
-    VOLUME_FORMAT_COL = 3
-    MESH_FORMAT_COL = 4
-    SPM_STANDALONE_COL = 5
-    SPM_EXEC_COL = 6
-    COMPUTING_RESOURCE_COL = 7
-    attributes = ["study_name", "output_directory", "parameter_template_index",
+    VOLUME_FORMAT_COL = 2
+    MESH_FORMAT_COL = 3
+    SPM_STANDALONE_COL = 4
+    SPM_EXEC_COL = 5
+    COMPUTING_RESOURCE_COL = 6
+    attributes = ["study_name", "output_directory",
                   "volumes_format_index", "meshes_format_index",
                   "spm_standalone", "spm_exec", "computing_resource_index"]
     status_changed = QtCore.pyqtSignal(bool)

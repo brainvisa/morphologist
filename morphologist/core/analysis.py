@@ -1,8 +1,10 @@
 import copy
 import os
 import shutil
+import traits.api as traits
 
 from morphologist.core.utils import OrderedDict
+from capsul.pipeline import pipeline_tools
 
 class AnalysisFactory(object):
     _registered_analyses = {}
@@ -12,9 +14,9 @@ class AnalysisFactory(object):
         cls._registered_analyses[analysis_type] = analysis_class
 
     @classmethod
-    def create_analysis(cls, analysis_type, parameter_template, study):
+    def create_analysis(cls, analysis_type, study):
         analysis_cls = cls.get_analysis_cls(analysis_type) 
-        return analysis_cls(parameter_template, study)
+        return analysis_cls(study)
 
     @classmethod
     def get_analysis_cls(cls, analysis_type):
@@ -34,25 +36,18 @@ class AnalysisMetaClass(type):
     def __init__(cls, name, bases, dct):
         AnalysisFactory.register_analysis(name, cls)
         super(AnalysisMetaClass, cls).__init__(name, bases, dct)
-        for param_template in cls.PARAMETER_TEMPLATES:
-            cls._param_template_map[param_template.name] = param_template
 
 
 class Analysis(object):
     # XXX the metaclass automatically registers the Analysis class in the
     # AnalysisFactory and intializes the param_template_map
     __metaclass__ = AnalysisMetaClass
-    PARAMETER_TEMPLATES = []
-    _param_template_map = {}
 
-    def __init__(self, parameter_template, study):
+    def __init__(self, study):
         self._init_steps()
         self._init_step_ids()
         self.study = study
         self.pipeline = None  # should be a ProcessWithFom
-        self.parameter_template = parameter_template
-        self.inputs = Parameters(file_param_names=[])
-        self.outputs = Parameters(file_param_names=[])
 
     def _init_steps(self):
         raise NotImplementedError("Analysis is an Abstract class.") 
@@ -63,47 +58,23 @@ class Analysis(object):
             step_id = step.name  ##"%d_%s" % (i, step.name)
             self._step_ids[step_id] = step
 
-    @classmethod
-    def get_default_parameter_template_name(cls):
-        raise NotImplementedError("Analysis is an Abstract class.")
-
-    @classmethod
-    def create_default_parameter_template(cls, base_directory, study):
-        return cls.create_parameter_template(
-            cls.get_default_parameter_template_name(), base_directory, study)
-
-    @classmethod
-    def create_parameter_template(
-            cls, parameter_template_name, base_directory, study):
-        param_template_cls = \
-            cls._param_template_map.get(parameter_template_name, None)
-        if param_template_cls is None:
-            raise UnknownParameterTemplate(parameter_template_name)
-        param_template = param_template_cls(base_directory, study)
-        return param_template
-
     def step_from_id(self, step_id):
         return self._step_ids.get(step_id)
 
     def import_data(self, subject):
-        new_subject_filename = \
-            self.parameter_template.get_subject_filename(subject)
-        self.parameter_template.create_outputdirs(subject)
-        shutil.copy(subject.filename, new_subject_filename)
-        return new_subject_filename
+        raise NotImplementedError("Analysis is an Abstract class. import_data must be redefined.")
 
     def set_parameters(self, subject):
-        self.inputs = self.parameter_template.get_inputs(subject)
-        self.outputs = self.parameter_template.get_outputs(subject)
+        raise NotImplementedError("Analysis is an Abstract class. set_parameters must be redefined.")
 
     def propagate_parameters(self):
         raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redefined.") 
 
     def has_some_results(self):
-        return self.outputs.some_file_exists()
+        raise NotImplementedError("Analysis is an Abstract class. has_some_results must be redefined.")
 
     def has_all_results(self):
-        return self.outputs.all_file_exists()
+        raise NotImplementedError("Analysis is an Abstract class. has_all_results must be redefined.")
 
     def clear_results(self, step_ids=None):
         if step_ids:
@@ -113,6 +84,55 @@ class Analysis(object):
                     step.outputs.clear_files()
         else:
             self.outputs.clear_files()
+
+    def list_input_parameters_with_existing_files(self):
+        pipeline = self.pipeline.process
+        subject = self.subject
+        if subject is None:
+            return False
+        self.create_fom_completion(subject)
+        param_names = [param_name
+                       for param_name, trait
+                          in pipeline.user_traits().iteritems()
+                       if not trait.output
+                          and (isinstance(trait.trait_type, traits.File)
+                               or isinstance(trait.trait_type,
+                                             traits.Directory)
+                               or isinstance(trait.trait_type, traits.Any))]
+        params = {}
+        for param_name in param_names:
+            value = getattr(pipeline, param_name)
+            if isinstance(value, basestring) and os.path.exists(value):
+                params[param_name] = value
+        return params
+
+    def list_output_parameters_with_existing_files(self):
+        pipeline = self.pipeline.process
+        subject = self.subject
+        if subject is None:
+            return False
+        self.create_fom_completion(subject)
+        param_names = [param_name
+                       for param_name, trait
+                          in pipeline.user_traits().iteritems()
+                       if trait.output
+                          and (isinstance(trait.trait_type, traits.File)
+                               or isinstance(trait.trait_type,
+                                             traits.Directory)
+                               or isinstance(trait.trait_type, traits.Any))]
+        params = {}
+        for param_name in param_names:
+            value = getattr(pipeline, param_name)
+            if isinstance(value, basestring) and os.path.exists(value):
+                params[param_name] = value
+        return params
+
+        #existing =  pipeline_tools.nodes_with_existing_outputs(
+            #self.pipeline.process)
+        #params = []
+        #for node_name, values in  existing.iteritems():
+            #parmams.update(dict(values))
+        #return params
 
 
 class ParameterTemplate(object):
@@ -128,9 +148,6 @@ class ParameterTemplate(object):
 
     @classmethod
     def get_empty_outputs(cls):
-        raise NotImplementedError("ParameterTemplate is an abstract class")
-
-    def get_subject_filename(self, subject):
         raise NotImplementedError("ParameterTemplate is an abstract class")
 
     def get_inputs(self, subject):

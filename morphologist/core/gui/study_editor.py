@@ -51,7 +51,6 @@ class StudyPropertiesEditor(object):
     def __init__(self, study, mode):
         self.study_name = study.study_name
         self.output_directory = study.output_directory
-        self.parameter_templates = study.analysis_cls().PARAMETER_TEMPLATES
         self.volumes_formats = ['NIFTI', 'NIFTI gz', 'MINC', 'GIS']
         self.meshes_formats = ['GIFTI', 'MESH', 'PLY']
         self.available_computing_resources \
@@ -61,7 +60,6 @@ class StudyPropertiesEditor(object):
             self.available_computing_resources.insert(
                 0, study.somaworkflow_computing_resource)
 
-        self.parameter_template_index = self.parameter_templates.index(study.parameter_template.__class__)
         self.mode = mode
         self.volumes_format_index \
             = self.volumes_formats.index(study.volumes_format)
@@ -81,10 +79,6 @@ class StudyPropertiesEditor(object):
         study.spm_exec = self.spm_exec
         study.spm_standalone = self.spm_standalone
         study.use_spm = True
-        parameter_template = self.parameter_templates[self.parameter_template_index]
-        study.parameter_template = \
-            study.analysis_cls().create_parameter_template(
-                parameter_template.name, self.output_directory, study)
         study.somaworkflow_computing_resource \
             = self.available_computing_resources[self.computing_resource_index]
 

@@ -155,9 +155,9 @@ class LazyStudyModel(QtCore.QObject):
     def _update_subject_output_files_status_if_needed(self, row_index):
         subject_id = self._subjects_row_index_to_id[row_index]
         analysis = self.study.analyses[subject_id]
-        if not analysis.outputs.some_file_exists():
+        if not analysis.has_some_results():
             status = (self.NO_RESULTS, None)
-        elif analysis.outputs.all_file_exists():
+        elif analysis.has_all_results():
             status = (self.ALL_RESULTS, None)
         else:
             status = (self.SOME_RESULTS, None)

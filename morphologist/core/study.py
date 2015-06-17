@@ -1,5 +1,7 @@
 import os
 import json
+import re
+import glob
 
 from morphologist.core.utils import OrderedDict
 from morphologist.core.analysis \
@@ -21,8 +23,7 @@ class Study(StudyConfig):
         os.path.expanduser("~"), 'morphologist/studies/study')
 
     def __init__(self, analysis_type, study_name="undefined study",
-                 output_directory=default_output_directory,
-                 parameter_template_name=None):
+                 output_directory=default_output_directory):
         default_config = {
             "use_soma_workflow": True,
             "somaworkflow_computing_resource": "localhost",
@@ -45,16 +46,6 @@ class Study(StudyConfig):
         self.analysis_type = analysis_type # string : name of the analysis class
         self.add_trait("subjects", traits.Trait(OrderedDict()))
         self.subjects = OrderedDict()
-        self.add_trait('parameter_template_name', traits.Unicode())
-        if parameter_template_name is None:
-            self.parameter_template = \
-                self.analysis_cls().create_default_parameter_template(
-                    self.output_directory, self)
-        else:
-            self.parameter_template = \
-                self.analysis_cls().create_parameter_template(
-                    parameter_template_name, self.output_directory, self)
-        self.parameter_template_name = self.parameter_template.name
         self.template_pipeline = None
         self.analyses = {}
         self.on_trait_change(self._force_input_dir, 'output_directory')
@@ -67,7 +58,7 @@ class Study(StudyConfig):
 
     def _create_analysis(self):
         return AnalysisFactory.create_analysis(
-            self.analysis_type, self.parameter_template, self)
+            self.analysis_type, self)
 
     @property 
     def backup_filepath(self):
@@ -112,9 +103,7 @@ class Study(StudyConfig):
             raise StudySerializationError(msg)
         study = cls(analysis_type=serialized['analysis_type'], 
                     study_name=serialized['study_name'],
-                    output_directory=output_directory,
-                    parameter_template_name=serialized[
-                        'parameter_template_name'])
+                    output_directory=output_directory)
         serialized_dict = dict(
             [(key, value) for key, value in serialized.iteritems()
              if key not in ('subjects', 'study_format_version',
@@ -134,10 +123,8 @@ class Study(StudyConfig):
                                          " for subject %s" % str(subject))
             serialized_inputs = serialized['inputs'][subject_id] 
             serialized_outputs = serialized['outputs'][subject_id]
-            inputs = Parameters.unserialize(
-                serialized_inputs, study.output_directory)
-            outputs = Parameters.unserialize(
-                serialized_outputs, study.output_directory)
+            inputs = {}
+            outputs = {}
             analysis = study._create_analysis()
             analysis.inputs = inputs
             analysis.outputs = outputs
@@ -152,15 +139,12 @@ class Study(StudyConfig):
         return cls.from_file(backup_filepath)
 
     @classmethod
-    def from_organized_directory(cls, analysis_type, organized_directory,
-                                 parameter_template_name):
+    def from_organized_directory(cls, analysis_type, organized_directory):
         study_name = os.path.basename(organized_directory)
         new_study = cls(
             analysis_type, study_name=study_name,
-            output_directory=organized_directory,
-            parameter_template_name=parameter_template_name)
-        parameter_template = new_study.parameter_template
-        subjects = parameter_template.get_subjects(exact_match=True)
+            output_directory=organized_directory)
+        subjects = new_study.get_subjects_from_pattern(exact_match=True)
         for subject in subjects:
             new_study.add_subject(subject, import_data=False)
         return new_study
@@ -183,7 +167,6 @@ class Study(StudyConfig):
             exclude_empty=True, dict_class=dict)
         serialized['study_format_version'] = STUDY_FORMAT_VERSION
         serialized['analysis_type'] = self.analysis_type
-        serialized['parameter_template_name'] = self.parameter_template.name
         serialized['subjects'] = {}
         for subject_id, subject in self.subjects.iteritems():
             serialized['subjects'][subject_id] = \
@@ -192,9 +175,9 @@ class Study(StudyConfig):
         serialized['outputs'] = {}
         for subject_id, analysis in self.analyses.iteritems():
             serialized['inputs'][subject_id] = \
-                analysis.inputs.serialize(self.output_directory)
+                {}
             serialized['outputs'][subject_id] = \
-                analysis.outputs.serialize(self.output_directory)
+                {}
         return serialized 
 
     def add_subject(self, subject, import_data=True):
@@ -221,7 +204,7 @@ class Study(StudyConfig):
 
     def remove_subject_and_files_from_id(self, subject_id):
         subject = self.subjects[subject_id]
-        self.parameter_template.remove_dirs(subject)
+        self.remove_dirs(subject)
         self.remove_subject_from_id(subject_id)
 
     def remove_subject_from_id(self, subject_id):
@@ -272,6 +255,36 @@ class Study(StudyConfig):
         s += 'output_directory :' + str(self.output_directory) + '\n'
         s += 'subjects :' + repr(self.subjects) + '\n'
         return s
+
+    def get_subjects_from_pattern(self, exact_match=False):
+        subjects = []
+        MODALITY = 't1mri'
+        ACQUISITION = 'default_acquisition'
+        any_dir = "([^/]+)"
+        if exact_match:
+            glob_pattern = os.path.join(
+                self.output_directory, "*", "*", MODALITY, ACQUISITION,
+                "*.nii")
+            regexp = re.compile(
+                "^"+os.path.join(self.output_directory, any_dir, any_dir,
+                                 MODALITY, ACQUISITION,
+                                 "\\2\.(?:nii)$"))
+
+        else:
+            glob_pattern = os.path.join(
+                self.output_directory, "*", "*", MODALITY, "*", "*.*")
+            regexp = re.compile(
+                "^" + os.path.join(
+                    self.output_directory, any_dir, any_dir, MODALITY,
+                    any_dir, "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$"))
+        for filename in glob.iglob(glob_pattern):
+            match = regexp.match(filename)
+            if match:
+                groupname = match.group(1)
+                subjectname = match.group(2)
+                subject = Subject(subjectname, groupname, filename)
+                subjects.append(subject)
+        return subjects
 
 
 class StudySerializationError(Exception):

@@ -31,7 +31,6 @@ class BrainvisaFormatsManager(FormatsManager):
                         for item in list(aims.IOObjectTypesDictionary.formats('Volume', type))]
         formats = sorted(set(formats))
         formats.remove('BMP')
-        formats.remove('DICOM') #XXX: aims I/O are not reliable
         return formats
 
     @staticmethod

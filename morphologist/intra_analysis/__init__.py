@@ -4,18 +4,13 @@ import re
 import shutil
 
 from morphologist.core.subject import Subject
-from morphologist.core.analysis import Analysis, Parameters, \
-                                  ImportationError, ParameterTemplate
+from morphologist.core.analysis import Analysis, ImportationError
 from morphologist.core.utils import create_directory_if_missing, create_directories_if_missing
 from morphologist.intra_analysis.steps import \
     BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
     GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface, Sulci, \
     SulciLabelling, Morphometry
 from morphologist.intra_analysis import constants
-from morphologist.intra_analysis.parameters import \
-    BrainvisaIntraAnalysisParameterTemplate, \
-    IntraAnalysisParameterTemplate, \
-    IntraAnalysisParameterNames
 
 # CAPSUL
 from capsul.process.process_with_fom import ProcessWithFom
@@ -26,14 +21,17 @@ from morphologist.capsul.morphologist import Morphologist
 
 
 class IntraAnalysis(Analysis):
-    PARAMETER_TEMPLATES = [BrainvisaIntraAnalysisParameterTemplate]
 
-    def __init__(self, parameter_template, study):
-        super(IntraAnalysis, self).__init__(parameter_template, study)
+    def __init__(self, study):
+        super(IntraAnalysis, self).__init__(study)
+
+        self.ACQUISITION = 'default_acquisition'
+        self.ANALYSIS = 'default_analysis'
+        self.GRAPH_VERSION = '3.1'
+        self.FOLDS_SESSION = 'default_session'
+        self.MODALITY = 't1mri'
 
         self.subject = None
-        self.inputs = IntraAnalysisParameterTemplate.get_empty_inputs()
-        self.outputs = IntraAnalysisParameterTemplate.get_empty_outputs()
         if study.template_pipeline is None:
             study.template_pipeline = self.build_pipeline()
         # share the same instance of the pipeline to save memory and, most of
@@ -88,10 +86,6 @@ class IntraAnalysis(Analysis):
 
         return ProcessWithFom(pipeline, self.study)
 
-    @classmethod
-    def get_default_parameter_template_name(cls):
-        return BrainvisaIntraAnalysisParameterTemplate.name
-
     def import_data(self, subject):
         from capsul.process import get_process_instance
         import_step = get_process_instance(
@@ -99,12 +93,23 @@ class IntraAnalysis(Analysis):
 
         import_step.input = subject.filename
         import_step.output \
-            = self.parameter_template.get_subject_filename(subject)
+            = self.pipeline.process.t1mri
         import_step.referential = self.pipeline.process. \
             PrepareSubject_TalairachFromNormalization_source_referential
         pipeline_tools.create_output_directories(import_step)
         import_step() # run
         return import_step.output
+
+    #def get_subject_filename(self, subject):
+        #format = self.study.volumes_format or "NIFTI"
+        #ext = self.study.modules_data.foms["input"].formats[format]
+        #return os.path.join(
+            #self.study.output_directory, subject.groupname, subject.name,
+            #self.MODALITY, self.ACQUISITION, subject.name + "." + ext)
+
+    def set_parameters(self, subject):
+        self.subject = subject
+        self.create_fom_completion(subject)
 
     def propagate_parameters(self):
         pass
@@ -115,10 +120,10 @@ class IntraAnalysis(Analysis):
         attributes_dict = {
             'center': subject.groupname,
             'subject': subject.name,
-            'acquisition': self.parameter_template.ACQUISITION,
-            'analysis': self.parameter_template.ANALYSIS,
-            'graph_version': self.parameter_template.GRAPH_VERSION,
-            'sulci_recognition_session': self.parameter_template.FOLDS_SESSION
+            'acquisition': self.ACQUISITION,
+            'analysis': self.ANALYSIS,
+            'graph_version': self.GRAPH_VERSION,
+            'sulci_recognition_session': self.FOLDS_SESSION
         }
         do_completion = False
         for attribute, value in attributes_dict.iteritems():
@@ -126,9 +131,9 @@ class IntraAnalysis(Analysis):
                 pipeline.attributes[attribute] = value
                 do_completion = True
         if do_completion:
-            print 'create_completion for:', subject.id()
+            #print 'create_completion for:', subject.id()
             pipeline.create_completion()
-        else: print 'skip completion for:', subject.id()
+        #else: print 'skip completion for:', subject.id()
 
     def clear_results(self, step_ids=None):
         to_remove = self.existing_results(step_ids)
@@ -181,6 +186,8 @@ class IntraAnalysis(Analysis):
     def has_some_results(self):
         return bool(self.existing_results())
 
-    #def has_all_results(self):
-
+    def has_all_results(self):
+        existing = self.existing_results()
+        # FIXME TODO unfinished
+        return False
 

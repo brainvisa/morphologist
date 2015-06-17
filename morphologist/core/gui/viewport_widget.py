@@ -45,8 +45,10 @@ class AnalysisViewportModel(QtCore.QObject):
 
     @QtCore.Slot(dict)
     def on_analysis_model_files_changed(self, changed_parameters):
+        print 'on_analysis_model_files_changed:', changed_parameters
         updated_parameters = []
         self._remove_useless_parameters(changed_parameters)
+        print 'observed_objects:', self.observed_objects.keys()
         for parameter_name, filename in changed_parameters.iteritems():
             if parameter_name in self.observed_objects.keys():
                 self._update_observed_objects(parameter_name, filename)
@@ -223,7 +225,8 @@ class ViewportView(QtGui.QFrame):
     def update(self):
         self._view.clear()
         for parameter_name in self._observed_parameters:
-            observed_object = self._viewport_model.observed_objects[parameter_name]
+            observed_object \
+                = self._viewport_model.observed_objects[parameter_name]
             if observed_object is not None:
                 self._view.add_object(observed_object)
     

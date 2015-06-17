@@ -29,7 +29,6 @@ class StudyEditorDialog(QtGui.QDialog):
         self._init_ui()
         self.study_editor = StudyEditor(study, editor_mode)
         self._set_window_title(editor_mode)
-        self._default_parameter_template_name = study.analysis_cls().get_default_parameter_template_name()
 
         self._subjects_tablemodel = SubjectsEditorTableModel(\
                             self.study_editor.subjects_editor)
@@ -76,11 +75,9 @@ class StudyEditorDialog(QtGui.QDialog):
              
     def _init_subjects_from_directory_dialog(self, study):
         output_directory = study.output_directory
-        selected_template_name = self._default_parameter_template_name
         self._subjects_from_directory_dialog \
             = SelectOrganizedDirectoryDialog(
-                self.ui, output_directory, study.analysis_type,
-                selected_template_name)
+                self.ui, output_directory, study.analysis_type)
         self._subjects_from_directory_dialog.accepted.connect(\
             self.on_subjects_from_directory_dialog_accepted)
 
@@ -431,8 +428,7 @@ class SelectSubjectsDialog(QtGui.QFileDialog):
 
 class SelectOrganizedDirectoryDialog(QtGui.QDialog):
 
-    def __init__(self, parent, default_directory, analysis_type,
-                 selected_template_name):
+    def __init__(self, parent, default_directory, analysis_type):
         super(SelectOrganizedDirectoryDialog, self).__init__(parent)
 
         uifile = os.path.join(ui_directory, 'select_organized_directory.ui')
@@ -442,35 +438,17 @@ class SelectOrganizedDirectoryDialog(QtGui.QDialog):
         self.ui.in_place_checkbox.setVisible(False)
 
         self._analysis_type = analysis_type
-        parameter_templates \
-            = AnalysisFactory.get_analysis_cls(
-                analysis_type).PARAMETER_TEMPLATES
-        for param_template in parameter_templates:
-            param_template_name = param_template.name
-            self.ui.parameter_template_combobox.addItem(param_template_name)
-            if param_template_name == selected_template_name:
-                self.ui.parameter_template_combobox.setCurrentIndex(
-                    self.ui.parameter_template_combobox.count()-1)
 
     def get_organized_directory(self):
         return self.ui.organized_directory_lineEdit.text()
 
-    def get_parameter_template_name(self):
-        return self.ui.parameter_template_combobox.currentText()
-
     def get_subjects(self):
         organized_directory = self.get_organized_directory()
-        parameter_template_name = self.get_parameter_template_name()
         analysis_cls = AnalysisFactory.get_analysis_cls(self._analysis_type)
         temp_study = Study('IntraAnalysis',
-                           output_directory=organized_directory,
-                           parameter_template_name=parameter_template_name)
-        parameter_template \
-            = analysis_cls.create_parameter_template(parameter_template_name,
-                                                     organized_directory,
-                                                     temp_study)
+                           output_directory=organized_directory)
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-        subjects = parameter_template.get_subjects()
+        subjects = temp_study.get_subjects_from_pattern()
         QtGui.QApplication.restoreOverrideCursor()
         return subjects
 
