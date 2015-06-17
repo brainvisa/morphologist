@@ -3,8 +3,7 @@ import shutil
 from morphologist.core.subject import Subject
 from morphologist.intra_analysis import IntraAnalysis, constants
 from morphologist.intra_analysis.steps import Morphometry
-from morphologist.intra_analysis.parameters import BrainvisaIntraAnalysisParameterTemplate, \
-                                                    IntraAnalysisParameterNames    
+from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
 from morphologist.tests.intra_analysis.mocks.steps import MockSpatialNormalization, \
     MockBiasCorrection, MockHistogramAnalysis, MockBrainSegmentation, MockSplitBrain, \
     MockGreyWhite, MockGrey, MockGreySurface, MockWhiteSurface, MockSulci, MockSulciLabelling 
@@ -18,8 +17,7 @@ class MockIntraAnalysis(IntraAnalysis):
     def _init_steps(self):
         subject=Subject("hyperion", "test", None)
         bv_database_directory = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/bv_database"
-        bv_param_template = BrainvisaIntraAnalysisParameterTemplate(bv_database_directory)
-        ref_results = bv_param_template.get_outputs(subject)
+        ref_results = self.get_outputs(subject)
         self._normalization = MockSpatialNormalization(ref_results[IntraAnalysisParameterNames.COMMISSURE_COORDINATES], 
                                                        ref_results[IntraAnalysisParameterNames.TALAIRACH_TRANSFORMATION])
         self._bias_correction = MockBiasCorrection(\

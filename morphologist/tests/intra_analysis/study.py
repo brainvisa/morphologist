@@ -2,9 +2,7 @@ import os
 import getpass
 
 from morphologist.core.tests.study import AbstractStudyTestCase
-from morphologist.intra_analysis.parameters import DefaultIntraAnalysisParameterTemplate, \
-                                                BrainvisaIntraAnalysisParameterTemplate, \
-                                                IntraAnalysisParameterNames
+from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
 from morphologist.core.tests import reset_directory
 
 
@@ -33,7 +31,7 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
         reset_directory(self.output_directory)
 
     def parameter_template_name(self):
-        return DefaultIntraAnalysisParameterTemplate.name
+        return 'default'
 
     def delete_some_input_files(self):
         parameter_names = [IntraAnalysisParameterNames.MRI]
@@ -88,7 +86,7 @@ class IntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
     '''
 
     def parameter_template_name(self):
-        return BrainvisaIntraAnalysisParameterTemplate.name 
+        return 'brainvisa'
 
 
 class MockIntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
@@ -102,4 +100,4 @@ class MockIntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
         self.analysis_type = "MockIntraAnalysis"
 
     def parameter_template_name(self):
-        return BrainvisaIntraAnalysisParameterTemplate.name
+        return 'brainvisa'
