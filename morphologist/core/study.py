@@ -204,7 +204,7 @@ class Study(StudyConfig):
 
     def remove_subject_and_files_from_id(self, subject_id):
         subject = self.subjects[subject_id]
-        self.remove_dirs(subject)
+        self.remove_dirs(subject_id)
         self.remove_subject_from_id(subject_id)
 
     def remove_subject_from_id(self, subject_id):
@@ -238,6 +238,10 @@ class Study(StudyConfig):
         for subject_id in subject_ids:
             analysis = self.analyses[subject_id]
             analysis.clear_results()
+
+    def remove_dirs(self, subject_id):
+        analysis = self.analyses[subject_id]
+        analysis.remove_subject_dir()
 
     def get_available_computing_resources(self):
         from soma_workflow import configuration

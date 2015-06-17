@@ -1,5 +1,4 @@
-from morphologist.core.steps import Step, StepHelp
-from morphologist.intra_analysis import constants
+from morphologist.core.steps import StepHelp
 
 
 class SpatialNormalization(StepHelp):

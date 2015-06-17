@@ -47,7 +47,8 @@ class LazyAnalysisModel(QtCore.QObject):
             changed_parameters_with_details = {}
             for parameter_name in changed_parameters:
                 changed_parameters_with_details[parameter_name] = \
-                        checked_outputs[parameter_name]
+                        getattr(self._analysis.pipeline.process,
+                                parameter_name)
             self.files_changed.emit(changed_parameters_with_details)
 
     def _changed_parameters(self, existing_items, parameters_file_sha):

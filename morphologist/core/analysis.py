@@ -77,13 +77,7 @@ class Analysis(object):
         raise NotImplementedError("Analysis is an Abstract class. has_all_results must be redefined.")
 
     def clear_results(self, step_ids=None):
-        if step_ids:
-            for step_id in step_ids:
-                step = self.step_from_id(step_id)
-                if step:
-                    step.outputs.clear_files()
-        else:
-            self.outputs.clear_files()
+        raise NotImplementedError("Analysis is an Abstract class. clear_results must be redefined.")
 
     def list_input_parameters_with_existing_files(self):
         pipeline = self.pipeline.process
@@ -133,45 +127,6 @@ class Analysis(object):
         #for node_name, values in  existing.iteritems():
             #parmams.update(dict(values))
         #return params
-
-
-class ParameterTemplate(object):
-    name = None
-
-    def __init__(self, base_directory, study):
-        self._base_directory = base_directory
-        self.study = study
-
-    @classmethod
-    def get_empty_inputs(cls):
-        raise NotImplementedError("ParameterTemplate is an abstract class")
-
-    @classmethod
-    def get_empty_outputs(cls):
-        raise NotImplementedError("ParameterTemplate is an abstract class")
-
-    def get_inputs(self, subject):
-        raise NotImplementedError("ParameterTemplate is an abstract class")
-
-    def get_outputs(self, subject):
-        raise NotImplementedError("ParameterTemplate is an abstract class")
-
-    def create_outputdirs(self, subject):
-        raise NotImplementedError("ParameterTemplate is an abstract class")
-
-    def remove_dirs(self, subject):
-        raise NotImplementedError("ParameterTemplate is an abstract class")
-
-    def get_subjects(self, exact_match=False):
-        raise NotImplementedError("ParameterTemplate is an abstract class")
-
-
-class UnknownParameterTemplate(Exception):
-    pass
-
-
-class MissingParameterValueError(Exception):
-    pass
 
 
 class ImportationError(Exception):

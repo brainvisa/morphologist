@@ -147,6 +147,14 @@ class IntraAnalysis(Analysis):
                 elif os.path.isdir(f):
                     shutil.rmtree(f)
 
+    def remove_subject_dir(self):
+        self.create_fom_completion(self.subject)
+        t1mri_dir = self.pipeline.process.t1mri
+        acquisition_dir = os.path.dirname(t1mri_dir)
+        modality_dir = os.path.dirname(acquisition_dir)
+        subject_dir = os.path.dirname(modality_dir)
+        shutil.rmtree(subject_dir)
+
     def _files_for_format(self, filename):
         ext_map = {
             'ima': ['ima', 'dim'],
