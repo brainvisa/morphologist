@@ -84,9 +84,9 @@ class SplitBrain(StepHelp):
 
 class GreyWhite(StepHelp):
 
-    def __init__(self):
+    def __init__(self, side='left'):
         super(GreyWhite, self).__init__()
-        self.name = 'grey_white_segmentation'
+        self.name = 'grey_white_segmentation_%s' % side
         self.description = "<h4>Grey and white matter segmentation using VipGreyWhiteClassif.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: the VipGreyWhiteClassif command may not be found.</li>
@@ -98,9 +98,9 @@ class GreyWhite(StepHelp):
 
 class Grey(StepHelp):
 
-    def __init__(self):
+    def __init__(self, side='left'):
         super(Grey, self).__init__()
-        self.name = 'grey'
+        self.name = 'grey_%s' % side
         self.description = "<h4>Grey mask computation using VipHomotopic.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: the VipHomotopic command may not be found.</li>
@@ -112,9 +112,9 @@ class Grey(StepHelp):
 
 class WhiteSurface(StepHelp):
 
-    def __init__(self):
+    def __init__(self, side='left'):
         super(WhiteSurface, self).__init__()
-        self.name = 'white_surface'
+        self.name = 'white_surface_%s' % side
         self.description = "<h4>White surface using morphologist.intra_analysis.commands.surface.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: some commands may not be found.</li>
@@ -125,9 +125,9 @@ class WhiteSurface(StepHelp):
 
 class GreySurface(StepHelp):
 
-    def __init__(self):
+    def __init__(self, side='left'):
         super(GreySurface, self).__init__()
-        self.name = 'grey_surface'
+        self.name = 'grey_surface_%s' % side
         self.description = "<h4>Grey surface using morphologist.intra_analysis.commands.grey_surface.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: some commands may not be found.</li>
@@ -138,9 +138,9 @@ class GreySurface(StepHelp):
 
 class Sulci(StepHelp):
 
-    def __init__(self):
+    def __init__(self, side='left'):
         super(Sulci, self).__init__()
-        self.name = 'sulci'
+        self.name = 'sulci_%s' % side
         self.description = "<h4>Sulci extraction using morphologist.intra_analysis.commands.sulci.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: some commands may not be found.</li>
@@ -151,9 +151,9 @@ class Sulci(StepHelp):
 
 class SulciLabelling(StepHelp):
 
-    def __init__(self):
+    def __init__(self, side='left'):
         super(SulciLabelling, self).__init__()
-        self.name = 'sulci_labelling'
+        self.name = 'sulci_labelling_%s' % side
         self.description = "<h4>Sulci labelling using morphologist.intra_analysis.commands.sulci_labelling.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: some commands may not be found.</li>

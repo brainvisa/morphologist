@@ -61,7 +61,7 @@ class LazyStudyModel(QtCore.QObject):
             if step:
                 status_text = status_text % step.name
             else:
-                print 'unknown step id:', step_id
+                #print 'unknown step id:', step_id
                 status_text = status_text % step_id
         return status_text
 
@@ -75,7 +75,7 @@ class LazyStudyModel(QtCore.QObject):
                 description = step.description
                 help_message = step.help_message
             else:
-                print 'unknown step id:', step_id
+                #print 'unknown step id:', step_id
                 description = step_id
                 help_message = ''
             if status & self.FAILED:

@@ -11,6 +11,7 @@ from morphologist.intra_analysis.steps import \
     GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface, Sulci, \
     SulciLabelling, Morphometry
 from morphologist.intra_analysis import constants
+from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
 
 # CAPSUL
 from capsul.process.process_with_fom import ProcessWithFom
@@ -45,12 +46,18 @@ class IntraAnalysis(Analysis):
             HistogramAnalysis(),
             BrainSegmentation(),
             SplitBrain(),
-            GreyWhite(),
-            Grey(),
-            GreySurface(),
-            WhiteSurface(),
-            Sulci(),
-            SulciLabelling(),
+            GreyWhite('left'),
+            GreyWhite('right'),
+            Grey('left'),
+            Grey('right'),
+            GreySurface('left'),
+            GreySurface('right'),
+            WhiteSurface('left'),
+            WhiteSurface('right'),
+            Sulci('left'),
+            Sulci('right'),
+            SulciLabelling('left'),
+            SulciLabelling('right'),
             Morphometry()
         ]
 
@@ -195,7 +202,15 @@ class IntraAnalysis(Analysis):
         return bool(self.existing_results())
 
     def has_all_results(self):
-        existing = self.existing_results()
-        # FIXME TODO unfinished
-        return False
+        # here we use the hard-coded outputs list in
+        # IntraAnalysisParameterNames since we cannot determine automatically
+        # from a pipeline if all outputs are expected or not (many are
+        # optional, but still useful in our context)
+        pipeline = self.pipeline.process
+        for parameter in \
+                IntraAnalysisParameterNames.get_output_file_parameter_names():
+            value = getattr(pipeline, parameter)
+            if not isinstance(value, basestring) or not os.path.exists(value):
+                return False
+        return True
 
