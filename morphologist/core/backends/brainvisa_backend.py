@@ -28,7 +28,15 @@ class BrainvisaFormatsManager(FormatsManager):
                             cls._intra_analysis_acceptable_formats)
 
         formats = [item for type in volume_types \
-                        for item in list(aims.IOObjectTypesDictionary.formats('Volume', type))]
+                        for item in
+                            list(aims.IOObjectTypesDictionary.formats(
+                                'Volume', type))]
+        # manage soma-io formats
+        objects_types = aims.carto.IOObjectTypesDictionary().readTypes()
+        formats += [item for type, items in objects_types.iteritems()
+                    if type.startswith('carto_volume of ')
+                        and type[16:] in cls._intra_analysis_acceptable_formats
+                    for item in items]
         formats = sorted(set(formats))
         formats.remove('BMP')
         return formats
@@ -41,4 +49,15 @@ class BrainvisaFormatsManager(FormatsManager):
             extensions.remove('')
         except ValueError:
             pass
+        # also look in soma-io
+        for data_type in \
+                BrainvisaFormatsManager._intra_analysis_acceptable_formats:
+            cls_name = 'FormatDictionary_Volume_%s' % data_type
+            cls = getattr(aims.carto, cls_name, None)
+            if cls is None:
+                continue
+            exts = cls.readExtensions()
+            extensions += [ext for ext, formats in exts.iteritems()
+                           if ext != '' and formatname in formats]
+        extensions = list(set(extensions))
         return extensions
