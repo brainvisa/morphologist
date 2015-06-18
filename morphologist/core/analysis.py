@@ -5,6 +5,7 @@ import traits.api as traits
 
 from morphologist.core.utils import OrderedDict
 from capsul.pipeline import pipeline_tools
+from soma import aims
 
 class AnalysisFactory(object):
     _registered_analyses = {}
@@ -130,11 +131,55 @@ class Analysis(object):
         #return params
 
     def convert_from_formats(self, old_volumes_format, old_meshes_format):
+        def _convert_data(old_name, new_name):
+            print 'converting:', old_name, 'to:', new_name
+            data = aims.read(old_name)
+            aims.write(data, new_name)
+        def _remove_data(name):
+            # TODO: use aims/somaio IO system for formats extensions
+            exts = [['.nii'], ['.nii.gz'], ['.img', '.hdr'], ['.ima', '.dim'],
+                    ['.dcm'], ['.mnc'],
+                    ['.mesh'], ['.gii'], ['.ply']]
+            for fexts in exts:
+                for ext in fexts:
+                    if name.endswith(ext):
+                        basename =  name[:-len(ext)]
+                        real_exts = fexts + [fexts[0] + '.minf']
+                        for cext in real_exts:
+                            filename = basename + cext
+                            if os.path.isdir(filename):
+                                print 'rmtree', filename
+                                shutil.rmtree(filename)
+                            elif os.path.exists(filename):
+                                print 'rm', filename
+                                os.unlink(filename)
         print 'convert analysis', self.subject, 'from formats:', old_volumes_format, old_meshes_format, 'to:', self.study.volumes_format, self.study.meshes_format
-        if old_volumes_format == self.study.volumes_format and old_meshes_format == self.study.meshes_format:
+        if old_volumes_format == self.study.volumes_format \
+                and old_meshes_format == self.study.meshes_format:
             print '    nothing to do.'
             return
+        old_params = self.parameters
+        # force re-running FOM
         self.set_parameters(self.subject)
+        todo = [(old_params, self.parameters)]
+        while todo:
+            old_dict, new_dict = todo.pop(0)
+            old_state = old_dict.get('state')
+            new_state = new_dict.get('state', {})
+            for key, value in old_state.iteritems():
+                if isinstance(value, basestring) and os.path.exists(value):
+                    new_value = new_state.get(key)
+                    if new_value not in ('', None, traits.Undefined) \
+                            and new_value != value:
+                        _convert_data(value, new_value)
+                    if new_value != value:
+                        _remove_data(value)
+            old_nodes = old_dict.get('nodes')
+            new_nodes = new_dict.get('nodes', {})
+            if old_nodes:
+                todo += [(node, new_nodes.get(key, {}))
+                         for key, node in old_nodes.iteritems()]
+
 
 
 class ImportationError(Exception):
