@@ -1,4 +1,5 @@
 import os
+import traits.api as traits
 
 from morphologist.core.utils import create_filename_compatible_string
 from morphologist.core.gui.qt_backend import QtGui, QtCore
@@ -12,12 +13,14 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
                 editor_mode=StudyEditor.NEW_STUDY):
         super(StudyPropertiesEditorWidget, self).__init__(parent)
         self._study_properties_editor = study_properties_editor
-        self._item_model = StudyPropertiesEditorItemModel(study_properties_editor, self)
+        self._item_model \
+            = StudyPropertiesEditorItemModel(study_properties_editor, self)
         self._item_delegate = StudyPropertiesEditorItemDelegate(self)
         self._init_ui(parent, editor_mode)
         self._init_mapper()
-        self._item_model.status_changed.connect(self.on_item_model_status_changed)
-    
+        self._item_model.status_changed.connect(
+            self.on_item_model_status_changed)
+
     # FIXME: better: move those widgets in a separate .ui
     def _init_ui(self, parent, editor_mode):
         # create dummy ui attribute
@@ -104,7 +107,9 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
     @QtCore.Slot()
     def on_spm_exec_button_clicked(self):
         caption = 'Select SPM standalone executable'
-        if self._study_properties_editor.spm_exec:
+        if self._study_properties_editor.spm_exec \
+                and self._study_properties_editor.spm_exec \
+                    is not traits.Undefined:
             default_directory = os.path.dirname(
                 self._study_properties_editor.spm_exec)
         else:
@@ -121,10 +126,12 @@ class StudyPropertiesEditorWidgetMapper(QtGui.QDataWidgetMapper):
 
     def __init__(self, parent=None):
         super(StudyPropertiesEditorWidgetMapper, self).__init__(parent)
- 
+
     # overrided Qt method
     def submit(self):
         obj = self.sender()
+        if isinstance(obj, QtCore.QAbstractItemModel):
+            obj = obj.widget()
         delegate = self.itemDelegate()
         delegate.commitData.emit(obj)
 
@@ -133,7 +140,7 @@ class StudyPropertiesEditorItemDelegate(QtGui.QItemDelegate):
 
     def __init__(self, parent=None):
         super(StudyPropertiesEditorItemDelegate, self).__init__(parent)
-        
+
     # overrided Qt method
     def setEditorData(self, editor, index):
         model = index.model()
@@ -248,4 +255,7 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
 
     def _invalid_value(self, value):
         return value == ''
+
+    def widget(self):
+        return self._study_properties_editor
 
