@@ -114,21 +114,18 @@ class Study(StudyConfig):
             subject = Subject.unserialize(
                 serialized_subject, study.output_directory)
             study.subjects[subject_id] = subject
+        if 'parameters' not in serialized:
+            raise StudySerializationError(
+                    "Cannot find parameters section in study file")
         for subject_id, subject in study.subjects.iteritems():
-            if subject_id not in serialized['inputs']:
-                raise StudySerializationError("Cannot find input params"
-                                         " for subject %s" % str(subject))
-            if subject_id not in serialized['outputs']:
-                raise StudySerializationError("Cannot find output params" 
-                                         " for subject %s" % str(subject))
-            serialized_inputs = serialized['inputs'][subject_id] 
-            serialized_outputs = serialized['outputs'][subject_id]
-            inputs = {}
-            outputs = {}
+            if subject_id not in serialized['parameters']:
+                raise StudySerializationError(
+                    "Cannot find params for subject %s" % subject_id)
             analysis = study._create_analysis()
-            analysis.inputs = inputs
-            analysis.outputs = outputs
             analysis.subject = subject
+            parameters = serialized['parameters'][subject_id]
+            analysis.parameters = Study.unserialize_paths(
+                parameters, study.output_directory)
             study.analyses[subject_id] = analysis
         return study
 
@@ -171,13 +168,11 @@ class Study(StudyConfig):
         for subject_id, subject in self.subjects.iteritems():
             serialized['subjects'][subject_id] = \
                 subject.serialize(self.output_directory)
-        serialized['inputs'] = {}
-        serialized['outputs'] = {}
+        serialized['parameters'] = {}
         for subject_id, analysis in self.analyses.iteritems():
-            serialized['inputs'][subject_id] = \
-                {}
-            serialized['outputs'][subject_id] = \
-                {}
+            serialized['parameters'][subject_id] \
+                = Study.serialize_paths(analysis.parameters,
+                                        self.output_directory)
         return serialized 
 
     def add_subject(self, subject, import_data=True):
@@ -289,6 +284,92 @@ class Study(StudyConfig):
                 subject = Subject(subjectname, groupname, filename)
                 subjects.append(subject)
         return subjects
+
+    @classmethod
+    def serialize_paths(cls, params, directory):
+        new_params = {}
+        items = [(params, new_params)]
+        while items:
+            item, parent = items.pop(0)
+            if hasattr(item, 'iteritems'):
+                for name, sub_item in item.iteritems():
+                    if hasattr(sub_item, 'keys') \
+                            or isinstance(sub_item, list):
+                        if isinstance(sub_item, list):
+                            parent[name] = []
+                        else:
+                            parent[name] = sub_item.__class__()
+                        items.append((sub_item, parent[name]))
+                    elif isinstance(sub_item, basestring) \
+                            and sub_item.startswith(directory):
+                        parent[name] = os.path.join(
+                            '${output_directory}',
+                            os.path.relpath(sub_item, directory))
+                    elif sub_item == traits.Undefined:
+                        parent[name] = '<undefined>'
+                    else:
+                        parent[name] = sub_item
+            elif isinstance(item, list):
+                for sub_item in item:
+                    if hasattr(sub_item, 'keys') \
+                            or isinstance(sub_item, list):
+                        if isinstance(sub_item, list):
+                            parent.append([])
+                        else:
+                            parent.append(sub_item.__class__())
+                        items.append((sub_item, parent[-1]))
+                    elif isinstance(sub_item, basestring) \
+                            and sub_item.startswith(directory):
+                        parent.append(os.path.join(
+                            '${output_directory}',
+                            os.path.relpath(sub_item, directory)))
+                    elif sub_item == traits.Undefined:
+                        parent.append('<undefined>')
+                    else:
+                        parent.append(sub_item)
+        return new_params
+
+    @classmethod
+    def unserialize_paths(cls, params, directory):
+        new_params = {}
+        items = [(params, new_params)]
+        while items:
+            item, parent = items.pop(0)
+            if hasattr(item, 'iteritems'):
+                for name, sub_item in item.iteritems():
+                    if hasattr(sub_item, 'keys') \
+                            or isinstance(sub_item, list):
+                        parent[name] = sub_item.__class__()
+                        items.append((sub_item, parent[name]))
+                    elif isinstance(sub_item, basestring) \
+                            and sub_item.startswith('${output_directory}'):
+                        parent[name] = sub_item.replace(
+                            '${output_directory}', directory)
+                    elif sub_item == '<undefined>':
+                        parent[name] = traits.Undefined
+                    else:
+                        parent[name] = sub_item
+            elif isinstance(item, list):
+                for sub_item in item:
+                    if hasattr(sub_item, 'keys') \
+                            or isinstance(sub_item, list):
+                        parent.append(sub_item.__class__())
+                        items.append((sub_item, parent[-1]))
+                    elif isinstance(sub_item, basestring) \
+                            and sub_item.startswith(directory):
+                        parent.append(sub_item.replace(
+                            '${output_directory}', directory))
+                    elif sub_item == '<undefined>':
+                        parent.append(traits.Undefined)
+                    else:
+                        parent.append(sub_item)
+        return new_params
+
+    def convert_from_formats(self, old_volumes_format, old_meshes_format):
+        for subject_id in self.subjects:
+            print 'convert', subject_id
+            self.analyses[subject_id].convert_from_formats(
+                old_volumes_format, old_meshes_format)
 
 
 class StudySerializationError(Exception):

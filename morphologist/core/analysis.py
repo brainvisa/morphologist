@@ -48,6 +48,7 @@ class Analysis(object):
         self._init_step_ids()
         self.study = study
         self.pipeline = None  # should be a ProcessWithFom
+        self.parameters = None
 
     def _init_steps(self):
         raise NotImplementedError("Analysis is an Abstract class.") 
@@ -84,7 +85,7 @@ class Analysis(object):
         subject = self.subject
         if subject is None:
             return False
-        self.create_fom_completion(subject)
+        self.propagate_parameters()
         param_names = [param_name
                        for param_name, trait
                           in pipeline.user_traits().iteritems()
@@ -105,7 +106,7 @@ class Analysis(object):
         subject = self.subject
         if subject is None:
             return False
-        self.create_fom_completion(subject)
+        self.propagate_parameters()
         param_names = [param_name
                        for param_name, trait
                           in pipeline.user_traits().iteritems()
@@ -127,6 +128,13 @@ class Analysis(object):
         #for node_name, values in  existing.iteritems():
             #parmams.update(dict(values))
         #return params
+
+    def convert_from_formats(self, old_volumes_format, old_meshes_format):
+        print 'convert analysis', self.subject, 'from formats:', old_volumes_format, old_meshes_format, 'to:', self.study.volumes_format, self.study.meshes_format
+        if old_volumes_format == self.study.volumes_format and old_meshes_format == self.study.meshes_format:
+            print '    nothing to do.'
+            return
+        self.set_parameters(self.subject)
 
 
 class ImportationError(Exception):

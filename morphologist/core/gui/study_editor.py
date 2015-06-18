@@ -31,9 +31,12 @@ class StudyEditor(object):
         return self._study_properties_editor
 
     def create_updated_study(self):
+        old_vol_format = self.study.volumes_format
+        old_mesh_format = self.study.meshes_format
         self._study_properties_editor.update_study(self.study)
         self._subjects_editor.update_study(self.study, \
                                 self.study_update_policy)
+        self.study.convert_from_formats(old_vol_format, old_mesh_format)
         return self.study
 
     def add_observer(self, observer):

@@ -192,18 +192,21 @@ class StudyEditorDialog(QtGui.QDialog):
         if self.study_editor.subjects_editor.has_subjects_to_be_removed():
             title = 'Removed subjects from a study'
             msg = 'The following subjects will be removed from the current ' +\
-                'study.\nDo you want to removed associated files?'
+                'study.\nDo you want to remove associated files?'
             msgbox = QtGui.QMessageBox(self)
             msgbox.setWindowTitle(title)
             msgbox.setText(msg)
             cancel_button = msgbox.addButton(QtGui.QMessageBox.Cancel)
-            no_button = msgbox.addButton("Keep files", QtGui.QMessageBox.NoRole)
-            yes_button = msgbox.addButton("Remove files", QtGui.QMessageBox.YesRole)
+            no_button = msgbox.addButton(
+                "Keep files", QtGui.QMessageBox.NoRole)
+            yes_button = msgbox.addButton(
+                "Remove files", QtGui.QMessageBox.YesRole)
             msgbox.setIcon(QtGui.QMessageBox.Question)
             msgbox.exec_()
             answer = msgbox.clickedButton()
             if answer == yes_button:
-                study_update_policy = StudyEditor.ON_SUBJECT_REMOVED_DELETE_FILES
+                study_update_policy \
+                    = StudyEditor.ON_SUBJECT_REMOVED_DELETE_FILES
             elif answer == no_button:
                 study_update_policy = StudyEditor.ON_SUBJECT_REMOVED_DO_NOTHING
             elif answer == cancel_button:

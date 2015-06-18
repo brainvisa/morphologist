@@ -6,10 +6,9 @@ from morphologist.core.gui.study_editor_widget import StudyEditorDialog, \
 
 class ImportStudyDialog(SelectOrganizedDirectoryDialog):
 
-    def __init__(self, parent, default_directory, analysis_type,
-                 selected_template_name):
+    def __init__(self, parent, default_directory, analysis_type):
         super(ImportStudyDialog, self).__init__(
-            parent, default_directory, analysis_type, selected_template_name)
+            parent, default_directory, analysis_type)
         self.ui.in_place_checkbox.setVisible(True)
 
     def is_import_in_place_selected(self):

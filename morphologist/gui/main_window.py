@@ -138,10 +138,8 @@ class ImportStudyActionHandler(ActionHandler):
 
     def start(self):
         analysis_cls = AnalysisFactory.get_analysis_cls(self._analysis_type)
-        parameter_template_name = analysis_cls.get_default_parameter_template_name()
         dialog = ImportStudyDialog(self.parent(),
-                ApplicationStudy.default_output_directory, self._analysis_type,
-                selected_template_name=parameter_template_name)
+                ApplicationStudy.default_output_directory, self._analysis_type)
         dialog.accepted.connect(self._on_import_study_dialog_accepted)
         dialog.show()
         self._import_study_dialog = dialog
@@ -152,11 +150,9 @@ class ImportStudyActionHandler(ActionHandler):
         import_data_in_place = dialog.is_import_in_place_selected()
         if import_data_in_place:
             organized_directory = dialog.get_organized_directory()
-            parameter_template_name = dialog.get_parameter_template_name()
             study = ApplicationStudy.from_organized_directory(\
                                             self._analysis_type,
-                                            organized_directory,
-                                            parameter_template_name)
+                                            organized_directory)
             subjects = None
         else:
             study = ApplicationStudy(self._analysis_type)
@@ -248,11 +244,10 @@ class MainWindow(QtGui.QMainWindow):
         else:
             self.set_study(study)
 
-    def _create_inplace_study(self, study_directory, parameter_template_name):
+    def _create_inplace_study(self, study_directory):
         study = ApplicationStudy.from_organized_directory(\
                                         self._analysis_type,
-                                        study_directory,
-                                        parameter_template_name)
+                                        study_directory)
         self.set_study(study)
         study.save_to_backup_file()
 

@@ -119,8 +119,8 @@ class IntraAnalysis(Analysis):
         self.create_fom_completion(subject)
 
     def propagate_parameters(self):
-        pass
-        #self.create_fom_completion()
+        pipeline_tools.set_pipeline_state_from_dict(
+            self.pipeline.process, self.parameters)
 
     def create_fom_completion(self, subject):
         pipeline = self.pipeline
@@ -140,6 +140,8 @@ class IntraAnalysis(Analysis):
         if do_completion:
             #print 'create_completion for:', subject.id()
             pipeline.create_completion()
+            self.parameters = pipeline_tools.dump_pipeline_state_as_dict(
+                self.pipeline.process)
         #else: print 'skip completion for:', subject.id()
 
     def clear_results(self, step_ids=None):
@@ -155,7 +157,7 @@ class IntraAnalysis(Analysis):
                     shutil.rmtree(f)
 
     def remove_subject_dir(self):
-        self.create_fom_completion(self.subject)
+        self.propagate_parameters()
         t1mri_dir = self.pipeline.process.t1mri
         acquisition_dir = os.path.dirname(t1mri_dir)
         modality_dir = os.path.dirname(acquisition_dir)
@@ -181,7 +183,7 @@ class IntraAnalysis(Analysis):
         subject = self.subject
         if subject is None:
             return False
-        self.create_fom_completion(subject)
+        self.propagate_parameters()
         pipeline.enable_all_pipeline_steps()
         if step_ids:
             for pstep in pipeline.pipeline_steps.user_traits().keys():
