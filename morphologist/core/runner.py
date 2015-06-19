@@ -154,10 +154,25 @@ class  SomaWorkflowRunner(Runner):
     def run(self, subject_ids=ALL_SUBJECTS):
         self._setup_soma_workflow_controller()
         self._init_internal_parameters()
-        cpus_number = self._cpus_number()
-        self._workflow_controller.scheduler_config.set_proc_nb(cpus_number)
+        if self._workflow_controller.scheduler_config:
+            # in local mode only
+            cpus_number = self._cpus_number()
+            self._workflow_controller.scheduler_config.set_proc_nb(cpus_number)
         if subject_ids == ALL_SUBJECTS:
             subject_ids = self._study.subjects
+        # setup shared path in study_config
+        study_config = self._study
+        swf_resource = study_config.somaworkflow_computing_resource
+        if not hasattr(study_config.somaworkflow_computing_resources_config,
+                       swf_resource):
+            setattr(study_config.somaworkflow_computing_resources_config,
+                    swf_resource, {})
+        resource_conf = getattr(
+            study_config.somaworkflow_computing_resources_config, swf_resource)
+        path_translations = resource_conf.path_translations
+        setattr(path_translations, study_config.shared_directory,
+                ['brainvisa', 'de25977f-abf5-9f1c-4384-2585338cd7af'])
+
         #self._check_input_files(subject_ids)
         workflow = self._create_workflow(subject_ids)
         jobs = [j for j in workflow.jobs if isinstance(j, Job)]
