@@ -2,6 +2,7 @@ import unittest
 
 from morphologist.core.study import Study
 from morphologist.core.tests.analysis import MockAnalysisTestCase
+from capsul.pipeline import pipeline_tools
 
 class MissingParameterValueError(Exception):
     pass
@@ -27,9 +28,14 @@ class TestAnalysis(unittest.TestCase):
         self.test_case.set_analysis_parameters()
         self.test_case.delete_some_parameter_values()
 
-        self.assertRaises(MissingParameterValueError, 
-                          self.test_case.analysis_cls().get_command_list, 
-                          self.analysis)
+        pipeline = self.analysis.pipeline.process
+        pipeline.enable_all_pipeline_steps()
+        pipeline_tools.disable_runtime_steps_with_existing_outputs(
+            pipeline)
+
+        missing = pipeline_tools.nodes_with_missing_inputs(pipeline)
+
+        self.assertTrue(missing)
 
     def test_unknown_parameter_error(self):
         self.test_case.set_analysis_parameters()
