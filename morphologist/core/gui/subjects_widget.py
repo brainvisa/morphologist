@@ -119,6 +119,9 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
         row, column = index.row(), index.column()
         if role == QtCore.Qt.DisplayRole:
             subject = self._study_model.get_subject(row)
+            if subject is None:
+                print "subject:", subject, "not found."
+                return ""
             if column == SubjectsTableModel.GROUPNAME_COL:
                 return subject.groupname
             if column == SubjectsTableModel.SUBJECTNAME_COL:

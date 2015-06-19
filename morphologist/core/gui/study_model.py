@@ -86,7 +86,7 @@ class LazyStudyModel(QtCore.QObject):
     
     def get_subject(self, row_index):
         subject_id = self._subjects_row_index_to_id[row_index]
-        subject = self.study.subjects[subject_id]
+        subject = self.study.subjects.get(subject_id)
         return subject
 
     def get_selected_subject_ids(self):

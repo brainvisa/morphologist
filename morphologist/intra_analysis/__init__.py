@@ -128,7 +128,8 @@ class IntraAnalysis(SharedPipelineAnalysis):
         acquisition_dir = os.path.dirname(t1mri_dir)
         modality_dir = os.path.dirname(acquisition_dir)
         subject_dir = os.path.dirname(modality_dir)
-        shutil.rmtree(subject_dir)
+        if os.path.isdir(subject_dir):
+            shutil.rmtree(subject_dir)
 
     def has_all_results(self):
         # here we use the hard-coded outputs list in

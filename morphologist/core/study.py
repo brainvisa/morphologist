@@ -173,7 +173,7 @@ class Study(StudyConfig):
             serialized['parameters'][subject_id] \
                 = Study.serialize_paths(analysis.parameters,
                                         self.output_directory)
-        return serialized 
+        return serialized
 
     def add_subject(self, subject, import_data=True):
         subject_id = subject.id()

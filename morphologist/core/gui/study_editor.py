@@ -1,9 +1,11 @@
 import os
 from collections import namedtuple
+import copy
 
 from morphologist.core.analysis import ImportationError
 from morphologist.core.utils.design_patterns import Observable, \
                                             ObserverNotification
+from morphologist.core.study import Study
 
 
 class StudyEditor(object):
@@ -33,10 +35,16 @@ class StudyEditor(object):
     def create_updated_study(self):
         old_vol_format = self.study.volumes_format
         old_mesh_format = self.study.meshes_format
-        self._study_properties_editor.update_study(self.study)
-        self._subjects_editor.update_study(self.study, \
+        # create a new study to avoid modifying the existing one (we may be
+        # called from a thread here)
+        serialized_study = self.study.serialize()
+        study = Study.unserialize(serialized_study,
+                                  self.study.output_directory)
+        self._study_properties_editor.update_study(study)
+        self._subjects_editor.update_study(study, \
                                 self.study_update_policy)
-        self.study.convert_from_formats(old_vol_format, old_mesh_format)
+        study.convert_from_formats(old_vol_format, old_mesh_format)
+        self.study = study  # WARNING whe change the study in a thread.
         return self.study
 
     def add_observer(self, observer):
