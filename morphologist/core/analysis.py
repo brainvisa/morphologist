@@ -272,12 +272,12 @@ class SharedPipelineAnalysis(Analysis):
         existing = set()
         for node, item_list in outputs.iteritems():
             existing.update([filename for param, filename in item_list])
-        # WARNING the main input may appear in outputs
+        # WARNING inputs may appear in outputs
         # (reorientation steps)
         for param_name, trait in pipeline.user_traits().iteritems():
             if not trait.output:
                 value = getattr(pipeline, param_name)
-                if value in existing:
+                if isinstance(value, basestring) and value in existing:
                     existing.remove(value)
         return existing
 
