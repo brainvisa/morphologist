@@ -163,15 +163,20 @@ class  SomaWorkflowRunner(Runner):
         # setup shared path in study_config
         study_config = self._study
         swf_resource = study_config.somaworkflow_computing_resource
-        if not hasattr(study_config.somaworkflow_computing_resources_config,
-                       swf_resource):
-            setattr(study_config.somaworkflow_computing_resources_config,
-                    swf_resource, {})
-        resource_conf = getattr(
-            study_config.somaworkflow_computing_resources_config, swf_resource)
-        path_translations = resource_conf.path_translations
-        setattr(path_translations, study_config.shared_directory,
-                ['brainvisa', 'de25977f-abf5-9f1c-4384-2585338cd7af'])
+        if not self._workflow_controller.scheduler_config:
+            # remote config only
+            # FIXME: must check if brainvisa shared dir is known in translation
+            # config in soma-workflow
+            if not study_config.somaworkflow_computing_resources_config.trait(
+                    swf_resource):
+                setattr(study_config.somaworkflow_computing_resources_config,
+                        swf_resource, {})
+            resource_conf = getattr(
+                study_config.somaworkflow_computing_resources_config,
+                swf_resource)
+            path_translations = resource_conf.path_translations
+            setattr(path_translations, study_config.shared_directory,
+                    ['brainvisa', 'de25977f-abf5-9f1c-4384-2585338cd7af'])
 
         #self._check_input_files(subject_ids)
         workflow = self._create_workflow(subject_ids)
