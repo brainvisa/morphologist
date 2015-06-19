@@ -7,6 +7,7 @@ from morphologist.core.study import SubjectExistsError
 from morphologist.core.subject import Subject
 from morphologist.core.study import Study
 from morphologist.core.tests.study import MockStudyTestCase
+from morphologist.core.tests.mocks.study import MockStudy
 
 
 class TestStudy(unittest.TestCase):
@@ -18,6 +19,9 @@ class TestStudy(unittest.TestCase):
         self.subject = Subject(self.test_case.subjectnames[0], 
                                self.test_case.groupnames[0], 
                                self.test_case.filenames[0]) 
+
+    def tearDown(self):
+        shutil.rmtree(self.study.output_directory)
  
     def create_test_case(self):
         test_case = MockStudyTestCase()
@@ -66,8 +70,8 @@ class TestStudy(unittest.TestCase):
 
     def test_create_study_from_organized_directory(self):
         self.test_case.add_subjects()
-        new_study = Study.from_organized_directory(self.study.analysis_type, 
-                                                   self.study.output_directory)
+        new_study = MockStudy.from_organized_directory(
+            self.study.analysis_type, self.study.output_directory)
         self._assert_same_studies(new_study, self.study)
 
     def _assert_same_studies(self, study_a, study_b):
@@ -82,3 +86,4 @@ class TestStudy(unittest.TestCase):
 if __name__=='__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestStudy)
     unittest.TextTestRunner(verbosity=2).run(suite)
+    os.unlink('/tmp/mock_fom.json')

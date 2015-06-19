@@ -16,7 +16,7 @@ class AbstractStudyTestCase(object):
 
     def create_study(self):
         self.study = Study(analysis_type=self.analysis_type,
-                           name=self.studyname,
+                           study_name=self.studyname,
                            output_directory=self.output_directory)
         return self.study
 
@@ -43,7 +43,7 @@ class AbstractStudyTestCase(object):
 
     def step_to_wait_testcase_3(self):
         raise NotImplementedError("AbstractStudyTestCase is an abstract class")
-    
+
     def get_a_subject_id(self):
         first_subject_id = next(self.study.subjects.iterkeys())
         return first_subject_id
@@ -65,15 +65,17 @@ class MockStudyTestCase(AbstractStudyTestCase):
         reset_directory(self.output_directory)
 
     def delete_some_input_files(self):
-        parameter_names = ['input_2', 'input_5']
+        parameter_names = ['input_image']
         for name in parameter_names:
-            file_name = self.study.analyses.values()[1].inputs.get_value(name)
+            file_name = getattr(
+                self.study.analyses.values()[1].pipeline.process, name)
             remove_file(file_name)
 
     def create_some_output_files(self):
-        parameter_names = ['output_1', 'output_4']
+        parameter_names = ['output_image']
         for name in parameter_names:
-            file_name = self.study.analyses.values()[0].outputs.get_value(name)
+            file_name = getattr(
+                self.study.analyses.values()[0].pipeline.process, name)
             f = open(file_name, "w")
             f.write("something\n")
             f.close()

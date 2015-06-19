@@ -25,7 +25,7 @@ fom_content = '''{
     },
 
     "shared_patterns": {
-      "subject": "<subject>"
+      "subject": "<group>-<subject>"
     },
 
     "processes": {
@@ -65,6 +65,7 @@ class MockAnalysis(SharedPipelineAnalysis):
 
     def get_attributes(self, subject):
         attributes_dict = {
+            'group': subject.groupname,
             'subject': subject.name,
         }
         return attributes_dict
@@ -74,7 +75,10 @@ class MockAnalysis(SharedPipelineAnalysis):
         super(MockAnalysis, self).set_parameters(subject)
 
     def import_data(self, subject):
-        return None
+        self.propagate_parameters()
+        filename = self.pipeline.process.input_image
+        open(filename, 'w').write('blah.\n')
+        return filename
 
 
 class MockFailedAnalysis(MockAnalysis):
