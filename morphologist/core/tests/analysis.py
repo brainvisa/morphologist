@@ -1,4 +1,5 @@
 import os
+import traits.api as traits
 
 from morphologist.core.subject import Subject
 from morphologist.core.tests.mocks.analysis import MockAnalysis
@@ -14,9 +15,8 @@ class AnalysisTestCase(object):
     def analysis_cls(self):
         raise NotImplementedError("AnalysisTestCase is an abstract class")
 
-    def create_analysis(self):
-        param_template = self.analysis_cls().create_default_parameter_template(self.output_directory)
-        self.analysis = self.analysis_cls()(param_template)
+    def create_analysis(self, study):
+        self.analysis = self.analysis_cls()(study)
         return self.analysis
 
     def set_analysis_parameters(self):
@@ -47,13 +47,13 @@ class MockAnalysisTestCase(AnalysisTestCase):
         self.analysis.set_parameters(subject=subject)
 
     def delete_some_parameter_values(self):
-        self.analysis.outputs.output_3 = None
-        self.analysis.inputs.input_4 = None
+        self.analysis.pipeline.process.output_image = traits.Undefined
+        self.analysis.pipeline.process.other_output = traits.Undefined
 
     def create_some_output_files(self):
-        parameter_names = ['output_1', 'output_4']
+        parameter_names = ['output_image', 'output_image']
         for name in parameter_names:
-            file_name = self.analysis.outputs.get_value(name)
+            file_name = getattr(self.analysis.pipeline.process, name)
             f = open(file_name, "w")
             f.write("something\n")
             f.close()

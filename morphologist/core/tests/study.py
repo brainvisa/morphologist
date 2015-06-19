@@ -1,6 +1,5 @@
 from morphologist.core.subject import Subject
 from morphologist.core.study import Study
-from morphologist.core.tests.mocks.analysis import MockParameterTemplate
 from morphologist.core.tests import reset_directory, remove_file
 
 
@@ -16,9 +15,9 @@ class AbstractStudyTestCase(object):
         self.filenames = None
 
     def create_study(self):
-        self.study = Study(analysis_type=self.analysis_type, name=self.studyname, 
-                           output_directory=self.output_directory,
-                           parameter_template_name=self.parameter_template_name())
+        self.study = Study(analysis_type=self.analysis_type,
+                           name=self.studyname,
+                           output_directory=self.output_directory)
         return self.study
 
     def add_subjects(self):
@@ -26,9 +25,6 @@ class AbstractStudyTestCase(object):
                                     self.groupnames, self.filenames):
             subject = Subject(subjectname, groupname, filename)
             self.study.add_subject(subject)
-
-    def parameter_template_name(self):
-        raise NotImplementedError('AbstractStudyTestCase is an abstract class')
 
     def delete_some_input_files(self):
         raise NotImplementedError("AbstractStudyTestCase is an abstract class")
@@ -68,9 +64,6 @@ class MockStudyTestCase(AbstractStudyTestCase):
         self.groupnames = [Subject.DEFAULT_GROUP] * len(self.subjectnames)
         reset_directory(self.output_directory)
 
-    def parameter_template_name(self):
-        return MockParameterTemplate.name
-
     def delete_some_input_files(self):
         parameter_names = ['input_2', 'input_5']
         for name in parameter_names:
@@ -108,4 +101,4 @@ class MockFailedStudyTestCase(MockStudyTestCase):
         super(MockFailedStudyTestCase, self).__init__()
         self.failed_step_id = "1_failed_step2"
         self.analysis_type = "MockFailedAnalysis"
-    
+

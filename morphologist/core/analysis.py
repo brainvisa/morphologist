@@ -4,7 +4,10 @@ import shutil
 import traits.api as traits
 
 from morphologist.core.utils import OrderedDict
+# CAPSUL
 from capsul.pipeline import pipeline_tools
+from capsul.process.process_with_fom import ProcessWithFom
+# AIMS
 from soma import aims
 
 class AnalysisFactory(object):
@@ -180,6 +183,106 @@ class Analysis(object):
                 todo += [(node, new_nodes.get(key, {}))
                          for key, node in old_nodes.iteritems()]
 
+
+class SharedPipelineAnalysis(Analysis):
+    '''
+    An Analysis containing a capsul Pipeline instance, shared with other
+    Analysis instances in the same study. The pipeline is wrapped in a
+    ProcessWithFom.
+    '''
+
+    def __init__(self, study):
+        super(SharedPipelineAnalysis, self).__init__(study)
+        if study.template_pipeline is None:
+            study.template_pipeline = ProcessWithFom(self.build_pipeline(),
+                                                     study)
+        # share the same instance of the pipeline to save memory and, most of
+        # all, instantiation time
+        self.pipeline = study.template_pipeline
+
+    def build_pipeline(self):
+        '''
+        Returns
+        -------
+        pipeline: Pipeline instance
+        '''
+        raise NotImplementedError("SharedPipelineAnalysis is an Abstract class. build_pipeline must be redefined.")
+
+    def set_parameters(self, subject):
+        self.create_fom_completion(subject)
+
+    def propagate_parameters(self):
+        pipeline_tools.set_pipeline_state_from_dict(
+            self.pipeline.process, self.parameters)
+
+    def get_attributes(self, subject):
+        raise NotImplementedError("SharedPipelineAnalysis is an Abstract class. get_attributes must be redefined.")
+
+    def create_fom_completion(self, subject):
+        pipeline = self.pipeline
+        attributes_dict = self.get_attributes(subject)
+        do_completion = False
+        for attribute, value in attributes_dict.iteritems():
+            if pipeline.attributes[attribute] != value:
+                pipeline.attributes[attribute] = value
+                do_completion = True
+        if do_completion:
+            #print 'create_completion for:', subject.id()
+            pipeline.create_completion()
+            self.parameters = pipeline_tools.dump_pipeline_state_as_dict(
+                self.pipeline.process)
+        #else: print 'skip completion for:', subject.id()
+
+    def clear_results(self, step_ids=None):
+        to_remove = self.existing_results(step_ids)
+        print 'files to be removed:'
+        print to_remove
+        for filename in to_remove:
+            filenames = self._files_for_format(filename)
+            for f in filenames:
+                if os.path.isfile(f):
+                    os.remove(f)
+                elif os.path.isdir(f):
+                    shutil.rmtree(f)
+
+    def _files_for_format(self, filename):
+        ext_map = {
+            'ima': ['ima', 'dim'],
+            'img': ['img', 'hdr'],
+            'arg': ['arg', 'data'],
+        }
+        ext_pos = filename.rfind('.')
+        if ext_pos < 0:
+            return [filename, filename + '.minf']
+        ext = filename[ext_pos + 1:]
+        exts = ext_map.get(ext, [ext])
+        fname_base = filename[:ext_pos + 1]
+        return [fname_base + ext for ext in exts] + [filename + '.minf']
+
+    def existing_results(self, step_ids=None):
+        pipeline = self.pipeline.process
+        self.propagate_parameters()
+        pipeline.enable_all_pipeline_steps()
+        if step_ids:
+            for pstep in pipeline.pipeline_steps.user_traits().keys():
+                if pstep not in step_ids:
+                    setattr(pipeline.pipeline_steps, pstep, False)
+        outputs = pipeline_tools.nodes_with_existing_outputs(
+            pipeline, recursive=True, exclude_inputs=True)
+        existing = set()
+        for node, item_list in outputs.iteritems():
+            existing.update([filename for param, filename in item_list])
+        # WARNING the main input may appear in outputs
+        # (reorientation steps)
+        for param_name, trait in pipeline.user_traits().iteritems():
+            if not trait.output:
+                value = getattr(pipeline, param_name)
+                if value in existing:
+                    existing.remove(value)
+        return existing
+
+    def has_some_results(self):
+        return bool(self.existing_results())
 
 
 class ImportationError(Exception):
