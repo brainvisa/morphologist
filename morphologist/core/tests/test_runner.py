@@ -35,7 +35,8 @@ class TestRunnerOnSuccessStudy(TestRunner):
     def test_run_all_subjects(self):
         self.runner.run()
 
-        self.assert_(self.runner.is_running(update_status=False) or self.study.has_all_results())
+        self.assert_(self.runner.is_running(update_status=False)
+                     or self.study.has_all_results())
 
     def test_run_selected_subjects(self):
         selected_subject_id = self.test_case.get_a_subject_id()
@@ -44,10 +45,14 @@ class TestRunnerOnSuccessStudy(TestRunner):
         update_status=True
         for subject_id in self.study.subjects:
             if subject_id == selected_subject_id:
-                self.assert_(self.runner.is_running(subject_id, update_status=update_status) or \
-                             self.study.has_all_results([subject_id]))
+                self.assert_(
+                    self.runner.is_running(subject_id,
+                                           update_status=update_status) or \
+                    self.study.has_all_results([subject_id]))
             else:
-                self.assert_(not self.runner.is_running(subject_id, update_status=update_status))
+                self.assert_(
+                    not self.runner.is_running(subject_id,
+                                               update_status=update_status))
             update_status = False
 
     def test_has_run(self):
@@ -83,7 +88,8 @@ class TestRunnerOnSuccessStudy(TestRunner):
         subject_id, step_id = self.test_case.step_to_wait_testcase_3()
         self._test_clear_state_after_waiting_a_given_step(subject_id, step_id)
 
-    def _test_clear_state_after_waiting_a_given_step(self, subject_id, step_id):
+    def _test_clear_state_after_waiting_a_given_step(self, subject_id,
+                                                     step_id):
         self.runner.run()
         self.runner.wait(subject_id, step_id)
         if self.runner.is_running(): self.runner.stop()
@@ -133,7 +139,8 @@ if __name__=='__main__':
                       help="Execute only this test function.")
     options, _ = parser.parse_args(sys.argv)
     if options.test is None:
-        suite = unittest.TestLoader().loadTestsFromTestCase(TestSomaWorkflowRunner)
+        suite = unittest.TestLoader().loadTestsFromTestCase(
+            TestSomaWorkflowRunner)
         unittest.TextTestRunner(verbosity=2).run(suite)
     else:
         test_suite = unittest.TestSuite([TestSomaWorkflowRunner(options.test)])
