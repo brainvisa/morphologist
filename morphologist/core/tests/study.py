@@ -86,15 +86,15 @@ class MockStudyTestCase(AbstractStudyTestCase):
 
     def step_to_wait_testcase_1(self):
         subject_id = self.get_a_subject_id()
-        return subject_id, "0_step1"
+        return subject_id, "step1"
 
     def step_to_wait_testcase_2(self):
         subject_id = self.get_a_subject_id()
-        return subject_id, "1_step2"
+        return subject_id, "step2"
 
     def step_to_wait_testcase_3(self):
         subject_id = self.get_a_subject_id()
-        return subject_id, "2_step3"
+        return subject_id, "step3"
 
 
 class MockFailedStudyTestCase(MockStudyTestCase):

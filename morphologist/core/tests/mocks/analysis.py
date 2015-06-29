@@ -60,8 +60,12 @@ class MockAnalysis(SharedPipelineAnalysis):
         self._steps = []
 
     def build_pipeline(self):
-        return get_process_instance(
+        pipeline = get_process_instance(
             'capsul.pipeline.test.test_pipeline.MyPipeline')
+        pipeline.add_pipeline_step('step1', ['constant'])
+        pipeline.add_pipeline_step('step2', ['node1'])
+        pipeline.add_pipeline_step('step3', ['node2'])
+        return pipeline
 
     def get_attributes(self, subject):
         attributes_dict = {
