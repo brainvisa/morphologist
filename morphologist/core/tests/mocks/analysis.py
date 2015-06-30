@@ -87,9 +87,17 @@ class MockAnalysis(SharedPipelineAnalysis):
     def get_output_file_parameter_names(self):
         return ['output_image']
 
+
 class MockFailedAnalysis(MockAnalysis):
 
-    pass
+    def build_pipeline(self):
+        def failing_commandline():
+            return ["I fail, this is what I am supposed to do."]
+
+        pipeline = super(MockFailedAnalysis, self).build_pipeline()
+        failing_process = pipeline.nodes['node1'].process
+        failing_process.get_commandline = failing_commandline
+        return pipeline
 
 
 def main():

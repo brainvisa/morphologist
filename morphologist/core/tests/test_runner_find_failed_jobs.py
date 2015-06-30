@@ -380,7 +380,15 @@ class TestGraph(unittest.TestCase):
         self._test_graph(graph, result)
 
     def _test_graph(self, graph, result):
-        failed_jobs = SomaWorkflowRunner._sw_really_failed_jobs_from_dep_graph(graph)    
+        # FIXME this test doesn't work, Runner API does not have the required
+        # functions.
+        #failed_jobs \
+            #= SomaWorkflowRunner._sw_really_failed_jobs_from_dep_graph(graph)
+        study = self.study
+        runner = SomaWorkflowRunner(study)
+        runner.set_jobs_state(graph)
+        failed_jobs \
+            = [job for job, status in runner._get_jobs_status()]
         failed_jobs_id = [failed_job.job_id for failed_job in failed_jobs]
         self.assertEqual(failed_jobs_id, result)
 

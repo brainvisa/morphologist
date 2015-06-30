@@ -101,6 +101,6 @@ class MockFailedStudyTestCase(MockStudyTestCase):
 
     def __init__(self):
         super(MockFailedStudyTestCase, self).__init__()
-        self.failed_step_id = "1_failed_step2"
+        self.failed_step_id = "step2"
         self.analysis_type = "MockFailedAnalysis"
 
