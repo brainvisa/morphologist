@@ -111,12 +111,18 @@ class TestRunnerOnSuccessStudy(TestRunner):
         for subject_id in self.study.subjects:
             analysis = self.study.analyses[subject_id]
             #FIXME: _step_ids is private, only used in this test
-            for step_id, step in analysis._step_ids.iteritems():
-                status = self.runner.get_status(subject_id, step_id, update_status=False)
+            for step_id in \
+                    analysis.pipeline.process.pipeline_steps.user_traits():
+                print 'STEP:', step_id
+                status = self.runner.get_status(subject_id, step_id,
+                                                update_status=False)
+                print 'STATUS:', status
                 if status == Runner.SUCCESS:
-                    self.assertTrue(step.outputs.all_file_exists())
+                    self.assertTrue(
+                        analysis.has_all_results(step_ids=[step_id]))
                 elif status == Runner.STOPPED_BY_USER:
-                    self.assertTrue(not step.outputs.some_file_exists())
+                    self.assertTrue(
+                        not analysis.has_some_results(step_ids=[step_id]))
                 else:
                     self.assertTrue(0)
 

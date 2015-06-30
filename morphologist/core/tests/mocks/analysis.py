@@ -84,6 +84,8 @@ class MockAnalysis(SharedPipelineAnalysis):
         open(filename, 'w').write('blah.\n')
         return filename
 
+    def get_output_file_parameter_names(self):
+        return ['output_image']
 
 class MockFailedAnalysis(MockAnalysis):
 

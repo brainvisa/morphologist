@@ -131,17 +131,10 @@ class IntraAnalysis(SharedPipelineAnalysis):
         if os.path.isdir(subject_dir):
             shutil.rmtree(subject_dir)
 
-    def has_all_results(self):
+    def get_output_file_parameter_names(self):
         # here we use the hard-coded outputs list in
         # IntraAnalysisParameterNames since we cannot determine automatically
         # from a pipeline if all outputs are expected or not (many are
         # optional, but still useful in our context)
-        self.propagate_parameters()
-        pipeline = self.pipeline.process
-        for parameter in \
-                IntraAnalysisParameterNames.get_output_file_parameter_names():
-            value = getattr(pipeline, parameter)
-            if not isinstance(value, basestring) or not os.path.exists(value):
-                return False
-        return True
+        return IntraAnalysisParameterNames.get_output_file_parameter_names()
 

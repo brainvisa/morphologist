@@ -75,63 +75,43 @@ class Analysis(object):
     def propagate_parameters(self):
         raise NotImplementedError("Analysis is an Abstract class. propagate_parameter must be redefined.") 
 
-    def has_some_results(self):
+    def list_input_parameters_with_existing_files(self):
+        raise NotImplementedError("Analysis is an Abstract class. list_input_parameters_with_existing_files must be redefined.")
+
+    def list_output_parameters_with_existing_files(self):
+        raise NotImplementedError("Analysis is an Abstract class. list_output_parameters_with_existing_files must be redefined.")
+
+    def has_some_results(self, step_ids=None):
         raise NotImplementedError("Analysis is an Abstract class. has_some_results must be redefined.")
 
-    def has_all_results(self):
+    def has_all_results(self, step_ids=None):
         raise NotImplementedError("Analysis is an Abstract class. has_all_results must be redefined.")
 
     def clear_results(self, step_ids=None):
-        raise NotImplementedError("Analysis is an Abstract class. clear_results must be redefined.")
+        to_remove = self.existing_results(step_ids)
+        #print 'files to be removed:'
+        #print to_remove
+        for filename in to_remove:
+            filenames = self._files_for_format(filename)
+            for f in filenames:
+                if os.path.isfile(f):
+                    os.remove(f)
+                elif os.path.isdir(f):
+                    shutil.rmtree(f)
 
-    def list_input_parameters_with_existing_files(self):
-        pipeline = self.pipeline.process
-        subject = self.subject
-        if subject is None:
-            return False
-        self.propagate_parameters()
-        param_names = [param_name
-                       for param_name, trait
-                          in pipeline.user_traits().iteritems()
-                       if not trait.output
-                          and (isinstance(trait.trait_type, traits.File)
-                               or isinstance(trait.trait_type,
-                                             traits.Directory)
-                               or isinstance(trait.trait_type, traits.Any))]
-        params = {}
-        for param_name in param_names:
-            value = getattr(pipeline, param_name)
-            if isinstance(value, basestring) and os.path.exists(value):
-                params[param_name] = value
-        return params
-
-    def list_output_parameters_with_existing_files(self):
-        pipeline = self.pipeline.process
-        subject = self.subject
-        if subject is None:
-            return False
-        self.propagate_parameters()
-        param_names = [param_name
-                       for param_name, trait
-                          in pipeline.user_traits().iteritems()
-                       if trait.output
-                          and (isinstance(trait.trait_type, traits.File)
-                               or isinstance(trait.trait_type,
-                                             traits.Directory)
-                               or isinstance(trait.trait_type, traits.Any))]
-        params = {}
-        for param_name in param_names:
-            value = getattr(pipeline, param_name)
-            if isinstance(value, basestring) and os.path.exists(value):
-                params[param_name] = value
-        return params
-
-        #existing =  pipeline_tools.nodes_with_existing_outputs(
-            #self.pipeline.process)
-        #params = []
-        #for node_name, values in  existing.iteritems():
-            #parmams.update(dict(values))
-        #return params
+    def _files_for_format(self, filename):
+        ext_map = {
+            'ima': ['ima', 'dim'],
+            'img': ['img', 'hdr'],
+            'arg': ['arg', 'data'],
+        }
+        ext_pos = filename.rfind('.')
+        if ext_pos < 0:
+            return [filename, filename + '.minf']
+        ext = filename[ext_pos + 1:]
+        exts = ext_map.get(ext, [ext])
+        fname_base = filename[:ext_pos + 1]
+        return [fname_base + ext for ext in exts] + [filename + '.minf']
 
     def convert_from_formats(self, old_volumes_format, old_meshes_format):
         def _convert_data(old_name, new_name):
@@ -233,32 +213,6 @@ class SharedPipelineAnalysis(Analysis):
                 self.pipeline.process)
         #else: print 'skip completion for:', subject.id()
 
-    def clear_results(self, step_ids=None):
-        to_remove = self.existing_results(step_ids)
-        print 'files to be removed:'
-        print to_remove
-        for filename in to_remove:
-            filenames = self._files_for_format(filename)
-            for f in filenames:
-                if os.path.isfile(f):
-                    os.remove(f)
-                elif os.path.isdir(f):
-                    shutil.rmtree(f)
-
-    def _files_for_format(self, filename):
-        ext_map = {
-            'ima': ['ima', 'dim'],
-            'img': ['img', 'hdr'],
-            'arg': ['arg', 'data'],
-        }
-        ext_pos = filename.rfind('.')
-        if ext_pos < 0:
-            return [filename, filename + '.minf']
-        ext = filename[ext_pos + 1:]
-        exts = ext_map.get(ext, [ext])
-        fname_base = filename[:ext_pos + 1]
-        return [fname_base + ext for ext in exts] + [filename + '.minf']
-
     def existing_results(self, step_ids=None):
         pipeline = self.pipeline.process
         self.propagate_parameters()
@@ -281,8 +235,100 @@ class SharedPipelineAnalysis(Analysis):
                     existing.remove(value)
         return existing
 
-    def has_some_results(self):
-        return bool(self.existing_results())
+    def has_some_results(self, step_ids=None):
+        return bool(self.existing_results(step_ids=step_ids))
+
+    def list_input_parameters_with_existing_files(self):
+        pipeline = self.pipeline.process
+        subject = self.subject
+        if subject is None:
+            return False
+        self.propagate_parameters()
+        param_names = [param_name
+                       for param_name, trait
+                          in pipeline.user_traits().iteritems()
+                       if not trait.output
+                          and (isinstance(trait.trait_type, traits.File)
+                               or isinstance(trait.trait_type,
+                                             traits.Directory)
+                               or isinstance(trait.trait_type, traits.Any))]
+        params = {}
+        for param_name in param_names:
+            value = getattr(pipeline, param_name)
+            if isinstance(value, basestring) and os.path.exists(value):
+                params[param_name] = value
+        return params
+
+    def list_output_parameters_with_existing_files(self):
+        pipeline = self.pipeline.process
+        subject = self.subject
+        if subject is None:
+            return False
+        self.propagate_parameters()
+        param_names = [param_name
+                       for param_name, trait
+                          in pipeline.user_traits().iteritems()
+                       if trait.output
+                          and (isinstance(trait.trait_type, traits.File)
+                               or isinstance(trait.trait_type,
+                                             traits.Directory)
+                               or isinstance(trait.trait_type, traits.Any))]
+        params = {}
+        for param_name in param_names:
+            value = getattr(pipeline, param_name)
+            if isinstance(value, basestring) and os.path.exists(value):
+                params[param_name] = value
+        return params
+
+        #existing =  pipeline_tools.nodes_with_existing_outputs(
+            #self.pipeline.process)
+        #params = []
+        #for node_name, values in  existing.iteritems():
+            #parmams.update(dict(values))
+        #return params
+
+    def is_parameter_in_steps(self, param_name, step_ids=None):
+        if step_ids is None:
+            return True
+        pipeline = self.pipeline.process
+        plug = pipeline.pipeline_node.plugs[param_name]
+        steps_nodes = set()
+        for step_id, trait \
+                in pipeline.pipeline_steps.user_traits().iteritems():
+            if step_id in step_ids:
+                steps_nodes.update(trait.nodes)
+        if plug.output:
+            links = plug.links_from
+        else:
+            links = plug.links_to
+        # TODO: propagate through switches
+        for link in links:
+            node = link[2]
+            if node in steps_nodes:
+                return True
+        return False
+
+    def get_output_file_parameter_names(self):
+        # here we use the hard-coded outputs list in
+        # IntraAnalysisParameterNames since we cannot determine automatically
+        # from a pipeline if all outputs are expected or not (many are
+        # optional, but still useful in our context)
+        raise NotImplementedError("SharedPipelineAnalysis is an Abstract class. get_output_file_parameter_names must be redefined.")
+
+    def has_all_results(self, step_ids=None):
+        # here we use the hard-coded outputs list in
+        # IntraAnalysisParameterNames since we cannot determine automatically
+        # from a pipeline if all outputs are expected or not (many are
+        # optional, but still useful in our context)
+        self.propagate_parameters()
+        pipeline = self.pipeline.process
+        for parameter in self.get_output_file_parameter_names():
+            if self.is_parameter_in_steps(parameter, step_ids=step_ids):
+                value = getattr(pipeline, parameter)
+                if not isinstance(value, basestring) \
+                        or not os.path.exists(value):
+                    return False
+        return True
 
 
 class ImportationError(Exception):
