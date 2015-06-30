@@ -34,30 +34,31 @@ class Runner(object):
     SUCCESS = 0x4
     STOPPED_BY_USER = 0x8
     UNKNOWN = 0x10
+    ABORTED = 0x20  # job not started but aborted after user interruption
     INTERRUPTED = FAILED | STOPPED_BY_USER
-    
+
     def __init__(self, study):
         super(Runner, self).__init__()
         self._study = study
 
     def run(self, subject_ids=ALL_SUBJECTS):
         raise NotImplementedError("Runner is an abstract class.")
-    
+
     def is_running(self, subject_id=None, step_id=None, update_status=True):
         raise NotImplementedError("Runner is an abstract class.")
-    
+
     def get_running_step_ids(self, subject_id, update_status=True):
         raise NotImplementedError("Runner is an abstract class.")
-        
+
     def wait(self, subject_id=None, step_id=None):
         raise NotImplementedError("Runner is an abstract class.")
-    
+
     def has_failed(self, subject_id=None, step_id=None, update_status=True):
         raise NotImplementedError("Runner is an abstract class.")
 
     def get_failed_step_ids(self, subject_id, update_status=True):
         raise NotImplementedError("Runner is an abstract class.")
-    
+
     def stop(self, subject_id=None, step_id=None):
         raise NotImplementedError("Runner is an abstract class.")
 
@@ -77,7 +78,7 @@ class Runner(object):
     def set_study(self, study):
         self._study = study
 
- 
+
 class MissingInputFileError(Exception):
     pass
 
@@ -190,7 +191,7 @@ class  SomaWorkflowRunner(Runner):
         self._workflow_id = self._workflow_controller.submit_workflow(
             workflow, name=workflow.name)
         self._build_jobid_to_step()
-        # the status does not change immediately after run, 
+        # the status does not change immediately after run,
         # so we wait for the status WORKFLOW_IN_PROGRESS or timeout
         status = self._workflow_controller.workflow_status(self._workflow_id)
         try_count = 8
@@ -276,7 +277,7 @@ class  SomaWorkflowRunner(Runner):
                             print 'job without mapping, subject: %s, job: %s' \
                                 % (subjectid, job.name)
 
-    def _define_workflow_name(self): 
+    def _define_workflow_name(self):
         return self._study.name + " " + self.WORKFLOW_NAME_SUFFIX
 
     def is_running(self, subject_id=None, step_id=None, update_status=True):
@@ -308,7 +309,7 @@ class  SomaWorkflowRunner(Runner):
 
     def has_failed(self, subject_id=None, step_id=None, update_status=True):
         status = self.get_status(subject_id, step_id, update_status)
-        return status == Runner.FAILED
+        return (status & Runner.FAILED) or (status & Runner.ABORTED)
 
     def get_failed_step_ids(self, subject_id, update_status=True):
         if update_status:
@@ -372,7 +373,8 @@ class  SomaWorkflowRunner(Runner):
         return status
 
     def _get_workflow_status(self):
-        sw_status = self._workflow_controller.workflow_status(self._workflow_id)
+        sw_status \
+            = self._workflow_controller.workflow_status(self._workflow_id)
         if (sw_status in [sw.constants.WORKFLOW_IN_PROGRESS,
                           sw.constants.WORKFLOW_NOT_STARTED]):
             status = Runner.RUNNING
@@ -402,34 +404,36 @@ class  SomaWorkflowRunner(Runner):
                 elif job_status & Runner.UNKNOWN:
                     status = job_status
         return status
-        
+
     def _get_step_status(self, subject_id, step_id, update_status=True):
         status = Runner.NOT_STARTED
         subject_jobs = self._get_subject_jobs(subject_id)
         if subject_jobs:
+            # WARNING: assumes only 1 job per step. FIXME.
             job_id = subject_jobs[step_id, "step_id"]
             jobs_status = self._get_jobs_status(update_status)
             status = jobs_status[job_id]
         return status
-    
+
     def _get_subject_jobs(self, subject_id):
         return self._jobid_to_step.get(subject_id, [])
-        
+
     def _get_jobs_status(self, update_status=True):
         if update_status or self._cached_jobs_status is None:
             self._update_jobs_status()
         return self._cached_jobs_status
-        
+
     def _update_jobs_status(self):
         jobs_status = {} # job_id -> status
         job_info_seq = self._workflow_controller.workflow_elements_status(
             self._workflow_id)[0]
         for job_id, sw_status, _, exit_info, _ in job_info_seq:
             exit_status, exit_value, _, _ = exit_info
-            status = self._sw_status_to_runner_status(sw_status, exit_status, exit_value)
+            status = self._sw_status_to_runner_status(sw_status, exit_status,
+                                                      exit_value)
             jobs_status[job_id] = status
         self._cached_jobs_status = jobs_status
-        
+
     def _sw_status_to_runner_status(self, sw_status, exit_status, exit_value):
         if sw_status in [sw.constants.FAILED,
                          sw.constants.DELETE_PENDING,
@@ -438,19 +442,20 @@ class  SomaWorkflowRunner(Runner):
             if exit_status == sw.constants.USER_KILLED:
                 status = Runner.STOPPED_BY_USER
             elif exit_status == sw.constants.EXIT_ABORTED:
-                status = Runner.NOT_STARTED
+                status = Runner.ABORTED
             else:
                 status = Runner.FAILED
         elif sw_status == sw.constants.DONE:
             status = Runner.SUCCESS
-        # XXX status UNDERTERMINED  is supposed to be a transitory status 
+        # XXX status UNDERTERMINED  is supposed to be a transitory status
         # after or before the running status
-        elif sw_status in [sw.constants.RUNNING, sw.constants.QUEUED_ACTIVE, 
-                           sw.constants.SUBMISSION_PENDING, sw.constants.UNDETERMINED]:
+        elif sw_status in [sw.constants.RUNNING, sw.constants.QUEUED_ACTIVE,
+                           sw.constants.SUBMISSION_PENDING,
+                           sw.constants.UNDETERMINED]:
             status = Runner.RUNNING
         elif sw_status == sw.constants.NOT_SUBMITTED:
             status = Runner.NOT_STARTED
-        else: 
+        else:
             # WARNING, SYSTEM_ON_HOLD, USER_ON_HOLD,
             # USER_SYSTEM_ON_HOLD, SYSTEM_SUSPENDED, USER_SUSPENDED,
             # USER_SYSTEM_SUSPENDED
