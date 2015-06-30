@@ -110,7 +110,6 @@ class TestRunnerOnSuccessStudy(TestRunner):
     def assert_output_files_exist_only_for_succeed_steps_after_stop(self):
         for subject_id in self.study.subjects:
             analysis = self.study.analyses[subject_id]
-            #FIXME: _step_ids is private, only used in this test
             for step_id in \
                     analysis.pipeline.process.pipeline_steps.user_traits():
                 status = self.runner.get_status(subject_id, step_id,
@@ -118,7 +117,10 @@ class TestRunnerOnSuccessStudy(TestRunner):
                 if status == Runner.SUCCESS:
                     self.assertTrue(
                         analysis.has_all_results(step_ids=[step_id]))
-                elif status in (Runner.STOPPED_BY_USER, Runner.ABORTED):
+                elif status in (Runner.STOPPED_BY_USER,
+                                Runner.FAILED,
+                                Runner.ABORTED_NOTRUN,
+                                Runner.INTERRUPTED):
                     self.assertTrue(
                         not analysis.has_some_results(step_ids=[step_id]))
                 else:

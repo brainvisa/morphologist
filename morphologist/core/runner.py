@@ -34,7 +34,7 @@ class Runner(object):
     SUCCESS = 0x4
     STOPPED_BY_USER = 0x8
     UNKNOWN = 0x10
-    ABORTED = 0x20  # job not started but aborted after user interruption
+    ABORTED_NOTRUN = 0x20  # job not started but aborted
     INTERRUPTED = FAILED | STOPPED_BY_USER
 
     def __init__(self, study):
@@ -309,7 +309,7 @@ class  SomaWorkflowRunner(Runner):
 
     def has_failed(self, subject_id=None, step_id=None, update_status=True):
         status = self.get_status(subject_id, step_id, update_status)
-        return (status & Runner.FAILED) or (status & Runner.ABORTED)
+        return (status & Runner.FAILED) or (status & Runner.ABORTED_NOTRUN)
 
     def get_failed_step_ids(self, subject_id, update_status=True):
         if update_status:
@@ -441,8 +441,8 @@ class  SomaWorkflowRunner(Runner):
             (exit_value is not None and exit_value != 0):
             if exit_status == sw.constants.USER_KILLED:
                 status = Runner.STOPPED_BY_USER
-            elif exit_status == sw.constants.EXIT_ABORTED:
-                status = Runner.ABORTED
+            elif exit_status == sw.constants.EXIT_NOTRUN:
+                status = Runner.ABORTED_NOTRUN
             else:
                 status = Runner.FAILED
         elif sw_status == sw.constants.DONE:
