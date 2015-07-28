@@ -45,19 +45,38 @@
 <h1>Morphologist-UI<a class="headerlink" href="#morphologist-ui" title="Permalink to this headline">¶</a></h1>
 <p>Morphologist is a neuroimaging software dedicated to cortical analysis and sulcal morphometry. See <a class="reference external" href="http://brainvisa.info">http://brainvisa.info</a>.</p>
 <p>Morphologist-UI is a user-friendly interface to the Morphologist pipeline. It is based on the same processing chain, and offers interactive visualization using <a class="reference external" href="http://brainvisa.info">anatomist</a>.</p>
+<img alt="_images/morphologist-ui.jpg" src="_images/morphologist-ui.jpg" />
+<p>It allows:</p>
+<ul class="simple">
+<li>MRI segmentation</li>
+<li>Brain sulci extraction and automatic identification</li>
+<li>Sulcal morphometry</li>
+<li>Fast, interactive visualization of results to allow visual QC</li>
+</ul>
+<p>Featuring:</p>
+<ul class="simple">
+<li>Runs in parallel on one or a set of MRI images</li>
+<li>Fast: about 10-15 minutes per subject for the full pipeline</li>
+<li>Robust: Morphologist has processed several tenths of thousands of brains</li>
+<li>Possibly using a remote processing cluster</li>
+</ul>
 <div class="section" id="users">
 <h2>Users<a class="headerlink" href="#users" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="running">
-<h3>Running<a class="headerlink" href="#running" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="installation">
+<h3>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h3>
+<p>Users distributions are (will be) available on <a class="reference external" href="http://brainvisa.info">http://brainvisa.info</a></p>
+</div>
+<div class="section" id="starting-the-program">
+<h3>Starting the program<a class="headerlink" href="#starting-the-program" title="Permalink to this headline">¶</a></h3>
 <p>Run the executable script <tt class="docutils literal"><span class="pre">morphologist-ui.py</span></tt> in the <tt class="docutils literal"><span class="pre">bin/</span></tt> directory of the BrainVisa/Morphologist distribution.</p>
 </div>
 <div class="section" id="configuration">
 <h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
 <p>Use the appropriate menu to setup your data locations and other options.</p>
 </div>
-<div class="section" id="id1">
-<h3>Running<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<p>Process several or all subjects. Run in parallel using <a class="reference external" href="../../soma-workflow-2.7/sphinx/index.html">Soma-Workflow</a>.
+<div class="section" id="processing">
+<h3>Processing<a class="headerlink" href="#processing" title="Permalink to this headline">¶</a></h3>
+<p>Process several or all subjects. Run in parallel using <a class="reference external" href="http://brainvisa.info/soma/soma-workflow/index.html">Soma-Workflow</a>.
 Results appear in the display window at the time they are available.</p>
 </div>
 </div>
@@ -81,9 +100,10 @@ Results appear in the display window at the time they are available.</p>
   <ul>
 <li><a class="reference internal" href="#">Morphologist-UI</a><ul>
 <li><a class="reference internal" href="#users">Users</a><ul>
-<li><a class="reference internal" href="#running">Running</a></li>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#starting-the-program">Starting the program</a></li>
 <li><a class="reference internal" href="#configuration">Configuration</a></li>
-<li><a class="reference internal" href="#id1">Running</a></li>
+<li><a class="reference internal" href="#processing">Processing</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#developers">Developers</a></li>
