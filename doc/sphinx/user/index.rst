@@ -8,6 +8,20 @@ Morphologist-UI is a user-friendly interface to the Morphologist pipeline. It is
 
 .. image:: _static/morphologist-ui.jpg
 
+It allows:
+
+* MRI segmentation
+* Brain sulci extraction and automatic identification
+* Sulcal morphometry
+* Fast, interactive visualization of results to allow visual QC
+
+Featuring:
+
+* Runs in parallel on one or a set of MRI images
+* Fast: about 10-15 minutes per subject for the full pipeline
+* Robust: Morphologist has processed several tenths of thousands of brains
+* Possibly using a remote processing cluster
+
 Users
 =====
 
