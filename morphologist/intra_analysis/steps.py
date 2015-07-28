@@ -6,7 +6,7 @@ class SpatialNormalization(StepHelp):
     def __init__(self):
         super(SpatialNormalization, self).__init__()
         self.name = 'orientation'
-        self.description = "<h4>Spatial normalization using SPM8 standalone.</h4>"
+        self.description = "<h4>Spatial normalization using SPM8 or SPM12 standalone.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p>You should check your SPM installation.</p>
 <p>The normalization step is using SPM8, preferably the standalone version, which is compiled and does not need Matlab. Alternatively, Morphologist should be able to use the Matlab-based regular SPM8.</p>
@@ -115,7 +115,7 @@ class WhiteSurface(StepHelp):
     def __init__(self, side='left'):
         super(WhiteSurface, self).__init__()
         self.name = 'white_surface_%s' % side
-        self.description = "<h4>White surface using morphologist.intra_analysis.commands.surface.</h4>"
+        self.description = "<h4>White surface.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: some commands may not be found.</li>
 <li>Normally, this step should not fail...</li>
@@ -128,7 +128,7 @@ class GreySurface(StepHelp):
     def __init__(self, side='left'):
         super(GreySurface, self).__init__()
         self.name = 'grey_surface_%s' % side
-        self.description = "<h4>Grey surface using morphologist.intra_analysis.commands.grey_surface.</h4>"
+        self.description = "<h4>Grey surface.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: some commands may not be found.</li>
 <li>Normally, this step should not fail...</li>
@@ -141,7 +141,7 @@ class Sulci(StepHelp):
     def __init__(self, side='left'):
         super(Sulci, self).__init__()
         self.name = 'sulci_%s' % side
-        self.description = "<h4>Sulci extraction using morphologist.intra_analysis.commands.sulci.</h4>"
+        self.description = "<h4>Sulci extraction.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: some commands may not be found.</li>
 <li>Normally, this step should not fail...</li>
@@ -154,7 +154,7 @@ class SulciLabelling(StepHelp):
     def __init__(self, side='left'):
         super(SulciLabelling, self).__init__()
         self.name = 'sulci_labelling_%s' % side
-        self.description = "<h4>Sulci labelling using morphologist.intra_analysis.commands.sulci_labelling.</h4>"
+        self.description = "<h4>Sulci labelling.</h4>"
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: some commands may not be found.</li>
 <li>Also check that the <b>sulci SPAM models</b> are correctly downloaded and installed. To do so:
@@ -174,7 +174,7 @@ class Morphometry(StepHelp):
     def __init__(self):
         super(Morphometry, self).__init__()
         self.name = 'morphometry'
-        self.description = "<h4>Morphometry using morphologist.intra_analysis.commands.morphometry.</h4>"
+        self.description = "<h4>Morphometry.</h4>"
         self.help_message = '' #TODO
 
     #def _get_inputs(self):
