@@ -17,6 +17,6 @@ BRAINVISA_ADD_EXECUTABLE( "morphologist-ui.py"
 
 find_package( Sphinx )
 BRAINVISA_GENERATE_SPHINX_DOC( "doc/sphinx/user"
-  "share/doc/morphologist-ui-${BRAINVISA_PACKAGE_VERSION_MAJOR}.${BRAINVISA_PACKAGE_VERSION_MINOR}/user_doc" USER )
+  "share/doc/morphologist-ui-${BRAINVISA_PACKAGE_VERSION_MAJOR}.${BRAINVISA_PACKAGE_VERSION_MINOR}" USER )
 BRAINVISA_GENERATE_SPHINX_DOC( "doc/sphinx/dev"
   "share/doc/morphologist-ui-${BRAINVISA_PACKAGE_VERSION_MAJOR}.${BRAINVISA_PACKAGE_VERSION_MINOR}/dev_doc" )

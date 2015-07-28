@@ -288,7 +288,7 @@ extlinks = {
                '/brainrat_man/en/html/%s', 'brainrat '),
   'web': ('http://brainvisa.info/%s', 'brainvisa '),
   'documentation': ('../../%s', 'docs '),
-  'morphouidev': ('../dev_doc/%s', 'moprhouidev '),
+  'morphouidev': ('dev_doc/%s', 'moprhouidev '),
 }
 
 docpath = os.path.join( os.path.dirname( os.path.dirname( os.path.dirname( \
