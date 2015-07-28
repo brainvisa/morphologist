@@ -2,7 +2,9 @@
 Morphologist-UI
 ===============
 
-Morphologist-UI is a user-friendly interface to the Morphologist pipeline (see brainvisa.info). It is based on the same processing chain, and offers interactive visualization using `anatomist <http://brainvisa.info>`_.
+Morphologist is a neuroimaging software dedicated to cortical analysis and sulcal morphometry. See http://brainvisa.info.
+
+Morphologist-UI is a user-friendly interface to the Morphologist pipeline. It is based on the same processing chain, and offers interactive visualization using `anatomist <http://brainvisa.info>`_.
 
 Users
 =====
