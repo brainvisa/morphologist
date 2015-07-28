@@ -10,6 +10,7 @@ from morphologist.core.gui import ui_directory
 class AnalysisViewportModel(QtCore.QObject):
     changed = QtCore.pyqtSignal()
     parameter_changed = QtCore.pyqtSignal(list)
+    use_async_load = True
 
     class LoadCallback(object):
         def __init__(self, viewport_model, parameter_name):
@@ -49,9 +50,11 @@ class AnalysisViewportModel(QtCore.QObject):
         for parameter_name, filename in changed_parameters.iteritems():
             if parameter_name in self.observed_objects.keys():
                 self._update_observed_objects(parameter_name, filename)
-                #updated_parameters.append(parameter_name)
-        #self.parameter_changed.emit(updated_parameters)
-        
+                if not self.use_async_load:
+                    updated_parameters.append(parameter_name)
+        if not self.use_async_load:
+            self.parameter_changed.emit(updated_parameters)
+
     def _update_observed_objects(self, parameter_name, filename):
         object3d = self.observed_objects[parameter_name]
         if object3d is not None:
@@ -61,14 +64,19 @@ class AnalysisViewportModel(QtCore.QObject):
                 object3d = None
         else:
             try:
-                callback = AnalysisViewportModel.LoadCallback(self,
-                    parameter_name)
-                self._load_callbacks.add( callback )
-                self.load_object_async(parameter_name, filename,
-                    callback.object_loaded)
+                if self.use_async_load:
+                    callback = AnalysisViewportModel.LoadCallback(self,
+                        parameter_name)
+                    self._load_callbacks.add( callback )
+                    self.load_object_async(parameter_name, filename,
+                        callback.object_loaded)
+                else:
+                    # sync load, no callback
+                    object3d = self.load_object(parameter_name, filename)
             except LoadObjectError:
                 object3d = None
-        #self.observed_objects[parameter_name] = object3d
+        if not self.use_async_load:
+            self.observed_objects[parameter_name] = object3d
 
     def _observed_object_loaded(self, parameter_name, object3d, callback):
         self.observed_objects[parameter_name] = object3d
