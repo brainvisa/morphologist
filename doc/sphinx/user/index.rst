@@ -22,7 +22,7 @@ Use the appropriate menu to setup your data locations and other options.
 Running
 -------
 
-Process several or all subjects. Run in parallel using :somaworkflow:`Soma-Workflow <index.html>`.
+Process several or all subjects. Run in parallel using `Soma-Workflow <http://brainvisa.info/soma/soma-workflow/index.html>`_.
 Results appear in the display window at the time they are available.
 
 
