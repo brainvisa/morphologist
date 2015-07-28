@@ -10,7 +10,7 @@ from morphologist.core.gui import ui_directory
 class AnalysisViewportModel(QtCore.QObject):
     changed = QtCore.pyqtSignal()
     parameter_changed = QtCore.pyqtSignal(list)
-    use_async_load = True
+    use_async_load = False
 
     class LoadCallback(object):
         def __init__(self, viewport_model, parameter_name):
