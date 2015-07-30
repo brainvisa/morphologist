@@ -12,8 +12,8 @@ BRAINVISA_COPY_PYTHON_DIRECTORY( "${CMAKE_CURRENT_SOURCE_DIR}/morphologist"
     ${PROJECT_NAME}
     python/morphologist )
 
-BRAINVISA_ADD_EXECUTABLE( "morphologist-ui.py"
-    "${CMAKE_CURRENT_SOURCE_DIR}/morphologist-ui.py" IS_SCRIPT )
+BRAINVISA_ADD_EXECUTABLE( "morphologist"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bin/morphologist" IS_SCRIPT )
 
 find_package( Sphinx )
 BRAINVISA_GENERATE_SPHINX_DOC( "doc/sphinx/user"

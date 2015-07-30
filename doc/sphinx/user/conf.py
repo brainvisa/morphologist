@@ -281,6 +281,8 @@ extlinks = {
   'morphologist': ('../../morphologist-' + bv_release_version + '/%s',
                    'morphologist'),
   'morphologistusr': ('%s', 'morphologist '),
+  'morphoproc': ('../axon-' + version + '/en/processes/%s',
+                  'morphologist '),
   'connectomist': ('../../connectomist-' + bv_release_version + '/%s',
                    'connectomist '),
   'connectomistusr': ('%s', 'connectomist '),

@@ -2,7 +2,7 @@
 Morphologist-UI
 ===============
 
-Morphologist is a neuroimaging software dedicated to cortical analysis and sulcal morphometry. See http://brainvisa.info.
+Morphologist is a neuroimaging software dedicated to cortical analysis and sulcal morphometry. See http://brainvisa.info and :morphoproc:`the toolbox documentation in BrainVISA <categories/morphologist/category_documentation.html>`.
 
 Morphologist-UI is a user-friendly interface to the Morphologist pipeline. It is based on the same processing chain, and offers interactive visualization using `anatomist <http://brainvisa.info>`_.
 
@@ -22,18 +22,30 @@ Featuring:
 * Robust: Morphologist has processed several tenths of thousands of brains
 * Possibly using a remote processing cluster
 
+
 Users
 =====
+
+It is a simplified intercace, providing only the default parameters settings. For the sake of simplicity, there are no buttons, parameters, or other tuning which may affect processing: it is designed for "standard" processing.
+
+Morphologist-UI performs the processings of the classical Morphologist toolbox in BrainVISA, with a slightly modified files organization: it will write additional files for the "renormalization" step (second normalization after skull stripping to enforce the alignment robustness).
+
+Morphologist-UI relies on files existence to display results and re-run processing steps in case of interruptions, so files have to be written just once. This is not what the Morphologist toolbox does in BrainVISA (for historical and technical reasons). Hence the difference.
+
+Apart from these additional output files, Morphologist-UI and Morphologist produce the same results and are interchangeable. So if Morphologist-UI fails for some reason, it is always possible to use the clasical BrainVISA pipeline, with all its available parameters, to complete the processing.
+
 
 Installation
 ------------
 
-Users distributions are (will be) available on http://brainvisa.info
+Users distributions are available on http://brainvisa.info
 
 Starting the program
 --------------------
 
-Run the executable script ``morphologist-ui.py`` in the ``bin/`` directory of the BrainVisa/Morphologist distribution.
+Run the executable script ``morphologist`` in the ``bin/`` directory of the BrainVisa/Morphologist distribution.
+
+It can also be found in BrainVISA processes, in the Morphologist toolbox.
 
 Configuration
 -------------
