@@ -225,7 +225,7 @@ class MainWindow(QtGui.QMainWindow):
         self.on_current_subject_changed()
         if study_directory is not None:
             if import_study:
-                self._create_inplace_study(study_directory, 'brainvisa')
+                self._create_inplace_study(study_directory)
             else:
                 self._try_open_study_from_directory(study_directory)
 
