@@ -297,8 +297,6 @@ docpath = os.path.join( os.path.dirname( os.path.dirname( os.path.dirname( \
 intersphinx_mapping = {
   'somabase': ( os.path.join( docpath, 'soma-base-' + version + '/sphinx' ),
                None ),
-  'somaqtgui': ( os.path.join( docpath, 'soma-qtgui-' + version + '/sphinx' ),
-                None ),
   'pyaims': ( os.path.join( docpath, 'pyaims-' + version + '/sphinx' ), None ),
   'pyana': ( os.path.join( docpath, 'pyanatomist-' + version + '/sphinx' ),
             None ),
