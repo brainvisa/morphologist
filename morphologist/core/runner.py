@@ -194,6 +194,10 @@ class  SomaWorkflowRunner(Runner):
         self._workflow_id = self._workflow_controller.submit_workflow(
             workflow, name=workflow.name)
         self._build_jobid_to_step()
+
+        # run transfers, if any
+        Helper.transfer_input_files(self._workflow_id,
+                                    self._workflow_controller)
         # the status does not change immediately after run,
         # so we wait for the status WORKFLOW_IN_PROGRESS or timeout
         status = self._workflow_controller.workflow_status(self._workflow_id)
@@ -317,6 +321,9 @@ class  SomaWorkflowRunner(Runner):
                 self._step_wait(subject_id, step_id)
         else:
             raise NotImplementedError
+        # transfer back files, if any
+        Helper.transfer_output_files(self._workflow_id,
+                                     self._workflow_controller)
 
     def _step_wait(self, subject_id, step_id):
         job_id = self._jobid_to_step[subject_id][step_id, 'step_id']
@@ -348,6 +355,11 @@ class  SomaWorkflowRunner(Runner):
 
     def _workflow_stop(self):
         self._workflow_controller.stop_workflow(self._workflow_id)
+
+        # transfer back files, if any
+        Helper.transfer_output_files(self._workflow_id,
+                                     self._workflow_controller)
+
         interrupted_step_ids = self._get_filtered_step_ids(Runner.INTERRUPTED)
         for subject_id, step_ids in interrupted_step_ids.iteritems():
             if step_ids:
