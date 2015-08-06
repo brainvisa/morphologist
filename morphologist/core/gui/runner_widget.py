@@ -1,8 +1,9 @@
 import os
+import subprocess
 
 from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
 from morphologist.core.gui import ui_directory 
-from morphologist.core.runner import MissingInputFileError
+from morphologist.core.runner import MissingInputFileError, MissingModelsError
 from morphologist.core.constants import ALL_SUBJECTS
 
 
@@ -67,7 +68,17 @@ class RunnerView(QtGui.QWidget):
             run = self._runner_model.runner._workflow_id is not None
             if not run:
                 QtGui.QMessageBox.warning(
-                    self, "Already done", "Nothing to do, processing is finished.")
+                    self, "Already done",
+                    "Nothing to do, processing is finished.")
+        except MissingModelsError, e:
+            res = QtGui.QMessageBox.question(
+                self, "Missing sulci identification models",
+                "Sulci statistical models (SPAMs) are not installed.\n"
+                "Do you want to download and install them now ?",
+                QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel,
+                QtGui.QMessageBox.Ok)
+            if res:
+                self.install_spam_models()
         except MissingInputFileError, e:
             QtGui.QMessageBox.critical(self, "Run analysis error",
                         "Some input files do not exist.\n%s" %(e))
@@ -79,6 +90,11 @@ class RunnerView(QtGui.QWidget):
         assert(self._runner_model is not None)
         self._runner_model.runner.stop()
         self._set_not_running_state()
+
+    def install_spam_models(self):
+        print 'install_spam_models'
+        cmd = ['brainvisa', '--noMainWindow', '-s', 'spam_install_models']
+        subprocess.check_call(cmd)
 
     # this slot is automagically connected
     @QtCore.Slot()

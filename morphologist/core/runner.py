@@ -83,6 +83,9 @@ class MissingInputFileError(Exception):
     pass
 
 
+class MissingModelsError(MissingInputFileError):
+    pass
+
 
 class  SomaWorkflowRunner(Runner):
     WORKFLOW_NAME_SUFFIX = "Morphologist user friendly analysis"
@@ -232,9 +235,12 @@ class  SomaWorkflowRunner(Runner):
             pipeline.enable_all_pipeline_steps()
             pipeline_tools.disable_runtime_steps_with_existing_outputs(
                 pipeline)
+            print 'pipeline steps:', dict([(k, v) for k, v in pipeline.pipeline_steps.__dict__.iteritems() if not k.startswith('_')])
+            print 'PrepareSubject.Normalization_NormalizeSPM_spm_transformation:', pipeline.nodes['PrepareSubject'].process.Normalization_NormalizeSPM_spm_transformation
 
             missing = pipeline_tools.nodes_with_missing_inputs(pipeline)
             if missing:
+                self.check_missing_models(pipeline, missing)
                 print 'MISSING INPUTS IN NODES:', missing
                 raise MissingInputFileError("subject: %s" % subject_id)
 
@@ -253,6 +259,15 @@ class  SomaWorkflowRunner(Runner):
                 workflow.groups += [group] + wf.groups
 
         return workflow
+
+    def check_missing_models(self, pipeline, missing):
+        if 'SulciRecognition.SPAM_recognition09.global_recognition' in missing:
+            node = missing[
+                'SulciRecognition.SPAM_recognition09.global_recognition']
+            model = [m[0] for m in node if m[0] == 'model']
+            if model:
+                raise MissingModelsError(
+                    "SPAM recognition models are not installed.")
 
     def _build_jobid_to_step(self):
         self._jobid_to_step = {}
