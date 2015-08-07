@@ -77,11 +77,12 @@ class RunnerView(QtGui.QWidget):
                 "Do you want to download and install them now ?",
                 QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel,
                 QtGui.QMessageBox.Ok)
-            if res:
+            if res == QtGui.QMessageBox.Ok:
                 self.install_spam_models()
         except MissingInputFileError, e:
-            QtGui.QMessageBox.critical(self, "Run analysis error",
-                        "Some input files do not exist.\n%s" %(e))
+            QtGui.QMessageBox.critical(
+                self, "Run analysis error",
+                "Some input files do not exist.\n%s" %(e))
         return run
  
     # this slot is automagically connected
@@ -105,14 +106,15 @@ class RunnerView(QtGui.QWidget):
             msg = "All subjects results will be erased."
         else:
             msg = "The results will be erased for the %d selected subjects." \
-                               % len(selected_subject_ids)
+                % len(selected_subject_ids)
         msg += "\nDo you really want to erase these results ?"
-        answer = QtGui.QMessageBox.question(self, "Really erase results ?", msg, 
-                                            QtGui.QMessageBox.Ok |
-                                            QtGui.QMessageBox.Cancel)
+        answer = QtGui.QMessageBox.question(
+            self, "Really erase results ?", msg,
+            QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
         if answer == QtGui.QMessageBox.Ok:
             self._runner_model.study.clear_results(selected_subject_ids)
-            # XXX: this buttun could remain enabled if some files are added manually
+            # XXX: this buttun could remain enabled if some files are added
+            # manually
             self._set_not_running_state()
 
     def _set_running_state(self):
@@ -132,7 +134,8 @@ class RunnerView(QtGui.QWidget):
     def _set_run_button_if_needed(self):
         selected_subject_ids = self._runner_model.get_selected_subject_ids()
         has_subjects = self._runner_model.study.has_subjects()
-        missing_results = not self._runner_model.study.has_all_results(selected_subject_ids)
+        missing_results = \
+            not self._runner_model.study.has_all_results(selected_subject_ids)
         enable_run_button = has_subjects and missing_results
         self.ui.run_button.setEnabled(enable_run_button)
 
