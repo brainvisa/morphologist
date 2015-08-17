@@ -91,10 +91,7 @@ class Analysis(object):
         raise NotImplementedError("Analysis is an Abstract class. existing_results must be redefined.")
 
     def clear_results(self, step_ids=None):
-        print 'clear_results for subject:', self.subject, ', ids:', step_ids
         to_remove = self.existing_results(step_ids)
-        print 'files to be removed:'
-        print to_remove
         for filename in to_remove:
             filenames = self._files_for_format(filename)
             for f in filenames:

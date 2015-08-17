@@ -235,12 +235,11 @@ class  SomaWorkflowRunner(Runner):
             subject = self._study.subjects[subject_id]
 
             analysis.set_parameters(subject)
+            #analysis.propagate_parameters()
             pipeline = analysis.pipeline.process
             pipeline.enable_all_pipeline_steps()
             pipeline_tools.disable_runtime_steps_with_existing_outputs(
                 pipeline)
-            print 'pipeline steps:', dict([(k, v) for k, v in pipeline.pipeline_steps.__dict__.iteritems() if not k.startswith('_')])
-            print 'PrepareSubject.Normalization_NormalizeSPM_spm_transformation:', pipeline.nodes['PrepareSubject'].process.Normalization_NormalizeSPM_spm_transformation
 
             missing = pipeline_tools.nodes_with_missing_inputs(pipeline)
             if missing:
@@ -360,11 +359,45 @@ class  SomaWorkflowRunner(Runner):
         Helper.transfer_output_files(self._workflow_id,
                                      self._workflow_controller)
 
-        interrupted_step_ids = self._get_filtered_step_ids(Runner.INTERRUPTED)
+        interrupted_step_ids = self._get_interrupted_step_ids()
         for subject_id, step_ids in interrupted_step_ids.iteritems():
             if step_ids:
                 analysis = self._study.analyses[subject_id]
                 analysis.clear_results(step_ids)
+
+    def _get_interrupted_step_ids(self, update_status = True):
+        """ Interrupted steps are either steps with an interrupted job (killed
+        or failed), or steps with both run and not-run jobs (all jobs have not
+        been performed, but some of them have)
+        """
+        if update_status:
+            self._update_jobs_status()
+        filtered_step_ids_by_subject_id = {}
+        for subject_id in self._jobid_to_step:
+            subject_jobs = self._get_subject_jobs(subject_id)
+            jobs_status = self._get_jobs_status(update_status=False)
+            interrupted_step_ids = set()
+            started_step_ids = set()
+            notrun_step_ids = set()
+            for job_id, step in subject_jobs.iteritems():
+                if step in interrupted_step_ids:
+                    continue # this one is already in the list
+                job_status = jobs_status[job_id]
+                if job_status & Runner.INTERRUPTED:
+                    interrupted_step_ids.add(step)
+                else:
+                    if job_status & Runner.SUCCESS:
+                        started_step_ids.add(step)
+                        if step in notrun_step_ids:
+                            # both started and unfinished step
+                            interrupted_step_ids.add(step)
+                    elif job_status & Runner.ABORTED_NOTRUN:
+                        notrun_step_ids.add(step)
+                        if step in started_step_ids:
+                            # both started and unfinished step
+                            interrupted_step_ids.add(step)
+            filtered_step_ids_by_subject_id[subject_id] = interrupted_step_ids
+        return filtered_step_ids_by_subject_id
 
     def _get_filtered_step_ids(self, status, update_status = True):
         if update_status:
