@@ -87,10 +87,14 @@ class Analysis(object):
     def has_all_results(self, step_ids=None):
         raise NotImplementedError("Analysis is an Abstract class. has_all_results must be redefined.")
 
+    def existing_results(self, step_ids=None):
+        raise NotImplementedError("Analysis is an Abstract class. existing_results must be redefined.")
+
     def clear_results(self, step_ids=None):
+        print 'clear_results for subject:', self.subject, ', ids:', step_ids
         to_remove = self.existing_results(step_ids)
-        #print 'files to be removed:'
-        #print to_remove
+        print 'files to be removed:'
+        print to_remove
         for filename in to_remove:
             filenames = self._files_for_format(filename)
             for f in filenames:
@@ -192,26 +196,39 @@ class SharedPipelineAnalysis(Analysis):
         self.create_fom_completion(subject)
 
     def propagate_parameters(self):
+        if hasattr(self.pipeline, 'current_subject_id') \
+                and self.pipeline.current_subject_id \
+                    == self.subject.id():
+            # OK this is already done.
+            return
         pipeline_tools.set_pipeline_state_from_dict(
             self.pipeline.process, self.parameters)
+        self.pipeline.current_subject_id = self.subject.id()
 
     def get_attributes(self, subject):
         raise NotImplementedError("SharedPipelineAnalysis is an Abstract class. get_attributes must be redefined.")
 
     def create_fom_completion(self, subject):
         pipeline = self.pipeline
+        if hasattr(pipeline, 'current_subject_id') \
+                and pipeline.current_subject_id \
+                    == self.subject.id():
+            # OK this is already done.
+            return
         attributes_dict = self.get_attributes(subject)
-        do_completion = False
+        if not attributes_dict:
+            raise AttributeError('Subject %s/%s has no attributes'
+                % (subject.groupname, subject.name))
         for attribute, value in attributes_dict.iteritems():
             if pipeline.attributes[attribute] != value:
                 pipeline.attributes[attribute] = value
                 do_completion = True
-        if do_completion:
-            #print 'create_completion for:', subject.id()
-            pipeline.create_completion()
-            self.parameters = pipeline_tools.dump_pipeline_state_as_dict(
-                self.pipeline.process)
-        #else: print 'skip completion for:', subject.id()
+        #print 'create_completion for:', subject.id()
+        pipeline.create_completion()
+        self.parameters = pipeline_tools.dump_pipeline_state_as_dict(
+            self.pipeline.process)
+        # mark this subject as the one witht the current parameters.
+        pipeline.current_subject_id = subject.id()
 
     def existing_results(self, step_ids=None):
         pipeline = self.pipeline.process
