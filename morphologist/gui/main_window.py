@@ -388,6 +388,8 @@ class MainWindow(QtGui.QMainWindow):
         if self._runner_still_running_after_stopping_asked_to_user(msg): 
             event.ignore()
         else:
+            if hasattr(self, 'browser'):
+                del self.browser
             event.accept()
 
     # this slot is automagically connected
@@ -427,3 +429,4 @@ class MainWindow(QtGui.QMainWindow):
 
     def _remove_browser(self):
         del self.browser
+
