@@ -8,7 +8,7 @@ from morphologist.core.study import Study, StudySerializationError
 from morphologist.core.analysis import AnalysisFactory
 from morphologist.core.gui.study_model import LazyStudyModel
 from morphologist.core.gui.analysis_model import LazyAnalysisModel
-from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
+from morphologist.core.gui.qt_backend import QtCore, QtGui, QtWebKit, loadUi
 from morphologist.core.gui.subjects_widget import SubjectsWidget
 from morphologist.core.gui.runner_widget import RunnerView
 from morphologist.core.gui.runner_settings_widget \
@@ -23,6 +23,7 @@ from morphologist.gui import ui_directory
 from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
                                              IntraAnalysisViewportWidget
 from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
+from morphologist import info
 
 
 ApplicationStudy = None # dynamically defined
@@ -406,3 +407,23 @@ class MainWindow(QtGui.QMainWindow):
     def on_action_coronal_view_toggled(self, checked):
         if checked:
             self.viewport_widget.set_object3d_views_view_type(ViewType.CORONAL)
+
+    def on_action_documentation_triggered(self):
+        if not hasattr(self, 'browser'):
+            self.browser = QtWebKit.QWebView()
+            self.browser.setWindowTitle('Morphologist UI documentation')
+            self.browser.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+            self.browser.destroyed.connect(self._remove_browser)
+        version = '%d.%d' % (info.version_major, info.version_minor)
+        help_index = os.path.dirname(os.path.dirname(os.path.dirname(
+            os.path.dirname(__file__))))
+        help_index = 'file://' + os.path.join(
+            help_index, 'share', 'doc', 'morphologist-ui-%s' % version,
+            'index.html')
+        print 'help_index:', help_index
+        self.browser.setUrl(QtCore.QUrl(help_index))
+        self.browser.show()
+        self.browser.raise_()
+
+    def _remove_browser(self):
+        del self.browser

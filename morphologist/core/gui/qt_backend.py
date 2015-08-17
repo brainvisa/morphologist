@@ -9,7 +9,7 @@ try:
 except ImportError:
     raise Exception("error: missing PyQt dependency.")
 else:
-    from PyQt4 import QtCore, QtGui, QtTest, Qt
+    from PyQt4 import QtCore, QtGui, QtTest, Qt, QtWebKit
 
 import PyQt4.QtCore
 PyQt4.QtCore.Slot = PyQt4.QtCore.pyqtSlot
