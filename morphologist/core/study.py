@@ -9,6 +9,10 @@ from morphologist.core.analysis \
 from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.subject import Subject
 
+# Axon config
+from brainvisa.configuration import axon_capsul_config_link
+from brainvisa.axon import processes as axon_processes
+
 # CAPSUL
 from capsul.study_config import StudyConfig
 
@@ -38,7 +42,11 @@ class Study(StudyConfig):
         }
         super(Study, self).__init__(init_config=default_config,
             modules=StudyConfig.default_modules + \
-            ['BrainVISAConfig', 'FSLConfig', 'FomConfig'])
+            ['BrainVISAConfig', 'FSLConfig', 'FomConfig', 'FreeSurferConfig'])
+
+        # init/read axon config
+        axon_processes.initializeProcesses()
+        axon_capsul_config_link.axon_to_capsul_config_sync(self)
 
         # study_name is marked as transient in StudyConfig. I don't know why.
         self.trait('study_name').transient = False
