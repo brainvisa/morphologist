@@ -59,7 +59,13 @@ It can also be found in BrainVISA processes, in the Morphologist toolbox.
 Configuration
 -------------
 
-All configuration options are linked to the "study" directory: a study contains all needed configuration, and two different studies may have completely different configurations.
+There are two configuration sets in Morphologist-UI.
+
+One is the BrainVisa configuration (preferences), which have to be setup since BrainVisa processes are still running under the hood. They are accessed via the **Settings / BrainVISA configuration** menu, or from the brainvisa software itself (it is the same configuration).
+
+Other options are Morphologist study configuration. They include description of the data to be processed (subjects, images...), and also a few processing options which are managed by `CAPSUL <http://neurospin.github.io/capsul/>`_, the future new pipelining system which will replace BrainVISA internals in the future. Some of these options are redundant with BrainVisa ones, and are linked to them.
+
+These configuration options are linked to the "study" directory: a study contains all needed configuration, and two different studies may have completely different configurations.
 
 So, see the next section, :ref:`Study`.
 
