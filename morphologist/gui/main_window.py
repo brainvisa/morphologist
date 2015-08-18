@@ -456,6 +456,12 @@ class MainWindow(QtGui.QMainWindow):
         appGUI.closeEditionDialog(dialog)
         #if appGUI.edit(configuration, live=False, modal=True):
         if result:
-          configuration.save(neuroConfig.userOptionFile)
+            #from brainvisa.configuration import axon_capsul_config_link
+            #axon_capsul_config_link.axon_to_capsul_config_sync(self.study)
+            configuration.save(neuroConfig.userOptionFile)
+            try:
+                self.study.save_to_backup_file()
+            except StudySerializationError, e:
+                pass  # study is not saved, don't notify
 
 

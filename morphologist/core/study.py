@@ -48,7 +48,9 @@ class Study(StudyConfig):
         # init/read axon config
         neuroConfig.fastStart = True
         axon_processes.initializeProcesses()
-        axon_capsul_config_link.axon_to_capsul_config_sync(self)
+        self.axon_link = \
+            axon_capsul_config_link.AxonCapsulConfSynchronizer(self)
+        self.axon_link.sync_axon_to_capsul()
 
         # study_name is marked as transient in StudyConfig. I don't know why.
         self.trait('study_name').transient = False
