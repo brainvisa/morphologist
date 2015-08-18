@@ -410,6 +410,7 @@ class MainWindow(QtGui.QMainWindow):
         if checked:
             self.viewport_widget.set_object3d_views_view_type(ViewType.CORONAL)
 
+    @QtCore.Slot()
     def on_action_documentation_triggered(self):
         if not hasattr(self, 'browser'):
             self.browser = QtWebKit.QWebView()
@@ -429,4 +430,32 @@ class MainWindow(QtGui.QMainWindow):
 
     def _remove_browser(self):
         del self.browser
+
+    @QtCore.Slot()
+    def on_action_brainvisa_configuration_triggered(self):
+        from soma.wip.application.api import Application
+        from soma.qtgui.api import ApplicationQtGUI
+        from brainvisa.configuration import neuroConfig
+        configuration = Application().configuration
+        appGUI = ApplicationQtGUI()
+        dialog = appGUI.createEditionDialog(configuration, parent=None,
+                                            live=False, modal=True)
+        from soma.qt4gui.configuration_qt4gui import ConfigurationWidget
+        from PyQt4 import QtGui
+
+        # remove the database panel and icon
+        stackw = dialog.findChild(QtGui.QStackedWidget)
+        dbwidget = stackw.widget(1)
+        stackw.removeWidget(dbwidget)
+        listw = dialog.findChild(QtGui.QSplitter).findChild(QtGui.QListWidget)
+        listw.takeItem(1)
+
+        result = dialog.exec_()
+        if result:
+          dialog.setObject(configuration)
+        appGUI.closeEditionDialog(dialog)
+        #if appGUI.edit(configuration, live=False, modal=True):
+        if result:
+          configuration.save(neuroConfig.userOptionFile)
+
 

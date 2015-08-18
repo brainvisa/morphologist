@@ -11,6 +11,7 @@ from morphologist.core.subject import Subject
 
 # Axon config
 from brainvisa.configuration import axon_capsul_config_link
+from brainvisa.configuration import neuroConfig
 from brainvisa.axon import processes as axon_processes
 
 # CAPSUL
@@ -45,6 +46,7 @@ class Study(StudyConfig):
             ['BrainVISAConfig', 'FSLConfig', 'FomConfig', 'FreeSurferConfig'])
 
         # init/read axon config
+        neuroConfig.fastStart = True
         axon_processes.initializeProcesses()
         axon_capsul_config_link.axon_to_capsul_config_sync(self)
 
