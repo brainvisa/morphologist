@@ -2,6 +2,7 @@ import os
 import json
 import re
 import glob
+import sys
 
 from morphologist.core.utils import OrderedDict
 from morphologist.core.analysis \
@@ -10,9 +11,16 @@ from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.subject import Subject
 
 # Axon config
+argv = sys.argv
+# Temporarily change argv[0] since it is used in neuroConfig initialization
+# to set paths
+sys.argv = [argv[0], '-b']
 from brainvisa.configuration import axon_capsul_config_link
 from brainvisa.configuration import neuroConfig
 from brainvisa.axon import processes as axon_processes
+# set back argv to its original value
+sys.argv = argv
+del argv
 
 # CAPSUL
 from capsul.study_config import StudyConfig
