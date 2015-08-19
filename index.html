@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Morphologist-UI &mdash; Morphologist UI 4.5.0 documentation</title>
+    <title>Morphologist-UI &mdash; Morphologist UI 1.0.0 documentation</title>
     
     <link rel="stylesheet" href="_static/custom.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '4.5.0',
+        VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Morphologist UI 4.5.0 documentation" href="#" /> 
+    <link rel="top" title="Morphologist UI 1.0.0 documentation" href="#" /> 
   </head>
   <body>
     <div class="related">
@@ -32,7 +32,7 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="#">Morphologist UI 4.5.0 documentation</a> &raquo;</li> 
+        <li><a href="#">Morphologist UI 1.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -84,8 +84,16 @@
 </div>
 <div class="section" id="configuration">
 <h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
-<p>All configuration options are linked to the &#8220;study&#8221; directory: a study contains all needed configuration, and two different studies may have completely different configurations.</p>
+<p>There are actually three configuration sets in Morphologist-UI.</p>
+<ul class="simple">
+<li>One is the <a class="reference external" href="../axon-4.5/user_doc/axon_manual.html#preferences-window">BrainVisa configuration (preferences)</a>, which have to be setup since BrainVisa processes are still running under the hood. They are accessed via the <strong>Settings / BrainVISA configuration</strong> menu, or from the brainvisa software itself (it is the same configuration).</li>
+<li>Other options are <strong>Morphologist study configuration</strong>. They include description of the data to be processed (subjects, images...), and also a few processing options which are managed by <a class="reference external" href="http://neurospin.github.io/capsul/">CAPSUL</a>, the future new pipelining system which will replace BrainVISA internals in the future.</li>
+</ul>
+<p>These configuration options are linked to the &#8220;study&#8221; directory: a study contains all needed configuration, and two different studies may have completely different configurations.</p>
 <p>So, see the next section, <em class="xref std std-ref">Study</em>.</p>
+<ul class="simple">
+<li>Last, the <strong>Calculations settings</strong> allow to select the computing resource and processors to be used for calculation (<strong>Settings / Calculations</strong> menu). It should be noted that for non-local computing resources, resources have to be setup and declared in <a class="reference external" href="../soma-workflow-2.8/sphinx/install_config.html">soma-workflow configuration</a> first.</li>
+</ul>
 </div>
 <div class="section" id="study">
 <h3>Study<a class="headerlink" href="#study" title="Permalink to this headline">¶</a></h3>
@@ -115,6 +123,7 @@
 <h3>Processing<a class="headerlink" href="#processing" title="Permalink to this headline">¶</a></h3>
 <p>Process several or all subjects. Run in parallel using <a class="reference external" href="http://brainvisa.info/soma/soma-workflow/index.html">Soma-Workflow</a>.
 Results appear in the display window at the time they are available.</p>
+<p>Processing steps currently running are visible in the subjects state (right panel in the interface). It is also always possible to monitor the workflow execution via the <a class="reference external" href="../soma-workflow-2.8/sphinx/gui.html">soma_workglow_gui</a> program.</p>
 </div>
 <div class="section" id="troubleshooting">
 <h3>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h3>
@@ -197,7 +206,7 @@ Results appear in the display window at the time they are available.</p>
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="#">Morphologist UI 4.5.0 documentation</a> &raquo;</li> 
+        <li><a href="#">Morphologist UI 1.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

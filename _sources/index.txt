@@ -59,9 +59,19 @@ It can also be found in BrainVISA processes, in the Morphologist toolbox.
 Configuration
 -------------
 
-All configuration options are linked to the "study" directory: a study contains all needed configuration, and two different studies may have completely different configurations.
+There are actually three configuration sets in Morphologist-UI.
+
+* One is the :axonusr:`BrainVisa configuration (preferences) <axon_manual.html#preferences-window>`, which have to be setup since BrainVisa processes are still running under the hood. They are accessed via the **Settings / BrainVISA configuration** menu, or from the brainvisa software itself (it is the same configuration).
+
+* Other options are **Morphologist study configuration**. They include description of the data to be processed (subjects, images...), and also a few processing options which are managed by `CAPSUL <http://neurospin.github.io/capsul/>`_, the future new pipelining system which will replace BrainVISA internals in the future.
+
+.. Some of these options are redundant with BrainVisa ones, and are linked to them.
+
+These configuration options are linked to the "study" directory: a study contains all needed configuration, and two different studies may have completely different configurations.
 
 So, see the next section, :ref:`Study`.
+
+* Last, the **Calculations settings** allow to select the computing resource and processors to be used for calculation (**Settings / Calculations** menu). It should be noted that for non-local computing resources, resources have to be setup and declared in :somaworkflow:`soma-workflow configuration <install_config.html>` first.
 
 
 Study
@@ -102,6 +112,8 @@ Processing
 
 Process several or all subjects. Run in parallel using `Soma-Workflow <http://brainvisa.info/soma/soma-workflow/index.html>`_.
 Results appear in the display window at the time they are available.
+
+Processing steps currently running are visible in the subjects state (right panel in the interface). It is also always possible to monitor the workflow execution via the :somaworkflow:`soma_workglow_gui <gui.html>` program.
 
 
 Troubleshooting
