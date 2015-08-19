@@ -395,7 +395,7 @@ class MainWindow(QtGui.QMainWindow):
     # this slot is automagically connected
     @QtCore.Slot()
     def on_action_runner_settings_triggered(self):
-        dialog = RunnerSettingsDialog(settings, self)
+        dialog = RunnerSettingsDialog(settings, self.study, self)
         dialog.show()
 
     # this slot is automagically connected

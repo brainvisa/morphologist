@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>423</width>
-    <height>180</height>
+    <width>514</width>
+    <height>247</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,18 +18,6 @@
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>423</width>
-    <height>180</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>423</width>
-    <height>180</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>Calculations settings</string>
@@ -39,28 +27,35 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QCheckBox" name="auto_checkBox">
-     <property name="text">
-      <string>Automatically set calculations settings: CPU = all but one</string>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_1">
+     <item>
+      <widget class="QLabel" name="computing_resource_label">
+       <property name="text">
+        <string>Computing resource:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="computing_resource_combobox"/>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="QGroupBox" name="cpu_groupBox">
      <property name="title">
-      <string>Processing units</string>
+      <string>Local processing units</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <layout class="QGridLayout" name="gridLayout">
-        <item row="0" column="0">
+        <item row="1" column="0">
          <widget class="QLabel" name="max_cpu_label">
           <property name="text">
            <string>Number of detected processing units:</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="2">
+        <item row="1" column="2">
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <spacer name="horizontalSpacer_2">
@@ -84,14 +79,14 @@
           </item>
          </layout>
         </item>
-        <item row="1" column="0">
+        <item row="2" column="0">
          <widget class="QLabel" name="selected_cpu_label">
           <property name="text">
            <string>Number of selected processing units:</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="2">
+        <item row="2" column="2">
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <spacer name="horizontalSpacer">
@@ -115,7 +110,7 @@
           </item>
          </layout>
         </item>
-        <item row="2" column="2">
+        <item row="3" column="2">
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
            <spacer name="horizontalSpacer_3">
@@ -176,7 +171,7 @@
           </item>
          </layout>
         </item>
-        <item row="2" column="0">
+        <item row="3" column="0">
          <widget class="QLabel" name="cpu_config_error_label">
           <property name="palette">
            <palette>
@@ -244,6 +239,13 @@
           </property>
           <property name="text">
            <string>WARNING: Find erroneous number in config file :</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QCheckBox" name="auto_checkBox">
+          <property name="text">
+           <string>Automatically set calculations settings: CPU = all but one</string>
           </property>
          </widget>
         </item>

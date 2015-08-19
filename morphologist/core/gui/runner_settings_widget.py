@@ -8,9 +8,10 @@ from morphologist.core.gui import ui_directory
 
 
 class RunnerSettingsDialog(QtGui.QDialog):
-    def __init__(self, settings, parent=None):
+    def __init__(self, settings, study, parent=None):
         super(RunnerSettingsDialog, self).__init__(parent)
         self._runner_settings = settings.runner.copy()
+        self.study = study
         self._init_ui()
 
     def _init_ui(self):
@@ -34,7 +35,19 @@ class RunnerSettingsDialog(QtGui.QDialog):
             self.ui.cpu_config_error_number_label.hide()
         else:
             self.ui.cpu_config_error_number_label.setText(str(cpus))
-            
+        self._create_computing_resources_combobox()
+        #self.ui.computing_resource_combobox.currentIndexChanged.connect(
+            #self.on_computing_resource_combobox_currentIndexChanged)
+
+    def _create_computing_resources_combobox(self):
+        study = self.study
+        available_computing_resources \
+            = study.get_available_computing_resources()
+        for resource_name in available_computing_resources:
+            self.ui.computing_resource_combobox.addItem(resource_name)
+        self.ui.computing_resource_combobox.setCurrentIndex(
+            available_computing_resources.index(
+                study.somaworkflow_computing_resource))
 
     # this slot is automagically connected
     @QtCore.Slot('int')
@@ -53,6 +66,16 @@ class RunnerSettingsDialog(QtGui.QDialog):
 
     @QtCore.Slot()
     def on_apply_button_clicked(self):
+        if self.study.somaworkflow_computing_resource \
+                != self.ui.computing_resource_combobox.currentText():
+            print 'computing resource changed'
+            self.study.somaworkflow_computing_resource \
+                = self.ui.computing_resource_combobox.currentText()
+            try:
+                self.study.save_to_backup_file()
+            except StudySerializationError, e:
+                pass  # study is not saved, don't notify
+
         if self._are_settings_unchanged():
             self.ui.accept()
             return
