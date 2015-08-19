@@ -71,8 +71,8 @@ class StudyEditorDialog(QtGui.QDialog):
             self._subject_from_db_dialog.set_rql_request('''Any X WHERE X is Scan, X type "raw T1", X concerns A, A age 25''')
             self._subject_from_db_dialog.accepted.connect(self.on_subject_from_db_dialog_accepted)
         else:
-            self.ui.add_subjects_from_database_button.hide()    
-             
+            self.ui.add_subjects_from_database_button.hide()
+
     def _init_subjects_from_directory_dialog(self, study):
         output_directory = study.output_directory
         self._subjects_from_directory_dialog \

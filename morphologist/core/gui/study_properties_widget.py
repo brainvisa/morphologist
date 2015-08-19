@@ -30,9 +30,9 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self.ui.output_directory_button = parent.ui.output_directory_button
         self.ui.volume_format_combobox = parent.ui.volume_format_combobox
         self.ui.mesh_format_combobox = parent.ui.mesh_format_combobox
-        self.ui.spm_standalone_checkbox = parent.ui.spm_standalone_checkbox
-        self.ui.spm_exec_lineedit = parent.ui.spm_exec_lineedit
-        self.ui.spm_exec_button = parent.ui.spm_exec_button
+        #self.ui.spm_standalone_checkbox = parent.ui.spm_standalone_checkbox
+        #self.ui.spm_exec_lineedit = parent.ui.spm_exec_lineedit
+        #self.ui.spm_exec_button = parent.ui.spm_exec_button
         self.ui.computing_resource_combobox \
             = parent.ui.computing_resource_combobox
         if editor_mode == StudyEditor.EDIT_STUDY:
@@ -58,16 +58,23 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self._mapper.setSubmitPolicy(QtGui.QDataWidgetMapper.AutoSubmit)
         self._mapper.setModel(self._item_model)
         self._mapper.setItemDelegate(self._item_delegate)
-        self._mapper.addMapping(self.ui.studyname_lineEdit, 0)
-        self._mapper.addMapping(self.ui.output_directory_lineEdit, 1)
-        self._mapper.addMapping(self.ui.volume_format_combobox, 2,
+        self._mapper.addMapping(self.ui.studyname_lineEdit,
+                                StudyPropertiesEditorItemModel.NAME_COL)
+        self._mapper.addMapping(self.ui.output_directory_lineEdit,
+                                StudyPropertiesEditorItemModel.OUTPUTDIR_COL)
+        self._mapper.addMapping(
+            self.ui.volume_format_combobox,
+            StudyPropertiesEditorItemModel.VOLUME_FORMAT_COL,
+            "currentIndex")
+        self._mapper.addMapping(self.ui.mesh_format_combobox,
+                                StudyPropertiesEditorItemModel.MESH_FORMAT_COL,
                                 "currentIndex")
-        self._mapper.addMapping(self.ui.mesh_format_combobox, 3,
-                                "currentIndex")
-        self._mapper.addMapping(self.ui.spm_standalone_checkbox, 4, "checked")
-        self._mapper.addMapping(self.ui.spm_exec_lineedit, 5)
-        self._mapper.addMapping(self.ui.computing_resource_combobox, 6,
-                                "currentIndex")
+        #self._mapper.addMapping(self.ui.spm_standalone_checkbox, 4, "checked")
+        #self._mapper.addMapping(self.ui.spm_exec_lineedit, 5)
+        self._mapper.addMapping(
+            self.ui.computing_resource_combobox,
+            StudyPropertiesEditorItemModel.COMPUTING_RESOURCE_COL,
+            "currentIndex")
 
         self.ui.studyname_lineEdit.textChanged.connect(self._mapper.submit)
         self.ui.output_directory_lineEdit.textChanged.connect(
@@ -78,11 +85,11 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
             self._mapper.submit)
         self.ui.mesh_format_combobox.currentIndexChanged.connect(
             self._mapper.submit)
-        self.ui.spm_standalone_checkbox.stateChanged.connect(
-            self._mapper.submit)
-        self.ui.spm_exec_lineedit.textChanged.connect(self._mapper.submit)
-        self.ui.spm_exec_button.clicked.connect(
-            self.on_spm_exec_button_clicked)
+        #self.ui.spm_standalone_checkbox.stateChanged.connect(
+            #self._mapper.submit)
+        #self.ui.spm_exec_lineedit.textChanged.connect(self._mapper.submit)
+        #self.ui.spm_exec_button.clicked.connect(
+            #self.on_spm_exec_button_clicked)
         self.ui.computing_resource_combobox.currentIndexChanged.connect(
             self._mapper.submit)
         self._mapper.toFirst()
@@ -104,22 +111,22 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
                 StudyPropertiesEditorItemModel.OUTPUTDIR_COL,
                 selected_directory)
 
-    @QtCore.Slot()
-    def on_spm_exec_button_clicked(self):
-        caption = 'Select SPM standalone executable'
-        if self._study_properties_editor.spm_exec \
-                and self._study_properties_editor.spm_exec \
-                    is not traits.Undefined:
-            default_directory = os.path.dirname(
-                self._study_properties_editor.spm_exec)
-        else:
-            default_directory = ''
-        selected_file = QtGui.QFileDialog.getOpenFileName(
-            self.ui, caption, default_directory)
-        if selected_file != '':
-            self._item_model.set_data(\
-                StudyPropertiesEditorItemModel.SPM_EXEC_COL,
-                selected_file)
+    #@QtCore.Slot()
+    #def on_spm_exec_button_clicked(self):
+        #caption = 'Select SPM standalone executable'
+        #if self._study_properties_editor.spm_exec \
+                #and self._study_properties_editor.spm_exec \
+                    #is not traits.Undefined:
+            #default_directory = os.path.dirname(
+                #self._study_properties_editor.spm_exec)
+        #else:
+            #default_directory = ''
+        #selected_file = QtGui.QFileDialog.getOpenFileName(
+            #self.ui, caption, default_directory)
+        #if selected_file != '':
+            #self._item_model.set_data(\
+                #StudyPropertiesEditorItemModel.SPM_EXEC_COL,
+                #selected_file)
 
 
 class StudyPropertiesEditorWidgetMapper(QtGui.QDataWidgetMapper):
@@ -175,12 +182,13 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
     OUTPUTDIR_COL = 1
     VOLUME_FORMAT_COL = 2
     MESH_FORMAT_COL = 3
-    SPM_STANDALONE_COL = 4
-    SPM_EXEC_COL = 5
-    COMPUTING_RESOURCE_COL = 6
+    #SPM_STANDALONE_COL = 4
+    #SPM_EXEC_COL = 5
+    COMPUTING_RESOURCE_COL = 4
     attributes = ["study_name", "output_directory",
                   "volumes_format_index", "meshes_format_index",
-                  "spm_standalone", "spm_exec", "computing_resource_index"]
+                  #"spm_standalone", "spm_exec",
+                  "computing_resource_index"]
     status_changed = QtCore.pyqtSignal(bool)
 
     def __init__(self, study_properties_editor, parent=None):
@@ -190,7 +198,7 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
 
     # overrided Qt method
     def columnCount(self):
-        return 8
+        return 5
 
     # overrided Qt method
     def rowCount(self, parent=QtCore.QModelIndex()):
@@ -207,13 +215,22 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
     # overrided Qt method
     def data(self, index, role=QtCore.Qt.DisplayRole):
         column = index.column()
-        value = self._study_properties_editor.__getattribute__(
-            self.attributes[column])
+        try:
+            value = self._study_properties_editor.__getattribute__(
+                self.attributes[column])
+        except IndexError as e:
+            import traceback, sys
+            print 'index:', index
+            print 'column:', column
+            print e
+            traceback.print_stack(file=sys.stdout)
+            raise
         if role in [QtCore.Qt.DisplayRole, QtCore.Qt.EditRole]:
             return value
         elif role == QtCore.Qt.BackgroundRole:
             if column in [self.NAME_COL, self.OUTPUTDIR_COL,
-                          self.SPM_EXEC_COL]:
+                          #self.SPM_EXEC_COL
+                          ]:
                 if self._invalid_value(value):
                     return QtGui.QColor('#ffaaaa')
                 else:
@@ -246,7 +263,9 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
         
     def is_data_colorable(self, index):
         column = index.column()
-        return column in [self.NAME_COL, self.OUTPUTDIR_COL, self.SPM_EXEC_COL]
+        return column in [self.NAME_COL, self.OUTPUTDIR_COL,
+                          #self.SPM_EXEC_COL
+                          ]
 
     def set_data(self, col, value):
         row = 0

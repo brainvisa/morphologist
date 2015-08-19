@@ -107,45 +107,6 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_6">
-        <item>
-         <widget class="QLabel" name="spm_label">
-          <property name="text">
-           <string>SPM: </string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="spm_standalone_checkbox">
-          <property name="text">
-           <string>standalone </string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="spm_exec_label">
-          <property name="text">
-           <string>Executable path: </string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="spm_exec_lineedit"/>
-        </item>
-        <item>
-         <widget class="QPushButton" name="spm_exec_button">
-          <property name="text">
-           <string/>
-          </property>
-          <property name="icon">
-           <iconset resource="../../../../resources/morphologist.qrc">
-            <normaloff>:/icons/open.png</normaloff>:/icons/open.png</iconset>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_7">
         <item>
          <widget class="QLabel" name="computing_resource_label">
