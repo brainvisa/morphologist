@@ -45,9 +45,18 @@ class RunnerSettingsDialog(QtGui.QDialog):
             = study.get_available_computing_resources()
         for resource_name in available_computing_resources:
             self.ui.computing_resource_combobox.addItem(resource_name)
-        self.ui.computing_resource_combobox.setCurrentIndex(
-            available_computing_resources.index(
-                study.somaworkflow_computing_resource))
+
+        try:
+            index = available_computing_resources.index(
+                study.somaworkflow_computing_resource)
+        except ValueError:
+            import socket
+            hostname = socket.gethostname()
+            try:
+                index = available_computing_resources.index(hostname)
+            except ValueError:
+                index = 0
+        self.ui.computing_resource_combobox.setCurrentIndex(index)
 
     # this slot is automagically connected
     @QtCore.Slot('int')
