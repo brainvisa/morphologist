@@ -11,29 +11,32 @@ class SubjectsWidget(QtGui.QWidget):
         self._tableview = SubjectsTableView(model, self)
         tablemodel = SubjectsTableModel(model)
         self._tableview.setModel(tablemodel)
+        # move group after status
+        self._tableview.horizontalHeader().moveSection(1, 3)
         layout = QtGui.QVBoxLayout()
         layout.addWidget(self._tableview)
-        self.setLayout(layout)       
-        
+        self.setLayout(layout)
+
     @property
     def tableview(self):
         return self._tableview
-        
-        
+
+
 class SubjectsTableView(QtGui.QTableView):
     uifile = os.path.join(ui_directory, 'subjects_widget.ui')
-    
+
     def __init__(self, model, parent=None):
         super(SubjectsTableView, self).__init__(parent)
         self._init_widget()
         self._study_model = model
-        
+
     def _init_widget(self):
         self.ui = loadUi(self.uifile, self)
         header = self.horizontalHeader()
         header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
         self.verticalHeader().setVisible(False)
         self.setItemDelegate(SubjectsItemDelegate())
+        header.setMovable(True)
 
     # overrided Qt method
     def selectionCommand(self, index, event):

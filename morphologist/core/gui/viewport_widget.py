@@ -255,13 +255,13 @@ class Object3DViewportView(ViewportView):
         # XXX The view update method might need to create new object (eg. fusion)
         # Such object is stored in temp_object to prevent its deletion (due to Anatomist backend).
         self._temp_object = None
-    
+
     def on_model_changed(self):
         super(Object3DViewportView, self).on_model_changed()
         self._temp_object = None
         if self._view.view_type != ViewType.THREE_D:
-                self._view.reset_camera()
-                
+            self._view.reset_camera()
+
     def create_extended_view(self):
         window = ExtendedObject3DViewportView(self._viewport_model, 
                                               view_class=self.__class__,
