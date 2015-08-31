@@ -1,6 +1,7 @@
 import os
 import validate
 import multiprocessing
+import socket
 
 from morphologist.core.settings import settings, AUTO
 from morphologist.core.gui.qt_backend import QtGui, QtCore, loadUi
@@ -50,7 +51,6 @@ class RunnerSettingsDialog(QtGui.QDialog):
             index = available_computing_resources.index(
                 study.somaworkflow_computing_resource)
         except ValueError:
-            import socket
             hostname = socket.gethostname()
             try:
                 index = available_computing_resources.index(hostname)
@@ -61,7 +61,7 @@ class RunnerSettingsDialog(QtGui.QDialog):
     # this slot is automagically connected
     @QtCore.Slot('int')
     def on_auto_checkBox_stateChanged(self, state):
-        self.ui.cpu_groupBox.setEnabled(not self._is_auto_mode_on())
+        self.ui.selected_cpu_spinBox.setEnabled(not self._is_auto_mode_on())
         if self._is_auto_mode_on():
             self._runner_settings.selected_processing_units_n = AUTO
         else:
@@ -106,8 +106,9 @@ class RunnerSettingsDialog(QtGui.QDialog):
         old_value = settings.runner.selected_processing_units_n
         edited_value = self._runner_settings.selected_processing_units_n
         is_both_auto_mode_on = (old_value.is_auto and edited_value.is_auto)
-        is_both_auto_mode_off_and_values_unchanged = (not old_value.is_auto and\
-                        not edited_value.is_auto and old_value == edited_value)
+        is_both_auto_mode_off_and_values_unchanged \
+          = (not old_value.is_auto
+             and not edited_value.is_auto and old_value == edited_value)
         are_settings_unchanged = is_both_auto_mode_on or \
                                  is_both_auto_mode_off_and_values_unchanged
         return are_settings_unchanged
@@ -118,3 +119,11 @@ class RunnerSettingsDialog(QtGui.QDialog):
     @QtCore.Slot()
     def on_cancel_button_clicked(self):
         self.ui.reject()
+
+    @QtCore.Slot('QString')
+    def on_computing_resource_combobox_activated(self, resource):
+        if resource == 'localhost' or resource == socket.gethostname():
+            self.ui.cpu_groupBox.setEnabled(True)
+        else:
+            self.ui.cpu_groupBox.setEnabled(False)
+
