@@ -273,28 +273,34 @@ class SplitMaskView(Object3DViewportView):
 
 
 class GreyWhiteView(Object3DViewportView):
-    
+
     def __init__(self, model, parent=None, view_type=ViewType.AXIAL, 
                  restricted_controls=True):
         super(GreyWhiteView, self).__init__(model, parent, view_type, 
                                             restricted_controls)
-        self._observed_parameters = [IntraAnalysisParameterNames.LEFT_GREY_WHITE,
-                                     IntraAnalysisParameterNames.RIGHT_GREY_WHITE,
-                                     IntraAnalysisParameterNames.CORRECTED_MRI]
+        self._observed_parameters = [
+            IntraAnalysisParameterNames.LEFT_GREY_WHITE,
+            IntraAnalysisParameterNames.RIGHT_GREY_WHITE,
+            IntraAnalysisParameterNames.CORRECTED_MRI]
         self.set_title(" 6 ) G/W classification")
         self.set_tooltip("Grey/White classification")
-    
+
     def update(self):
         self._view.clear()
-        left_mask = self._viewport_model.observed_objects[IntraAnalysisParameterNames.LEFT_GREY_WHITE]
-        right_mask = self._viewport_model.observed_objects[IntraAnalysisParameterNames.RIGHT_GREY_WHITE]
+        left_mask = self._viewport_model.observed_objects[
+            IntraAnalysisParameterNames.LEFT_GREY_WHITE]
+        right_mask = self._viewport_model.observed_objects[
+            IntraAnalysisParameterNames.RIGHT_GREY_WHITE]
         if left_mask is not None and right_mask is not None:
             left_mask.set_color_map(ColorMap.RAINBOW_MASK)
             right_mask.set_color_map(ColorMap.RAINBOW_MASK)
-            mask_fusion = Object3D.from_fusion(left_mask, right_mask, mode='max_channel', rate=0.5)
-            mri = self._viewport_model.observed_objects[IntraAnalysisParameterNames.CORRECTED_MRI]
+            mask_fusion = Object3D.from_fusion(
+                left_mask, right_mask, mode='max_channel', rate=0.5)
+            mri = self._viewport_model.observed_objects[
+                IntraAnalysisParameterNames.CORRECTED_MRI]
             if mri is not None:
-                fusion = Object3D.from_fusion(mri, mask_fusion, mode='linear', rate=0.7)
+                fusion = Object3D.from_fusion(
+                    mri, mask_fusion, mode='linear', rate=0.7)
                 self._temp_object = fusion
                 self._view.add_object(fusion)
             else:
@@ -303,35 +309,55 @@ class GreyWhiteView(Object3DViewportView):
 
 
 class GreySurfaceView(Object3DViewportView):
-    
+
     def __init__(self, model, parent=None, view_type=ViewType.THREE_D, 
                  restricted_controls=True):
         super(GreySurfaceView, self).__init__(model, parent, view_type, 
                                               restricted_controls)
-        self._observed_parameters = [IntraAnalysisParameterNames.LEFT_GREY_SURFACE,
-                                     IntraAnalysisParameterNames.RIGHT_GREY_SURFACE,
-                                     IntraAnalysisParameterNames.CORRECTED_MRI]
+        self._observed_parameters = [
+            IntraAnalysisParameterNames.LEFT_GREY_SURFACE,
+            IntraAnalysisParameterNames.RIGHT_GREY_SURFACE,
+            IntraAnalysisParameterNames.CORRECTED_MRI]
         self.set_title(" 7 ) Grey surface")
-    
+
     def update(self):
         self._view.clear()
-        left_mesh = self._viewport_model.observed_objects[IntraAnalysisParameterNames.LEFT_GREY_SURFACE]
-        right_mesh = self._viewport_model.observed_objects[IntraAnalysisParameterNames.RIGHT_GREY_SURFACE]
+        left_mesh = self._viewport_model.observed_objects[
+            IntraAnalysisParameterNames.LEFT_GREY_SURFACE]
+        right_mesh = self._viewport_model.observed_objects[
+            IntraAnalysisParameterNames.RIGHT_GREY_SURFACE]
         yellow_color = [0.9, 0.7, 0.0, 1]
-        if left_mesh is not None:
-            left_mesh.set_color(yellow_color) 
-            self._view.add_object(left_mesh)
-        if right_mesh is not None:
-            right_mesh.set_color(yellow_color)
-            self._view.add_object(right_mesh)
         if left_mesh is not None or right_mesh is not None:
-            mri = self._viewport_model.observed_objects[IntraAnalysisParameterNames.CORRECTED_MRI]
+            mri = self._viewport_model.observed_objects[
+                IntraAnalysisParameterNames.CORRECTED_MRI]
             if mri is not None:
                 self._view.add_object(mri)
+        if self.view_type() == ViewType.THREE_D:
+            if left_mesh is not None:
+                left_mesh.set_color(yellow_color)
+                self._view.add_object(left_mesh)
+            if right_mesh is not None:
+                right_mesh.set_color(yellow_color)
+                self._view.add_object(right_mesh)
+        else: # 2D mode
+            self._temp_object = []
+            if left_mesh is not None:
+                left_fus = Object3D.from_fusion(
+                    left_mesh, method='Fusion2DMeshMethod')
+                left_fus.set_color(yellow_color)
+                self._temp_object = [left_fus]
+                self._view.add_object(left_fus)
+            if right_mesh is not None:
+                right_fus = Object3D.from_fusion(
+                    right_mesh, method='Fusion2DMeshMethod')
+                right_fus.set_color(yellow_color)
+                self._temp_object.append(right_fus)
+                self._view.add_object(right_fus)
 
-        
+
+
 class SulciView(Object3DViewportView):
-    
+
     def __init__(self, model, parent=None, view_type=ViewType.THREE_D, 
                  restricted_controls=True):
         super(SulciView, self).__init__(model, parent, view_type, 
@@ -356,14 +382,10 @@ class SulciView(Object3DViewportView):
 
     def update(self):
         self._view.clear()
-        if self.view_type() == ViewType.THREE_D:
-            left_mesh = self._viewport_model.observed_objects[
-                IntraAnalysisParameterNames.LEFT_WHITE_SURFACE]
-            right_mesh = self._viewport_model.observed_objects[
-                IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE]
-        else:
-            left_mesh = None
-            right_mesh = None
+        left_mesh = self._viewport_model.observed_objects[
+            IntraAnalysisParameterNames.LEFT_WHITE_SURFACE]
+        right_mesh = self._viewport_model.observed_objects[
+            IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE]
         left_sulci = self._viewport_model.observed_objects[
             IntraAnalysisParameterNames.LEFT_SULCI]
         right_sulci = self._viewport_model.observed_objects[
@@ -373,10 +395,10 @@ class SulciView(Object3DViewportView):
         right_labeled_sulci = self._viewport_model.observed_objects[
             IntraAnalysisParameterNames.RIGHT_LABELED_SULCI]
         grey_color = [0.8, 0.8, 0.8, 1.]
-        if left_mesh is not None:
+        if self.view_type() == ViewType.THREE_D and left_mesh is not None:
             left_mesh.set_color(grey_color) 
             self._view.add_object(left_mesh)
-        if right_mesh is not None:
+        if self.view_type() == ViewType.THREE_D and right_mesh is not None:
             right_mesh.set_color(grey_color)
             self._view.add_object(right_mesh)
         if left_labeled_sulci is not None:
@@ -396,3 +418,19 @@ class SulciView(Object3DViewportView):
                 IntraAnalysisParameterNames.CORRECTED_MRI]
             if mri is not None:
                 self._view.add_object(mri)
+        self._temp_object = []
+        gw_color = [1., 0.7, 0.7, 1.]
+        if self.view_type() != ViewType.THREE_D and left_mesh is not None:
+            print 'add 2d mesh left'
+            left_fus = Object3D.from_fusion(
+                left_mesh, method='Fusion2DMeshMethod')
+            left_fus.set_color(gw_color)
+            print 'left_fus:', left_fus
+            self._temp_object = [left_fus]
+            self._view.add_object(left_fus)
+        if self.view_type() != ViewType.THREE_D and right_mesh is not None:
+            right_fus = Object3D.from_fusion(
+                right_mesh, method='Fusion2DMeshMethod')
+            right_fus.set_color(gw_color)
+            self._temp_object.append(right_fus)
+            self._view.add_object(right_fus)

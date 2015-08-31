@@ -53,12 +53,19 @@ class Object3D(AbstractObject3D):
         callback(self)
 
     @classmethod
-    def from_fusion(cls, object1, object2, mode, rate):
+    def from_fusion(cls, object1, object2=None, mode=None, rate=None,
+                    method=None):
         object3d = cls(_enable_init=True)
-        object3d._friend_backend_object = object3d._backend.create_fusion_object(\
-                                                         object1._friend_backend_object, 
-                                                         object2._friend_backend_object, 
-                                                         mode, rate)
+        objects = []
+        if isinstance(object1, tuple) or isinstance(object1, list):
+            objects += [o._friend_backend_object for o in object1]
+        else:
+            objects.append(object1._friend_backend_object)
+        if object2 is not None:
+            objects.append(object2._friend_backend_object)
+        object3d._friend_backend_object \
+            = object3d._backend.create_fusion_object(
+                objects, mode=mode, rate=rate, method=method)
         return object3d
         
     def reload(self):

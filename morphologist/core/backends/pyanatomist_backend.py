@@ -130,11 +130,15 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         backend_object.setMaterial(diffuse=rgba_color)
 
     @classmethod
-    def create_fusion_object(cls, backend_object1, backend_object2, mode, rate):
-        fusion = cls.anatomist.fusionObjects([backend_object1, backend_object2], 
-                                             method='Fusion2DMethod')
-        cls.anatomist.execute("TexturingParams", objects=[fusion], mode=mode, rate=rate, 
-                              texture_index=1)
+    def create_fusion_object(cls, backend_objects, mode=None,
+                             rate=None, method=None):
+        if method is None:
+            method = 'Fusion2DMethod'
+        fusion = cls.anatomist.fusionObjects(backend_objects, method=method)
+        if method == 'Fusion2DMethod' and mode is not None \
+                and method is not None:
+            cls.anatomist.execute("TexturingParams", objects=[fusion],
+                                  mode=mode, rate=rate, texture_index=1)
         return fusion
 
     @classmethod
