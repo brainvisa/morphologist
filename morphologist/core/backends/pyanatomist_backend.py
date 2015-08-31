@@ -5,11 +5,11 @@ from anatomist.cpp.simplecontrols import Simple2DControl, Simple3DControl, \
     registerSimpleControls
 from soma import aims
 
-from morphologist.core.gui.qt_backend import QtCore
+from morphologist.core.gui.qt_backend import QtCore, QtGui
 from morphologist.core.backends import Backend
-from morphologist.core.backends.mixins import DisplayManagerMixin, \
-                                         ObjectsManagerMixin, LoadObjectError, \
-                                         ColorMap, ViewType
+from morphologist.core.backends.mixins \
+    import DisplayManagerMixin, ObjectsManagerMixin, LoadObjectError, \
+        ColorMap, ViewType
 
 
 class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
@@ -82,9 +82,10 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         parent.layout().addWidget(awindow.getInternalRep())
         if view_type == ViewType.THREE_D:
             control = "Simple3DControl"
-            awindow.camera(zoom=1.5, 
-                           view_quaternion=[0.558559238910675,0.141287177801132,\
-                                            0.196735754609108,0.793312430381775])
+            awindow.camera(
+                zoom=1.5,
+                view_quaternion=[0.558559238910675,0.141287177801132,\
+                                 0.196735754609108,0.793312430381775])
         else:
             control = 'Simple2DControl'
         if restricted_controls:
@@ -143,7 +144,9 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
 
     @classmethod
     def load_object(cls, filename):
+        QtGui.qApp.setOverrideCursor(QtCore.Qt.WaitCursor)
         aobject = cls.anatomist.loadObject(filename)
+        QtGui.qApp.restoreOverrideCursor()
         if aobject.getInternalRep() == None:
             raise LoadObjectError(str(filename))
         return aobject
