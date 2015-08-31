@@ -136,6 +136,26 @@ In the future, Morphologist-UI will be extended for inter-subject statistical an
 Other improvements in specialized steps visualization windows are planed, especially for processing parameters edition, and manual correction of processed data, as in BrainVisa editors.
 
 
+Use cases
+---------
+
+See My BrainVISA processed data using Morphologist-UI
++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+* Run ``morphologist``
+* Use the **Study / Import** option. Use the BrainVisa database directory, keeping files in place (leave the "Create the study in this directory" option ON).
+* In the study specification, make sure you set the same files formats as the ones which were used in brainvisa.
+* When the study is validated, you should see the existing data.
+
+Reprocess Morphologist-UI results using the BrainVisa Morphologist
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+* Run ``brainvisa``
+* In the **Preferences**, setup a database to be the study directory of Morphologist-UI.
+* If it already existed, you will have to update the database (using the pocess **Data management / Update databases**, if not already prompted to do so).
+* That's it, you should see the data.
+
+
 Developers
 ==========
 
