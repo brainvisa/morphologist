@@ -336,24 +336,42 @@ class SulciView(Object3DViewportView):
                  restricted_controls=True):
         super(SulciView, self).__init__(model, parent, view_type, 
                                         restricted_controls)
-        self._observed_parameters = [IntraAnalysisParameterNames.LEFT_WHITE_SURFACE,
-                                     IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE,
-                                     IntraAnalysisParameterNames.LEFT_SULCI,
-                                     IntraAnalysisParameterNames.RIGHT_SULCI, 
-                                     IntraAnalysisParameterNames.LEFT_LABELED_SULCI,
-                                     IntraAnalysisParameterNames.RIGHT_LABELED_SULCI,
-                                     IntraAnalysisParameterNames.CORRECTED_MRI]
+        if view_type == ViewType.THREE_D:
+            self._observed_parameters \
+                = [IntraAnalysisParameterNames.LEFT_WHITE_SURFACE,
+                   IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE,
+                   IntraAnalysisParameterNames.LEFT_SULCI,
+                   IntraAnalysisParameterNames.RIGHT_SULCI,
+                   IntraAnalysisParameterNames.LEFT_LABELED_SULCI,
+                   IntraAnalysisParameterNames.RIGHT_LABELED_SULCI]
+        else:
+            self._observed_parameters \
+                = [IntraAnalysisParameterNames.LEFT_SULCI,
+                   IntraAnalysisParameterNames.RIGHT_SULCI,
+                   IntraAnalysisParameterNames.LEFT_LABELED_SULCI,
+                   IntraAnalysisParameterNames.RIGHT_LABELED_SULCI,
+                   IntraAnalysisParameterNames.CORRECTED_MRI]
         self.set_title(" 8 ) White surface, Sulci")
         self.set_tooltip("Labeled sulci on white surface")
-        
+
     def update(self):
         self._view.clear()
-        left_mesh = self._viewport_model.observed_objects[IntraAnalysisParameterNames.LEFT_WHITE_SURFACE]
-        right_mesh = self._viewport_model.observed_objects[IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE]
-        left_sulci = self._viewport_model.observed_objects[IntraAnalysisParameterNames.LEFT_SULCI]
-        right_sulci = self._viewport_model.observed_objects[IntraAnalysisParameterNames.RIGHT_SULCI]
-        left_labeled_sulci = self._viewport_model.observed_objects[IntraAnalysisParameterNames.LEFT_LABELED_SULCI]
-        right_labeled_sulci = self._viewport_model.observed_objects[IntraAnalysisParameterNames.RIGHT_LABELED_SULCI]
+        if self.view_type() == ViewType.THREE_D:
+            left_mesh = self._viewport_model.observed_objects[
+                IntraAnalysisParameterNames.LEFT_WHITE_SURFACE]
+            right_mesh = self._viewport_model.observed_objects[
+                IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE]
+        else:
+            left_mesh = None
+            right_mesh = None
+        left_sulci = self._viewport_model.observed_objects[
+            IntraAnalysisParameterNames.LEFT_SULCI]
+        right_sulci = self._viewport_model.observed_objects[
+            IntraAnalysisParameterNames.RIGHT_SULCI]
+        left_labeled_sulci = self._viewport_model.observed_objects[
+            IntraAnalysisParameterNames.LEFT_LABELED_SULCI]
+        right_labeled_sulci = self._viewport_model.observed_objects[
+            IntraAnalysisParameterNames.RIGHT_LABELED_SULCI]
         grey_color = [0.8, 0.8, 0.8, 1.]
         if left_mesh is not None:
             left_mesh.set_color(grey_color) 
@@ -371,8 +389,10 @@ class SulciView(Object3DViewportView):
             self._view.add_object(right_sulci)
         if ((left_mesh is not None) or (right_mesh is not None) or
             (left_sulci is not None) or (right_sulci is not None) or
-            (left_labeled_sulci is not None) or (right_labeled_sulci is not None)):
-            mri = self._viewport_model.observed_objects[IntraAnalysisParameterNames.CORRECTED_MRI]
+            (left_labeled_sulci is not None) or
+            (right_labeled_sulci is not None)) \
+                and self.view_type() != ViewType.THREE_D:
+            mri = self._viewport_model.observed_objects[
+                IntraAnalysisParameterNames.CORRECTED_MRI]
             if mri is not None:
                 self._view.add_object(mri)
-                

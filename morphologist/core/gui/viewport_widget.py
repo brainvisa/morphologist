@@ -233,17 +233,20 @@ class ViewportView(QtGui.QFrame):
     def on_extend_view_button_clicked(self):
         window = self.create_extended_view()
         window.show()
-        
+
     def create_extended_view(self):
         window = self.__class__(self._viewport_model, self)
         window.setWindowFlags(QtCore.Qt.Window)
         window.ui.extend_view_button.setVisible(False)
         window.update()
         return window
-    
-    
+
+    def view_type(self):
+        return self._view.view_type
+
+
 class Object3DViewportView(ViewportView):
-    
+
     def __init__(self, model, parent=None, view_type=ViewType.AXIAL, 
                  restricted_controls=True):
         super(Object3DViewportView, self).__init__(model, parent)
