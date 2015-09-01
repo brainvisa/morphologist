@@ -21,11 +21,19 @@ class Histogram(VectorObject):
      
     @classmethod
     def from_filename(cls, filename):
+        print 'load histo:', filename
         vector_graphic = cls(_enable_init=True)
-        vector_graphic._friend_backend_object = vector_graphic._backend.load_histogram(filename)
+        vector_graphic._friend_backend_object \
+            = vector_graphic._backend.load_histogram(filename)
         return vector_graphic
 
-    
+    def reload(self):
+        print 'reload histo:', self._friend_backend_object.han_filename
+        _friend_backend_object \
+            = self.__class__.from_filename(
+                self._friend_backend_object.han_filename)
+
+
 class VectorView(object):
     
     def __init__(self, parent):
