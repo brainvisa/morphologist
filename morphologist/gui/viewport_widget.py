@@ -318,6 +318,10 @@ class GreySurfaceView(Object3DViewportView):
             IntraAnalysisParameterNames.LEFT_GREY_SURFACE,
             IntraAnalysisParameterNames.RIGHT_GREY_SURFACE,
             IntraAnalysisParameterNames.CORRECTED_MRI]
+        if view_type != ViewType.THREE_D:
+            self._observed_parameters += [
+                IntraAnalysisParameterNames.LEFT_WHITE_SURFACE,
+                IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE]
         self.set_title(" 7 ) Grey surface")
 
     def update(self):
@@ -327,6 +331,7 @@ class GreySurfaceView(Object3DViewportView):
         right_mesh = self._viewport_model.observed_objects[
             IntraAnalysisParameterNames.RIGHT_GREY_SURFACE]
         yellow_color = [0.9, 0.7, 0.0, 1]
+        gw_color = [1., 0.7, 0.7, 1.]
         if left_mesh is not None or right_mesh is not None:
             mri = self._viewport_model.observed_objects[
                 IntraAnalysisParameterNames.CORRECTED_MRI]
@@ -353,7 +358,22 @@ class GreySurfaceView(Object3DViewportView):
                 right_fus.set_color(yellow_color)
                 self._temp_object.append(right_fus)
                 self._view.add_object(right_fus)
-
+            left_gw_mesh = self._viewport_model.observed_objects[
+                IntraAnalysisParameterNames.LEFT_WHITE_SURFACE]
+            right_gw_mesh = self._viewport_model.observed_objects[
+                IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE]
+            if left_gw_mesh is not None:
+                left_gw_fus = Object3D.from_fusion(
+                    left_gw_mesh, method='Fusion2DMeshMethod')
+                left_gw_fus.set_color(gw_color)
+                self._temp_object.append(left_gw_fus)
+                self._view.add_object(left_gw_fus)
+            if right_gw_mesh is not None:
+                right_gw_fus = Object3D.from_fusion(
+                    right_gw_mesh, method='Fusion2DMeshMethod')
+                right_gw_fus.set_color(gw_color)
+                self._temp_object.append(right_gw_fus)
+                self._view.add_object(right_gw_fus)
 
 
 class SulciView(Object3DViewportView):
