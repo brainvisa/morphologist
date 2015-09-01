@@ -115,15 +115,19 @@ class Analysis(object):
         return [fname_base + ext for ext in exts] + [filename + '.minf']
 
     def convert_from_formats(self, old_volumes_format, old_meshes_format):
+        # TODO: use aims/somaio IO system for formats extensions
+        exts = [['.nii'], ['.nii.gz'], ['.img', '.hdr'], ['.ima', '.dim'],
+                ['.dcm'], ['.mnc'],
+                ['.gii'], ['.mesh'], ['.ply']]
+        vol_formats = ['.nii', '.nii.gz', '.img', '.ima', '.dcm', '.mnc']
+        mesh_formats = ['.gii', '.mesh', '.ply']
+
         def _convert_data(old_name, new_name):
             print 'converting:', old_name, 'to:', new_name
             data = aims.read(old_name)
             aims.write(data, new_name)
+
         def _remove_data(name):
-            # TODO: use aims/somaio IO system for formats extensions
-            exts = [['.nii'], ['.nii.gz'], ['.img', '.hdr'], ['.ima', '.dim'],
-                    ['.dcm'], ['.mnc'],
-                    ['.mesh'], ['.gii'], ['.ply']]
             for fexts in exts:
                 for ext in fexts:
                     if name.endswith(ext):
@@ -137,11 +141,43 @@ class Analysis(object):
                             elif os.path.exists(filename):
                                 print 'rm', filename
                                 os.unlink(filename)
-        print 'convert analysis', self.subject, 'from formats:', old_volumes_format, old_meshes_format, 'to:', self.study.volumes_format, self.study.meshes_format
-        if old_volumes_format == self.study.volumes_format \
-                and old_meshes_format == self.study.meshes_format:
-            print '    nothing to do.'
-            return
+
+        def _look_for_other_formats(value, new_value):
+            old_format = [fext[0] for fext in exts
+                          if value.endswith(fext[0])]
+            if len(old_format) == 0:
+                return value
+            old_format = old_format[0]
+            if old_format in vol_formats:
+                dtype = 0
+            elif old_format in mesh_formats:
+                dtype = 1
+            else:
+                return value
+            typed_formats = [vol_formats, mesh_formats]
+
+            old_base = value[:-len(old_format)]
+            for fexts in exts:
+                if not fexts[0] in typed_formats[dtype]:
+                    continue
+                if not new_value.endswith(fexts[0]):
+                    for ext in fexts:
+                        new_old_value = old_base + ext
+                        if not os.path.exists(new_old_value):
+                            # not OK
+                            break
+                    else:
+                        # found matching format
+                        return old_base + fexts[0]
+            return value
+
+        print 'convert analysis', self.subject, 'from formats:', \
+            old_volumes_format, old_meshes_format, 'to:', \
+            self.study.volumes_format, self.study.meshes_format
+        #if old_volumes_format == self.study.volumes_format \
+                #and old_meshes_format == self.study.meshes_format:
+            #print '    nothing to do.'
+            #return
         old_params = self.parameters
         # force re-running FOM
         self.set_parameters(self.subject)
@@ -151,13 +187,17 @@ class Analysis(object):
             old_state = old_dict.get('state')
             new_state = new_dict.get('state', {})
             for key, value in old_state.iteritems():
-                if isinstance(value, basestring) and os.path.exists(value):
+                if isinstance(value, basestring):
                     new_value = new_state.get(key)
-                    if new_value not in ('', None, traits.Undefined) \
-                            and new_value != value:
-                        _convert_data(value, new_value)
-                    if new_value != value:
-                        _remove_data(value)
+                    if not os.path.exists(value) \
+                            and not os.path.exists(new_value):
+                        value = _look_for_other_formats(value, new_value)
+                    if os.path.exists(value):
+                        if new_value not in ('', None, traits.Undefined) \
+                                and new_value != value:
+                            _convert_data(value, new_value)
+                        if new_value != value:
+                            _remove_data(value)
             old_nodes = old_dict.get('nodes')
             new_nodes = new_dict.get('nodes', {})
             if old_nodes:

@@ -41,8 +41,8 @@ class StudyEditor(object):
         study = Study.unserialize(serialized_study,
                                   self.study.output_directory)
         self._study_properties_editor.update_study(study)
-        self._subjects_editor.update_study(study, \
-                                self.study_update_policy)
+        self._subjects_editor.update_study(
+            study, self.study_update_policy)
         study.convert_from_formats(old_vol_format, old_mesh_format)
         self.study = study  # WARNING whe change the study in a thread.
         return self.study

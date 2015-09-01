@@ -1,7 +1,36 @@
 import os
 import hashlib
+import threading
+import time
 
 from morphologist.core.gui.qt_backend import QtCore
+
+class AnalysisPollingThread(QtCore.QThread):
+
+    STOPPED = 0
+    RUNNING = 1
+    HELD = 2
+
+    def __init__(self, observed_files):
+        self.lock = threading.RLock()
+        self._update_interval = 4 # in seconds
+        self.state = self.STOPPED
+        self.observed_files = observed_files
+
+    def run(self):
+        with self.lock:
+            self.state = self.RUNNING
+        while True:
+            with self.lock:
+                time.sleep(self._update_interval * 1000)
+                state = int(self.state)
+            if state == self.STOPPED:
+                break
+            elif state == RUNNING:
+                self._check_output_files_changed()
+
+    def _check_output_files_changed(self):
+        pass
 
 
 class LazyAnalysisModel(QtCore.QObject):
@@ -39,6 +68,12 @@ class LazyAnalysisModel(QtCore.QObject):
             self._analysis.list_input_parameters_with_existing_files())
 
     def _check_output_files_changed(self):
+        #checked_outputs_names \
+            #= self._analysis.get_output_file_parameter_names()
+        #checked_outputs = dict([
+            #(parameter_name,
+             #getattr(self._analysis.pipeline.process, parameter_name))
+            #for parameter_name in checked_outputs_names])
         checked_outputs = \
             self._analysis.list_output_parameters_with_existing_files()
         changed_parameters = self._changed_parameters(
@@ -54,6 +89,10 @@ class LazyAnalysisModel(QtCore.QObject):
     def _changed_parameters(self, existing_items, parameters_file_sha):
         changed_parameters = []
         for parameter_name, filename in existing_items.iteritems():
+            if not os.path.exists(filename):
+                # missing files are considered not changed
+                # (which may be a problem if files are removed)
+                continue
             # TODO: directories are ignored !
             if os.path.isdir(filename): continue
             last_sha = parameters_file_sha.get(parameter_name, None)

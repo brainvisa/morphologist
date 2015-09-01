@@ -161,7 +161,7 @@ class Study(StudyConfig):
         new_study = cls(
             analysis_type, study_name=study_name,
             output_directory=organized_directory)
-        subjects = new_study.get_subjects_from_pattern(exact_match=True)
+        subjects = new_study.get_subjects_from_pattern() ##exact_match=True)
         for subject in subjects:
             new_study.add_subject(subject, import_data=False)
         return new_study

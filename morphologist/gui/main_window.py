@@ -54,7 +54,8 @@ class StudyActionHandler(ActionHandler):
                     study_editor.create_updated_study)
         if study_editor.subjects_editor.has_subjects_to_be_imported():
             dialog = ImportSubjectsDialog(study_editor, parent=self.parent())
-            dialog.ui.accepted.connect(self._on_import_subjects_dialog_accepted)
+            dialog.ui.accepted.connect(
+                self._on_import_subjects_dialog_accepted)
             dialog.show()
             self._import_subjects_dialog = dialog
             self._create_updated_study_thread.finished.connect(\
@@ -62,18 +63,21 @@ class StudyActionHandler(ActionHandler):
         else:
             self._create_updated_study_thread.finished.connect(\
                 self._on_create_updated_study_thread_finished_without_dialog)
+        QtGui.qApp.setOverrideCursor(QtCore.Qt.WaitCursor)
         self._create_updated_study_thread.start()
 
     @QtCore.Slot()
     def _on_create_updated_study_thread_finished_without_dialog(self):
         self._on_create_updated_study_thread_finished()
         self._on_import_subjects_dialog_accepted()
+        QtGui.qApp.restoreOverrideCursor()
 
     @QtCore.Slot()
     def _on_create_updated_study_thread_finished(self):
         study = self._create_updated_study_thread.res
         self.study_updated.emit(study)
         self._create_updated_study_thread = None
+        QtGui.qApp.restoreOverrideCursor()
 
     @QtCore.Slot()
     def _on_import_subjects_dialog_accepted(self):
@@ -144,7 +148,7 @@ class ImportStudyActionHandler(ActionHandler):
         dialog.accepted.connect(self._on_import_study_dialog_accepted)
         dialog.show()
         self._import_study_dialog = dialog
-        
+
     @QtCore.Slot()
     def _on_import_study_dialog_accepted(self):
         dialog = self._import_study_dialog
