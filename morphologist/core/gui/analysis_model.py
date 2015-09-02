@@ -125,8 +125,9 @@ class LazyAnalysisModel(QtCore.QObject):
     def __del__(self):
         if self.polling_thread is not None:
             with self.polling_thread.lock:
-                self.polling_thread.state = STOPPED
+                self.polling_thread.state = AnalysisPollingThread.STOPPED
             self.polling_thread.terminate()
+            self.polling_thread.wait()
             del self.polling_thread
 
     def set_analysis(self, analysis):
