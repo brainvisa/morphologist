@@ -76,8 +76,8 @@ def main():
         study_directory = options.study_directory
         import_study = False
     main_window = MainWindow(analysis_type="IntraAnalysis",
-                            study_directory=study_directory,
-                            import_study=import_study)
+                             study_directory=study_directory,
+                             import_study=import_study)
     main_window.show()
     sys.exit(qApp.exec_())
 

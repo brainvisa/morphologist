@@ -19,7 +19,7 @@ from morphologist.core.gui.import_study_widget import ImportStudyDialog, \
                                                       ImportStudyEditorDialog
 from morphologist.core.gui.import_subjects_widget import ImportSubjectsDialog
 from morphologist.core.backends.mixins import ViewType
-from morphologist.gui import ui_directory 
+from morphologist.gui import ui_directory
 from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
                                              IntraAnalysisViewportWidget
 from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
@@ -179,7 +179,7 @@ class ImportStudyActionHandler(ActionHandler):
     @QtCore.Slot(Study)
     def _on_edit_imported_study_action_handler_study_updated(self, study):
         self.study_updated.emit(study)
-        
+
 
 class MainWindow(QtGui.QMainWindow):
     uifile = os.path.join(ui_directory, 'main_window.ui')
@@ -192,7 +192,7 @@ class MainWindow(QtGui.QMainWindow):
         else:
             ApplicationStudy = Study
 
-    def __init__(self, analysis_type, study_directory=None, 
+    def __init__(self, analysis_type, study_directory=None,
             import_study=False):
         super(MainWindow, self).__init__()
         if ApplicationStudy is None: self._init_class()
@@ -211,10 +211,10 @@ class MainWindow(QtGui.QMainWindow):
         self.viewport_model = IntraAnalysisViewportModel(self.analysis_model)
         self.viewport_widget = IntraAnalysisViewportWidget(self.viewport_model, self)
         self.setCentralWidget(self.viewport_widget)
-        
+
         self.study_view = SubjectsWidget(self.study_model)
         self.ui.study_widget_dock.setWidget(self.study_view)
-        
+
         self.setCorner(QtCore.Qt.TopRightCorner, QtCore.Qt.RightDockWidgetArea)
         self.setCorner(QtCore.Qt.BottomRightCorner, QtCore.Qt.RightDockWidgetArea)
         self.setCorner(QtCore.Qt.TopLeftCorner, QtCore.Qt.LeftDockWidgetArea)
@@ -225,7 +225,7 @@ class MainWindow(QtGui.QMainWindow):
 
         self.setWindowTitle(self._window_title())
         self.dialogs = {}
-        
+
         self.study_model.current_subject_changed.connect(self.on_current_subject_changed)
         self.on_current_subject_changed()
         if study_directory is not None:
@@ -269,7 +269,7 @@ class MainWindow(QtGui.QMainWindow):
         self._new_study_action_handler.study_updated.connect(\
             self.on_study_action_handler_study_updated)
         self._new_study_action_handler.start()
-       
+
     # this slot is automagically connected
     @QtCore.Slot()
     def on_action_import_study_triggered(self):
@@ -280,7 +280,7 @@ class MainWindow(QtGui.QMainWindow):
         self._import_study_action_handler.study_updated.connect(\
             self.on_study_action_handler_study_updated)
         self._import_study_action_handler.start()
-   
+
     # this slot is automagically connected
     @QtCore.Slot()
     def on_action_edit_study_triggered(self):
@@ -304,7 +304,7 @@ class MainWindow(QtGui.QMainWindow):
         msg = 'Stop current running analysis and open a study ?'
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
         study_directory = QtGui.QFileDialog.getExistingDirectory(parent=self.ui,
-                                caption="Open a study directory", directory="", 
+                                caption="Open a study directory", directory="",
                                 options=QtGui.QFileDialog.DontUseNativeDialog)
         if study_directory:
             self._try_open_study_from_directory(study_directory)
@@ -389,7 +389,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def closeEvent(self, event):
         msg = 'Stop current running analysis and quit ?'
-        if self._runner_still_running_after_stopping_asked_to_user(msg): 
+        if self._runner_still_running_after_stopping_asked_to_user(msg):
             event.ignore()
         else:
             if hasattr(self, 'browser'):
@@ -409,7 +409,7 @@ class MainWindow(QtGui.QMainWindow):
             self.viewport_widget.set_object3d_views_view_type(ViewType.AXIAL)
 
     # this slot is automagically connected
-    @QtCore.Slot(bool)        
+    @QtCore.Slot(bool)
     def on_action_coronal_view_toggled(self, checked):
         if checked:
             self.viewport_widget.set_object3d_views_view_type(ViewType.CORONAL)

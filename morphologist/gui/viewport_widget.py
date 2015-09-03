@@ -10,6 +10,8 @@ from morphologist.core.gui.viewport_widget import AnalysisViewportModel, \
 from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
 from brainvisa.morphologist.qt4gui.histo_analysis_editor \
     import create_histo_editor
+#from brainvisa.morphologist.qt4gui.histo_analysis_widget \
+    #import load_histo_analysis
 
 class IntraAnalysisViewportModel(AnalysisViewportModel):
 
@@ -111,32 +113,44 @@ class RawMriACPCView(Object3DViewportView):
             apc_object.set_ih_color(( 0, 1, 0, 1 ))
             self._view.add_object(apc_object)
             self._view.center_on_object(apc_object)
-        
-    
+
+
 class BiasCorrectedMriView(Object3DViewportView):
-    
+
     def __init__(self, model, parent=None, view_type=ViewType.AXIAL, 
                  restricted_controls=True):
         super(BiasCorrectedMriView, self).__init__(model, parent, view_type, 
                                                    restricted_controls)
-        self._observed_parameters = [IntraAnalysisParameterNames.CORRECTED_MRI]
+        self._observed_parameters = [
+            IntraAnalysisParameterNames.CORRECTED_MRI,
+            IntraAnalysisParameterNames.HISTO_ANALYSIS]
         self.set_title(" 2 ) Bias corrected MRI")
-        
+
     def update(self):
         self._view.clear()
-        corrected_mri = self._viewport_model.observed_objects[IntraAnalysisParameterNames.CORRECTED_MRI]
+        corrected_mri = self._viewport_model.observed_objects[
+            IntraAnalysisParameterNames.CORRECTED_MRI]
         if corrected_mri is not None:
             mri_copy = corrected_mri.shallow_copy()
             self._temp_object = mri_copy
-            mri_copy.set_color_map(ColorMap.RAINBOW)
+            minv = None
+            maxv = None
+            histo = self._viewport_model.observed_objects[
+                IntraAnalysisParameterNames.HISTO_ANALYSIS]
+            if histo is not None:
+                han = histo._friend_backend_object.han
+                minv = max(0, han[0][0] - han[0][1] * 8)
+                maxv = han[1][0] + han[1][1] * 3
+            mri_copy.set_color_map(ColorMap.RAINBOW, minv, maxv)
             self._view.add_object(mri_copy)
 
-        
+
 class HistoAnalysisView(VectorViewportView):
-    
+
     def __init__(self, model, parent=None):
         super(HistoAnalysisView, self).__init__(model, parent)
-        self._observed_parameters = [IntraAnalysisParameterNames.HISTO_ANALYSIS]
+        self._observed_parameters = [
+            IntraAnalysisParameterNames.HISTO_ANALYSIS]
         self.set_title(" 3 ) Histogram")
         self.set_tooltip("""<p>Histogram analysis</p>
 <p>Histogram curve in blue, it should contain two peaks: one (green analysis) for grey matter, one (red analysis) for white matter.</p>""")
@@ -213,7 +227,8 @@ class HistoAnalysisEditorView(ViewportView):
         super(HistoAnalysisEditorView, self).__init__(model, parent)
         self._view = VectorExtendedView(self.ui.view_hook)
         self._view.set_bgcolor(self.bg_color)
-        self._observed_parameters = [IntraAnalysisParameterNames.HISTO_ANALYSIS,
+        self._observed_parameters = [
+            IntraAnalysisParameterNames.HISTO_ANALYSIS,
             IntraAnalysisParameterNames.CORRECTED_MRI]
         self.set_title(" 3b ) Histogram edition")
         self.set_tooltip("""<p>Histogram analysis edition</p>

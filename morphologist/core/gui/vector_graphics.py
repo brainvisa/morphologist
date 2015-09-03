@@ -21,7 +21,6 @@ class Histogram(VectorObject):
      
     @classmethod
     def from_filename(cls, filename):
-        print 'load histo:', filename
         vector_graphic = cls(_enable_init=True)
         vector_graphic._friend_backend_object \
             = vector_graphic._backend.load_histogram(filename)

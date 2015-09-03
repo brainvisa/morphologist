@@ -14,8 +14,9 @@ class AbstractObject3D(Visitable):
     def get_center_position(self):
         raise NotImplementedError("AbstractObject3D is an abstract class")
 
-    def set_color_map(self, color_map_name):
-        self._backend.set_object_color_map(self._friend_backend_object, color_map_name)
+    def set_color_map(self, color_map_name, min=None, max=None):
+        self._backend.set_object_color_map(
+            self._friend_backend_object, color_map_name, min, max)
     
     def set_color(self, rgba_color):
         self._backend.set_object_color(self._friend_backend_object, rgba_color)
@@ -111,9 +112,9 @@ class GroupObject(AbstractObject3D):
             position = (0,0,0)
         return position
 
-    def set_color_map(self, color_map_name):
+    def set_color_map(self, color_map_name, min=None, max=None):
         for object in self._objects:
-            object.set_color_map(color_map_name)
+            object.set_color_map(color_map_name, min, max)
     
     def set_color(self, rgba_color):
         for object in self._objects:
