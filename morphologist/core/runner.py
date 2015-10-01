@@ -238,6 +238,10 @@ class  SomaWorkflowRunner(Runner):
             #analysis.propagate_parameters()
             pipeline = analysis.pipeline.process
             pipeline.enable_all_pipeline_steps()
+            # force highest priority normalization method
+            # FIXME: specific knowledge of Morphologist should not be used here.
+            pipeline.Normalization_select_Normalization_pipeline \
+                  = 'NormalizeSPM'
             pipeline_tools.disable_runtime_steps_with_existing_outputs(
                 pipeline)
 
