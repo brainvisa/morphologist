@@ -45,7 +45,10 @@ Comparison with the regular Morphologist pipeline
 Installation
 ------------
 
-Users distributions are available on http://brainvisa.info
+* Users distributions are available on http://brainvisa.info
+* For now, `SPM (FIL, UK) <http://www.fil.ion.ucl.ac.uk/spm/>`_ is required for the normalization step. It needs to be installed separately and setup in Morphologist configuration. SPM8 or SPM12 are supported, both with either the regular matlab version or the *standalone* compiled one.
+
+In the future we will allow normalization using FSL or other internal tools, but for the first release SPM is a requirement.
 
 
 Starting the program
