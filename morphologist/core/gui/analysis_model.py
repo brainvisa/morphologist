@@ -161,7 +161,7 @@ class LazyAnalysisModel(QtCore.QObject):
 
         if self.polling_thread is not None:
             with self.polling_thread.lock:
-                self.polling_thread.state = STOPPED
+                self.polling_thread.state = AnalysisPollingThread.STOPPED
             self.polling_thread.set_analysis(None)
 
         self.changed.emit()
