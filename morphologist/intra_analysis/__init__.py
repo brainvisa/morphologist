@@ -83,6 +83,8 @@ class IntraAnalysis(SharedPipelineAnalysis):
                                    ['SulciRecognition'])
         pipeline.add_pipeline_step('sulci_labelling_right',
                                    ['SulciRecognition_1'])
+        # listen to config activation and adapt normalization steps
+        pipeline.attach_config_activations(self.study)
 
         return pipeline
 
