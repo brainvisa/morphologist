@@ -46,7 +46,7 @@ Installation
 ------------
 
 * Users distributions are available on http://brainvisa.info
-* The normalization step may maye use of external software, that has to be installed separately. If none is installed, the normalization defaults to the AimsMIRegister (mutual informaton) method, which is not the best tested one and might suffer from robustness issues. If installed and configured (see configuration options), the following software may be used instead, in that order:
+* The normalization step may make use of external software, that has to be installed separately. If none is installed, the normalization defaults to the AimsMIRegister (mutual informaton) method, which is not the best tested one and might suffer from robustness issues. If installed and configured (see configuration options), the following software may be used instead, in that order:
 
     * `SPM (FIL, UK) <http://www.fil.ion.ucl.ac.uk/spm/>`_. It needs to be installed separately and setup in Morphologist configuration. SPM8 or SPM12 are supported, both with either the regular matlab version or the *standalone* compiled one.
     * `FSL flirt (FMRIB, UK) <http://fsl.fmrib.ox.ac.uk/fsl>`_. It needs to be installed separately and setup in Morphologist configuration.
