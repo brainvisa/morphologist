@@ -34,10 +34,7 @@ class IntraAnalysisParameterNames:
     RIGHT_SULCI_DATA = 'right_sulci_data'
     LEFT_LABELED_SULCI_DATA = 'left_labeled_sulci_data'
     RIGHT_LABELED_SULCI_DATA = 'right_labeled_sulci_data'
-    LEFT_NATIVE_MORPHOMETRY_CSV = 'left_native_morphometry'
-    RIGHT_NATIVE_MORPHOMETRY_CSV = 'right_native_morphometry'
-    LEFT_NORMALIZED_MORPHOMETRY_CSV = 'left_normalized_morphometry'
-    RIGHT_NORMALIZED_MORPHOMETRY_CSV = 'right_normalized_morphometry'
+    MORPHOMETRY_CSV = 'sulcal_morpho_measures'
 
     @classmethod
     def get_input_file_parameter_names(cls):
@@ -76,9 +73,6 @@ class IntraAnalysisParameterNames:
                 cls.RIGHT_LABELED_SULCI,
                 #cls.LEFT_LABELED_SULCI_DATA,
                 #cls.RIGHT_LABELED_SULCI_DATA,
-                #cls.LEFT_NATIVE_MORPHOMETRY_CSV,
-                #cls.RIGHT_NATIVE_MORPHOMETRY_CSV,
-                #cls.LEFT_NORMALIZED_MORPHOMETRY_CSV,
-                #cls.RIGHT_NORMALIZED_MORPHOMETRY_CSV,
+                cls.MORPHOMETRY_CSV,
                 ]
 

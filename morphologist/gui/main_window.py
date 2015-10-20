@@ -351,19 +351,26 @@ class MainWindow(QtGui.QMainWindow):
         if morphometry_filepath == '': return
         if subject_ids is ALL_SUBJECTS:
             subject_ids = self.study.subjects.iterkeys()
-        command = ['python', '-m',
-                   'morphologist.intra_analysis.commands.morphometry-concat',
-                   '-o', morphometry_filepath]
+        command = ['python', '-m', 'brainvisa.axon.runprocess',
+                   'sulcigraphmorphometryintersubject']
+        morpho_files = []
+        subjects = []
         for subject_id in subject_ids:
             analysis = self.study.analyses[subject_id]
-            for csv_filepath in [\
-                analysis.outputs[IntraAnalysisParameterNames.LEFT_NATIVE_MORPHOMETRY_CSV],
-                analysis.outputs[IntraAnalysisParameterNames.RIGHT_NATIVE_MORPHOMETRY_CSV],
-                analysis.outputs[IntraAnalysisParameterNames.LEFT_NORMALIZED_MORPHOMETRY_CSV],
-                analysis.outputs[IntraAnalysisParameterNames.RIGHT_NORMALIZED_MORPHOMETRY_CSV]]:
+            analysis.propagate_parameters()
+            csv_filepath = getattr(analysis.pipeline.process,
+                IntraAnalysisParameterNames.MORPHOMETRY_CSV)
+            print 'morpho file:', csv_filepath
             # ignore none-existing files
-                if os.path.isfile(csv_filepath):
-                    command.append(csv_filepath)
+            if os.path.isfile(csv_filepath):
+                print 'exists.'
+                morpho_files.append(csv_filepath)
+                subject_name = analysis.subject.name
+                subjects.append(subject_name)
+        print 'morpho_files:', morpho_files
+        command += ['"' + repr(morpho_files) + '"', '"' + repr(subjects) + '"',
+                    morphometry_filepath]
+        print 'command:', ' '.join(command)
         os.system(' '.join(command))
 
     @QtCore.Slot()
