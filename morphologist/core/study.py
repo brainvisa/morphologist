@@ -279,23 +279,32 @@ class Study(StudyConfig):
         subjects = []
         MODALITY = 't1mri'
         ACQUISITION = 'default_acquisition'
-        any_dir = "([^/]+)"
+        any_dir = "([^/\\\\]+)"
+        re_sep = os.sep.replace('\\', '\\\\')
         if exact_match:
             glob_pattern = os.path.join(
                 self.output_directory, "*", "*", MODALITY, ACQUISITION,
                 "*.nii")
             regexp = re.compile(
-                "^"+os.path.join(self.output_directory, any_dir, any_dir,
-                                 MODALITY, ACQUISITION,
-                                 "\\2\.(?:nii)$"))
+                             "^" + self.output_directory.replace('\\', '\\\\') + re_sep 
+                                 + any_dir + re_sep + any_dir + re_sep
+                                 + MODALITY + re_sep + ACQUISITION + re_sep
+                                 + "\\2\.(?:nii)$")
 
         else:
             glob_pattern = os.path.join(
                 self.output_directory, "*", "*", MODALITY, "*", "*.*")
+            print 'pattern:', "^" + os.path.join(
+                    self.output_directory.replace('\\', '\\\\'), 
+                    any_dir, any_dir, MODALITY,
+                    any_dir, "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$")
             regexp = re.compile(
-                "^" + os.path.join(
-                    self.output_directory, any_dir, any_dir, MODALITY,
-                    any_dir, "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$"))
+                             "^" + self.output_directory.replace('\\', '\\\\') + re_sep 
+                                 + any_dir + re_sep + any_dir + re_sep
+                                 + MODALITY + re_sep + any_dir + re_sep
+                                 + "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$")
+                    
+                    
         for filename in glob.iglob(glob_pattern):
             match = regexp.match(filename)
             if match:
