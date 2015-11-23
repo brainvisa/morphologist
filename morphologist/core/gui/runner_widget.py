@@ -94,7 +94,12 @@ class RunnerView(QtGui.QWidget):
 
     def install_spam_models(self):
         print 'install_spam_models'
-        cmd = ['brainvisa', '--noMainWindow', '-s', 'spam_install_models']
+        cmd = ['python', '-c', 'from brainvisa.axon import processes; '
+               'processes.neuroConfig.gui=True; from PyQt4 import QtGui; '
+               'qapp = QtGui.QApplication([]); '
+               'processes.initializeProcesses(); '
+               'from brainvisa.processing.qtgui.neuroProcessesGUI import showProcess; '
+               'showProcess("spam_install_models"); qapp.exec_()']
         subprocess.check_call(cmd)
 
     # this slot is automagically connected
