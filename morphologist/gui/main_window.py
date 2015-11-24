@@ -431,11 +431,11 @@ class MainWindow(QtGui.QMainWindow):
         version = '%d.%d' % (info.version_major, info.version_minor)
         help_index = os.path.dirname(os.path.dirname(os.path.dirname(
             os.path.dirname(__file__))))
-        help_index = 'file://' + os.path.join(
+        help_index = os.path.join(
             help_index, 'share', 'doc', 'morphologist-ui-%s' % version,
             'index.html')
         print 'help_index:', help_index
-        self.browser.setUrl(QtCore.QUrl(help_index))
+        self.browser.setUrl(QtCore.QUrl.fromLocalFile(help_index))
         self.browser.show()
         self.browser.raise_()
 
