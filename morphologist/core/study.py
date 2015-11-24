@@ -286,7 +286,8 @@ class Study(StudyConfig):
                 self.output_directory, "*", "*", MODALITY, ACQUISITION,
                 "*.nii")
             regexp = re.compile(
-                             "^" + self.output_directory.replace('\\', '\\\\') + re_sep 
+                             "^" + self.output_directory.replace('\\', '\\\\')
+                                 + re_sep
                                  + any_dir + re_sep + any_dir + re_sep
                                  + MODALITY + re_sep + ACQUISITION + re_sep
                                  + "\\2\.(?:nii)$")
@@ -294,17 +295,13 @@ class Study(StudyConfig):
         else:
             glob_pattern = os.path.join(
                 self.output_directory, "*", "*", MODALITY, "*", "*.*")
-            print 'pattern:', "^" + os.path.join(
-                    self.output_directory.replace('\\', '\\\\'), 
-                    any_dir, any_dir, MODALITY,
-                    any_dir, "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$")
             regexp = re.compile(
-                             "^" + self.output_directory.replace('\\', '\\\\') + re_sep 
+                             "^" + self.output_directory.replace('\\', '\\\\')
+                                 + re_sep
                                  + any_dir + re_sep + any_dir + re_sep
                                  + MODALITY + re_sep + any_dir + re_sep
                                  + "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$")
-                    
-                    
+
         for filename in glob.iglob(glob_pattern):
             match = regexp.match(filename)
             if match:
