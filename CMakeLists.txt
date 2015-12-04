@@ -7,6 +7,7 @@ BRAINVISA_FIND_PACKAGE( morphologist-gpl REQUIRED )
 
 BRAINVISA_DEPENDENCY( RUN DEPENDS "morphologist-private" RUN ">= ${morphologist-private_VERSION_MAJOR}.${morphologist-private_VERSION_MINOR}" )
 BRAINVISA_DEPENDENCY( RUN DEPENDS "morphologist-gpl" RUN ">= ${morphologist-gpl_VERSION_MAJOR}.${morphologist-gpl_VERSION_MINOR}" )
+BRAINVISA_DEPENDENCY( RUN DEPENDS "anatomist-gpl" RUN ">= ${anatomist-gpl_VERSION}" )
 
 BRAINVISA_COPY_PYTHON_DIRECTORY( "${CMAKE_CURRENT_SOURCE_DIR}/morphologist"
     ${PROJECT_NAME}
