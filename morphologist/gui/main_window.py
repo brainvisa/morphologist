@@ -250,11 +250,34 @@ class MainWindow(QtGui.QMainWindow):
             self.set_study(study)
 
     def _create_inplace_study(self, study_directory):
+        pb = QtGui.QWidget(None)
+        #pb.setWindowModality(True)
+        lay = QtGui.QVBoxLayout(pb)
+        pb.setLayout(lay)
+        lay.addWidget(QtGui.QLabel('Importing subjects...'))
+        pb.pb = QtGui.QProgressBar()
+        lay.addWidget(pb.pb)
+        pb.pb.setRange(0, 100)
+        QtGui.QApplication.instance().setOverrideCursor(QtCore.Qt.WaitCursor)
+        p = QtGui.qApp.desktop().size()
+        p0 = QtGui.qApp.desktop().pos()
+        pb.move(p0.x() + (p.width() - pb.width())/2,
+                p0.y() + (p.height() - pb.height())/2)
+        pb.show()
+        QtGui.QApplication.instance().processEvents()
+
+        def update_progress(value):
+            pb.pb.setValue(int(round(value * 100)))
+            QtGui.qApp.processEvents()
+
         study = ApplicationStudy.from_organized_directory(\
                                         self._analysis_type,
-                                        study_directory)
+                                        study_directory,
+                                        progress_callback=update_progress)
         self.set_study(study)
         study.save_to_backup_file()
+        pb.close()
+        QtGui.QApplication.instance().restoreOverrideCursor()
 
     def _create_runner(self, study):
         return SomaWorkflowRunner(study)

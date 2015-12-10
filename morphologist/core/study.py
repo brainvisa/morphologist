@@ -156,14 +156,31 @@ class Study(StudyConfig):
         return cls.from_file(backup_filepath)
 
     @classmethod
-    def from_organized_directory(cls, analysis_type, organized_directory):
+    def from_organized_directory(cls, analysis_type, organized_directory,
+                                 progress_callback=None):
+        if progress_callback:
+            if isinstance(progress_callback, tuple):
+                progress_callback, init_progress, scl_progess \
+                    = progress_callback
+            else:
+                init_progress = 0
+                scl_progess = 1.
         study_name = os.path.basename(organized_directory)
         new_study = cls(
             analysis_type, study_name=study_name,
             output_directory=organized_directory)
-        subjects = new_study.get_subjects_from_pattern() ##exact_match=True)
-        for subject in subjects:
+        if progress_callback:
+            progress_callback(init_progress + 0.05 * scl_progess)
+        subjects = new_study.get_subjects_from_pattern(
+            progress_callback=(progress_callback,
+                               init_progress + .05 * scl_progess,
+                               0.3 * scl_progess)) ##exact_match=True)
+        nsubjects = len(subjects)
+        for n, subject in enumerate(subjects):
             new_study.add_subject(subject, import_data=False)
+            if progress_callback:
+                progress_callback(init_progress
+                                  + (.35 + 0.65 * n / nsubjects) * scl_progess)
         return new_study
 
     def save_to_backup_file(self):
@@ -275,12 +292,22 @@ class Study(StudyConfig):
         s += 'subjects :' + repr(self.subjects) + '\n'
         return s
 
-    def get_subjects_from_pattern(self, exact_match=False):
+    def get_subjects_from_pattern(self, exact_match=False,
+                                  progress_callback=None):
+        if progress_callback is not None:
+            if isinstance(progress_callback, tuple):
+                progress_callback, init_progress, scl_progess \
+                    = progress_callback
+            else:
+                init_progress = 0.
+                scl_progess = 1.
         subjects = []
         MODALITY = 't1mri'
         ACQUISITION = 'default_acquisition'
         any_dir = "([^/\\\\]+)"
         re_sep = os.sep.replace('\\', '\\\\')
+        if progress_callback:
+            progress_callback(init_progress)
         if exact_match:
             glob_pattern = os.path.join(
                 self.output_directory, "*", "*", MODALITY, ACQUISITION,
@@ -290,7 +317,7 @@ class Study(StudyConfig):
                                  + re_sep
                                  + any_dir + re_sep + any_dir + re_sep
                                  + MODALITY + re_sep + ACQUISITION + re_sep
-                                 + "\\2\.(?:nii)$")
+                                 + "\\2\.(nii)$")
 
         else:
             glob_pattern = os.path.join(
@@ -300,15 +327,51 @@ class Study(StudyConfig):
                                  + re_sep
                                  + any_dir + re_sep + any_dir + re_sep
                                  + MODALITY + re_sep + any_dir + re_sep
-                                 + "\\2\.(?:(?:nii(?:\.gz)?)|(?:ima))$")
+                                 + "\\2\.((?:nii(?:\.gz)?)|(?:ima))$")
 
-        for filename in glob.iglob(glob_pattern):
+        vol_format = None
+        formats_dict = self.modules_data.fom_atp['input'].foms.formats
+        ext_dict = dict([(name, ext)
+                         for ext, name in formats_dict.iteritems()])
+        subjects_ids = set()
+        files_list = list(glob.iglob(glob_pattern))
+        nfiles = len(files_list)
+        progress = 0.5
+        for n, filename in enumerate(files_list):
+            if progress_callback:
+                progress_callback(
+                    init_progress
+                    + (progress + (1. - progress) * n / nfiles) * scl_progess)
             match = regexp.match(filename)
             if match:
                 groupname = match.group(1)
                 subjectname = match.group(2)
+                if exact_match:
+                    format_ext = match.group(3)
+                else:
+                    format_ext = match.group(4)
+                format_name = ext_dict.get(format_ext, 'NIFTI')
+                if vol_format is None:
+                    vol_format = format_name
+                    self.volumes_format = vol_format
+                    print 'using format:', format_name
+                elif vol_format != format_name:
+                    print 'Warning: subject %s input MRI does not have ' \
+                        'the expected format: %s, expecting %s' \
+                        % (subjectname, format_name, vol_format)
+                    continue # skip this subject
                 subject = Subject(subjectname, groupname, filename)
+                subject_id = subject.id()
+                if subject_id in subjects_ids:
+                    print 'Warning: %s / %s exists several times (in ' \
+                        'different acquisitions probably) - keeping only '\
+                        'one.' % (subjectname, groupname)
+                    continue
+                subjects_ids.add(subject_id)
                 subjects.append(subject)
+
+        if progress_callback:
+            progress_callback(init_progress + scl_progess)
         return subjects
 
     @classmethod
