@@ -32,7 +32,7 @@ class StudyEditor(object):
     def study_properties_editor(self):
         return self._study_properties_editor
 
-    def create_updated_study(self):
+    def create_updated_study(self, progress_callback=None):
         old_vol_format = self.study.volumes_format
         old_mesh_format = self.study.meshes_format
         # create a new study to avoid modifying the existing one (we may be
@@ -43,7 +43,8 @@ class StudyEditor(object):
         self._study_properties_editor.update_study(study)
         self._subjects_editor.update_study(
             study, self.study_update_policy)
-        study.convert_from_formats(old_vol_format, old_mesh_format)
+        study.convert_from_formats(old_vol_format, old_mesh_format,
+                                   progress_callback)
         self.study = study  # WARNING whe change the study in a thread.
         return self.study
 

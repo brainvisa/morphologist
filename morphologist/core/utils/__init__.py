@@ -3,6 +3,8 @@ import collections
 import os
 import re
 from ordered_dict import OrderedDict
+from soma.qt_gui.qtThread import QtThreadCall
+from soma.functiontools import partial
 
 from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
 

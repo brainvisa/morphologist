@@ -160,27 +160,30 @@ class Study(StudyConfig):
                                  progress_callback=None):
         if progress_callback:
             if isinstance(progress_callback, tuple):
-                progress_callback, init_progress, scl_progess \
+                callback, init_progress, scl_progess \
                     = progress_callback
             else:
+                callback = progress_callback
                 init_progress = 0
                 scl_progess = 1.
+                progress_callback = (callback, init_progress, scl_progess)
         study_name = os.path.basename(organized_directory)
         new_study = cls(
             analysis_type, study_name=study_name,
             output_directory=organized_directory)
         if progress_callback:
-            progress_callback(init_progress + 0.05 * scl_progess)
+            callback(init_progress + 0.05 * scl_progess)
+            progress_callback = (callback,
+                                 init_progress + .05 * scl_progess,
+                                 0.25 * scl_progess)
         subjects = new_study.get_subjects_from_pattern(
-            progress_callback=(progress_callback,
-                               init_progress + .05 * scl_progess,
-                               0.3 * scl_progess)) ##exact_match=True)
+            progress_callback=progress_callback) ##exact_match=True)
         nsubjects = len(subjects)
         for n, subject in enumerate(subjects):
             new_study.add_subject(subject, import_data=False)
             if progress_callback:
-                progress_callback(init_progress
-                                  + (.35 + 0.65 * n / nsubjects) * scl_progess)
+                callback(init_progress
+                         + (.3 + 0.7 * (n + 1) / nsubjects) * scl_progess)
         return new_study
 
     def save_to_backup_file(self):
@@ -454,11 +457,25 @@ class Study(StudyConfig):
                         parent.append(sub_item)
         return new_params
 
-    def convert_from_formats(self, old_volumes_format, old_meshes_format):
-        for subject_id in self.subjects:
+    def convert_from_formats(self, old_volumes_format, old_meshes_format,
+                             progress_callback=None):
+        if progress_callback:
+            if isinstance(progress_callback, tuple):
+                callback, progr_init, progr_scl = progress_callback
+            else:
+                callback = progress_callback
+                progr_init = 0.
+                progr_scl = 1.
+                progress_callback = (callback, progr_init, progr_scl)
+        ns = len(self.subjects)
+        if progress_callback:
+            callback(progr_init)
+        for n, subject_id in enumerate(self.subjects):
             print 'convert', subject_id
             self.analyses[subject_id].convert_from_formats(
                 old_volumes_format, old_meshes_format)
+            if progress_callback:
+                callback(progr_init + (n + 1) * progr_scl / ns)
 
 
 class StudySerializationError(Exception):

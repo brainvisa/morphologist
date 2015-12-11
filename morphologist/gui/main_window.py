@@ -1,8 +1,9 @@
 import os
+import types
 
 from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.settings import settings
-from morphologist.core.utils import FuncQThread
+from morphologist.core.utils import FuncQThread, QtThreadCall, partial
 from morphologist.core.runner import SomaWorkflowRunner
 from morphologist.core.study import Study, StudySerializationError
 from morphologist.core.analysis import AnalysisFactory
@@ -50,8 +51,12 @@ class StudyActionHandler(ActionHandler):
     def _on_study_dialog_accepted(self):
         study_editor = self._study_editor_dialog.study_editor
         self._study_editor_dialog = None
+        self.pb = _create_import_progress_dialog(self.parent())
+        qt = QtThreadCall()
         self._create_updated_study_thread = FuncQThread(\
-                    study_editor.create_updated_study)
+                    study_editor.create_updated_study,
+                    kwargs={'progress_callback':
+                                partial(qt.push, self.pb.update_value)})
         if study_editor.subjects_editor.has_subjects_to_be_imported():
             dialog = ImportSubjectsDialog(study_editor, parent=self.parent())
             dialog.ui.accepted.connect(
@@ -70,6 +75,8 @@ class StudyActionHandler(ActionHandler):
     def _on_create_updated_study_thread_finished_without_dialog(self):
         self._on_create_updated_study_thread_finished()
         self._on_import_subjects_dialog_accepted()
+        self.pb.deleteLater()
+        del self.pb
         QtGui.qApp.restoreOverrideCursor()
 
     @QtCore.Slot()
@@ -154,11 +161,18 @@ class ImportStudyActionHandler(ActionHandler):
         dialog = self._import_study_dialog
         import_data_in_place = dialog.is_import_in_place_selected()
         if import_data_in_place:
+            QtGui.QApplication.instance().setOverrideCursor(
+                QtCore.Qt.WaitCursor)
+            pb = _create_import_progress_dialog(self.parent())
             organized_directory = dialog.get_organized_directory()
             study = ApplicationStudy.from_organized_directory(\
                                             self._analysis_type,
-                                            organized_directory)
+                                            organized_directory,
+                                            progress_callback=pb.update_value)
             subjects = None
+            pb.deleteLater()
+            del pb
+            QtGui.qApp.restoreOverrideCursor()
         else:
             study = ApplicationStudy(self._analysis_type)
             subjects = dialog.get_subjects()
@@ -250,33 +264,18 @@ class MainWindow(QtGui.QMainWindow):
             self.set_study(study)
 
     def _create_inplace_study(self, study_directory):
-        pb = QtGui.QWidget(None)
-        #pb.setWindowModality(True)
-        lay = QtGui.QVBoxLayout(pb)
-        pb.setLayout(lay)
-        lay.addWidget(QtGui.QLabel('Importing subjects...'))
-        pb.pb = QtGui.QProgressBar()
-        lay.addWidget(pb.pb)
-        pb.pb.setRange(0, 100)
         QtGui.QApplication.instance().setOverrideCursor(QtCore.Qt.WaitCursor)
-        p = QtGui.qApp.desktop().size()
-        p0 = QtGui.qApp.desktop().pos()
-        pb.move(p0.x() + (p.width() - pb.width())/2,
-                p0.y() + (p.height() - pb.height())/2)
-        pb.show()
+        pb = _create_import_progress_dialog()
         QtGui.QApplication.instance().processEvents()
-
-        def update_progress(value):
-            pb.pb.setValue(int(round(value * 100)))
-            QtGui.qApp.processEvents()
 
         study = ApplicationStudy.from_organized_directory(\
                                         self._analysis_type,
                                         study_directory,
-                                        progress_callback=update_progress)
+                                        progress_callback=pb.update_value)
         self.set_study(study)
         study.save_to_backup_file()
-        pb.close()
+        pb.deleteLater()
+        del pb
         QtGui.QApplication.instance().restoreOverrideCursor()
 
     def _create_runner(self, study):
@@ -498,4 +497,33 @@ class MainWindow(QtGui.QMainWindow):
             except StudySerializationError, e:
                 pass  # study is not saved, don't notify
 
+
+def _create_import_progress_dialog(parent=None):
+    pb = QtGui.QWidget(None)
+    #pb.setWindowModality(True)
+    lay = QtGui.QVBoxLayout(pb)
+    pb.setLayout(lay)
+    lay.addWidget(QtGui.QLabel('Importing subjects...'))
+    pb.pb = QtGui.QProgressBar()
+    lay.addWidget(pb.pb)
+    pb.pb.setRange(0, 100)
+    if not parent:
+        desktop = QtGui.qApp.desktop()
+        r = desktop.screenGeometry(QtGui.QCursor.pos())
+        p = r.size()
+        p0 = r.topLeft()
+    else:
+        p = parent.size()
+        p0 = parent.pos()
+    s = pb.sizeHint()
+    pb.move(p0.x() + (p.width() - s.width())/2,
+            p0.y() + (p.height() - s.height())/2)
+
+    def update_progress(self, value):
+        self.pb.setValue(int(round(value * 100)))
+        QtGui.qApp.processEvents()
+
+    pb.update_value = types.MethodType(update_progress, pb)
+    pb.show()
+    return pb
 
