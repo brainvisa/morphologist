@@ -104,8 +104,10 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         default_directory = self._study_properties_editor.output_directory
         if default_directory == '':
             default_directory = os.getcwd()
-        selected_directory = QtGui.QFileDialog.getExistingDirectory(self.ui,
-                                                caption, default_directory) 
+        selected_directory = QtGui.QFileDialog.getExistingDirectory(
+            self.ui, caption, default_directory,
+            QtGui.QFileDialog.ShowDirsOnly
+                | QtGui.QFileDialog.DontUseNativeDialog)
         if selected_directory != '':
             self._item_model.set_data(\
                 StudyPropertiesEditorItemModel.OUTPUTDIR_COL,
