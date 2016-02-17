@@ -75,7 +75,19 @@
 </div>
 <div class="section" id="installation">
 <h3>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h3>
-<p>Users distributions are available on <a class="reference external" href="http://brainvisa.info">http://brainvisa.info</a></p>
+<ul>
+<li><p class="first">Users distributions are available on <a class="reference external" href="http://brainvisa.info">http://brainvisa.info</a></p>
+</li>
+<li><p class="first">The normalization step may make use of external software, that has to be installed separately. If none is installed, the normalization defaults to the AimsMIRegister (mutual informaton) method, which is not the best tested one and might suffer from robustness issues. If installed and configured (see configuration options), the following software may be used instead, in that order:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference external" href="http://www.fil.ion.ucl.ac.uk/spm/">SPM (FIL, UK)</a>. It needs to be installed separately and setup in Morphologist configuration. SPM8 or SPM12 are supported, both with either the regular matlab version or the <em>standalone</em> compiled one.</li>
+<li><a class="reference external" href="http://fsl.fmrib.ox.ac.uk/fsl">FSL flirt (FMRIB, UK)</a>. It needs to be installed separately and setup in Morphologist configuration.</li>
+<li>Baladin (Inria, France). You will probably not use it, since this software is not freely available.</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
 </div>
 <div class="section" id="starting-the-program">
 <h3>Starting the program<a class="headerlink" href="#starting-the-program" title="Permalink to this headline">¶</a></h3>
@@ -86,7 +98,8 @@
 <h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
 <p>There are actually three configuration sets in Morphologist-UI.</p>
 <ul class="simple">
-<li>One is the <a class="reference external" href="../axon-4.5/user_doc/axon_manual.html#preferences-window">BrainVisa configuration (preferences)</a>, which have to be setup since BrainVisa processes are still running under the hood. They are accessed via the <strong>Settings / BrainVISA configuration</strong> menu, or from the brainvisa software itself (it is the same configuration).</li>
+<li>One is the <a class="reference external" href="../axon-4.5/user_doc/axon_manual.html#preferences-window">BrainVisa configuration (preferences)</a>, which have to be setup since BrainVisa processes are still running under the hood. They are accessed via the <strong>Settings / BrainVISA configuration</strong> menu, or from the brainvisa software itself (it is the same configuration).
+Especially, external software configuration (SPM, FSL) should be configured there.</li>
 <li>Other options are <strong>Morphologist study configuration</strong>. They include description of the data to be processed (subjects, images...), and also a few processing options which are managed by <a class="reference external" href="http://neurospin.github.io/capsul/">CAPSUL</a>, the future new pipelining system which will replace BrainVISA internals in the future.</li>
 </ul>
 <p>These configuration options are linked to the &#8220;study&#8221; directory: a study contains all needed configuration, and two different studies may have completely different configurations.</p>
@@ -104,7 +117,6 @@
 <ul class="simple">
 <li><strong>Study directory</strong>: where all data will be stored and processed, and the study file (configuration, data list) will be stored.</li>
 <li><strong>Volumes and meshes formats</strong>: file formats used during processing. If these formats are changed after data have been written, all existing data will be converted to the new formats.</li>
-<li><strong>SPM configuration</strong>: needed to run SPM normalization. SPM has to be installed by other means. SPM8 and SPM12 may be used, the standalone versions are OK and recommended.</li>
 <li><strong>Computing resource</strong>: for processing distribution. It defaults to the local machine, but computing resources configured in Soma-Workflow may be used. They have to be setup in soma-workflow config first. See <a class="reference external" href="http://brainvisa.info/soma/soma-workflow/index.html">Soma-Workflow documentation</a>.</li>
 </ul>
 </div>
@@ -136,6 +148,27 @@ Results appear in the display window at the time they are available.</p>
 <p>This is a first release of Morphologist-UI. It currently supports the main segmentation steps, sulci extraction, and sulcal morphometric measurements extraction. The morphometric step is whole brain, and there is currently no choice and no statistical analysis provided.</p>
 <p>In the future, Morphologist-UI will be extended for inter-subject statistical analysis on sulcal morphometric features.</p>
 <p>Other improvements in specialized steps visualization windows are planed, especially for processing parameters edition, and manual correction of processed data, as in BrainVisa editors.</p>
+</div>
+<div class="section" id="use-cases">
+<h3>Use cases<a class="headerlink" href="#use-cases" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="see-my-brainvisa-processed-data-using-morphologist-ui">
+<h4>See My BrainVISA processed data using Morphologist-UI<a class="headerlink" href="#see-my-brainvisa-processed-data-using-morphologist-ui" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li>Run <tt class="docutils literal"><span class="pre">morphologist</span></tt></li>
+<li>Use the <strong>Study / Import</strong> option. Use the BrainVisa database directory, keeping files in place (leave the &#8220;Create the study in this directory&#8221; option ON).</li>
+<li>In the study specification, make sure you set the same files formats as the ones which were used in brainvisa.</li>
+<li>When the study is validated, you should see the existing data.</li>
+</ul>
+</div>
+<div class="section" id="reprocess-morphologist-ui-results-using-the-brainvisa-morphologist">
+<h4>Reprocess Morphologist-UI results using the BrainVisa Morphologist<a class="headerlink" href="#reprocess-morphologist-ui-results-using-the-brainvisa-morphologist" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li>Run <tt class="docutils literal"><span class="pre">brainvisa</span></tt></li>
+<li>In the <strong>Preferences</strong>, setup a database to be the study directory of Morphologist-UI.</li>
+<li>If it already existed, you will have to update the database (using the pocess <strong>Data management / Update databases</strong>, if not already prompted to do so).</li>
+<li>That&#8217;s it, you should see the data.</li>
+</ul>
+</div>
 </div>
 </div>
 <div class="section" id="developers">
@@ -171,6 +204,11 @@ Results appear in the display window at the time they are available.</p>
 <li><a class="reference internal" href="#processing">Processing</a></li>
 <li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
 <li><a class="reference internal" href="#current-state-of-morphologist-ui">Current state of Morphologist-UI</a></li>
+<li><a class="reference internal" href="#use-cases">Use cases</a><ul>
+<li><a class="reference internal" href="#see-my-brainvisa-processed-data-using-morphologist-ui">See My BrainVISA processed data using Morphologist-UI</a></li>
+<li><a class="reference internal" href="#reprocess-morphologist-ui-results-using-the-brainvisa-morphologist">Reprocess Morphologist-UI results using the BrainVisa Morphologist</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#developers">Developers</a></li>
