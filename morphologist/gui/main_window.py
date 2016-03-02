@@ -374,7 +374,7 @@ class MainWindow(QtGui.QMainWindow):
         if subject_ids is ALL_SUBJECTS:
             subject_ids = self.study.subjects.iterkeys()
         command = ['python', '-m', 'brainvisa.axon.runprocess',
-                   'sulcigraphmorphometryintersubject']
+                   'concatenatefiles']
         morpho_files = []
         subjects = []
         for subject_id in subject_ids:
