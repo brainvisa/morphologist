@@ -84,6 +84,8 @@ class StudyActionHandler(ActionHandler):
         study = self._create_updated_study_thread.res
         self.study_updated.emit(study)
         self._create_updated_study_thread = None
+        self.pb.deleteLater()
+        del self.pb
         QtGui.qApp.restoreOverrideCursor()
 
     @QtCore.Slot()

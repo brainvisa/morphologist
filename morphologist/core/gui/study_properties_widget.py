@@ -141,6 +141,9 @@ class StudyPropertiesEditorWidgetMapper(QtGui.QDataWidgetMapper):
         obj = self.sender()
         if isinstance(obj, QtCore.QAbstractItemModel):
             obj = obj.widget()
+        if not isinstance(obj, QtGui.QWidget):
+            #print 'obj is not a widget:', obj
+            obj = None
         delegate = self.itemDelegate()
         delegate.commitData.emit(obj)
 
