@@ -160,7 +160,8 @@ class Analysis(object):
             for fexts in exts:
                 if not fexts[0] in typed_formats[dtype]:
                     continue
-                if not new_value.endswith(fexts[0]):
+                if not isinstance(new_value, basestring) \
+                        or not new_value.endswith(fexts[0]):
                     for ext in fexts:
                         new_old_value = old_base + ext
                         if not os.path.exists(new_old_value):
@@ -189,8 +190,11 @@ class Analysis(object):
             for key, value in old_state.iteritems():
                 if isinstance(value, basestring):
                     new_value = new_state.get(key)
+                    if value is traits.Undefined \
+                            or new_value is traits.Undefined:
                     if not os.path.exists(value) \
-                            and not os.path.exists(new_value):
+                            and (not isinstance(new_value, basestring)
+                                 or not os.path.exists(new_value)):
                         value = _look_for_other_formats(value, new_value)
                     if os.path.exists(value):
                         if new_value not in ('', None, traits.Undefined) \
