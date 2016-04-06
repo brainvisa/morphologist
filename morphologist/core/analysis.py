@@ -190,8 +190,6 @@ class Analysis(object):
             for key, value in old_state.iteritems():
                 if isinstance(value, basestring):
                     new_value = new_state.get(key)
-                    if value is traits.Undefined \
-                            or new_value is traits.Undefined:
                     if not os.path.exists(value) \
                             and (not isinstance(new_value, basestring)
                                  or not os.path.exists(new_value)):
