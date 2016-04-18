@@ -2,8 +2,9 @@ cmake_minimum_required( VERSION 2.6 )
 find_package( brainvisa-cmake REQUIRED )
 BRAINVISA_PROJECT()
 
-BRAINVISA_FIND_PACKAGE( morphologist-private REQUIRED )
+# BRAINVISA_FIND_PACKAGE( morphologist-private REQUIRED )
 BRAINVISA_FIND_PACKAGE( morphologist-gpl REQUIRED )
+BRAINVISA_FIND_PACKAGE( anatomist-gpl REQUIRED )
 BRAINVISA_FIND_PACKAGE( capsul REQUIRED )
 
 BRAINVISA_DEPENDENCY( RUN DEPENDS "morphologist-private" RUN ">= ${morphologist-private_VERSION_MAJOR}.${morphologist-private_VERSION_MINOR}" )
