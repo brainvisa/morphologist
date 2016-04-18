@@ -75,8 +75,6 @@ class StudyActionHandler(ActionHandler):
     def _on_create_updated_study_thread_finished_without_dialog(self):
         self._on_create_updated_study_thread_finished()
         self._on_import_subjects_dialog_accepted()
-        self.pb.deleteLater()
-        del self.pb
         QtGui.qApp.restoreOverrideCursor()
 
     @QtCore.Slot()
@@ -84,6 +82,8 @@ class StudyActionHandler(ActionHandler):
         study = self._create_updated_study_thread.res
         self.study_updated.emit(study)
         self._create_updated_study_thread = None
+        self.pb.deleteLater()
+        del self.pb
         QtGui.qApp.restoreOverrideCursor()
 
     @QtCore.Slot()

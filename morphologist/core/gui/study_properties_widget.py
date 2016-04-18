@@ -136,13 +136,19 @@ class StudyPropertiesEditorWidgetMapper(QtGui.QDataWidgetMapper):
     def __init__(self, parent=None):
         super(StudyPropertiesEditorWidgetMapper, self).__init__(parent)
 
-    # overrided Qt method
-    def submit(self):
-        obj = self.sender()
-        if isinstance(obj, QtCore.QAbstractItemModel):
-            obj = obj.widget()
-        delegate = self.itemDelegate()
-        delegate.commitData.emit(obj)
+    ## overrided Qt method
+    #def submit(self):
+        #obj = self.sender()
+        #if isinstance(obj, QtCore.QAbstractItemModel):
+            #obj = obj.widget()
+        #if not isinstance(obj, QtGui.QWidget):
+            #print 'obj is not a widget:', obj
+            #import traceback
+            #traceback.print_stack()
+
+            #obj = None
+        #delegate = self.itemDelegate()
+        #delegate.commitData.emit(obj)
 
 
 class StudyPropertiesEditorItemDelegate(QtGui.QItemDelegate):
@@ -177,7 +183,11 @@ class StudyPropertiesEditorItemDelegate(QtGui.QItemDelegate):
             }
         ''' % tuple([bg_color.name()] * 2)
             editor.setStyleSheet(style_sheet)
- 
+
+    #def setModelData(self, editor, model, index):
+        #print 'StudyPropertiesEditorItemDelegate.setModelData', editor, model, index
+
+
 
 class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
     NAME_COL = 0
@@ -245,13 +255,16 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
         old_status = self._status
         if role != QtCore.Qt.EditRole: return
         self._set_value(row, column, value)
-        if (column == self.NAME_COL and 
-            self._study_properties_editor.mode == StudyEditor.NEW_STUDY):
-            output_directory = self._study_properties_editor.output_directory
-            basedir = os.path.dirname(output_directory)
-            new_basename = create_filename_compatible_string(value)
-            new_value = os.path.join(basedir, new_basename)
-            self._set_value(row, self.OUTPUTDIR_COL, new_value)
+        #if (column == self.NAME_COL and
+            #self._study_properties_editor.mode == StudyEditor.NEW_STUDY):
+            #output_directory = self._study_properties_editor.output_directory
+            #basedir = os.path.dirname(output_directory)
+            #new_basename = create_filename_compatible_string(value)
+            #new_value = os.path.join(basedir, new_basename)
+            #self._set_value(row, self.OUTPUTDIR_COL, new_value)
+        #elif column == self.OUTPUTDIR_COL:
+            #name = os.path.basename(value).replace('_', ' ')
+            #self._set_value(row, self.NAME_COL, name)
         self._status = not self._invalid_value(value) 
         if old_status != self._status:
             self.status_changed.emit(self._status)
@@ -262,7 +275,7 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
         self._study_properties_editor.__setattr__(attrib, value)
         changed_index = self.index(row, column)
         self.dataChanged.emit(changed_index, changed_index)
-        
+
     def is_data_colorable(self, index):
         column = index.column()
         return column in [self.NAME_COL, self.OUTPUTDIR_COL,
