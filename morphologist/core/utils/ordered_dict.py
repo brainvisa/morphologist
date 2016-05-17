@@ -11,6 +11,8 @@ try:
 except ImportError:
     pass
 
+import sys
+
 
 class OrderedDict(dict):
     'Dictionary that remembers insertion order'
@@ -112,21 +114,33 @@ class OrderedDict(dict):
 
     # -- the following methods do not depend on the internal structure --
 
-    def keys(self):
-        'od.keys() -> list of keys in od'
-        return list(self)
+    if sys.version_info[0] >= 3:
+        def keys(self):
+            'od.keys() -> iter of keys in od'
+            return iter(self)
+    else:
+        def keys(self):
+            'od.keys() -> list of keys in od'
+            return list(self)
 
-    def values(self):
-        'od.values() -> list of values in od'
-        return [self[key] for key in self]
+    if sys.version_info[0] >= 3:
+        values = itervalues
+    else:
+        def values(self):
+            'od.values() -> list of values in od'
+            return [self[key] for key in self]
 
-    def items(self):
-        'od.items() -> list of (key, value) pairs in od'
-        return [(key, self[key]) for key in self]
+    if sys.version_info[0] >= 3:
+        items = iteritems
+    else:
+        def items(self):
+            'od.items() -> list of (key, value) pairs in od'
+            return [(key, self[key]) for key in self]
 
-    def iterkeys(self):
-        'od.iterkeys() -> an iterator over the keys in od'
-        return iter(self)
+    if sys.version_info[0] < 3:
+        def iterkeys(self):
+            'od.iterkeys() -> an iterator over the keys in od'
+            return iter(self)
 
     def itervalues(self):
         'od.itervalues -> an iterator over the values in od'

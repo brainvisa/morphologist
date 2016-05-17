@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import traits.api as traits
 
@@ -142,7 +144,7 @@ class StudyPropertiesEditorWidgetMapper(QtGui.QDataWidgetMapper):
         #if isinstance(obj, QtCore.QAbstractItemModel):
             #obj = obj.widget()
         #if not isinstance(obj, QtGui.QWidget):
-            #print 'obj is not a widget:', obj
+            #print('obj is not a widget:', obj)
             #import traceback
             #traceback.print_stack()
 
@@ -185,7 +187,7 @@ class StudyPropertiesEditorItemDelegate(QtGui.QItemDelegate):
             editor.setStyleSheet(style_sheet)
 
     #def setModelData(self, editor, model, index):
-        #print 'StudyPropertiesEditorItemDelegate.setModelData', editor, model, index
+        #print('StudyPropertiesEditorItemDelegate.setModelData', editor, model, index)
 
 
 
@@ -232,9 +234,9 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
                 self.attributes[column])
         except IndexError as e:
             import traceback, sys
-            print 'index:', index
-            print 'column:', column
-            print e
+            print('index:', index)
+            print('column:', column)
+            print(e)
             traceback.print_stack(file=sys.stdout)
             raise
         if role in [QtCore.Qt.DisplayRole, QtCore.Qt.EditRole]:

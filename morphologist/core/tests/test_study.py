@@ -2,6 +2,7 @@ import unittest
 import os
 import filecmp
 import shutil
+import six
 
 from morphologist.core.study import SubjectExistsError
 from morphologist.core.subject import Subject
@@ -78,7 +79,7 @@ class TestStudy(unittest.TestCase):
         self.assert_(study_a.output_directory == study_b.output_directory)
         self.assert_(len(study_a.subjects) == len(study_b.subjects))
 
-        for subject_id, subject_a in study_a.subjects.iteritems():
+        for subject_id, subject_a in six.iteritems(study_a.subjects):
             subject_b = study_b.subjects[subject_id]
             self.assert_(subject_a == subject_b)
 

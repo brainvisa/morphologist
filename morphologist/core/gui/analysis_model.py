@@ -2,6 +2,7 @@ import os
 import hashlib
 import threading
 import time
+import six
 
 from morphologist.core.gui.qt_backend import QtCore
 
@@ -78,7 +79,7 @@ class AnalysisPollingThread(QtCore.QThread):
 
     def _changed_parameters(self, existing_items, parameters_file_sha):
         changed_parameters = []
-        for parameter_name, filename in existing_items.iteritems():
+        for parameter_name, filename in six.iteritems(existing_items):
             if filename is None:
                 continue
             # TODO: directories are ignored !

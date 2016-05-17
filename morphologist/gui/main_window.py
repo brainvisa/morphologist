@@ -1,5 +1,8 @@
+from __future__ import print_function
+
 import os
 import types
+import six
 
 from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.settings import settings
@@ -256,7 +259,7 @@ class MainWindow(QtGui.QMainWindow):
     def _try_open_study_from_directory(self, study_directory):
         try:
             study = ApplicationStudy.from_study_directory(study_directory)
-        except StudySerializationError, e:
+        except StudySerializationError as e:
             title = "Cannot load study"
             msg = "'%s':\n%s" % (study_directory, e)
             QtGui.QMessageBox.critical(self, title, msg)
@@ -347,7 +350,7 @@ class MainWindow(QtGui.QMainWindow):
     def _try_save_to_backup_file(self):
         try:
             self.study.save_to_backup_file()
-        except StudySerializationError, e:
+        except StudySerializationError as e:
             QtGui.QMessageBox.critical(self, "Cannot save the study", "%s" %(e))
 
     # this slot is automagically connected
@@ -372,7 +375,7 @@ class MainWindow(QtGui.QMainWindow):
                     filter=filter)
         if morphometry_filepath == '': return
         if subject_ids is ALL_SUBJECTS:
-            subject_ids = self.study.subjects.iterkeys()
+            subject_ids = six.iterkeys(self.study.subjects)
         command = ['python', '-m', 'brainvisa.axon.runprocess',
                    'concatenatefiles']
         morpho_files = []
@@ -382,17 +385,17 @@ class MainWindow(QtGui.QMainWindow):
             analysis.propagate_parameters()
             csv_filepath = getattr(analysis.pipeline.process,
                 IntraAnalysisParameterNames.MORPHOMETRY_CSV)
-            print 'morpho file:', csv_filepath
+            print('morpho file:', csv_filepath)
             # ignore none-existing files
             if os.path.isfile(csv_filepath):
-                print 'exists.'
+                print('exists.')
                 morpho_files.append(csv_filepath)
                 subject_name = analysis.subject.name
                 subjects.append(subject_name)
-        print 'morpho_files:', morpho_files
+        print('morpho_files:', morpho_files)
         command += ['"' + repr(morpho_files) + '"', '"' + repr(subjects) + '"',
                     morphometry_filepath]
-        print 'command:', ' '.join(command)
+        print('command:', ' '.join(command))
         os.system(' '.join(command))
 
     @QtCore.Slot()
@@ -456,7 +459,7 @@ class MainWindow(QtGui.QMainWindow):
         help_index = os.path.join(
             help_index, 'share', 'doc', 'morphologist-ui-%s' % version,
             'index.html')
-        print 'help_index:', help_index
+        print('help_index:', help_index)
         self.browser.setUrl(QtCore.QUrl.fromLocalFile(help_index))
         self.browser.show()
         self.browser.raise_()
@@ -474,7 +477,7 @@ class MainWindow(QtGui.QMainWindow):
         dialog = appGUI.createEditionDialog(configuration, parent=None,
                                             live=False, modal=True)
         from soma.qt4gui.configuration_qt4gui import ConfigurationWidget
-        from PyQt4 import QtGui
+        from soma.qt_gui.qt_backend import QtGui
 
         # remove the database panel and icon
         stackw = dialog.findChild(QtGui.QStackedWidget)
@@ -494,7 +497,7 @@ class MainWindow(QtGui.QMainWindow):
             configuration.save(neuroConfig.userOptionFile)
             try:
                 self.study.save_to_backup_file()
-            except StudySerializationError, e:
+            except StudySerializationError as e:
                 pass  # study is not saved, don't notify
 
 

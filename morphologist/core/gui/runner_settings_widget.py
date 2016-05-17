@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import validate
 import multiprocessing
@@ -77,12 +79,12 @@ class RunnerSettingsDialog(QtGui.QDialog):
     def on_apply_button_clicked(self):
         if self.study.somaworkflow_computing_resource \
                 != self.ui.computing_resource_combobox.currentText():
-            print 'computing resource changed'
+            print('computing resource changed')
             self.study.somaworkflow_computing_resource \
                 = self.ui.computing_resource_combobox.currentText()
             try:
                 self.study.save_to_backup_file()
-            except StudySerializationError, e:
+            except StudySerializationError as e:
                 pass  # study is not saved, don't notify
 
         if self._are_settings_unchanged():

@@ -1,8 +1,11 @@
+from __future__ import print_function
+
 import os
 import json
 import re
 import glob
 import sys
+import six
 
 from morphologist.core.utils import OrderedDict
 from morphologist.core.analysis \
@@ -100,12 +103,12 @@ class Study(StudyConfig):
         try:
             with open(backup_filepath, "r") as fd:
                     serialized_study = json.load(fd)
-        except Exception, e:
+        except Exception as e:
             raise StudySerializationError("%s" %(e))
         try:
             study = cls.unserialize(serialized_study, output_directory)
-        except KeyError, e:
-            print e
+        except KeyError as e:
+            print(e)
             raise
             raise StudySerializationError("file content does not "
                                           "match with study file format.")
@@ -125,19 +128,19 @@ class Study(StudyConfig):
                     study_name=serialized['study_name'],
                     output_directory=output_directory)
         serialized_dict = dict(
-            [(key, value) for key, value in serialized.iteritems()
+            [(key, value) for key, value in six.iteritems(serialized)
              if key not in ('subjects', 'study_format_version',
                             'analysis_type', 'inputs', 'outputs')])
         study.set_study_configuration(serialized_dict)
         for subject_id, serialized_subject in \
-                serialized['subjects'].iteritems():
+                six.iteritems(serialized['subjects']):
             subject = Subject.unserialize(
                 serialized_subject, study.output_directory)
             study.subjects[subject_id] = subject
         if 'parameters' not in serialized:
             raise StudySerializationError(
                     "Cannot find parameters section in study file")
-        for subject_id, subject in study.subjects.iteritems():
+        for subject_id, subject in six.iteritems(study.subjects):
             if subject_id not in serialized['parameters']:
                 raise StudySerializationError(
                     "Cannot find params for subject %s" % subject_id)
@@ -191,25 +194,25 @@ class Study(StudyConfig):
         try:
             with open(self.backup_filepath, "w") as fd:
                 json.dump(serialized_study, fd, indent=4, sort_keys=True)
-        except Exception, e:
+        except Exception as e:
             raise StudySerializationError("%s" %(e))
 
     def serialize(self):
         if self.input_directory != self.output_directory:
-            print '** WARNING: input_directory != output_directory'
-            print 'input: ', self.input_directory
-            print 'output:', self.output_directory
+            print('** WARNING: input_directory != output_directory')
+            print('input: ', self.input_directory)
+            print('output:', self.output_directory)
         serialized = self.export_to_dict(
             exclude_undefined=True, exclude_none=True, exclude_transient=True,
             exclude_empty=True, dict_class=dict)
         serialized['study_format_version'] = STUDY_FORMAT_VERSION
         serialized['analysis_type'] = self.analysis_type
         serialized['subjects'] = {}
-        for subject_id, subject in self.subjects.iteritems():
+        for subject_id, subject in six.iteritems(self.subjects):
             serialized['subjects'][subject_id] = \
                 subject.serialize(self.output_directory)
         serialized['parameters'] = {}
-        for subject_id, analysis in self.analyses.iteritems():
+        for subject_id, analysis in six.iteritems(self.analyses):
             serialized['parameters'][subject_id] \
                 = Study.serialize_paths(analysis.parameters,
                                         self.output_directory)
@@ -335,7 +338,7 @@ class Study(StudyConfig):
         vol_format = None
         formats_dict = self.modules_data.fom_atp['input'].foms.formats
         ext_dict = dict([(name, ext)
-                         for ext, name in formats_dict.iteritems()])
+                         for ext, name in six.iteritems(formats_dict)])
         subjects_ids = set()
         files_list = list(glob.iglob(glob_pattern))
         nfiles = len(files_list)
@@ -357,18 +360,18 @@ class Study(StudyConfig):
                 if vol_format is None:
                     vol_format = format_name
                     self.volumes_format = vol_format
-                    print 'using format:', format_name
+                    print('using format:', format_name)
                 elif vol_format != format_name:
-                    print 'Warning: subject %s input MRI does not have ' \
-                        'the expected format: %s, expecting %s' \
-                        % (subjectname, format_name, vol_format)
+                    print('Warning: subject %s input MRI does not have '
+                          'the expected format: %s, expecting %s'
+                          % (subjectname, format_name, vol_format))
                     continue # skip this subject
                 subject = Subject(subjectname, groupname, filename)
                 subject_id = subject.id()
                 if subject_id in subjects_ids:
-                    print 'Warning: %s / %s exists several times (in ' \
-                        'different acquisitions probably) - keeping only '\
-                        'one.' % (subjectname, groupname)
+                    print('Warning: %s / %s exists several times (in '
+                          'different acquisitions probably) - keeping only '
+                          'one.' % (subjectname, groupname))
                     continue
                 subjects_ids.add(subject_id)
                 subjects.append(subject)
@@ -384,7 +387,7 @@ class Study(StudyConfig):
         while items:
             item, parent = items.pop(0)
             if hasattr(item, 'iteritems'):
-                for name, sub_item in item.iteritems():
+                for name, sub_item in six.iteritems(item):
                     if hasattr(sub_item, 'keys') \
                             or isinstance(sub_item, list):
                         if isinstance(sub_item, list):
@@ -428,7 +431,7 @@ class Study(StudyConfig):
         while items:
             item, parent = items.pop(0)
             if hasattr(item, 'iteritems'):
-                for name, sub_item in item.iteritems():
+                for name, sub_item in six.iteritems(item):
                     if hasattr(sub_item, 'keys') \
                             or isinstance(sub_item, list):
                         parent[name] = sub_item.__class__()
@@ -471,7 +474,7 @@ class Study(StudyConfig):
         if progress_callback:
             callback(progr_init)
         for n, subject_id in enumerate(self.subjects):
-            print 'convert', subject_id
+            print('convert', subject_id)
             self.analyses[subject_id].convert_from_formats(
                 old_volumes_format, old_meshes_format)
             if progress_callback:

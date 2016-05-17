@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 
 from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
@@ -123,7 +125,7 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.DisplayRole:
             subject = self._study_model.get_subject(row)
             if subject is None:
-                print "subject:", subject, "not found."
+                print("subject:", subject, "not found.")
                 return ""
             if column == SubjectsTableModel.GROUPNAME_COL:
                 return subject.groupname

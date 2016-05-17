@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import subprocess
 
@@ -70,7 +72,7 @@ class RunnerView(QtGui.QWidget):
                 QtGui.QMessageBox.warning(
                     self, "Already done",
                     "Nothing to do, processing is finished.")
-        except MissingModelsError, e:
+        except MissingModelsError as e:
             res = QtGui.QMessageBox.question(
                 self, "Missing sulci identification models",
                 "Sulci statistical models (SPAMs) are not installed.\n"
@@ -79,7 +81,7 @@ class RunnerView(QtGui.QWidget):
                 QtGui.QMessageBox.Ok)
             if res == QtGui.QMessageBox.Ok:
                 self.install_spam_models()
-        except MissingInputFileError, e:
+        except MissingInputFileError as e:
             QtGui.QMessageBox.critical(
                 self, "Run analysis error",
                 "Some input files do not exist.\n%s" %(e))
@@ -93,7 +95,7 @@ class RunnerView(QtGui.QWidget):
         self._set_not_running_state()
 
     def install_spam_models(self):
-        print 'install_spam_models'
+        print('install_spam_models')
         cmd = ['python', '-c', 'from brainvisa.axon import processes; '
                'processes.neuroConfig.gui=True; from PyQt4 import QtGui; '
                'qapp = QtGui.QApplication([]); '

@@ -36,7 +36,7 @@ class FormatsManager(object):
         try:
             module = __import__(modulename, fromlist=classname)
             FormatsManagerBackend = module.__getattribute__(classname)
-        except ImportError, e:
+        except ImportError as e:
             raise ValueError("invalid formats backend : '%s' (%s)" % \
                                         (formats_backend, e))
         cls._formats_manager_instance = FormatsManagerBackend()

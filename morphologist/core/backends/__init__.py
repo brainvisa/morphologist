@@ -58,7 +58,7 @@ class Backend(object):
         try:
             module = __import__(modulename, fromlist=classname)
             BackendClass = module.__getattribute__(classname)
-        except ImportError, e:
+        except ImportError as e:
             raise ValueError("invalid backend : '%s' (%s)" % (backend_name, e))
         return BackendClass
 
