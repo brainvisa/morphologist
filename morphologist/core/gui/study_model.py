@@ -1,5 +1,8 @@
+from __future__ import print_function
+
 from morphologist.core.gui.qt_backend import QtCore
 from morphologist.core.constants import ALL_SUBJECTS
+import six
 
 
 class LazyStudyModel(QtCore.QObject):
@@ -36,7 +39,7 @@ class LazyStudyModel(QtCore.QObject):
         self._status = []                   # row index -> (status, step_id)
         self._are_selected_subjects = []    # row index -> is_selected
         self._current_subject_index = None
-        for subject_id, _ in self.study.subjects.iteritems():
+        for subject_id, _ in six.iteritems(self.study.subjects):
             self._subjects_row_index_to_id.append(subject_id)
             self._status.append((self.DEFAULT_STATUS, None))
             self._are_selected_subjects.append(False)
@@ -61,7 +64,7 @@ class LazyStudyModel(QtCore.QObject):
             if step:
                 status_text = status_text % step.name
             else:
-                #print 'unknown step id:', step_id
+                #print('unknown step id:', step_id)
                 status_text = status_text % step_id
         return status_text
 
@@ -75,7 +78,7 @@ class LazyStudyModel(QtCore.QObject):
                 description = step.description
                 help_message = step.help_message
             else:
-                #print 'unknown step id:', step_id
+                #print('unknown step id:', step_id)
                 description = step_id
                 help_message = ''
             if status & self.FAILED:

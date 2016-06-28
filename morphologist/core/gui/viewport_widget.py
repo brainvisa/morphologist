@@ -1,4 +1,5 @@
 import os
+import six
 
 from morphologist.core.backends.mixins import LoadObjectError, ViewType
 from morphologist.core.gui.object3d import Object3D, View
@@ -47,7 +48,7 @@ class AnalysisViewportModel(QtCore.QObject):
     def on_analysis_model_files_changed(self, changed_parameters):
         updated_parameters = []
         self._remove_useless_parameters(changed_parameters)
-        for parameter_name, filename in changed_parameters.iteritems():
+        for parameter_name, filename in six.iteritems(changed_parameters):
             if parameter_name in self.observed_objects.keys():
                 self._update_observed_objects(parameter_name, filename)
                 if not self.use_async_load:

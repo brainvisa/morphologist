@@ -1,4 +1,7 @@
 #! /usr/bin/env python2
+
+from __future__ import print_function
+
 import sys
 import optparse
 
@@ -58,13 +61,13 @@ def main():
     parser = option_parser()
     options, args = parser.parse_args(sys.argv)
     if not settings.are_valid():
-        print "Warning: unvalid settings!"
-        print "         User settings will be ignored, switch to default. "
-        print "         Try to remove it or fix it."
+        print("Warning: unvalid settings!")
+        print("         User settings will be ignored, switch to default. ")
+        print("         Try to remove it or fix it.")
         settings.load_default()
     if options.study_directory is not None \
             and options.import_study_directory is not None:
-      print "-i and -s options are incompatible."
+      print("-i and -s options are incompatible.")
       parser.print_help()
       sys.exit(1)
 

@@ -1,4 +1,5 @@
 from soma import aims
+import six
 
 from morphologist.core.formats import Format, FormatsManager
 
@@ -33,7 +34,7 @@ class BrainvisaFormatsManager(FormatsManager):
                                 'Volume', type))]
         # manage soma-io formats
         objects_types = aims.carto.IOObjectTypesDictionary().readTypes()
-        formats += [item for type, items in objects_types.iteritems()
+        formats += [item for type, items in six.iteritems(objects_types)
                     if type.startswith('carto_volume of ')
                         and type[16:] in cls._intra_analysis_acceptable_formats
                     for item in items]
@@ -57,7 +58,7 @@ class BrainvisaFormatsManager(FormatsManager):
             if cls is None:
                 continue
             exts = cls.readExtensions()
-            extensions += [ext for ext, formats in exts.iteritems()
+            extensions += [ext for ext, formats in six.iteritems(exts)
                            if ext != '' and formatname in formats]
         extensions = list(set(extensions))
         return extensions

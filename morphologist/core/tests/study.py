@@ -1,6 +1,7 @@
 from morphologist.core.subject import Subject
 from morphologist.core.study import Study
 from morphologist.core.tests import reset_directory, remove_file
+import six
 
 
 class AbstractStudyTestCase(object):
@@ -45,7 +46,7 @@ class AbstractStudyTestCase(object):
         raise NotImplementedError("AbstractStudyTestCase is an abstract class")
 
     def get_a_subject_id(self):
-        first_subject_id = next(self.study.subjects.iterkeys())
+        first_subject_id = next(six.iterkeys(self.study.subjects))
         return first_subject_id
 
 

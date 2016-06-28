@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os, sys
 import unittest
 
@@ -73,7 +75,7 @@ class TestStudyGui(TestGui):
                 dialog.selectFile(filename)
             else:
                 msg = "Error: needed ressource missing : "
-                print msg + "'%s'" % filename
+                print(msg + "'%s'" % filename)
             dialog.accept()
             dialog.deleteLater()
             QtGui.qApp.sendPostedEvents(dialog, QtCore.QEvent.DeferredDelete)

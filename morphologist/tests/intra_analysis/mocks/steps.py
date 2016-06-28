@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 
 from morphologist.intra_analysis.steps import SpatialNormalization, \
@@ -150,7 +152,7 @@ def main():
         while len(args) > 1:
             target = args.pop()
             source = args.pop()
-            print "\ncopy " + repr(source) + " to " + repr(target)
+            print("\ncopy " + repr(source) + " to " + repr(target))
             if os.path.isdir(source):
                 if os.path.isdir(target):
                     shutil.rmtree(target)

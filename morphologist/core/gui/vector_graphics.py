@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from morphologist.core.backends import Backend
 from morphologist.core.utils.design_patterns import Visitable
 
@@ -27,7 +29,7 @@ class Histogram(VectorObject):
         return vector_graphic
 
     def reload(self):
-        print 'reload histo:', self._friend_backend_object.han_filename
+        print('reload histo:', self._friend_backend_object.han_filename)
         _friend_backend_object \
             = self.__class__.from_filename(
                 self._friend_backend_object.han_filename)

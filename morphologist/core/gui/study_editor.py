@@ -1,6 +1,7 @@
 import os
 from collections import namedtuple
 import copy
+import six
 
 from morphologist.core.analysis import ImportationError
 from morphologist.core.utils.design_patterns import Observable, \
@@ -120,7 +121,7 @@ class SubjectsEditor(Observable):
         self._removed_subjects_id = []
         self._similar_subjects_n = {}
         # FIXME: store this information in ImportationError
-        for subject_id, subject in study.subjects.iteritems():
+        for subject_id, subject in six.iteritems(study.subjects):
             subject_copy = subject.copy()
             self._subjects.append(subject_copy)
             origin = self.IdentifiedSubject(subject_id, subject)
@@ -191,7 +192,7 @@ class SubjectsEditor(Observable):
             self._notify_start_subject_importation(subject)
             try:
                 study.add_subject(subject)
-            except ImportationError, e:
+            except ImportationErro as e:
                 status_ok = False
             else:
                 status_ok = True

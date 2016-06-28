@@ -495,7 +495,7 @@ class SubjectsFromDatabaseDialog(QtGui.QDialog):
         try:
             self.load(self.ui.server_url_field.text(), 
                       self.ui.rql_request_lineEdit.text())
-        except LoadSubjectsFromDatabaseError, e:
+        except LoadSubjectsFromDatabaseError as e:
             error = "Cannot load files from the database: \n%s" % unicode(e)
         finally:
             QtGui.QApplication.restoreOverrideCursor()

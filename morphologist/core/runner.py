@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
+
+from __future__ import print_function
+
 import os
 import time
 import threading
 import multiprocessing
+import six
 
 import soma_workflow as sw
 from soma_workflow.client import WorkflowController, Helper, Workflow, Job, Group
@@ -151,7 +155,7 @@ class  SomaWorkflowRunner(Runner):
 
     def _delete_old_workflows(self):
         for (workflow_id, (name, _)) \
-                in self._workflow_controller.workflows().iteritems():
+                in six.iteritems(self._workflow_controller.workflows()):
             if name is not None and name.endswith(self.WORKFLOW_NAME_SUFFIX):
                 self._workflow_controller.delete_workflow(workflow_id)
 
@@ -213,9 +217,9 @@ class  SomaWorkflowRunner(Runner):
         cpus_count = multiprocessing.cpu_count()
         cpus_settings = settings.runner.selected_processing_units_n
         if cpus_settings > cpus_count:
-            print "Warning: bad setting value:\n" + \
-                "  (selected_processing_units_n=%d) " % cpus_settings + \
-                "> number of available processing units: %d" % cpus_count
+            print("Warning: bad setting value:\n" +
+                  "  (selected_processing_units_n=%d) " % cpus_settings +
+                  "> number of available processing units: %d" % cpus_count)
             cpus_number = min(cpus_settings, cpus_count)
         else:
             cpus_number = cpus_settings
@@ -248,7 +252,7 @@ class  SomaWorkflowRunner(Runner):
             missing = pipeline_tools.nodes_with_missing_inputs(pipeline)
             if missing:
                 self.check_missing_models(pipeline, missing)
-                print 'MISSING INPUTS IN NODES:', missing
+                print('MISSING INPUTS IN NODES:', missing)
                 raise MissingInputFileError("subject: %s" % subject_id)
 
             wf = pipeline_workflow.workflow_from_pipeline(
@@ -296,8 +300,8 @@ class  SomaWorkflowRunner(Runner):
                             step_id = job.user_storage or job.name
                             self._jobid_to_step[subjectid][job_id] = step_id
                         else:
-                            print 'job without mapping, subject: %s, job: %s' \
-                                % (subjectid, job.name)
+                            print('job without mapping, subject: %s, job: %s'
+                                  % (subjectid, job.name))
 
     def _define_workflow_name(self):
         return self._study.name + " " + self.WORKFLOW_NAME_SUFFIX
@@ -364,7 +368,7 @@ class  SomaWorkflowRunner(Runner):
                                      self._workflow_controller)
 
         interrupted_step_ids = self._get_interrupted_step_ids()
-        for subject_id, step_ids in interrupted_step_ids.iteritems():
+        for subject_id, step_ids in six.iteritems(interrupted_step_ids):
             if step_ids:
                 analysis = self._study.analyses[subject_id]
                 analysis.clear_results(step_ids)
@@ -383,7 +387,7 @@ class  SomaWorkflowRunner(Runner):
             interrupted_step_ids = set()
             started_step_ids = set()
             notrun_step_ids = set()
-            for job_id, step in subject_jobs.iteritems():
+            for job_id, step in six.iteritems(subject_jobs):
                 if step in interrupted_step_ids:
                     continue # this one is already in the list
                 job_status = jobs_status[job_id]

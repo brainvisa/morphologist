@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 __all__ = ['settings', 'AUTO']
 
 
@@ -88,23 +90,23 @@ class ConfigobjSettingsHandler(object):
         validation = settings.validate(validator, preserve_errors=True)
         settings_issues = flatten_errors(settings, validation)
         if settings_issues:
-            print "Error: loading settings from file '%s'" % settings.filename
-            print "The following items have wrong values:"
+            print("Error: loading settings from file '%s'" % settings.filename)
+            print("The following items have wrong values:")
             for sections, key, error in settings_issues:
                 sections = '/'.join(sections)
                 if key is None:
                     key = '[Missing section]'
                 if error == False:
                     error = 'Missing value or section.'
-                print "  - %s/%s: %s" % (sections, key, error)
+                print("  - %s/%s: %s" % (sections, key, error))
             return False
         extra_values = get_extra_values(settings)
         if extra_values:
-            print "Error: unknown additionnal items in setting file '%s'" % \
-                                                            settings.filename
+            print("Error: unknown additionnal items in setting file '%s'" %
+                  settings.filename)
             for sections, name in extra_values:
                 item = '/'.join(list(sections) + [name])
-                print "  -", item
+                print("  -", item)
             return False
         return True
 

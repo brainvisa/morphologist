@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 
 from morphologist.core.backends.mixins import ColorMap, ViewType
@@ -157,7 +159,7 @@ class HistoAnalysisView(VectorViewportView):
 
     def create_extended_view(self):
         window = HistoAnalysisEditorView(self._viewport_model, self)
-        from PyQt4 import QtCore
+        from soma.qt_gui.qt_backend import QtCore
         window.setWindowFlags(QtCore.Qt.Window)
         window.ui.extend_view_button.setVisible(False)
         window.setAttribute(QtCore.Qt.WA_DeleteOnClose)
@@ -456,11 +458,11 @@ class SulciView(Object3DViewportView):
         self._temp_object = []
         gw_color = [1., 0.7, 0.7, 1.]
         if self.view_type() != ViewType.THREE_D and left_mesh is not None:
-            print 'add 2d mesh left'
+            print('add 2d mesh left')
             left_fus = Object3D.from_fusion(
                 left_mesh, method='Fusion2DMeshMethod')
             left_fus.set_color(gw_color)
-            print 'left_fus:', left_fus
+            print('left_fus:', left_fus)
             self._temp_object = [left_fus]
             self._view.add_object(left_fus)
         if self.view_type() != ViewType.THREE_D and right_mesh is not None:
