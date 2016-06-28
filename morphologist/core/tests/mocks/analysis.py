@@ -4,7 +4,6 @@ import glob
 from morphologist.core.analysis import SharedPipelineAnalysis
 from morphologist.core.subject import Subject
 from capsul.api import get_process_instance
-from capsul.process.process_with_fom import ProcessWithFom
 
 # the following 4 lines are a hack to add /tmp to the FOM search path
 # before it is used by StudyConfig
@@ -80,7 +79,7 @@ class MockAnalysis(SharedPipelineAnalysis):
 
     def import_data(self, subject):
         self.propagate_parameters()
-        filename = self.pipeline.process.input_image
+        filename = self.pipeline.input_image
         open(filename, 'w').write('blah.\n')
         return filename
 

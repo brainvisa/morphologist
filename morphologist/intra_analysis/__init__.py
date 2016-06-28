@@ -11,6 +11,7 @@ from morphologist.intra_analysis.steps import \
     GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface, Sulci, \
     SulciLabelling, Morphometry
 from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
+from capsul.api import get_process_instance
 
 # CAPSUL
 from capsul.pipeline import pipeline_tools
@@ -55,7 +56,8 @@ class IntraAnalysis(SharedPipelineAnalysis):
         ]
 
     def build_pipeline(self):
-        pipeline = Morphologist()
+        pipeline = get_process_instance(
+            'morphologist.capsul.morphologist.Morphologist', self.study)
         # rework steps with finer grain
         pipeline.remove_pipeline_step('grey_white_segmentation')
         pipeline.remove_pipeline_step('white_mesh')
@@ -89,14 +91,12 @@ class IntraAnalysis(SharedPipelineAnalysis):
         return pipeline
 
     def import_data(self, subject):
-        from capsul.process import get_process_instance
         import_step = get_process_instance(
-            'morphologist.capsul.import_t1_mri.ImportT1Mri')
+            'morphologist.capsul.import_t1_mri.ImportT1Mri', self.study)
 
         import_step.input = subject.filename
-        import_step.output \
-            = self.pipeline.process.t1mri
-        import_step.referential = self.pipeline.process. \
+        import_step.output = self.pipeline.t1mri
+        import_step.referential = self.pipeline. \
             PrepareSubject_TalairachFromNormalization_source_referential
         pipeline_tools.create_output_directories(import_step)
         import_step() # run
@@ -126,7 +126,7 @@ class IntraAnalysis(SharedPipelineAnalysis):
 
     def remove_subject_dir(self):
         self.propagate_parameters()
-        t1mri_dir = self.pipeline.process.t1mri
+        t1mri_dir = self.pipeline.t1mri
         acquisition_dir = os.path.dirname(t1mri_dir)
         modality_dir = os.path.dirname(acquisition_dir)
         subject_dir = os.path.dirname(modality_dir)

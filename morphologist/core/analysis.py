@@ -6,7 +6,7 @@ import traits.api as traits
 from morphologist.core.utils import OrderedDict
 # CAPSUL
 from capsul.pipeline import pipeline_tools
-from capsul.process.process_with_fom import ProcessWithFom
+from capsul.attributes.completion_engine import ProcessCompletionEngine
 # AIMS
 from soma import aims
 
@@ -51,7 +51,7 @@ class Analysis(object):
         self._init_steps()
         self._init_step_ids()
         self.study = study
-        self.pipeline = None  # should be a ProcessWithFom
+        self.pipeline = None
         self.parameters = None
 
     def _init_steps(self):
@@ -210,15 +210,16 @@ class Analysis(object):
 class SharedPipelineAnalysis(Analysis):
     '''
     An Analysis containing a capsul Pipeline instance, shared with other
-    Analysis instances in the same study. The pipeline is wrapped in a
-    ProcessWithFom.
+    Analysis instances in the same study. The pipeline has a
+    ProcessCompletionEngine.
     '''
 
     def __init__(self, study):
         super(SharedPipelineAnalysis, self).__init__(study)
         if study.template_pipeline is None:
-            study.template_pipeline = ProcessWithFom(self.build_pipeline(),
-                                                     study)
+            study.template_pipeline = self.build_pipeline()
+        completion_model = ProcessCompletionEngine.get_completion_engine(
+            study.template_pipeline)
         # share the same instance of the pipeline to save memory and, most of
         # all, instantiation time
         self.pipeline = study.template_pipeline
@@ -232,7 +233,7 @@ class SharedPipelineAnalysis(Analysis):
         raise NotImplementedError("SharedPipelineAnalysis is an Abstract class. build_pipeline must be redefined.")
 
     def set_parameters(self, subject):
-        self.create_fom_completion(subject)
+        self.complete_parameters(subject)
 
     def propagate_parameters(self):
         if hasattr(self.pipeline, 'current_subject_id') \
@@ -241,13 +242,13 @@ class SharedPipelineAnalysis(Analysis):
             # OK this is already done.
             return
         pipeline_tools.set_pipeline_state_from_dict(
-            self.pipeline.process, self.parameters)
+            self.pipeline, self.parameters)
         self.pipeline.current_subject_id = self.subject.id()
 
     def get_attributes(self, subject):
         raise NotImplementedError("SharedPipelineAnalysis is an Abstract class. get_attributes must be redefined.")
 
-    def create_fom_completion(self, subject):
+    def complete_parameters(self, subject):
         pipeline = self.pipeline
         if hasattr(pipeline, 'current_subject_id') \
                 and pipeline.current_subject_id \
@@ -258,19 +259,23 @@ class SharedPipelineAnalysis(Analysis):
         if not attributes_dict:
             raise AttributeError('Subject %s/%s has no attributes'
                 % (subject.groupname, subject.name))
+        attributes = pipeline.completion_engine.get_attribute_values() \
+            .export_to_dict()
         for attribute, value in attributes_dict.iteritems():
-            if pipeline.attributes[attribute] != value:
-                pipeline.attributes[attribute] = value
-                do_completion = True
+            if attributes[attribute] != value:
+                attributes[attribute] = value
+                #do_completion = True
+        # FIXME: only if do_completion ?
         #print 'create_completion for:', subject.id()
-        pipeline.create_completion()
+        pipeline.completion_engine.complete_parameters(
+            {'capsul_attributes': attributes})
         self.parameters = pipeline_tools.dump_pipeline_state_as_dict(
-            self.pipeline.process)
+            self.pipeline)
         # mark this subject as the one witht the current parameters.
         pipeline.current_subject_id = subject.id()
 
     def existing_results(self, step_ids=None):
-        pipeline = self.pipeline.process
+        pipeline = self.pipeline
         self.propagate_parameters()
         pipeline.enable_all_pipeline_steps()
         if step_ids:
@@ -295,7 +300,7 @@ class SharedPipelineAnalysis(Analysis):
         return bool(self.existing_results(step_ids=step_ids))
 
     def list_input_parameters_with_existing_files(self):
-        pipeline = self.pipeline.process
+        pipeline = self.pipeline
         subject = self.subject
         if subject is None:
             return False
@@ -316,7 +321,7 @@ class SharedPipelineAnalysis(Analysis):
         return params
 
     def list_output_parameters_with_existing_files(self):
-        pipeline = self.pipeline.process
+        pipeline = self.pipeline
         subject = self.subject
         if subject is None:
             return False
@@ -337,7 +342,7 @@ class SharedPipelineAnalysis(Analysis):
         return params
 
         #existing =  pipeline_tools.nodes_with_existing_outputs(
-            #self.pipeline.process)
+            #self.pipeline)
         #params = []
         #for node_name, values in  existing.iteritems():
             #parmams.update(dict(values))
@@ -346,7 +351,7 @@ class SharedPipelineAnalysis(Analysis):
     def is_parameter_in_steps(self, param_name, step_ids=None):
         if step_ids is None:
             return True
-        pipeline = self.pipeline.process
+        pipeline = self.pipeline
         plug = pipeline.pipeline_node.plugs[param_name]
         steps_nodes = set()
         for step_id, trait \
@@ -377,7 +382,7 @@ class SharedPipelineAnalysis(Analysis):
         # from a pipeline if all outputs are expected or not (many are
         # optional, but still useful in our context)
         self.propagate_parameters()
-        pipeline = self.pipeline.process
+        pipeline = self.pipeline
         for parameter in self.get_output_file_parameter_names():
             if self.is_parameter_in_steps(parameter, step_ids=step_ids):
                 value = getattr(pipeline, parameter)

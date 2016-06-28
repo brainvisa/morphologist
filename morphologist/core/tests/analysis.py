@@ -47,13 +47,13 @@ class MockAnalysisTestCase(AnalysisTestCase):
         self.analysis.set_parameters(subject=subject)
 
     def delete_some_parameter_values(self):
-        self.analysis.pipeline.process.output_image = traits.Undefined
-        self.analysis.pipeline.process.other_output = traits.Undefined
+        self.analysis.pipeline.output_image = traits.Undefined
+        self.analysis.pipeline.other_output = traits.Undefined
 
     def create_some_output_files(self):
         parameter_names = ['output_image', 'output_image']
         for name in parameter_names:
-            file_name = getattr(self.analysis.pipeline.process, name)
+            file_name = getattr(self.analysis.pipeline, name)
             f = open(file_name, "w")
             f.write("something\n")
             f.close()

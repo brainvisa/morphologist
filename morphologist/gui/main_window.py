@@ -380,7 +380,7 @@ class MainWindow(QtGui.QMainWindow):
         for subject_id in subject_ids:
             analysis = self.study.analyses[subject_id]
             analysis.propagate_parameters()
-            csv_filepath = getattr(analysis.pipeline.process,
+            csv_filepath = getattr(analysis.pipeline,
                 IntraAnalysisParameterNames.MORPHOMETRY_CSV)
             print 'morpho file:', csv_filepath
             # ignore none-existing files

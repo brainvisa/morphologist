@@ -111,7 +111,7 @@ class TestRunnerOnSuccessStudy(TestRunner):
         for subject_id in self.study.subjects:
             analysis = self.study.analyses[subject_id]
             for step_id in \
-                    analysis.pipeline.process.pipeline_steps.user_traits():
+                    analysis.pipeline.pipeline_steps.user_traits():
                 status = self.runner.get_status(subject_id, step_id,
                                                 update_status=False)
                 if status == Runner.SUCCESS:

@@ -28,7 +28,7 @@ class TestAnalysis(unittest.TestCase):
         self.test_case.set_analysis_parameters()
         self.test_case.delete_some_parameter_values()
 
-        pipeline = self.analysis.pipeline.process
+        pipeline = self.analysis.pipeline
         pipeline.enable_all_pipeline_steps()
         pipeline_tools.disable_runtime_steps_with_existing_outputs(
             pipeline)

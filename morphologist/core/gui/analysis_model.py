@@ -60,7 +60,7 @@ class AnalysisPollingThread(QtCore.QThread):
         self._analysis.propagate_parameters()
         checked_outputs = dict([
             (parameter_name,
-             getattr(self._analysis.pipeline.process, parameter_name))
+             getattr(self._analysis.pipeline, parameter_name))
             for parameter_name in checked_outputs_names])
         return checked_outputs
 
@@ -81,6 +81,9 @@ class AnalysisPollingThread(QtCore.QThread):
         for parameter_name, filename in existing_items.iteritems():
             if filename is None:
                 continue
+            import traits.api as traits
+            if filename is traits.Undefined:
+                print('undefined filename for param:', parameter_name)
             # TODO: directories are ignored !
             if os.path.isdir(filename): continue
             if not os.path.exists(filename):

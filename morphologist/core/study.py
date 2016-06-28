@@ -23,7 +23,7 @@ sys.argv = argv
 del argv
 
 # CAPSUL
-from capsul.study_config import StudyConfig
+from capsul.api import StudyConfig
 
 import traits.api as traits
 
@@ -334,8 +334,19 @@ class Study(StudyConfig):
 
         vol_format = None
         formats_dict = self.modules_data.fom_atp['input'].foms.formats
-        ext_dict = dict([(name, ext)
-                         for ext, name in formats_dict.iteritems()])
+        ext_dict = dict([(ext, name)
+                         for name, ext in formats_dict.iteritems()
+                         if not name.lower().startswith('series ')])
+        # fix ambiguities in formats/ext dict
+        ext_dict.update({
+            "nii.gz": "NIFTI gz",
+            "nii": "NIFTI",
+            "ima": "GIS",
+            "mnc": "MINC",
+            "gii": "GIFTI",
+            "mesh": "MESH",
+            "ply": "PLY",
+        })
         subjects_ids = set()
         files_list = list(glob.iglob(glob_pattern))
         nfiles = len(files_list)
@@ -357,7 +368,6 @@ class Study(StudyConfig):
                 if vol_format is None:
                     vol_format = format_name
                     self.volumes_format = vol_format
-                    print 'using format:', format_name
                 elif vol_format != format_name:
                     print 'Warning: subject %s input MRI does not have ' \
                         'the expected format: %s, expecting %s' \
