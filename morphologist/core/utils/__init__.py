@@ -2,7 +2,10 @@
 import collections
 import os
 import re
-from ordered_dict import OrderedDict
+try:
+    from collections import OrderedDict
+except:
+    from ordered_dict import OrderedDict
 from soma.qt_gui.qtThread import QtThreadCall
 from soma.functiontools import partial
 

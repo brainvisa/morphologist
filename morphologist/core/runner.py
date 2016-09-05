@@ -108,7 +108,7 @@ class  SomaWorkflowRunner(Runner):
             config_file_path)
         login_list = swconf.Configuration.get_logins(config_file_path)
         login = None
-        if login_list.has_key(resource_id):
+        if resource_id in login_list:
             login = login_list[resource_id]
 
         password = None
