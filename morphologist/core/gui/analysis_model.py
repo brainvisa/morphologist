@@ -88,7 +88,7 @@ class AnalysisPollingThread(QtCore.QThread):
             # TODO: directories are ignored !
             if os.path.isdir(filename): continue
             if not os.path.exists(filename):
-                if parameters_file_sha.has_key(parameter_name):
+                if parameter_name in parameters_file_sha:
                     del parameters_file_sha[parameter_name]
                     changed_parameters.append(parameter_name)
                 continue

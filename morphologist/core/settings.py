@@ -143,13 +143,13 @@ class SettingsFacade(object):
         disk_settings.write()
 
     def __setattr__(self, attr, value):
-        if not self._settings_map.has_key(attr):
+        if attr not in self._settings_map:
             return super(SettingsFacade, self).__setattr__(attr, value)
         section, setting = self._try_find_attr(attr)
         self._wrapped[section][setting] = value
 
     def __getattr__(self, attr):
-        if not self._settings_map.has_key(attr):
+        if attr not in self._settings_map:
             return super(SettingsFacade, self).__getattribute__(attr)
         section, setting = self._try_find_attr(attr)
         # XXX: this repr [section][setting] is a specificity of configobj
