@@ -1,4 +1,5 @@
 import os
+import sys
 
 import anatomist.direct.api as ana
 from anatomist.cpp.simplecontrols import Simple2DControl, Simple3DControl, \
@@ -10,6 +11,9 @@ from morphologist.core.backends import Backend
 from morphologist.core.backends.mixins \
     import DisplayManagerMixin, ObjectsManagerMixin, LoadObjectError, \
         ColorMap, ViewType
+
+if sys.version_info[0] >= 3:
+    unicode = str
 
 
 class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
