@@ -337,8 +337,9 @@ class Study(StudyConfig):
 
         vol_format = None
         formats_dict = self.modules_data.fom_atp['input'].foms.formats
-        ext_dict = dict([(name, ext)
-                         for ext, name in six.iteritems(formats_dict)])
+        ext_dict = dict([(ext, name)
+                         for name, ext in six.iteritems(formats_dict)
+                         if not name.startswith('Series of ')])
         subjects_ids = set()
         files_list = list(glob.iglob(glob_pattern))
         nfiles = len(files_list)
@@ -386,7 +387,7 @@ class Study(StudyConfig):
         items = [(params, new_params)]
         while items:
             item, parent = items.pop(0)
-            if hasattr(item, 'iteritems'):
+            if hasattr(item, 'items'):
                 for name, sub_item in six.iteritems(item):
                     if hasattr(sub_item, 'keys') \
                             or isinstance(sub_item, list):
