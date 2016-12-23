@@ -64,8 +64,18 @@ class StudyPropertiesEditor(object):
     def __init__(self, study, mode):
         self.study_name = study.study_name
         self.output_directory = study.output_directory
-        self.volumes_formats = ['NIFTI', 'NIFTI gz', 'MINC', 'GIS']
-        self.meshes_formats = ['GIFTI', 'MESH', 'PLY']
+        self.volumes_formats = [
+            'NIFTI', 'NIFTI gz', 'MINC', 'GIS',
+            "gz compressed NIFTI-1 image",
+            "NIFTI-1 image",
+            "GIS image",
+            "MINC image",
+            "gz compressed MINC image"]
+        self.meshes_formats = [
+            'GIFTI', 'MESH', 'PLY',
+            "GIFTI file",
+            "MESH mesh",
+            "PLY mesh"]
         self.available_computing_resources \
             = study.get_available_computing_resources()
         if study.somaworkflow_computing_resource \
