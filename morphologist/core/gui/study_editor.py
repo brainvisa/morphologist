@@ -202,7 +202,7 @@ class SubjectsEditor(Observable):
             self._notify_start_subject_importation(subject)
             try:
                 study.add_subject(subject)
-            except ImportationErro as e:
+            except ImportationError as e:
                 status_ok = False
             else:
                 status_ok = True
