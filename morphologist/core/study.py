@@ -404,8 +404,8 @@ class Study(StudyConfig):
             if hasattr(item, 'items'):
                 for name, sub_item in six.iteritems(item):
                     if hasattr(sub_item, 'keys') \
-                            or isinstance(sub_item, list):
-                        if isinstance(sub_item, list):
+                            or isinstance(sub_item, (list, set)):
+                        if isinstance(sub_item, (list, set)):
                             parent[name] = []
                         else:
                             parent[name] = sub_item.__class__()
@@ -419,11 +419,11 @@ class Study(StudyConfig):
                         parent[name] = '<undefined>'
                     else:
                         parent[name] = sub_item
-            elif isinstance(item, list):
+            elif isinstance(item, (list, set)):
                 for sub_item in item:
                     if hasattr(sub_item, 'keys') \
-                            or isinstance(sub_item, list):
-                        if isinstance(sub_item, list):
+                            or isinstance(sub_item, (list, set)):
+                        if isinstance(sub_item, (list, set)):
                             parent.append([])
                         else:
                             parent.append(sub_item.__class__())
