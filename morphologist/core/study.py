@@ -401,7 +401,7 @@ class Study(StudyConfig):
         items = [(params, new_params)]
         while items:
             item, parent = items.pop(0)
-            if hasattr(item, 'iteritems'):
+            if hasattr(item, 'items'):
                 for name, sub_item in six.iteritems(item):
                     if hasattr(sub_item, 'keys') \
                             or isinstance(sub_item, list):
