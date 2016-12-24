@@ -86,7 +86,7 @@ class IntraAnalysis(SharedPipelineAnalysis):
         pipeline.add_pipeline_step('sulci_labelling_right',
                                    ['SulciRecognition_1'])
         # listen to config activation and adapt normalization steps
-        pipeline.attach_config_activations(self.study)
+        pipeline.attach_config_activations()
 
         return pipeline
 
@@ -96,8 +96,7 @@ class IntraAnalysis(SharedPipelineAnalysis):
 
         import_step.input = subject.filename
         import_step.output = self.pipeline.t1mri
-        import_step.referential = self.pipeline. \
-            PrepareSubject_TalairachFromNormalization_source_referential
+        import_step.referential = self.pipeline.t1mri_referential
         pipeline_tools.create_output_directories(import_step)
         import_step() # run
         return import_step.output
