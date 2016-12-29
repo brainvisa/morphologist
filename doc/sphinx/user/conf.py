@@ -14,6 +14,7 @@
 from __future__ import print_function
 
 import sys, os
+import time
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -79,7 +80,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Morphologist UI'
-copyright = u'2015, CEA'
+copyright = u'%d, CEA' % time.localtime()[0]
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

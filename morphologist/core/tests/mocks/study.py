@@ -13,12 +13,14 @@ class MockStudy(Study):
     def __init__(self, *args, **kwargs):
         super(MockStudy, self).__init__(*args, **kwargs)
 
-    def get_subjects_from_pattern(self, exact_match=False):
+    def get_subjects_from_pattern(self, exact_match=False,
+                                  progress_callback=None):
         subjects = []
         glob_pattern = os.path.join(
             self.output_directory, "*_input.nii")
         regexp = re.compile(
-            "^"+os.path.join(self.output_directory, "([^-]+)-(.+)_input\.(?:nii)$"))
+            "^" + os.path.join(self.output_directory,
+                               "([^-]+)-(.+)_input\.(?:nii)$"))
 
         for filename in glob.iglob(glob_pattern):
             match = regexp.match(filename)
