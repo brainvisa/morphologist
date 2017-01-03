@@ -3,7 +3,7 @@
 class IntraAnalysisParameterNames:
     # intra analysis parameters (inputs / outputs)
     MRI = 't1mri'
-    MRI_REFERENTIAL = 'PrepareSubject_TalairachFromNormalization_source_referential'
+    MRI_REFERENTIAL = 't1mri_referential'
     COMMISSURE_COORDINATES = 'commissure_coordinates'
     TALAIRACH_TRANSFORMATION = 'Talairach_transform'
     EROSION_SIZE = 'erosion_size' 

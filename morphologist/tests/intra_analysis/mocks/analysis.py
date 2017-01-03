@@ -107,9 +107,8 @@ class MockIntraAnalysis(IntraAnalysis):
 
         import_step.input = subject.filename
         import_step.output \
-            = self.pipeline.process.t1mri
-        import_step.referential = self.pipeline.process. \
-            PrepareSubject_TalairachFromNormalization_source_referential
+            = self.pipeline.t1mri
+        import_step.referential = self.pipeline.t1mri_referential
         pipeline_tools.create_output_directories(import_step)
 
         #self.parameter_template.create_outputdirs(subject)

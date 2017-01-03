@@ -47,22 +47,21 @@ class IntraAnalysisTestCase(AnalysisTestCase):
 
         import_step.input = subject.filename
         import_step.output \
-            = self.analysis.pipeline.process.t1mri
-        import_step.referential = self.analysis.pipeline.process. \
-            PrepareSubject_TalairachFromNormalization_source_referential
+            = self.analysis.pipeline.t1mri
+        import_step.referential = self.analysis.pipeline.t1mri_referential
         pipeline_tools.create_output_directories(import_step)
 
         self.analysis.clear_results() 
 
     def delete_some_parameter_values(self):
-        self.analysis.pipeline.process.edges = None
-        self.analysis.pipeline.process.t1mri = traits.Undefined
+        self.analysis.pipeline.edges = None
+        self.analysis.pipeline.t1mri = traits.Undefined
 
     def create_some_output_files(self):
         parameter_names = [IntraAnalysisParameterNames.SPLIT_MASK, 
                            IntraAnalysisParameterNames.HFILTERED]
         for name in parameter_names:
-            file_name = getattr(self.analysis.pipeline.process, name)
+            file_name = getattr(self.analysis.pipeline, name)
             dirname = os.path.dirname(file_name)
             if not os.path.isdir(dirname):
                 os.makedirs(dirname)

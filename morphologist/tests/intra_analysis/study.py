@@ -46,7 +46,7 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
                            IntraAnalysisParameterNames.VARIANCE]
         for name in parameter_names:
             file_name = getattr(
-                self.study.analyses.values()[0].pipeline.process, name)
+                self.study.analyses.values()[0].pipeline, name)
             try:
                 os.makedirs(os.path.dirname(file_name))
             except OSError:
@@ -59,7 +59,7 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
         parameter_names = [IntraAnalysisParameterNames.MRI]
         for name in parameter_names:
             file_name = getattr(
-                self.study.analyses.values()[1].pippeline.process, name)
+                self.study.analyses.values()[1].pippeline, name)
             if file_name != None and os.path.isfile(file_name + "hide_for_test"):
                 os.rename(file_name + "hide_for_test", file_name) 
 
