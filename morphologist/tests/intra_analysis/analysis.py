@@ -41,7 +41,7 @@ class IntraAnalysisTestCase(AnalysisTestCase):
         subject = Subject(subjectname, groupname, filename)
         self.analysis.set_parameters(subject=subject) 
 
-        from capsul.process import get_process_instance
+        from capsul.api import get_process_instance
         import_step = get_process_instance(
             'morphologist.capsul.import_t1_mri.ImportT1Mri')
 
