@@ -1,3 +1,6 @@
+
+from __future__ import print_function
+
 import unittest
 import os
 import filecmp
@@ -71,8 +74,12 @@ class TestStudy(unittest.TestCase):
 
     def test_create_study_from_organized_directory(self):
         self.test_case.add_subjects()
-        new_study = MockStudy.from_organized_directory(
-            self.study.analysis_type, self.study.output_directory)
+        if self.study.analysis_type == 'MockAnalysis':
+            new_study = MockStudy.from_organized_directory(
+                self.study.analysis_type, self.study.output_directory)
+        else:
+            new_study = self.study.from_organized_directory(
+                self.study.analysis_type, self.study.output_directory)
         self._assert_same_studies(new_study, self.study)
 
     def _assert_same_studies(self, study_a, study_b):

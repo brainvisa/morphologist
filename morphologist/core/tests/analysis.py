@@ -36,14 +36,22 @@ class MockAnalysisTestCase(AnalysisTestCase):
 
     def __init__(self):
         super(MockAnalysisTestCase, self).__init__()
-        self.output_directory = os.path.join('/tmp', 'mock_analysis_test_case_output_directory')
+        test_dir = os.environ.get('BRAINVISA_TESTS_DIR')
+        if not test_dir:
+            raise RuntimeError('BRAINVISA_TESTS_DIR is not set')
+        self.output_directory = os.path.join(
+            test_dir,
+            'tmp_tests_brainvisa/morphologist-ui/'
+            'mock_analysis_test_case_output_directory')
+
         reset_directory(self.output_directory)
 
     def analysis_cls(self):
         return MockAnalysis
 
     def set_analysis_parameters(self):
-        subject = Subject('foo', 'foo', os.path.join(self.output_directory, 'foo'))
+        subject = Subject('foo', 'foo', os.path.join(self.output_directory,
+                                                     'foo'))
         self.analysis.set_parameters(subject=subject)
 
     def delete_some_parameter_values(self):

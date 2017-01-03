@@ -298,9 +298,9 @@ class Study(StudyConfig):
         return resource_list
 
     def __repr__(self):
-        s = 'study_name :' + str(self.study_name) + '\n'
-        s += 'output_directory :' + str(self.output_directory) + '\n'
-        s += 'subjects :' + repr(self.subjects) + '\n'
+        s = 'study_name: ' + str(self.study_name) + '\n'
+        s += 'output_directory: ' + str(self.output_directory) + '\n'
+        s += 'subjects: ' + repr(self.subjects) + '\n'
         return s
 
     def get_subjects_from_pattern(self, exact_match=False,

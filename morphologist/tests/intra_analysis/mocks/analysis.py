@@ -7,6 +7,8 @@ from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
 from morphologist.tests.intra_analysis.mocks.steps import MockSpatialNormalization, \
     MockBiasCorrection, MockHistogramAnalysis, MockBrainSegmentation, MockSplitBrain, \
     MockGreyWhite, MockGrey, MockGreySurface, MockWhiteSurface, MockSulci, MockSulciLabelling 
+# CAPSUL
+from capsul.pipeline import pipeline_tools
 
 
 class MockIntraAnalysis(IntraAnalysis):
@@ -16,7 +18,12 @@ class MockIntraAnalysis(IntraAnalysis):
 
     def _init_steps(self):
         subject=Subject("hyperion", "test", None)
-        bv_database_directory = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/bv_database"
+        test_dir = os.environ.get('BRAINVISA_TESTS_DIR')
+        if not test_dir:
+            raise RuntimeError('BRAINVISA_TESTS_DIR is not set')
+        test_dir = os.path.join(test_dir, 'tmp_tests_brainvisa')
+        bv_database_directory = os.path.join(test_dir, 'morphologist-ui',
+                                             "bv_database"
         ref_results = self.get_outputs(subject)
         self._normalization = MockSpatialNormalization(ref_results[IntraAnalysisParameterNames.COMMISSURE_COORDINATES], 
                                                        ref_results[IntraAnalysisParameterNames.TALAIRACH_TRANSFORMATION])
@@ -93,7 +100,28 @@ class MockIntraAnalysis(IntraAnalysis):
 
     def import_data(self, subject):
         target_filename = self.parameter_template.get_subject_filename(subject)
-        self.parameter_template.create_outputdirs(subject)
-        source_filename = "/neurospin/lnao/Panabase/cati-dev-prod/morphologist/raw_irm/hyperion.nii"
+
+        from capsul.process import get_process_instance
+        import_step = get_process_instance(
+            'morphologist.capsul.import_t1_mri.ImportT1Mri')
+
+        import_step.input = subject.filename
+        import_step.output \
+            = self.pipeline.process.t1mri
+        import_step.referential = self.pipeline.process. \
+            PrepareSubject_TalairachFromNormalization_source_referential
+        pipeline_tools.create_output_directories(import_step)
+
+        #self.parameter_template.create_outputdirs(subject)
+        target_dirname = os.path.dirname(target_filename)
+        if not os.path.isdir(target_dirname):
+            os.makedirs(target_dirname)
+        test_dir = os.environ.get('BRAINVISA_TESTS_DIR')
+        if not test_dir:
+            raise RuntimeError('BRAINVISA_TESTS_DIR is not set')
+        test_dir = os.path.join(test_dir, 'tmp_tests_brainvisa')
+        source_filename = os.path.join(
+            test_dir,
+            "tmp_tests_brainvisa/data_unprocessed/sujet01/anatomy/sujet01.ima")
         shutil.copy(source_filename, target_filename)
         return target_filename

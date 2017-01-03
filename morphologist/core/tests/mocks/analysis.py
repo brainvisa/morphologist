@@ -60,7 +60,7 @@ class MockAnalysis(SharedPipelineAnalysis):
 
     def build_pipeline(self):
         pipeline = get_process_instance(
-            'capsul.pipeline.test.test_pipeline.MyPipeline')
+            'capsul.pipeline.test.test_pipeline.MyPipeline', self.study)
         pipeline.add_pipeline_step('step1', ['constant'])
         pipeline.add_pipeline_step('step2', ['node1'])
         pipeline.add_pipeline_step('step3', ['node2'])
@@ -80,6 +80,9 @@ class MockAnalysis(SharedPipelineAnalysis):
     def import_data(self, subject):
         self.propagate_parameters()
         filename = self.pipeline.input_image
+        dirname = os.path.dirname(filename)
+        if not os.path.isdir(dirname):
+            os.makedirs(dirname)
         open(filename, 'w').write('blah.\n')
         return filename
 
