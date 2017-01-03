@@ -101,7 +101,7 @@ class MockIntraAnalysis(IntraAnalysis):
     def import_data(self, subject):
         target_filename = self.parameter_template.get_subject_filename(subject)
 
-        from capsul.process import get_process_instance
+        from capsul.api import get_process_instance
         import_step = get_process_instance(
             'morphologist.capsul.import_t1_mri.ImportT1Mri')
 
