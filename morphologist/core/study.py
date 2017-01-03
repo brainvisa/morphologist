@@ -40,7 +40,6 @@ class Study(StudyConfig):
 
     def __init__(self, analysis_type, study_name="undefined study",
                  output_directory=default_output_directory):
-        print('Study.__init__')
         default_config = {
             "use_soma_workflow": True,
             "somaworkflow_computing_resource": "localhost",
@@ -56,16 +55,13 @@ class Study(StudyConfig):
         super(Study, self).__init__(init_config=default_config,
             modules=StudyConfig.default_modules + \
             ['BrainVISAConfig', 'FSLConfig', 'FomConfig', 'FreeSurferConfig'])
-        print('Study.__init__ 1')
 
         # init/read axon config
         neuroConfig.fastStart = True
         axon_processes.initializeProcesses()
-        print('Study.__init__ 2')
         self.axon_link = \
             axon_capsul_config_link.AxonCapsulConfSynchronizer(self)
         self.axon_link.sync_axon_to_capsul()
-        print('Study.__init__ 3')
 
         # study_name is marked as transient in StudyConfig. I don't know why.
         self.trait('study_name').transient = False
@@ -76,7 +72,6 @@ class Study(StudyConfig):
         self.template_pipeline = None
         self.analyses = {}
         self.on_trait_change(self._force_input_dir, 'output_directory')
-        print('Study.__init__ done.')
 
     def _force_input_dir(self, value):
         self.input_directory = value
