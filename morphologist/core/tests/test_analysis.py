@@ -3,6 +3,7 @@ import unittest
 from morphologist.core.study import Study
 from morphologist.core.tests.analysis import MockAnalysisTestCase
 from capsul.pipeline import pipeline_tools
+import os
 
 class MissingParameterValueError(Exception):
     pass
@@ -16,8 +17,14 @@ class TestAnalysis(unittest.TestCase):
 
     def setUp(self):
         self.test_case = self.create_test_case() 
+        test_dir = os.environ.get('BRAINVISA_TESTS_DIR')
+        if not test_dir:
+            raise RuntimeError('BRAINVISA_TESTS_DIR is not set')
+        output_directory = os.path.join(
+            test_dir,
+            'tmp_tests_brainvisa/morphologist-ui/test_study')
         self.study = Study(analysis_type='MockAnalysis', study_name="none",
-                           output_directory='/tmp')
+                           output_directory=output_directory)
         self.analysis = self.test_case.create_analysis(self.study)
 
     def create_test_case(self):

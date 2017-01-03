@@ -1,6 +1,7 @@
 from morphologist.core.subject import Subject
 from morphologist.core.study import Study
 from morphologist.core.tests import reset_directory, remove_file
+import os
 import six
 
 
@@ -59,9 +60,15 @@ class MockStudyTestCase(AbstractStudyTestCase):
         super(MockStudyTestCase, self).__init__()
         self.analysis_type = "MockAnalysis"
         self.studyname = 'mock_study'
-        self.output_directory = '/tmp/morphologist_output_mock_study_test_case'
+        test_dir = os.environ.get('BRAINVISA_TESTS_DIR')
+        if not test_dir:
+            raise RuntimeError('BRAINVISA_TESTS_DIR is not set')
+        self.output_directory = os.path.join(
+            test_dir,
+            'tmp_tests_brainvisa/morphologist_output_mock_study_test_case')
         self.subjectnames = ['bla', 'blabla', 'blablabla'] 
-        self.filenames = ['/tmp/morphologist_output_mock_study_test_case/foo'] * len(self.subjectnames)
+        self.filenames = [os.path.join(self.output_directory, 'foo')] \
+            * len(self.subjectnames)
         self.groupnames = [Subject.DEFAULT_GROUP] * len(self.subjectnames)
         reset_directory(self.output_directory)
 

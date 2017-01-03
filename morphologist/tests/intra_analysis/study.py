@@ -21,7 +21,7 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
             raise RuntimeError('BRAINVISA_TESTS_DIR is not set')
         test_dir = os.path.join(test_dir, 'tmp_tests_brainvisa')
         self.output_directory = os.path.join(test_dir, 'morphologist-ui',
-                                      self.parameter_template_name())
+                                             self.parameter_template_name())
         inputdir = os.path.join(test_dir, 'data_unprocessed')
         basenames = ['sujet01.ima', 'sujet02.ima', 'sujet03.ima']
         self.subjectnames = [filename.split('.')[0] for filename in basenames]

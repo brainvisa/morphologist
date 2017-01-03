@@ -81,6 +81,9 @@ class MockAnalysis(SharedPipelineAnalysis):
     def import_data(self, subject):
         self.propagate_parameters()
         filename = self.pipeline.process.input_image
+        dirname = os.path.dirname(filename)
+        if not os.path.isdir(dirname):
+            os.makedirs(dirname)
         open(filename, 'w').write('blah.\n')
         return filename
 
