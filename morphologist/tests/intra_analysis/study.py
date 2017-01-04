@@ -74,7 +74,7 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
 
     def step_to_wait_testcase_3(self):
         subject_id = self.get_a_subject_id()
-        return subject_id, 'sulci'
+        return subject_id, 'sulci_left'
 
 
 class MockIntraAnalysisStudyTestCase(IntraAnalysisStudyTestCase):
