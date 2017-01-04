@@ -38,7 +38,8 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
     def delete_some_input_files(self):
         parameter_names = [IntraAnalysisParameterNames.MRI]
         for name in parameter_names:
-            file_name = self.study.analyses.values()[1].inputs.get_value(name)
+            file_name = getattr(
+                self.study.analyses.values()[1].pipeline, name)
             os.rename(file_name, file_name + "hide_for_test") 
 
     def create_some_output_files(self):
@@ -65,15 +66,15 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
 
     def step_to_wait_testcase_1(self):
         subject_id = self.get_a_subject_id()
-        return subject_id, '0_normalization'
+        return subject_id, 'orientation'
 
     def step_to_wait_testcase_2(self):
         subject_id = self.get_a_subject_id()
-        return subject_id, '2_histogram_analysis'
+        return subject_id, 'histogram_analysis'
 
     def step_to_wait_testcase_3(self):
         subject_id = self.get_a_subject_id()
-        return subject_id, '13_sulci'
+        return subject_id, 'sulci_left'
 
 
 class MockIntraAnalysisStudyTestCase(IntraAnalysisStudyTestCase):
@@ -84,7 +85,7 @@ class MockIntraAnalysisStudyTestCase(IntraAnalysisStudyTestCase):
 
     def __init__(self):
         super(MockIntraAnalysisStudyTestCase, self).__init__()
-        self.analysis_type = "MockIntraAnalysis"
+        self.analysis_type = "IntraAnalysis"
 
 
 class IntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
@@ -105,7 +106,7 @@ class MockIntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
 
     def __init__(self):
         super(MockIntraAnalysisStudyTestCaseBvParamTemplate, self).__init__()
-        self.analysis_type = "MockIntraAnalysis"
+        self.analysis_type = "IntraAnalysis"
 
     def parameter_template_name(self):
         return 'brainvisa'

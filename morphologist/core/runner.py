@@ -73,7 +73,11 @@ class Runner(object):
         subjects_with_missing_inputs = []
         for subject_id in subject_ids:
             analysis = self._study.analyses[subject_id]
-            if not analysis.inputs.all_file_exists():
+            analysis.subject = subject_id
+            analysis.propagate_parameters()
+            missing = pipeline_tools.nodes_with_missing_inputs(
+                analysis.pipeline)
+            if missing:
                 subject = self._study.subjects[subject_id]
                 subjects_with_missing_inputs.append(str(subject))
         if len(subjects_with_missing_inputs) != 0:
