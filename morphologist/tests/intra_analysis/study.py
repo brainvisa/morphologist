@@ -4,6 +4,7 @@ import getpass
 from morphologist.core.tests.study import AbstractStudyTestCase
 from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
 from morphologist.core.tests import reset_directory
+import morphologist.tests.intra_analysis.mocks.analysis
 
 
 class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
@@ -85,7 +86,7 @@ class MockIntraAnalysisStudyTestCase(IntraAnalysisStudyTestCase):
 
     def __init__(self):
         super(MockIntraAnalysisStudyTestCase, self).__init__()
-        self.analysis_type = "IntraAnalysis"
+        self.analysis_type = "MockIntraAnalysis"
 
 
 class IntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
@@ -106,7 +107,7 @@ class MockIntraAnalysisStudyTestCaseBvParamTemplate(IntraAnalysisStudyTestCase):
 
     def __init__(self):
         super(MockIntraAnalysisStudyTestCaseBvParamTemplate, self).__init__()
-        self.analysis_type = "IntraAnalysis"
+        self.analysis_type = "MockIntraAnalysis"
 
     def parameter_template_name(self):
         return 'brainvisa'
