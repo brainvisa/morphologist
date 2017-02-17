@@ -23,7 +23,7 @@ class MockIntraAnalysis(IntraAnalysis):
             raise RuntimeError('BRAINVISA_TESTS_DIR is not set')
         test_dir = os.path.join(test_dir, 'tmp_tests_brainvisa')
         bv_database_directory = os.path.join(test_dir, 'morphologist-ui',
-                                             "bv_database"
+                                             "bv_database")
         ref_results = self.get_outputs(subject)
         self._normalization = MockSpatialNormalization(ref_results[IntraAnalysisParameterNames.COMMISSURE_COORDINATES], 
                                                        ref_results[IntraAnalysisParameterNames.TALAIRACH_TRANSFORMATION])
