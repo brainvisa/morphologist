@@ -97,7 +97,7 @@ class RunnerView(QtGui.QWidget):
     def install_spam_models(self):
         print('install_spam_models')
         cmd = ['python', '-c', 'from brainvisa.axon import processes; '
-               'processes.neuroConfig.gui=True; from PyQt4 import QtGui; '
+               'processes.neuroConfig.gui=True; from soma.qt_gui.qt_backend import QtGui; '
                'qapp = QtGui.QApplication([]); '
                'processes.initializeProcesses(); '
                'from brainvisa.processing.qtgui.neuroProcessesGUI import showProcess; '
