@@ -47,101 +47,79 @@ class MetaAutomockStep(type):
 
 class MockSpatialNormalization(SpatialNormalization):
     __metaclass__ = MetaAutomockStep
-    
-    def __init__(self, ref_commissure_coordinates,
-                       ref_talairach_transformation):
+
+    def __init__(self):
         super(MockSpatialNormalization, self).__init__()
-        self.inputs.commissure_coordinates = ref_commissure_coordinates
-        self.inputs.talairach_transformation = ref_talairach_transformation
 
 
 class MockBiasCorrection(BiasCorrection):
     __metaclass__ = MetaAutomockStep
 
-    def __init__(self, ref_hfiltered, ref_white_ridges,
-            ref_edges, ref_corrected_mri, ref_variance):
+    def __init__(self):
         super(MockBiasCorrection, self).__init__()
-        self.inputs.hfiltered = ref_hfiltered
-        self.inputs.white_ridges = ref_white_ridges
-        self.inputs.edges = ref_edges
-        self.inputs.corrected_mri = ref_corrected_mri
-        self.inputs.variance = ref_variance
 
 
 class MockHistogramAnalysis(HistogramAnalysis):
     __metaclass__ = MetaAutomockStep
     
-    def __init__(self, ref_histo_analysis, ref_histogram):
+    def __init__(self):
         super(MockHistogramAnalysis, self).__init__()
-        self.inputs.histo_analysis = ref_histo_analysis
-        self.inputs.histogram = ref_histogram
 
 
 class MockBrainSegmentation(BrainSegmentation):
     __metaclass__ = MetaAutomockStep
-    
-    def __init__(self, ref_brain_mask, ref_white_ridges):
+
+    def __init__(self):
         super(MockBrainSegmentation, self).__init__()
-        self.inputs.brain_mask = ref_brain_mask
-        self.inputs.white_ridges = ref_white_ridges
- 
+
 
 class MockSplitBrain(SplitBrain):
     __metaclass__ = MetaAutomockStep
-    
-    def __init__(self, ref_split_mask):
+
+    def __init__(self):
         super(MockSplitBrain, self).__init__()
-        self.inputs.split_mask = ref_split_mask
- 
+
 
 class MockGreyWhite(GreyWhite):
     __metaclass__ = MetaAutomockStep
-    
-    def __init__(self, ref_grey_white):
-        super(MockGreyWhite, self).__init__(dummy_side)
-        self.inputs.grey_white = ref_grey_white
- 
+
+    def __init__(self, side):
+        super(MockGreyWhite, self).__init__(side)
+
 
 class MockGrey(Grey):
     __metaclass__ = MetaAutomockStep
-    
-    def __init__(self, ref_grey):
-        super(MockGrey, self).__init__()
-        self.inputs.grey = ref_grey
-        
-    
+
+    def __init__(self, side):
+        super(MockGrey, self).__init__(side)
+
+
 class MockWhiteSurface(WhiteSurface):
     __metaclass__ = MetaAutomockStep
-    
-    def __init__(self, ref_white_surface):
-        super(MockWhiteSurface, self).__init__()
-        self.inputs.white_surface = ref_white_surface
-        
+
+    def __init__(self, side):
+        super(MockWhiteSurface, self).__init__(side)
+
 
 class MockGreySurface(GreySurface):
     __metaclass__ = MetaAutomockStep
-  
-    def __init__(self, ref_grey_surface):
-        super(MockGreySurface, self).__init__(dummy_side)
-        self.inputs.grey_surface = ref_grey_surface
+
+    def __init__(self, side):
+        super(MockGreySurface, self).__init__(side)
 
 
 class MockSulci(Sulci):
     __metaclass__ = MetaAutomockStep
   
-    def __init__(self, ref_sulci, ref_sulci_data):
-        super(MockSulci, self).__init__(dummy_side)
-        self.inputs.sulci = ref_sulci
-        self.inputs.sulci_data = ref_sulci_data
+    def __init__(self, side):
+        super(MockSulci, self).__init__(side)
 
 
 class MockSulciLabelling(SulciLabelling):
     __metaclass__ = MetaAutomockStep
 
-    def __init__(self, ref_labeled_sulci, ref_labeled_sulci_data):
-        super(MockSulciLabelling, self).__init__(dummy_side)
-        self.inputs.labeled_sulci = ref_labeled_sulci
-        self.inputs.labeled_sulci_data = ref_labeled_sulci_data
+    def __init__(self, side):
+        super(MockSulciLabelling, self).__init__(side)
 
 
 def main():
