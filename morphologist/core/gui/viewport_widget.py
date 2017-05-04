@@ -114,7 +114,7 @@ class AnalysisViewportWidget(QtGui.QFrame):
     
     def _init_widget(self):
         self._grid_layout = QtGui.QGridLayout(self)
-        self._grid_layout.setMargin(3)
+        self._grid_layout.setContentsMargins(3, 3, 3, 3)
         self._grid_layout.setSpacing(3)
         self.setStyleSheet(self.style_sheet)
 
@@ -196,7 +196,7 @@ class ViewportView(QtGui.QFrame):
     def _init_widget(self):
         self.ui.setStyleSheet(self.frame_style_sheet)
         layout = QtGui.QVBoxLayout(self.ui.view_hook)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
                 
     def _init_model(self, model):

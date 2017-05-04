@@ -4,6 +4,7 @@ import os
 
 from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
 from morphologist.core.gui import ui_directory
+from soma.qt_gui import qt_backend
 
  
 class SubjectsWidget(QtGui.QWidget):
@@ -35,10 +36,14 @@ class SubjectsTableView(QtGui.QTableView):
     def _init_widget(self):
         self.ui = loadUi(self.uifile, self)
         header = self.horizontalHeader()
-        header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        if qt_backend.get_qt_backend() == 'PyQt5':
+            header.setSectionResizeMode(QtGui.QHeaderView.ResizeToContents)
+            header.setSectionsMovable(True)
+        else:
+            header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+            header.setMovable(True)
         self.verticalHeader().setVisible(False)
         self.setItemDelegate(SubjectsItemDelegate())
-        header.setMovable(True)
 
     # overrided Qt method
     def selectionCommand(self, index, event):
