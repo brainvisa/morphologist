@@ -174,7 +174,9 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
 
     @QtCore.Slot()                
     def on_study_model_changed(self):
-        self.reset()
+        #self.reset()
+        self.beginResetModel()
+        self.endResetModel()
 
     @QtCore.Slot() 
     def on_current_subject_changed(self):
