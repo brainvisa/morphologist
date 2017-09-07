@@ -1,7 +1,7 @@
 
 version_major = 1
-version_minor = 0
-version_micro = 1
+version_minor = 1
+version_micro = 0
 version_extra = ''
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
@@ -34,8 +34,8 @@ graphical interface for Morphologist (http://brainvisa.info): brain segmentation
 # versions for dependencies
 SPHINX_MIN_VERSION = '1.0'
 SOMA_WORKFLOW_MIN_VERSION = "2.8.0"
-SOMA_BASE_MIN_VERSION = "4.5.6"
-CAPSUL_MIN_VERSION = "1.0"
+SOMA_BASE_MIN_VERSION = "4.6.0"
+CAPSUL_MIN_VERSION = "2.1.0"
 
 # Main setup parameters
 NAME = 'morphologist-ui'
