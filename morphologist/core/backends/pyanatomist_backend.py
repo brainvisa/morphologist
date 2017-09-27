@@ -154,7 +154,7 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
         QtGui.qApp.setOverrideCursor(QtCore.Qt.WaitCursor)
         aobject = cls.anatomist.loadObject(filename)
         QtGui.qApp.restoreOverrideCursor()
-        if aobject.getInternalRep() == None:
+        if aobject is None or aobject.getInternalRep() is None:
             raise LoadObjectError(str(filename))
         return aobject
 
