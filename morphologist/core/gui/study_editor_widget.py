@@ -6,7 +6,7 @@ import tempfile
 import numpy
 
 from morphologist.core.settings import settings
-from morphologist.core.gui.qt_backend import QtGui, QtCore, loadUi
+from morphologist.core.gui.qt_backend import QtGui, QtCore, Qt, loadUi
 from morphologist.core.gui import ui_directory
 from morphologist.core.subject import Subject
 from morphologist.core.formats import FormatsManager
@@ -37,7 +37,11 @@ class StudyEditorDialog(QtGui.QDialog):
         self._subjects_tablemodel.modelReset.connect(self.on_subjects_tablemodel_changed)
         self.ui.subjects_tableview.setModel(self._subjects_tablemodel)
         tablewidget_header = self.ui.subjects_tableview.horizontalHeader()
-        tablewidget_header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        if Qt.QT_VERSION >= 0x050000:
+            tablewidget_header.setSectionResizeMode(
+                QtGui.QHeaderView.ResizeToContents)
+        else:
+            tablewidget_header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
         self._selection_model = SubjectsEditorSelectionModel(\
                                     self._subjects_tablemodel)
         self.ui.subjects_tableview.setSelectionModel(self._selection_model)
@@ -97,7 +101,8 @@ class StudyEditorDialog(QtGui.QDialog):
         self._on_table_model_changed()
 
     def _on_table_model_changed(self):
-        self._selection_model.reset()
+        self._selection_model.beginResetModel()
+        self._selection_model.endResetModel()
         empty_item_selection = QtGui.QItemSelection()
         dummy_item_selection = QtGui.QItemSelection()
         self.on_subjects_selection_changed(empty_item_selection,
@@ -295,7 +300,8 @@ class SubjectsEditorTableModel(QtCore.QAbstractTableModel):
     def __init__(self, subjects_editor, parent=None):
         super(SubjectsEditorTableModel, self).__init__(parent)
         self._subjects_editor = subjects_editor
-        self.reset()
+        self.beginResetModel()
+        self.endResetModel()
 
     # overrided Qt method
     def rowCount(self, parent=QtCore.QModelIndex()):
