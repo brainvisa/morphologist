@@ -222,12 +222,16 @@ class ViewportView(QtGui.QFrame):
                 break
     
     def update(self):
-        self._view.clear()
-        for parameter_name in self._observed_parameters:
-            observed_object \
-                = self._viewport_model.observed_objects[parameter_name]
-            if observed_object is not None:
-                self._view.add_object(observed_object)
+        try:
+            self._view.clear()
+            for parameter_name in self._observed_parameters:
+                observed_object \
+                    = self._viewport_model.observed_objects[parameter_name]
+                if observed_object is not None:
+                    self._view.add_object(observed_object)
+        except:
+            import traceback
+            traceback.print_exc()
     
     # This slot is automagically connected
     @QtCore.Slot()            

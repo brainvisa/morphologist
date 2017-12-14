@@ -122,7 +122,7 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
 
     @classmethod
     def get_object_center_position(cls, backend_object):
-        bb = backend_object.boundingbox()
+        bb = [aims.Point3df(x[:3]) for x in backend_object.boundingbox()]
         position = (bb[1] - bb[0]) / 2
         return position
 

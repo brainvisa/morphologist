@@ -488,12 +488,18 @@ class MainWindow(QtGui.QMainWindow):
 
         result = dialog.exec_()
         if result:
-          dialog.setObject(configuration)
+            try:
+                dialog.setObject(configuration)
+            except:
+                import traceback
+                traceback.print_exc()
         appGUI.closeEditionDialog(dialog)
         #if appGUI.edit(configuration, live=False, modal=True):
         if result:
             #from brainvisa.configuration import axon_capsul_config_link
             #axon_capsul_config_link.axon_to_capsul_config_sync(self.study)
+            # StudyConfig is automatically updated from brainvisa config.
+            # (via axon_capsul_config_link.AxonCapsulConfSynchronizer)
             configuration.save(neuroConfig.userOptionFile)
             try:
                 self.study.save_to_backup_file()
