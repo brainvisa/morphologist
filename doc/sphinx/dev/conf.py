@@ -54,6 +54,14 @@ bv_release_version = aims_version
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
+try:
+    # try napoleon which replaces numpydoc (and googledoc),
+    # comes with sphinx 1.2
+    import sphinx.ext.napoleon
+    napoleon = 'sphinx.ext.napoleon'
+except ImportError:
+    # not available, fallback to numpydoc
+    napoleon = 'numpy_ext.numpydoc'
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.intersphinx',
               'sphinx.ext.todo',
@@ -63,7 +71,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.extlinks',
               'sphinx.ext.inheritance_diagram',
               'sphinx.ext.autosummary',
-              'numpy_ext.numpydoc']
+              napoleon]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
