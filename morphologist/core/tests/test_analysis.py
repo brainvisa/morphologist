@@ -17,11 +17,11 @@ class TestAnalysis(unittest.TestCase):
 
     def setUp(self):
         self.test_case = self.create_test_case() 
-        test_dir = os.environ.get('BRAINVISA_TESTS_DIR')
-        if not test_dir:
-            raise RuntimeError('BRAINVISA_TESTS_DIR is not set')
+        tests_dir = os.environ.get('BRAINVISA_TEST_RUN_DATA_DIR')
+        if not tests_dir:
+            raise RuntimeError('BRAINVISA_TEST_RUN_DATA_DIR is not set')
         output_directory = os.path.join(
-            test_dir,
+            tests_dir,
             'tmp_tests_brainvisa/morphologist-ui/test_study')
         self.study = Study(analysis_type='MockAnalysis', study_name="none",
                            output_directory=output_directory)

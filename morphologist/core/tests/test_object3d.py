@@ -10,22 +10,22 @@ from morphologist.core.backends.mixins import LoadObjectError
 class TestObject3D(unittest.TestCase):
 
     @classmethod
-    def get_test_dir(cls):
-        test_dir = os.environ.get('BRAINVISA_TESTS_DIR')
-        if not test_dir:
-            raise RuntimeError('BRAINVISA_TESTS_DIR is not set')
-        test_dir = os.path.join(test_dir, 'tmp_tests_brainvisa')
-        return test_dir
+    def get_tests_dir(cls):
+        tests_dir = os.environ.get('BRAINVISA_TEST_RUN_DATA_DIR')
+        if not tests_dir:
+            raise RuntimeError('BRAINVISA_TEST_RUN_DATA_DIR is not set')
+        tests_dir = os.path.join(tests_dir, 'tmp_tests_brainvisa')
+        return tests_dir
 
     def setUp(self):
         pass
 
 
     def test_raise_load_object_error_volume(self):
-        filename = os.path.join(self.get_test_dir(),
+        filename = os.path.join(self.get_tests_dir(),
                                 "data_unprocessed/sujet01/anatomy/sujet01.ima")
         truncated_filename = os.path.join(
-            self.get_test_dir(), 'morphologist-ui', 'output_dirs',
+            self.get_tests_dir(), 'morphologist-ui', 'output_dirs',
             getpass.getuser(), 'morphologist_test_truncated_image.nii')
 
         self._create_truncated_file(filename, truncated_filename)
@@ -37,10 +37,10 @@ class TestObject3D(unittest.TestCase):
 
     def test_raise_load_object_error_surface(self):
         filename = os.path.join(
-            self.get_test_dir(),
+            self.get_tests_dir(),
             "data_for_anatomist/subject01/subject01_Lwhite.mesh")
         truncated_filename = os.path.join(
-            self.get_test_dir(), 'morphologist-ui', 'output_dirs',
+            self.get_tests_dir(), 'morphologist-ui', 'output_dirs',
             getpass.getuser(), 'morphologist_test_truncated_surface.gii')
         self._create_truncated_file(filename, truncated_filename)
 
@@ -50,11 +50,11 @@ class TestObject3D(unittest.TestCase):
 
     def test_raise_load_object_error_graph(self):
         filename = os.path.join(
-            self.get_test_dir(),
+            self.get_tests_dir(),
             'data_for_anatomist/subject01/sulci/'
             'Lsubject01_default_session_auto.arg')
         truncated_filename = os.path.join(
-            self.get_test_dir(), 'morphologist-ui', 'output_dirs',
+            self.get_tests_dir(), 'morphologist-ui', 'output_dirs',
             getpass.getuser(), 'morphologist_test_truncated_graph.arg')
         self._create_truncated_file(filename, truncated_filename)
 

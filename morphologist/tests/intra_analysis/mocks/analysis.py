@@ -35,9 +35,9 @@ class MockIntraAnalysis(IntraAnalysis):
         #target_dirname = os.path.dirname(target_filename)
         #if not os.path.isdir(target_dirname):
             #os.makedirs(target_dirname)
-        #test_dir = os.environ.get('BRAINVISA_TESTS_DIR')
+        #test_dir = os.getenv("BRAINVISA_TEST_RUN_DATA_DIR")
         #if not test_dir:
-            #raise RuntimeError('BRAINVISA_TESTS_DIR is not set')
+            #raise RuntimeError('BRAINVISA_TEST_RUN_DATA_DIR is not set')
         #test_dir = os.path.join(test_dir, 'tmp_tests_brainvisa')
         #source_filename = os.path.join(
             #test_dir,

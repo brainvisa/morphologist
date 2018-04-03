@@ -15,11 +15,12 @@ class IntraAnalysisTestCase(AnalysisTestCase):
 
     def __init__(self):
         super(IntraAnalysisTestCase, self).__init__()
-        test_dir = os.environ.get('BRAINVISA_TESTS_DIR')
-        if not test_dir:
-            raise RuntimeError('BRAINVISA_TESTS_DIR is not set')
-        test_dir = os.path.join(test_dir, 'tmp_tests_brainvisa')
-        self.output_directory = os.path.join(test_dir, 'morphologist-ui',
+        tests_dir = os.getenv("BRAINVISA_TEST_RUN_DATA_DIR")
+        
+        if not tests_dir:
+            raise RuntimeError('BRAINVISA_TEST_RUN_DATA_DIR is not set')
+        tests_dir = os.path.join(tests_dir, 'tmp_tests_brainvisa')
+        self.output_directory = os.path.join(tests_dir, 'morphologist-ui',
                                              'brainvisa')
         reset_directory(self.output_directory)
 
@@ -30,12 +31,12 @@ class IntraAnalysisTestCase(AnalysisTestCase):
         subjectname = "sujet02"
         groupname = "group1"
         
-        test_dir = os.environ.get('BRAINVISA_TESTS_DIR')
-        if not test_dir:
-            raise RuntimeError('BRAINVISA_TESTS_DIR is not set')
-        test_dir = os.path.join(test_dir, 'tmp_tests_brainvisa')
+        tests_dir = os.environ.get('BRAINVISA_TEST_RUN_DATA_DIR')
+        if not tests_dir:
+            raise RuntimeError('BRAINVISA_TEST_RUN_DATA_DIR is not set')
+        tests_dir = os.path.join(tests_dir, 'tmp_tests_brainvisa')
 
-        filename = os.path.join(test_dir, 'data_unprocessed', subjectname,
+        filename = os.path.join(tests_dir, 'data_unprocessed', subjectname,
                                 'anatomy', subjectname + ".ima")
          
         subject = Subject(subjectname, groupname, filename)

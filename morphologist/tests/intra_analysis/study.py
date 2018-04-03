@@ -17,13 +17,13 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
         super(IntraAnalysisStudyTestCase, self).__init__()
         self.analysis_type = "IntraAnalysis"
         self.studyname = "study with param template: " + self.parameter_template_name() 
-        test_dir = os.environ.get('BRAINVISA_TESTS_DIR')
-        if not test_dir:
-            raise RuntimeError('BRAINVISA_TESTS_DIR is not set')
-        test_dir = os.path.join(test_dir, 'tmp_tests_brainvisa')
-        self.output_directory = os.path.join(test_dir, 'morphologist-ui',
+        tests_dir = os.environ.get('BRAINVISA_TEST_RUN_DATA_DIR')
+        if not tests_dir:
+            raise RuntimeError('BRAINVISA_TEST_RUN_DATA_DIR is not set')
+        tests_dir = os.path.join(tests_dir, 'tmp_tests_brainvisa')
+        self.output_directory = os.path.join(tests_dir, 'morphologist-ui',
                                              self.parameter_template_name())
-        inputdir = os.path.join(test_dir, 'data_unprocessed')
+        inputdir = os.path.join(tests_dir, 'data_unprocessed')
         basenames = ['sujet01.ima', 'sujet02.ima', 'sujet03.ima']
         self.subjectnames = [filename.split('.')[0] for filename in basenames]
         self.filenames = [os.path.join(inputdir, subject, 'anatomy', filename)
