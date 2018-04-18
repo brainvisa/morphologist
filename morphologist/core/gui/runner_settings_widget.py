@@ -8,6 +8,7 @@ import socket
 from morphologist.core.settings import settings, AUTO
 from morphologist.core.gui.qt_backend import QtGui, QtCore, loadUi
 from morphologist.core.gui import ui_directory
+from morphologist.core.study import StudySerializationError
 
 
 class RunnerSettingsDialog(QtGui.QDialog):

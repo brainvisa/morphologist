@@ -11,7 +11,6 @@ from morphologist.intra_analysis.steps import \
     GreyWhite, SpatialNormalization, Grey, GreySurface, WhiteSurface, Sulci, \
     SulciLabelling, Morphometry
 from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
-from capsul.api import get_process_instance
 
 # CAPSUL
 from capsul.pipeline import pipeline_tools
@@ -56,8 +55,8 @@ class IntraAnalysis(SharedPipelineAnalysis):
         ]
 
     def build_pipeline(self):
-        pipeline = get_process_instance(
-            'morphologist.capsul.morphologist.Morphologist', self.study)
+        pipeline = self.study.get_process_instance(
+            'morphologist.capsul.morphologist.Morphologist')
         # rework steps with finer grain
         pipeline.remove_pipeline_step('grey_white_segmentation')
         pipeline.remove_pipeline_step('white_mesh')
@@ -91,8 +90,8 @@ class IntraAnalysis(SharedPipelineAnalysis):
         return pipeline
 
     def import_data(self, subject):
-        import_step = get_process_instance(
-            'morphologist.capsul.import_t1_mri.ImportT1Mri', self.study)
+        import_step = self.study.get_process_instance(
+            'morphologist.capsul.import_t1_mri.ImportT1Mri')
 
         import_step.input = subject.filename
         import_step.output = self.pipeline.t1mri
