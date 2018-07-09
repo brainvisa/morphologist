@@ -89,6 +89,7 @@ class StudyPropertiesEditor(object):
         self.meshes_format_index \
             = self.meshes_formats.index(study.meshes_format)
         self.spm_standalone = study.spm_standalone
+        self.spm_version = study.spm_version
         self.spm_exec = study.spm_exec
         self.computing_resource_index \
             = self.available_computing_resources.index(
@@ -100,8 +101,14 @@ class StudyPropertiesEditor(object):
         study.volumes_format = self.volumes_formats[self.volumes_format_index]
         study.meshes_format = self.meshes_formats[self.meshes_format_index]
         study.spm_exec = self.spm_exec
+        study.spm_version = self.spm_version
         study.spm_standalone = self.spm_standalone
         study.use_spm = True
+        try:
+            # autocheck / complete config
+            study.modules['SPMConfig'].initialize_module()
+        except:
+            pass
         study.somaworkflow_computing_resource \
             = self.available_computing_resources[self.computing_resource_index]
 
