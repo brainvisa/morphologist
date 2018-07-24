@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 import os
-import subprocess
+import soma.subprocess
 
 from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
 from morphologist.core.gui import ui_directory 
@@ -102,7 +102,7 @@ class RunnerView(QtGui.QWidget):
                'processes.initializeProcesses(); '
                'from brainvisa.processing.qtgui.neuroProcessesGUI import showProcess; '
                'showProcess("spam_install_models"); qapp.exec_()']
-        subprocess.check_call(cmd)
+        soma.subprocess.check_call(cmd)
 
     # this slot is automagically connected
     @QtCore.Slot()
