@@ -45,78 +45,70 @@ class MetaAutomockStep(type):
         return ExtendedAutomockStep
 
 
-class MockSpatialNormalization(SpatialNormalization):
-    __metaclass__ = MetaAutomockStep
+class MockSpatialNormalization(
+    six.with_metaclass(MetaAutomockStep, SpatialNormalization)):
 
     def __init__(self):
         super(MockSpatialNormalization, self).__init__()
 
 
-class MockBiasCorrection(BiasCorrection):
-    __metaclass__ = MetaAutomockStep
+class MockBiasCorrection(six.with_metaclass(MetaAutomockStep, BiasCorrection)):
 
     def __init__(self):
         super(MockBiasCorrection, self).__init__()
 
 
-class MockHistogramAnalysis(HistogramAnalysis):
-    __metaclass__ = MetaAutomockStep
+class MockHistogramAnalysis(
+    six.with_metaclass(MetaAutomockStep, HistogramAnalysis)):
     
     def __init__(self):
         super(MockHistogramAnalysis, self).__init__()
 
 
-class MockBrainSegmentation(BrainSegmentation):
-    __metaclass__ = MetaAutomockStep
+class MockBrainSegmentation(
+    six.with_metaclass(MetaAutomockStep, BrainSegmentation)):
 
     def __init__(self):
         super(MockBrainSegmentation, self).__init__()
 
 
-class MockSplitBrain(SplitBrain):
-    __metaclass__ = MetaAutomockStep
+class MockSplitBrain(six.with_metaclass(MetaAutomockStep, SplitBrain)):
 
     def __init__(self):
         super(MockSplitBrain, self).__init__()
 
 
-class MockGreyWhite(GreyWhite):
-    __metaclass__ = MetaAutomockStep
+class MockGreyWhite(six.with_metaclass(MetaAutomockStep, GreyWhite)):
 
     def __init__(self, side):
         super(MockGreyWhite, self).__init__(side)
 
 
-class MockGrey(Grey):
-    __metaclass__ = MetaAutomockStep
+class MockGrey(six.with_metaclass(MetaAutomockStep, Grey)):
 
     def __init__(self, side):
         super(MockGrey, self).__init__(side)
 
 
-class MockWhiteSurface(WhiteSurface):
-    __metaclass__ = MetaAutomockStep
+class MockWhiteSurface(six.with_metaclass(MetaAutomockStep, WhiteSurface)):
 
     def __init__(self, side):
         super(MockWhiteSurface, self).__init__(side)
 
 
-class MockGreySurface(GreySurface):
-    __metaclass__ = MetaAutomockStep
+class MockGreySurface(six.with_metaclass(MetaAutomockStep, GreySurface)):
 
     def __init__(self, side):
         super(MockGreySurface, self).__init__(side)
 
 
-class MockSulci(Sulci):
-    __metaclass__ = MetaAutomockStep
+class MockSulci(six.with_metaclass(MetaAutomockStep, Sulci)):
   
     def __init__(self, side):
         super(MockSulci, self).__init__(side)
 
 
-class MockSulciLabelling(SulciLabelling):
-    __metaclass__ = MetaAutomockStep
+class MockSulciLabelling(six.with_metaclass(MetaAutomockStep, SulciLabelling)):
 
     def __init__(self, side):
         super(MockSulciLabelling, self).__init__(side)

@@ -67,16 +67,16 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self._mapper.addMapping(
             self.ui.volume_format_combobox,
             StudyPropertiesEditorItemModel.VOLUME_FORMAT_COL,
-            "currentIndex")
+            b"currentIndex")
         self._mapper.addMapping(self.ui.mesh_format_combobox,
                                 StudyPropertiesEditorItemModel.MESH_FORMAT_COL,
-                                "currentIndex")
+                                b"currentIndex")
         #self._mapper.addMapping(self.ui.spm_standalone_checkbox, 4, "checked")
         #self._mapper.addMapping(self.ui.spm_exec_lineedit, 5)
         self._mapper.addMapping(
             self.ui.computing_resource_combobox,
             StudyPropertiesEditorItemModel.COMPUTING_RESOURCE_COL,
-            "currentIndex")
+            b"currentIndex")
 
         self.ui.studyname_lineEdit.textChanged.connect(self._mapper.submit)
         self.ui.output_directory_lineEdit.textChanged.connect(

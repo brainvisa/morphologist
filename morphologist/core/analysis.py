@@ -4,6 +4,7 @@ import copy
 import os
 import shutil
 import traits.api as traits
+import sys
 import six
 
 from morphologist.core.utils import OrderedDict
@@ -12,6 +13,9 @@ from capsul.pipeline import pipeline_tools
 from capsul.attributes.completion_engine import ProcessCompletionEngine
 # AIMS
 from soma import aims
+
+if sys.version_info[0] >= 3:
+    basestring = str
 
 class AnalysisFactory(object):
     _registered_analyses = {}
@@ -45,10 +49,9 @@ class AnalysisMetaClass(type):
         super(AnalysisMetaClass, cls).__init__(name, bases, dct)
 
 
-class Analysis(object):
+class Analysis(six.with_metaclass(AnalysisMetaClass, object)):
     # XXX the metaclass automatically registers the Analysis class in the
     # AnalysisFactory and intializes the param_template_map
-    __metaclass__ = AnalysisMetaClass
 
     def __init__(self, study):
         self._init_steps()
@@ -188,7 +191,7 @@ class Analysis(object):
         todo = [(old_params, self.parameters)]
         while todo:
             old_dict, new_dict = todo.pop(0)
-            old_state = old_dict.get('state')
+            old_state = old_dict.get('state', {})
             new_state = new_dict.get('state', {})
             for key, value in six.iteritems(old_state):
                 if isinstance(value, basestring):
@@ -203,7 +206,7 @@ class Analysis(object):
                             _convert_data(value, new_value)
                         if new_value != value:
                             _remove_data(value)
-            old_nodes = old_dict.get('nodes')
+            old_nodes = old_dict.get('nodes', {})
             new_nodes = new_dict.get('nodes', {})
             if old_nodes:
                 todo += [(node, new_nodes.get(key, {}))

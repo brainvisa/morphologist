@@ -209,4 +209,9 @@ class FuncQThread(QtCore.QThread):
         self.res = None
 
     def run(self):
-        self.res = self._func(*self._args, **self._kwargs)
+        try:
+            self.res = self._func(*self._args, **self._kwargs)
+        except Exception as e:
+            # print('Exception:', e)
+            import traceback
+            traceback.print_exc()

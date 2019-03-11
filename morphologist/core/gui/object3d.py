@@ -144,11 +144,14 @@ class APCObject(GroupObject):
         lines = apcfile.readlines()
         for l in lines:
             if l[:5] == 'ACmm:':
-                self._ac_coordinates = map( lambda x: float(x), l.split()[1:4] )
+                self._ac_coordinates \
+                    = list(map(lambda x: float(x), l.split()[1:4]))
             elif l[:5] == 'PCmm:':
-                self._pc_coordinates = map( lambda x: float(x), l.split()[1:4] )
+                self._pc_coordinates \
+                    = list(map(lambda x: float(x), l.split()[1:4]))
             elif l[:5] == 'IHmm:':
-                self._ih_coordinates = map( lambda x: float(x), l.split()[1:4] )
+                self._ih_coordinates \
+                    = list(map(lambda x: float(x), l.split()[1:4]))
 
     def reload(self):
         self._init_apc_object()

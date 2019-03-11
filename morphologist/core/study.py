@@ -13,6 +13,9 @@ from morphologist.core.analysis \
 from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.subject import Subject
 
+if sys.version_info[0] >= 3:
+    basestring = str
+
 # Axon config
 argv = sys.argv
 # Temporarily change argv[0] since it is used in neuroConfig initialization
@@ -440,7 +443,7 @@ class Study(StudyConfig):
         items = [(params, new_params)]
         while items:
             item, parent = items.pop(0)
-            if hasattr(item, 'iteritems'):
+            if hasattr(item, 'items'):
                 for name, sub_item in six.iteritems(item):
                     if hasattr(sub_item, 'keys') \
                             or isinstance(sub_item, list):

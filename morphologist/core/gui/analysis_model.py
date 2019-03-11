@@ -22,6 +22,9 @@ class AnalysisPollingThread(QtCore.QThread):
         self.state = self.STOPPED
         self.set_analysis(analysis)
 
+    def __del__(self):
+        print('del AnalysisPollingThread')
+
     def set_analysis(self, analysis):
         with self.lock:
             self._analysis = analysis
@@ -29,6 +32,7 @@ class AnalysisPollingThread(QtCore.QThread):
             self.observed_files = self._get_observed_files()
 
     def run(self):
+        print('run polling thread')
         with self.lock:
             self.state = self.RUNNING
         running = True
@@ -52,6 +56,7 @@ class AnalysisPollingThread(QtCore.QThread):
                         with self.lock:
                             self.state = self.RUNNING
                         break  # restart loop
+        print('exit polling thread')
 
     def _get_observed_files(self):
         if self._analysis is None:
@@ -86,7 +91,9 @@ class AnalysisPollingThread(QtCore.QThread):
             if filename is traits.Undefined:
                 print('undefined filename for param:', parameter_name)
             # TODO: directories are ignored !
-            if os.path.isdir(filename): continue
+            if filename in (None, traits.Undefined) \
+                    or os.path.isdir(filename):
+                continue
             if not os.path.exists(filename):
                 if parameter_name in parameters_file_sha:
                     del parameters_file_sha[parameter_name]
@@ -108,7 +115,7 @@ class AnalysisPollingThread(QtCore.QThread):
         return changed_parameters
 
     def _sha(self, filename):
-        with open(filename, "r") as fd:
+        with open(filename, "rb") as fd:
             content = fd.read()
             sha = hashlib.sha1(content)
         return sha.hexdigest()
