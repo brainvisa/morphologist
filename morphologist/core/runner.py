@@ -499,7 +499,10 @@ class  SomaWorkflowRunner(Runner):
         jobs_status = {} # job_id -> status
         job_info_seq = self._workflow_controller.workflow_elements_status(
             self._workflow_id)[0]
-        for job_id, sw_status, _, exit_info, _ in job_info_seq:
+        for job_info in job_info_seq:
+            job_id = job_info[0]
+            sw_status = job_info[1]
+            exit_info = job_info[3]
             exit_status, exit_value, _, _ = exit_info
             status = self._sw_status_to_runner_status(sw_status, exit_status,
                                                       exit_value)
