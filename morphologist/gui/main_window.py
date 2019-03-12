@@ -28,6 +28,7 @@ from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
                                              IntraAnalysisViewportWidget
 from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
 from morphologist import info
+from soma.qt_gui import qt_backend
 
 
 ApplicationStudy = None # dynamically defined
@@ -369,7 +370,7 @@ class MainWindow(QtGui.QMainWindow):
               'availables morphometry data ?'
         if self._runner_still_running_after_stopping_asked_to_user(msg): return
         filter = 'CSV (*.csv)'
-        morphometry_filepath = QtGui.QFileDialog.getSaveFileName(self.ui,
+        morphometry_filepath = qt_backend.getSaveFileName(self.ui,
                     caption="Choose morphometry output file", directory="",
                     options=QtGui.QFileDialog.DontUseNativeDialog,
                     filter=filter)
@@ -386,7 +387,7 @@ class MainWindow(QtGui.QMainWindow):
             csv_filepath = getattr(analysis.pipeline,
                 IntraAnalysisParameterNames.MORPHOMETRY_CSV)
             print('morpho file:', csv_filepath)
-            # ignore none-existing files
+            # ignore non-existing files
             if os.path.isfile(csv_filepath):
                 print('exists.')
                 morpho_files.append(csv_filepath)
@@ -394,7 +395,7 @@ class MainWindow(QtGui.QMainWindow):
                 subjects.append(subject_name)
         print('morpho_files:', morpho_files)
         command += ['"' + repr(morpho_files) + '"', '"' + repr(subjects) + '"',
-                    morphometry_filepath]
+                    'group_measures=%s' % morphometry_filepath]
         print('command:', ' '.join(command))
         os.system(' '.join(command))
 
