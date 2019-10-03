@@ -6,6 +6,7 @@ from morphologist.intra_analysis.steps import SpatialNormalization, \
         BiasCorrection, HistogramAnalysis, BrainSegmentation, SplitBrain, \
         GreyWhite, Grey, GreySurface, WhiteSurface, Sulci, SulciLabelling
 from morphologist.intra_analysis import constants
+import six
 
 
 # XXX: spurious information, not used by mock steps but however necessary
