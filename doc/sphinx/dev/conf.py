@@ -35,7 +35,7 @@ try:
   from soma_workflow import version as swver
   somaworkflow_version = swver.shortVersion
 except:
-  somaworkflow_version = '2.7'
+  somaworkflow_version = '3.0'
 try:
     import soma.info
     somabase_version = '%d.%d' % (soma.info.version_major,
@@ -46,7 +46,7 @@ try:
     from soma import aims
     aims_version = '%d.%d' % aims.version()
 except:
-    aims_version = '4.5'
+    aims_version = '4.6'
 anatmist_version = aims_version
 bv_release_version = aims_version
 
@@ -306,13 +306,13 @@ docpath = os.path.join( os.path.dirname( os.path.dirname( os.path.dirname( \
   brainvisa.__file__ ) ) ), 'share', 'doc' )
 
 intersphinx_mapping = {
-  'somabase': ( os.path.join( docpath, 'soma-base-' + version + '/sphinx' ),
+  'somabase': ( os.path.join( docpath, 'soma-base-' + somabase_version + '/sphinx' ),
                None ),
-  'pyaims': ( os.path.join( docpath, 'pyaims-' + version + '/sphinx' ), None ),
-  'pyana': ( os.path.join( docpath, 'pyanatomist-' + version + '/sphinx' ),
+  'pyaims': ( os.path.join( docpath, 'pyaims-' + aims_version + '/sphinx' ), None ),
+  'pyana': ( os.path.join( docpath, 'pyanatomist-' + anatmist_version + '/sphinx' ),
             None ),
   'somaworkflow': ( os.path.join( docpath, 'soma-workflow-' \
     + somaworkflow_version + '/sphinx' ), None ),
-  'python': ('http://docs.python.org/2.7', None),
+  'python': ('http://docs.python.org/%d.%d' % sys.version_info[:2], None),
 }
 
