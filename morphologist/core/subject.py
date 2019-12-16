@@ -31,6 +31,10 @@ class Subject(object):
         return self.id()
 
     def __eq__(self, other):
+        if other is self:
+            return True
+        if not isinstance(other, Subject):
+            return False
         for attr in ['name', 'groupname', 'filename']:
             value = self.__getattribute__(attr)
             other_value = other.__getattribute__(attr)
