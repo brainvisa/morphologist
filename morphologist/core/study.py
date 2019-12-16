@@ -414,7 +414,8 @@ class Study(StudyConfig):
                             '${output_directory}',
                             os.path.relpath(sub_item, directory))
                     elif sub_item == traits.Undefined:
-                        parent[name] = '<undefined>'
+                        #parent[name] = '<undefined>'
+                        pass
                     else:
                         parent[name] = sub_item
             elif isinstance(item, (list, set)):
@@ -432,7 +433,8 @@ class Study(StudyConfig):
                             '${output_directory}',
                             os.path.relpath(sub_item, directory)))
                     elif sub_item == traits.Undefined:
-                        parent.append('<undefined>')
+                        #parent.append('<undefined>')
+                        pass
                     else:
                         parent.append(sub_item)
         return new_params
