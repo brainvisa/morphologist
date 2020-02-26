@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from __future__ import absolute_import
+import six
 __all__ = ['settings', 'AUTO']
 
 
@@ -137,7 +139,7 @@ class SettingsFacade(object):
 
     def save(self):
         disk_settings = Settings.disk_configobj
-        for section, setting in self._settings_map.itervalues():
+        for section, setting in six.itervalues(self._settings_map):
             # XXX: this repr [section][setting] is a specificity of configobj
             disk_settings[section][setting] = self._wrapped[section][setting]
         disk_settings.write()
@@ -166,7 +168,7 @@ class SettingsFacade(object):
             return section, setting
 
     def __dir__(self):
-        proxied_attr = self._settings_map.keys()
+        proxied_attr = list(self._settings_map.keys())
         return dir(self.__class__) + proxied_attr
 
     def copy(self):

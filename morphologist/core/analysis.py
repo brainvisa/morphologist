@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+from __future__ import absolute_import
 import copy
 import os
 import shutil
@@ -15,7 +16,7 @@ from capsul.attributes.completion_engine import ProcessCompletionEngine
 from soma import aims
 
 if sys.version_info[0] >= 3:
-    basestring = str
+    six.string_types = str
 
 class AnalysisFactory(object):
     _registered_analyses = {}
@@ -166,7 +167,7 @@ class Analysis(six.with_metaclass(AnalysisMetaClass, object)):
             for fexts in exts:
                 if not fexts[0] in typed_formats[dtype]:
                     continue
-                if not isinstance(new_value, basestring) \
+                if not isinstance(new_value, six.string_types) \
                         or not new_value.endswith(fexts[0]):
                     for ext in fexts:
                         new_old_value = old_base + ext
@@ -194,10 +195,10 @@ class Analysis(six.with_metaclass(AnalysisMetaClass, object)):
             old_state = old_dict.get('state', {})
             new_state = new_dict.get('state', {})
             for key, value in six.iteritems(old_state):
-                if isinstance(value, basestring):
+                if isinstance(value, six.string_types):
                     new_value = new_state.get(key)
                     if not os.path.exists(value) \
-                            and (not isinstance(new_value, basestring)
+                            and (not isinstance(new_value, six.string_types)
                                  or not os.path.exists(new_value)):
                         value = _look_for_other_formats(value, new_value)
                     if os.path.exists(value):
@@ -298,7 +299,7 @@ class SharedPipelineAnalysis(Analysis):
         for param_name, trait in six.iteritems(pipeline.user_traits()):
             if not trait.output:
                 value = getattr(pipeline, param_name)
-                if isinstance(value, basestring) and value in existing:
+                if isinstance(value, six.string_types) and value in existing:
                     existing.remove(value)
         return existing
 
@@ -322,7 +323,7 @@ class SharedPipelineAnalysis(Analysis):
         params = {}
         for param_name in param_names:
             value = getattr(pipeline, param_name)
-            if isinstance(value, basestring) and os.path.exists(value):
+            if isinstance(value, six.string_types) and os.path.exists(value):
                 params[param_name] = value
         return params
 
@@ -343,7 +344,7 @@ class SharedPipelineAnalysis(Analysis):
         params = {}
         for param_name in param_names:
             value = getattr(pipeline, param_name)
-            if isinstance(value, basestring) and os.path.exists(value):
+            if isinstance(value, six.string_types) and os.path.exists(value):
                 params[param_name] = value
         return params
 
@@ -392,7 +393,7 @@ class SharedPipelineAnalysis(Analysis):
         for parameter in self.get_output_file_parameter_names():
             if self.is_parameter_in_steps(parameter, step_ids=step_ids):
                 value = getattr(pipeline, parameter)
-                if not isinstance(value, basestring) \
+                if not isinstance(value, six.string_types) \
                         or not os.path.exists(value):
                     return False
         return True

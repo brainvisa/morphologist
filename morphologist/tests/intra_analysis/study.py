@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 import getpass
 
@@ -5,6 +6,7 @@ from morphologist.core.tests.study import AbstractStudyTestCase
 from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
 from morphologist.core.tests import reset_directory
 import morphologist.tests.intra_analysis.mocks.analysis
+from six.moves import zip
 
 
 class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
@@ -40,7 +42,7 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
         parameter_names = [IntraAnalysisParameterNames.MRI]
         for name in parameter_names:
             file_name = getattr(
-                self.study.analyses.values()[1].pipeline, name)
+                list(self.study.analyses.values())[1].pipeline, name)
             os.rename(file_name, file_name + "hide_for_test") 
 
     def create_some_output_files(self):
@@ -48,7 +50,7 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
                            IntraAnalysisParameterNames.VARIANCE]
         for name in parameter_names:
             file_name = getattr(
-                self.study.analyses.values()[0].pipeline, name)
+                list(self.study.analyses.values())[0].pipeline, name)
             try:
                 os.makedirs(os.path.dirname(file_name))
             except OSError:
@@ -61,7 +63,7 @@ class IntraAnalysisStudyTestCase(AbstractStudyTestCase):
         parameter_names = [IntraAnalysisParameterNames.MRI]
         for name in parameter_names:
             file_name = getattr(
-                self.study.analyses.values()[1].pippeline, name)
+                list(self.study.analyses.values())[1].pippeline, name)
             if file_name != None and os.path.isfile(file_name + "hide_for_test"):
                 os.rename(file_name + "hide_for_test", file_name) 
 

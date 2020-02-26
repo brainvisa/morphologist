@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+from __future__ import absolute_import
 import os
 import json
 import re
@@ -14,7 +15,7 @@ from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.subject import Subject
 
 if sys.version_info[0] >= 3:
-    basestring = str
+    six.string_types = str
 
 # Axon config
 argv = sys.argv
@@ -408,7 +409,7 @@ class Study(StudyConfig):
                         else:
                             parent[name] = sub_item.__class__()
                         items.append((sub_item, parent[name]))
-                    elif isinstance(sub_item, basestring) \
+                    elif isinstance(sub_item, six.string_types) \
                             and sub_item.startswith(directory):
                         parent[name] = os.path.join(
                             '${output_directory}',
@@ -427,7 +428,7 @@ class Study(StudyConfig):
                         else:
                             parent.append(sub_item.__class__())
                         items.append((sub_item, parent[-1]))
-                    elif isinstance(sub_item, basestring) \
+                    elif isinstance(sub_item, six.string_types) \
                             and sub_item.startswith(directory):
                         parent.append(os.path.join(
                             '${output_directory}',
@@ -451,7 +452,7 @@ class Study(StudyConfig):
                             or isinstance(sub_item, list):
                         parent[name] = sub_item.__class__()
                         items.append((sub_item, parent[name]))
-                    elif isinstance(sub_item, basestring) \
+                    elif isinstance(sub_item, six.string_types) \
                             and sub_item.startswith('${output_directory}'):
                         parent[name] = sub_item.replace(
                             '${output_directory}', directory)
@@ -465,7 +466,7 @@ class Study(StudyConfig):
                             or isinstance(sub_item, list):
                         parent.append(sub_item.__class__())
                         items.append((sub_item, parent[-1]))
-                    elif isinstance(sub_item, basestring) \
+                    elif isinstance(sub_item, six.string_types) \
                             and sub_item.startswith(directory):
                         parent.append(sub_item.replace(
                             '${output_directory}', directory))

@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 # select Qt backend matching the one used by anatomist
+from __future__ import absolute_import
 import anatomist.direct.api
 from soma.qt_gui import qt_backend
 qt_backend.set_qt_backend(compatible_qt5=True)
