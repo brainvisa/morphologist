@@ -15,9 +15,6 @@ from capsul.attributes.completion_engine import ProcessCompletionEngine
 # AIMS
 from soma import aims
 
-if sys.version_info[0] >= 3:
-    six.string_types = str
-
 class AnalysisFactory(object):
     _registered_analyses = {}
 
