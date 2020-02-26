@@ -6,11 +6,7 @@ import collections
 from .docscrape import NumpyDocString, FunctionDoc, ClassDoc
 import six
 
-if sys.version_info[0] >= 3:
-    sixu = lambda s: s
-else:
-    sixu = lambda s: six.text_type(s, 'unicode_escape')
-
+sixu = six.u
 
 class SphinxDocString(NumpyDocString):
     def __init__(self, docstring, config={}):
