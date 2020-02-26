@@ -92,7 +92,7 @@ class AnalysisPollingThread(QtCore.QThread):
                 continue
             import traits.api as traits
             if filename is traits.Undefined:
-                print(('undefined filename for param:', parameter_name))
+                print('undefined filename for param:', parameter_name)
             # TODO: directories are ignored !
             if filename in (None, traits.Undefined) \
                     or os.path.isdir(filename):
