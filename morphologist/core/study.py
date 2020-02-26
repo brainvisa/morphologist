@@ -1,6 +1,6 @@
 from __future__ import print_function
-
 from __future__ import absolute_import
+
 import os
 import json
 import re
@@ -13,9 +13,6 @@ from morphologist.core.analysis \
     import AnalysisFactory, ImportationError
 from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.subject import Subject
-
-if sys.version_info[0] >= 3:
-    six.string_types = str
 
 # Axon config
 argv = sys.argv
