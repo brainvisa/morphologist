@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from morphologist.core.gui.qt_backend import QtGui
 from morphologist.core.backends import Backend
 from morphologist.core.backends.mixins import DisplayManagerMixin, \

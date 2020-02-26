@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 import sys
 # XXX The qt_backend must be imported before any other qt imports (ie. anatomist)

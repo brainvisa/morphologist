@@ -1,5 +1,6 @@
+from __future__ import absolute_import
 import os
-import urllib
+import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 import zipfile
 import shutil
 import tempfile
@@ -14,6 +15,8 @@ from morphologist.core.analysis import AnalysisFactory
 from morphologist.core.gui.study_editor import StudyEditor, StudyPropertiesEditor
 from morphologist.core.gui.study_properties_widget import StudyPropertiesEditorWidget
 from morphologist.core.study import Study
+import six
+from six.moves import range
 
 
 class StudyEditorDialog(QtGui.QDialog):
@@ -502,7 +505,7 @@ class SubjectsFromDatabaseDialog(QtGui.QDialog):
             self.load(self.ui.server_url_field.text(), 
                       self.ui.rql_request_lineEdit.text())
         except LoadSubjectsFromDatabaseError as e:
-            error = "Cannot load files from the database: \n%s" % unicode(e)
+            error = "Cannot load files from the database: \n%s" % six.text_type(e)
         finally:
             QtGui.QApplication.restoreOverrideCursor()
             self.ui.load_button.setEnabled(True)
@@ -530,7 +533,7 @@ class SubjectsFromDatabaseDialog(QtGui.QDialog):
     def load(self, server_url, rql_request):
         url = server_url + '''/view?rql=''' + rql_request + '''&vid=data-zip'''
         try:
-            urllib.urlretrieve(url, self._zip_filename)
+            six.moves.urllib.request.urlretrieve(url, self._zip_filename)
         except IOError:
             raise LoadSubjectsFromDatabaseError("Cannot connect to the database server.")
 

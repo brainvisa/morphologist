@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+from __future__ import absolute_import
 from morphologist.core.gui.qt_backend import QtCore
 from morphologist.core.constants import ALL_SUBJECTS
 import six

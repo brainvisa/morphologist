@@ -1,8 +1,10 @@
+from __future__ import absolute_import
 from morphologist.core.subject import Subject
 from morphologist.core.study import Study
 from morphologist.core.tests import reset_directory, remove_file
 import os
 import six
+from six.moves import zip
 
 
 class AbstractStudyTestCase(object):
@@ -76,14 +78,14 @@ class MockStudyTestCase(AbstractStudyTestCase):
         parameter_names = ['input_image']
         for name in parameter_names:
             file_name = getattr(
-                self.study.analyses.values()[1].pipeline, name)
+                list(self.study.analyses.values())[1].pipeline, name)
             remove_file(file_name)
 
     def create_some_output_files(self):
         parameter_names = ['output_image']
         for name in parameter_names:
             file_name = getattr(
-                self.study.analyses.values()[0].pipeline, name)
+                list(self.study.analyses.values())[0].pipeline, name)
             f = open(file_name, "w")
             f.write("something\n")
             f.close()
