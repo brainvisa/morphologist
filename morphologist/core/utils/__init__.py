@@ -4,10 +4,7 @@ import collections
 import os
 import re
 from six.moves import range
-try:
-    from collections import OrderedDict
-except:
-    from .ordered_dict import OrderedDict
+from collections import OrderedDict
 from soma.qt_gui.qtThread import QtThreadCall
 from soma.functiontools import partial
 
