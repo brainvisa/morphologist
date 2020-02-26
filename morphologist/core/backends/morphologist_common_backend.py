@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from brainvisa.morphologist.qt4gui.histo_analysis_widget \
     import load_histo_data, create_histo_view, HistoData
 from brainvisa.morphologist.qt4gui.histo_analysis_editor import create_histo_editor

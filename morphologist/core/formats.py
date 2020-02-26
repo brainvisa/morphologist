@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from morphologist.core.settings import settings
 
 
@@ -44,4 +45,4 @@ class FormatsManager(object):
 
     @classmethod
     def available_formats_manager_backend(cls):
-        return cls._formats_backend_modules.keys()
+        return list(cls._formats_backend_modules.keys())

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 import six
 
@@ -49,7 +50,7 @@ class AnalysisViewportModel(QtCore.QObject):
         updated_parameters = []
         self._remove_useless_parameters(changed_parameters)
         for parameter_name, filename in six.iteritems(changed_parameters):
-            if parameter_name in self.observed_objects.keys():
+            if parameter_name in list(self.observed_objects.keys()):
                 self._update_observed_objects(parameter_name, filename)
                 if not self.use_async_load:
                     updated_parameters.append(parameter_name)

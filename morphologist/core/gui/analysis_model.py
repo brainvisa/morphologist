@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import hashlib
 import threading
@@ -5,6 +7,7 @@ import time
 import six
 
 from morphologist.core.gui.qt_backend import QtCore
+from six.moves import range
 
 class AnalysisPollingThread(QtCore.QThread):
 

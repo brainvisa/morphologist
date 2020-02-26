@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 import sys
 
@@ -11,9 +12,10 @@ from morphologist.core.backends import Backend
 from morphologist.core.backends.mixins \
     import DisplayManagerMixin, ObjectsManagerMixin, LoadObjectError, \
         ColorMap, ViewType
+import six
 
 if sys.version_info[0] >= 3:
-    unicode = str
+    six.text_type = str
 
 
 class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
@@ -176,7 +178,7 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
 
     @classmethod
     def _load_sulci_color_map(cls):
-        anatomist_shared_path = unicode(cls.anatomist.anatomistSharedPath())
+        anatomist_shared_path = six.text_type(cls.anatomist.anatomistSharedPath())
         shared_dirname = os.path.dirname(anatomist_shared_path)
         shared_basename = os.path.basename(anatomist_shared_path)
         brainvisa_share = shared_basename.replace("anatomist", "brainvisa-share")

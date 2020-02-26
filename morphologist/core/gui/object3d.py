@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from morphologist.core.backends import Backend
 from morphologist.core.utils.design_patterns import Visitable
 
@@ -145,13 +146,13 @@ class APCObject(GroupObject):
         for l in lines:
             if l[:5] == 'ACmm:':
                 self._ac_coordinates \
-                    = list(map(lambda x: float(x), l.split()[1:4]))
+                    = [float(x) for x in l.split()[1:4]]
             elif l[:5] == 'PCmm:':
                 self._pc_coordinates \
-                    = list(map(lambda x: float(x), l.split()[1:4]))
+                    = [float(x) for x in l.split()[1:4]]
             elif l[:5] == 'IHmm:':
                 self._ih_coordinates \
-                    = list(map(lambda x: float(x), l.split()[1:4]))
+                    = [float(x) for x in l.split()[1:4]]
 
     def reload(self):
         self._init_apc_object()

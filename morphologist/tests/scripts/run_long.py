@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import unittest
 
 from morphologist.tests.intra_analysis.test_steps import TestIntraAnalysisSteps

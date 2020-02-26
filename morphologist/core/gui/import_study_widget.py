@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from morphologist.core.gui.qt_backend import QtCore
 from morphologist.core.gui.study_editor import StudyEditor
 from morphologist.core.gui.study_editor_widget import StudyEditorDialog, \

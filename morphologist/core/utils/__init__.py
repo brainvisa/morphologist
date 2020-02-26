@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 import collections
 import os
 import re
-try:
-    from collections import OrderedDict
-except:
-    from ordered_dict import OrderedDict
+from six.moves import range
+from collections import OrderedDict
 from soma.qt_gui.qtThread import QtThreadCall
 from soma.functiontools import partial
 

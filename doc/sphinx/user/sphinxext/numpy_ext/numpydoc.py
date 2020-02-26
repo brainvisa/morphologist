@@ -21,6 +21,7 @@ import os, sys, re, pydoc
 import sphinx
 import inspect
 import collections
+import six
 
 if sphinx.__version__ < '1.0.1':
     raise RuntimeError("Sphinx 1.0.1 or newer is required")
@@ -28,11 +29,7 @@ if sphinx.__version__ < '1.0.1':
 from .docscrape_sphinx import get_doc_object, SphinxDocString
 from sphinx.util.compat import Directive
 
-if sys.version_info[0] >= 3:
-    sixu = lambda s: s
-else:
-    sixu = lambda s: unicode(s, 'unicode_escape')
-
+sixu = six.u
 
 def mangle_docstrings(app, what, name, obj, options, lines,
                       reference_offset=[0]):
@@ -49,10 +46,7 @@ def mangle_docstrings(app, what, name, obj, options, lines,
         lines[:] = title_re.sub(sixu(''), sixu("\n").join(lines)).split(sixu("\n"))
     else:
         doc = get_doc_object(obj, what, sixu("\n").join(lines), config=cfg)
-        if sys.version_info[0] >= 3:
-            doc = str(doc)
-        else:
-            doc = unicode(doc)
+        doc = six.text_type(doc)
         lines[:] = doc.split(sixu("\n"))
 
     if app.config.numpydoc_edit_link and hasattr(obj, '__name__') and \
