@@ -1,6 +1,6 @@
 
 
-class IntraAnalysisParameterNames:
+class IntraAnalysisParameterNames(object):
     # intra analysis parameters (inputs / outputs)
     MRI = 't1mri'
     MRI_REFERENTIAL = 't1mri_referential'
