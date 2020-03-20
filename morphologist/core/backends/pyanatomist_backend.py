@@ -14,9 +14,6 @@ from morphologist.core.backends.mixins \
         ColorMap, ViewType
 import six
 
-if sys.version_info[0] >= 3:
-    six.text_type = str
-
 
 class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
     anatomist = None
