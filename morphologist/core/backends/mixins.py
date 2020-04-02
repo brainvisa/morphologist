@@ -74,13 +74,13 @@ class LoadObjectError(Exception):
     pass
 
 
-class ColorMap:
+class ColorMap(object):
     RAINBOW_MASK = "rainbow_mask"
     GREEN_MASK = "green_mask"
     RAINBOW = "rainbow"
 
 
-class ViewType:
+class ViewType(object):
     AXIAL = "Axial"
     SAGITTAL = "Sagittal"
     CORONAL = "Coronal"
