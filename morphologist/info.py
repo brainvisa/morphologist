@@ -23,14 +23,14 @@ CLASSIFIERS = ['Development Status :: 4 - Beta',
                ]
 
 
-description = 'Morphologist UI: graphical interface for Morphologist (http://brainvisa.info)'
+description = 'Morphologist UI: graphical interface for Morphologist (https://brainvisa.info)'
 
 long_description = """
 ===============
 Morphologist UI
 ===============
 
-graphical interface for Morphologist (http://brainvisa.info): brain segmentation from T1 MRI images, sulci extraction and morphometry.
+graphical interface for Morphologist (https://brainvisa.info): brain segmentation from T1 MRI images, sulci extraction and morphometry.
 """
 
 # versions for dependencies
@@ -47,8 +47,8 @@ MAINTAINER = "CEA"
 MAINTAINER_EMAIL = ""
 DESCRIPTION = description
 LONG_DESCRIPTION = long_description
-URL = "http://brainvisa.info/morphologist-ui"
-DOWNLOAD_URL = "http://brainvisa.info"
+URL = "https://brainvisa.info/morphologist-ui"
+DOWNLOAD_URL = "https://brainvisa.info"
 LICENSE = "CeCILL-B"
 CLASSIFIERS = CLASSIFIERS
 AUTHOR = "Morphologist UI developers"
