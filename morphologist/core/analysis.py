@@ -49,7 +49,7 @@ class AnalysisMetaClass(type):
 
 class Analysis(six.with_metaclass(AnalysisMetaClass, object)):
     # XXX the metaclass automatically registers the Analysis class in the
-    # AnalysisFactory and intializes the param_template_map
+    # AnalysisFactory and initializes the param_template_map
 
     def __init__(self, study):
         self._init_steps()
@@ -275,7 +275,7 @@ class SharedPipelineAnalysis(Analysis):
             {'capsul_attributes': attributes})
         self.parameters = pipeline_tools.dump_pipeline_state_as_dict(
             self.pipeline)
-        # mark this subject as the one witht the current parameters.
+        # mark this subject as the one with the current parameters.
         pipeline.current_subject_id = subject.id()
 
     def existing_results(self, step_ids=None):

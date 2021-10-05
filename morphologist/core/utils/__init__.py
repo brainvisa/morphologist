@@ -110,7 +110,7 @@ class Graph(object):
     @staticmethod
     def from_soma_workflow(workflow):
         '''
-    an additionnal root node is added at index 0 with None data
+    an additional root node is added at index 0 with None data
         '''
         class SWGraphData(object):
 

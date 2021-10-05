@@ -18,7 +18,7 @@ class SpatialNormalization(StepHelp):
 <li>Set paths for your SPM installation. There is an 'auto detect' button there, you can try it.</li>
 <li>Validate the preferences in BrainVisa</li>
 </ul></p>
-<p>If the Matlab-based SPM is correctly installed and configured, and the normalization step still does not run, you may also check that <b>Matlab</b> is correcly configured, also in <b>BrainVisa preferences</b>, in the <b>Matlab tab</b>.</p>
+<p>If the Matlab-based SPM is correctly installed and configured, and the normalization step still does not run, you may also check that <b>Matlab</b> is correctly configured, also in <b>BrainVisa preferences</b>, in the <b>Matlab tab</b>.</p>
 <p>If the Matlab-based SPM still does not work at this point, you may check whether Matlab is working: you may encounter Matlab licence issues.</p>
 """
 
@@ -50,7 +50,7 @@ class HistogramAnalysis(StepHelp):
         self.help_message = """<p><b>Troubleshooting:</b></p>
 <p><ul><li>First, check your BrainVISA installation: the VipHistoAnalysis command may not be found.</li>
 <li>Check that the <b>bias correction step</b> has produced reasonable results. An incomplete inhomogeneity correction can make it very difficult to analyze the histogram and find the grey and white matters average values. It is the most probable cause of problems in the Morphologist pipeline.</li>
-<li>In some (hopfully unfrequent) situations, it may help to manually correct the analysis by manually setting values in the <b>.han file</b>. A future version of Morphologist will provide a nice editor for this.</li>
+<li>In some (hopefully unfrequent) situations, it may help to manually correct the analysis by manually setting values in the <b>.han file</b>. A future version of Morphologist will provide a nice editor for this.</li>
 </ul></p>
 """
 

@@ -1,4 +1,4 @@
 # command to generate a PyQt module to load Qt resources
-pyrcc4 resources/morphologist.qrc -o morphologist/core/gui/ressources.py
-pyrcc4 -py3 resources/morphologist.qrc -o morphologist/core/gui/ressources_py3.py
-pyrcc5 resources/morphologist.qrc -o morphologist/core/gui/ressources_qt5.py
+pyrcc4 resources/morphologist.qrc -o morphologist/core/gui/resources.py
+pyrcc4 -py3 resources/morphologist.qrc -o morphologist/core/gui/resources_py3.py
+pyrcc5 resources/morphologist.qrc -o morphologist/core/gui/resources_qt5.py

@@ -23,7 +23,7 @@ from morphologist.core.constants import ALL_SUBJECTS
 
 # XXX:
 # Now, step terminaison is assessed by:
-#      1) the existance of some outputcomes (files)
+#      1) the existence of some outputcomes (files)
 #   or 2) the success of command (exit value = 0)
 #
 # An alternative would be to follow each external command by the creation of

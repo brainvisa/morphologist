@@ -46,7 +46,7 @@ class SubjectsTableView(QtGui.QTableView):
         self.verticalHeader().setVisible(False)
         self.setItemDelegate(SubjectsItemDelegate())
 
-    # overrided Qt method
+    # overridden Qt method
     def selectionCommand(self, index, event):
         if not index.isValid():
             return QtGui.QItemSelectionModel.NoUpdate
@@ -65,7 +65,7 @@ class SubjectsTableView(QtGui.QTableView):
             flags &= ~QtGui.QItemSelectionModel.Clear
         return flags
   
-    # overrided Qt method      
+    # overridden Qt method      
     def selectionChanged(self, selected, deselected):
         self._set_selected_indexes(selected.indexes(), True)
         self._set_selected_indexes(deselected.indexes(), False)
@@ -78,12 +78,12 @@ class SubjectsTableView(QtGui.QTableView):
          
 class SubjectsItemDelegate(QtGui.QStyledItemDelegate):
     
-    # overrided Qt method
+    # overridden Qt method
     def paint(self, painter, option, index):
         option.state = option.state & ~QtGui.QStyle.State_Selected
         super(SubjectsItemDelegate, self).paint(painter, option, index)
             
-    # overrided Qt method
+    # overridden Qt method
     def editorEvent(self, event, model, option, index):
         # With the default behaviour, a checkbox is always editable,
         # so clicking on it does not update the selection (in Qt 4.8)
@@ -112,20 +112,20 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
     def subject_from_row_index(self, index):
         return self._study_model.get_subject(index)
 
-    # overrided Qt method
+    # overridden Qt method
     def rowCount(self, parent=QtCore.QModelIndex()):
         return self._study_model.subject_count()
 
-    # overrided Qt method
+    # overridden Qt method
     def columnCount(self, parent=QtCore.QModelIndex()):
         return 4
     
-    # overrided Qt method
+    # overridden Qt method
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         if role == QtCore.Qt.DisplayRole and orientation == QtCore.Qt.Horizontal:
             return self.header[section]
     
-    # overrided Qt method
+    # overridden Qt method
     def data(self, index, role=QtCore.Qt.DisplayRole):
         row, column = index.row(), index.column()
         if role == QtCore.Qt.DisplayRole:
@@ -153,7 +153,7 @@ class SubjectsTableModel(QtCore.QAbstractTableModel):
                     return QtCore.Qt.Checked
                 return QtCore.Qt.Unchecked
     
-    # overrided Qt method         
+    # overridden Qt method         
     def flags(self, index):
         column = index.column()
         flags = super(SubjectsTableModel, self).flags(index)

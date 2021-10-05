@@ -306,15 +306,15 @@ class SubjectsEditorTableModel(QtCore.QAbstractTableModel):
         self.beginResetModel()
         self.endResetModel()
 
-    # overrided Qt method
+    # overridden Qt method
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self._subjects_editor)
 
-    # overrided Qt method
+    # overridden Qt method
     def columnCount(self, parent=QtCore.QModelIndex()):
         return 3
 
-    # overrided Qt method
+    # overridden Qt method
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Vertical:
@@ -322,7 +322,7 @@ class SubjectsEditorTableModel(QtCore.QAbstractTableModel):
             elif orientation == QtCore.Qt.Horizontal:
                 return self.header[section]
 
-    # overrided Qt method
+    # overridden Qt method
     def data(self, index, role=QtCore.Qt.DisplayRole):
         row, column = index.row(), index.column()
         if role == QtCore.Qt.DisplayRole:
@@ -341,7 +341,7 @@ class SubjectsEditorTableModel(QtCore.QAbstractTableModel):
                 return QtGui.QApplication.palette().color(\
                     QtGui.QPalette.Disabled, QtGui.QPalette.Text)
 
-    # overrided Qt method
+    # overridden Qt method
     def removeRows(self, start_row, count, parent=QtCore.QModelIndex()):
         end_row = start_row + count - 1
         self.beginRemoveRows(parent, start_row, end_row)
