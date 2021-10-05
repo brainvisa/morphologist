@@ -75,7 +75,7 @@ class TestStudyGui(TestGui):
             if os.path.exists(filename):
                 dialog.selectFile(filename)
             else:
-                msg = "Error: needed ressource missing : "
+                msg = "Error: needed resource missing : "
                 print(msg + "'%s'" % filename)
             dialog.accept()
             dialog.deleteLater()
