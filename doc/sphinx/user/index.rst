@@ -2,9 +2,9 @@
 Morphologist-UI
 ===============
 
-Morphologist is a neuroimaging software dedicated to cortical analysis and sulcal morphometry. See http://brainvisa.info and :morphoproc:`the toolbox documentation in BrainVISA <categories/morphologist/category_documentation.html>`.
+Morphologist is a neuroimaging software dedicated to cortical analysis and sulcal morphometry. See https://brainvisa.info and :morphoproc:`the toolbox documentation in BrainVISA <categories/morphologist/category_documentation.html>`.
 
-Morphologist-UI is a user-friendly interface to the Morphologist pipeline. It is based on the same processing chain, and offers interactive visualization using `anatomist <http://brainvisa.info>`_.
+Morphologist-UI is a user-friendly interface to the Morphologist pipeline. It is based on the same processing chain, and offers interactive visualization using `anatomist <https://brainvisa.info>`_.
 
 .. image:: _static/morphologist-ui.jpg
 
@@ -45,11 +45,11 @@ Comparison with the regular Morphologist pipeline
 Installation
 ------------
 
-* Users distributions are available on http://brainvisa.info
+* Users distributions are available on https://brainvisa.info
 * The normalization step may make use of external software, that has to be installed separately. If none is installed, the normalization defaults to the AimsMIRegister (mutual information) method, which is not the best tested one and might suffer from robustness issues. If installed and configured (see configuration options), the following software may be used instead, in that order:
 
-    * `SPM (FIL, UK) <http://www.fil.ion.ucl.ac.uk/spm/>`_. It needs to be installed separately and setup in Morphologist configuration. SPM8 or SPM12 are supported, both with either the regular matlab version or the *standalone* compiled one.
-    * `FSL flirt (FMRIB, UK) <http://fsl.fmrib.ox.ac.uk/fsl>`_. It needs to be installed separately and setup in Morphologist configuration.
+    * `SPM (FIL, UK) <https://www.fil.ion.ucl.ac.uk/spm/>`_. It needs to be installed separately and setup in Morphologist configuration. SPM8 or SPM12 are supported, both with either the regular matlab version or the *standalone* compiled one.
+    * `FSL flirt (FMRIB, UK) <https://fsl.fmrib.ox.ac.uk/fsl>`_. It needs to be installed separately and setup in Morphologist configuration.
     * Baladin (Inria, France). You will probably not use it, since this software is not freely available.
 
 
@@ -69,7 +69,7 @@ There are actually three configuration sets in Morphologist-UI.
 * One is the :axonusr:`BrainVisa configuration (preferences) <axon_manual.html#preferences-window>`, which have to be setup since BrainVisa processes are still running under the hood. They are accessed via the **Settings / BrainVISA configuration** menu, or from the brainvisa software itself (it is the same configuration).
   Especially, external software configuration (SPM, FSL) should be configured there.
 
-* Other options are **Morphologist study configuration**. They include description of the data to be processed (subjects, images...), and also a few processing options which are managed by `CAPSUL <http://neurospin.github.io/capsul/>`_, the future new pipelining system which will replace BrainVISA internals in the future.
+* Other options are **Morphologist study configuration**. They include description of the data to be processed (subjects, images...), and also a few processing options which are managed by `CAPSUL <https://neurospin.github.io/capsul/>`_, the future new pipelining system which will replace BrainVISA internals in the future.
 
 .. Some of these options are redundant with BrainVisa ones, and are linked to them.
 
@@ -94,7 +94,7 @@ Configuration options include:
 
 * **Volumes and meshes formats**: file formats used during processing. If these formats are changed after data have been written, all existing data will be converted to the new formats.
 
-* **Computing resource**: for processing distribution. It defaults to the local machine, but computing resources configured in Soma-Workflow may be used. They have to be setup in soma-workflow config first. See `Soma-Workflow documentation <http://brainvisa.info/soma/soma-workflow/index.html>`_.
+* **Computing resource**: for processing distribution. It defaults to the local machine, but computing resources configured in Soma-Workflow may be used. They have to be setup in soma-workflow config first. See `Soma-Workflow documentation <https://brainvisa.info/soma/soma-workflow/index.html>`_.
 
 Subjects list
 +++++++++++++
@@ -114,7 +114,7 @@ With BrainVisa databases, subjects may be either used in-place (reusing the exis
 Processing
 ----------
 
-Process several or all subjects. Run in parallel using `Soma-Workflow <http://brainvisa.info/soma/soma-workflow/index.html>`_.
+Process several or all subjects. Run in parallel using `Soma-Workflow <https://brainvisa.info/soma/soma-workflow/index.html>`_.
 Results appear in the display window at the time they are available.
 
 Processing steps currently running are visible in the subjects state (right panel in the interface). It is also always possible to monitor the workflow execution via the :somaworkflow:`soma_workglow_gui <gui.html>` program.
@@ -168,6 +168,3 @@ Developers
 
 .. toctree::
   :hidden:
-
-
-

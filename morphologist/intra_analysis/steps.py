@@ -13,7 +13,7 @@ class SpatialNormalization(StepHelp):
 <p>The normalization step is using SPM8, preferably the standalone version, which is compiled and does not need Matlab. Alternatively, Morphologist should be able to use the Matlab-based regular SPM8.</p>
 <p>SPM8 has to be installed, and properly configured. The configuration is currently taken from BrainVisa configuration, so you should do the following:
 <ul>
-<li><b><a href="http://brainvisa.info">Open the brainvisa software</a></b></li>
+<li><b><a href="https://brainvisa.info">Open the brainvisa software</a></b></li>
 <li>In brainvisa, go to the 'BrainVISA/Preferences' menu, in the SPM tab</li>
 <li>Set paths for your SPM installation. There is an 'auto detect' button there, you can try it.</li>
 <li>Validate the preferences in BrainVisa</li>
