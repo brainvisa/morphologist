@@ -47,7 +47,7 @@ class StudyEditor(object):
             study, self.study_update_policy)
         study.convert_from_formats(old_vol_format, old_mesh_format,
                                    progress_callback)
-        self.study = study  # WARNING whe change the study in a thread.
+        self.study = study  # WARNING we change the study in a thread.
         return self.study
 
     def add_observer(self, observer):

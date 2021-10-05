@@ -139,7 +139,7 @@ class StudyPropertiesEditorWidgetMapper(QtGui.QDataWidgetMapper):
     def __init__(self, parent=None):
         super(StudyPropertiesEditorWidgetMapper, self).__init__(parent)
 
-    ## overrided Qt method
+    ## overridden Qt method
     #def submit(self):
         #obj = self.sender()
         #if isinstance(obj, QtCore.QAbstractItemModel):
@@ -159,7 +159,7 @@ class StudyPropertiesEditorItemDelegate(QtGui.QItemDelegate):
     def __init__(self, parent=None):
         super(StudyPropertiesEditorItemDelegate, self).__init__(parent)
 
-    # overrided Qt method
+    # overridden Qt method
     def setEditorData(self, editor, index):
         model = index.model()
         value = model.data(index, QtCore.Qt.EditRole)
@@ -211,23 +211,23 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
         self._study_properties_editor = study_properties_editor
         self._status = True # ok si 3 first attributes != ''
 
-    # overrided Qt method
+    # overridden Qt method
     def columnCount(self):
         return 5
 
-    # overrided Qt method
+    # overridden Qt method
     def rowCount(self, parent=QtCore.QModelIndex()):
         return 1
 
-    # overrided Qt method
+    # overridden Qt method
     def index(self, row, column, parent=QtCore.QModelIndex()):
         return self.createIndex(row, column, self)
 
-    # overrided Qt method
+    # overridden Qt method
     def parent(self, index=QtCore.QModelIndex()):
         return QtCore.QModelIndex()
 
-    # overrided Qt method
+    # overridden Qt method
     def data(self, index, role=QtCore.Qt.DisplayRole):
         column = index.column()
         try:
@@ -251,7 +251,7 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
                 else:
                     return QtGui.QColor('white')
 
-    # overrided Qt method
+    # overridden Qt method
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         row = index.row()
         column = index.column()

@@ -37,7 +37,7 @@ Comparison with the regular Morphologist pipeline
 
 * For this and other reasons, Morphologist-UI does not use nor feed BrainVisa databases, so if you are to use the "regular" brainvisa after running Morphologist-UI, you should create or update an appropriate database for the study directory.
 
-* Apart from these additional output files, Morphologist-UI and Morphologist produce the same results and are interchangeable. So if Morphologist-UI fails for some reason, it is always possible to use the clasical BrainVISA pipeline, with all its available parameters, to complete the processing.
+* Apart from these additional output files, Morphologist-UI and Morphologist produce the same results and are interchangeable. So if Morphologist-UI fails for some reason, it is always possible to use the classical BrainVISA pipeline, with all its available parameters, to complete the processing.
 
 * A restriction on file formats (images, meshes) also apply for Morphologist-UI: it can handle several formats, as Morphologist have always did, but the format is chosen globally: all files in a database should have a single same format for all images, or all meshes, others will not be recognized.
 
@@ -46,7 +46,7 @@ Installation
 ------------
 
 * Users distributions are available on http://brainvisa.info
-* The normalization step may make use of external software, that has to be installed separately. If none is installed, the normalization defaults to the AimsMIRegister (mutual informaton) method, which is not the best tested one and might suffer from robustness issues. If installed and configured (see configuration options), the following software may be used instead, in that order:
+* The normalization step may make use of external software, that has to be installed separately. If none is installed, the normalization defaults to the AimsMIRegister (mutual information) method, which is not the best tested one and might suffer from robustness issues. If installed and configured (see configuration options), the following software may be used instead, in that order:
 
     * `SPM (FIL, UK) <http://www.fil.ion.ucl.ac.uk/spm/>`_. It needs to be installed separately and setup in Morphologist configuration. SPM8 or SPM12 are supported, both with either the regular matlab version or the *standalone* compiled one.
     * `FSL flirt (FMRIB, UK) <http://fsl.fmrib.ox.ac.uk/fsl>`_. It needs to be installed separately and setup in Morphologist configuration.
@@ -137,7 +137,7 @@ This is a first release of Morphologist-UI. It currently supports the main segme
 
 In the future, Morphologist-UI will be extended for inter-subject statistical analysis on sulcal morphometric features.
 
-Other improvements in specialized steps visualization windows are planed, especially for processing parameters edition, and manual correction of processed data, as in BrainVisa editors.
+Other improvements in specialized steps visualization windows are planned, especially for processing parameters edition, and manual correction of processed data, as in BrainVisa editors.
 
 
 Use cases
@@ -156,7 +156,7 @@ Reprocess Morphologist-UI results using the BrainVisa Morphologist
 
 * Run ``brainvisa``
 * In the **Preferences**, setup a database to be the study directory of Morphologist-UI.
-* If it already existed, you will have to update the database (using the pocess **Data management / Update databases**, if not already prompted to do so).
+* If it already existed, you will have to update the database (using the process **Data management / Update databases**, if not already prompted to do so).
 * That's it, you should see the data.
 
 

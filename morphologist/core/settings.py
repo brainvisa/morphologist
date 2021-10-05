@@ -82,7 +82,7 @@ class ConfigobjSettingsHandler(object):
     def copy(settings):
         copy_settings = ConfigObj(configspec=settings.configspec)
         copy_settings.filename = settings.filename
-        # XXX: use a deepcopy since settings contains dictionnary references
+        # XXX: use a deepcopy since settings contains dictionary references
         copy_settings.update(copy.deepcopy(settings))
         return copy_settings
 
@@ -104,7 +104,7 @@ class ConfigobjSettingsHandler(object):
             return False
         extra_values = get_extra_values(settings)
         if extra_values:
-            print("Error: unknown additionnal items in setting file '%s'" %
+            print("Error: unknown additional items in setting file '%s'" %
                   settings.filename)
             for sections, name in extra_values:
                 item = '/'.join(list(sections) + [name])
