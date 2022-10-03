@@ -11,7 +11,7 @@ from soma.functiontools import partial
 from morphologist.core.gui.qt_backend import QtCore, QtGui, loadUi 
 
 
-class BidiMap(collections.MutableMapping):
+class BidiMap(collections.abc.MutableMapping):
     '''Bi-directional map'''
 
     def __init__(self, default_keyname='default', reverse_keyname='reverse'):
