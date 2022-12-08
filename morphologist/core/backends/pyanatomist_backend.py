@@ -91,8 +91,8 @@ class PyanatomistBackend(Backend, DisplayManagerMixin, ObjectsManagerMixin):
                                  0.196735754609108,0.793312430381775])
         else:
             control = 'Simple2DControl'
-        if restricted_controls:
-            cls.anatomist.execute( 'SetControl', windows=[awindow], control=control )
+        #if restricted_controls:
+        cls.anatomist.execute( 'SetControl', windows=[awindow], control=control )
         return awindow
 
     @classmethod

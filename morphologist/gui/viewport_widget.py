@@ -459,11 +459,9 @@ class SulciView(Object3DViewportView):
         self._temp_object = []
         gw_color = [1., 0.7, 0.7, 1.]
         if self.view_type() != ViewType.THREE_D and left_mesh is not None:
-            print('add 2d mesh left')
             left_fus = Object3D.from_fusion(
                 left_mesh, method='Fusion2DMeshMethod')
             left_fus.set_color(gw_color)
-            print('left_fus:', left_fus)
             self._temp_object = [left_fus]
             self._view.add_object(left_fus)
         if self.view_type() != ViewType.THREE_D and right_mesh is not None:
