@@ -527,8 +527,8 @@ def _create_import_progress_dialog(parent=None):
         p = parent.size()
         p0 = parent.pos()
     s = pb.sizeHint()
-    pb.move(p0.x() + (p.width() - s.width())/2,
-            p0.y() + (p.height() - s.height())/2)
+    pb.move(p0.x() + int((p.width() - s.width())/2),
+            p0.y() + int((p.height() - s.height())/2))
 
     def update_progress(self, value):
         self.pb.setValue(int(round(value * 100)))
