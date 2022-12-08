@@ -25,6 +25,7 @@ class MorphologistCommonBackend(Backend, VectorGraphicsManagerMixin):
         backend_view.draw_histo()
 
     def set_bgcolor_view(self, backend_view, color):
+        color = [int(round(x)) for x in color]
         palette = QtGui.QPalette(QtGui.QColor(*color))
         backend_view.setPalette(palette)
 
