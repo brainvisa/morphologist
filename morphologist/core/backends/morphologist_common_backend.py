@@ -46,6 +46,7 @@ class MorphologistCommonBackend(Backend, VectorGraphicsManagerMixin):
             self.set_bgcolor_editor(backend_view, [0,0,0,1.])
 
     def set_bgcolor_editor(self, backend_view, color):
+        color = [int(round(x)) for x in color]
         palette = QtGui.QPalette(QtGui.QColor(*color))
         backend_view.setPalette(palette)
         awin = backend_view.awindow()
