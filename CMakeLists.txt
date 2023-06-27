@@ -15,7 +15,7 @@ BRAINVISA_DEPENDENCY( RUN DEPENDS "capsul" RUN ">= ${capsul_VERSION}" )
 
 BRAINVISA_COPY_PYTHON_DIRECTORY( "${CMAKE_CURRENT_SOURCE_DIR}/morphologist"
     ${PROJECT_NAME}
-    python/morphologist )
+    ${PYTHON_INSTALL_DIRECTORY}/morphologist )
 
 BRAINVISA_ADD_EXECUTABLE( "morphologist"
     "${CMAKE_CURRENT_SOURCE_DIR}/bin/morphologist" IS_SCRIPT )
