@@ -1,5 +1,4 @@
-from __future__ import absolute_import
-from __future__ import print_function
+
 import os
 import hashlib
 import threading
@@ -7,7 +6,8 @@ import time
 import six
 
 from morphologist.core.gui.qt_backend import QtCore
-from six.moves import range
+from soma.controller import undefined
+
 
 class AnalysisPollingThread(QtCore.QThread):
 
@@ -20,7 +20,7 @@ class AnalysisPollingThread(QtCore.QThread):
     def __init__(self, analysis, parent=None):
         super(AnalysisPollingThread, self).__init__(parent)
         self.lock = threading.RLock()
-        self._update_interval = 4 # in seconds
+        self._update_interval = 4  # in seconds
         self._update_sub_interval = 0.2
         self.state = self.STOPPED
         self.set_analysis(analysis)
@@ -40,25 +40,25 @@ class AnalysisPollingThread(QtCore.QThread):
             self.state = self.RUNNING
         running = True
         while running:
+            with self.lock:
+                state = int(self.state)
+            if state == self.STOPPED:
+                running = False
+                break
+            elif state == self.RUNNING:
+                self._check_output_files_changed()
+            for i in range(int(
+                    self._update_interval / self._update_sub_interval)):
+                time.sleep(self._update_sub_interval)
                 with self.lock:
                     state = int(self.state)
                 if state == self.STOPPED:
                     running = False
                     break
-                elif state == self.RUNNING:
-                    self._check_output_files_changed()
-                for i in range(int(
-                        self._update_interval / self._update_sub_interval)):
-                    time.sleep(self._update_sub_interval)
+                elif state == self.ASK_CHECK:
                     with self.lock:
-                        state = int(self.state)
-                    if state == self.STOPPED:
-                        running = False
-                        break
-                    elif state == self.ASK_CHECK:
-                        with self.lock:
-                            self.state = self.RUNNING
-                        break  # restart loop
+                        self.state = self.RUNNING
+                    break  # restart loop
         print('exit polling thread')
 
     def _get_observed_files(self):
@@ -90,11 +90,10 @@ class AnalysisPollingThread(QtCore.QThread):
         for parameter_name, filename in six.iteritems(existing_items):
             if filename is None:
                 continue
-            import traits.api as traits
-            if filename is traits.Undefined:
+            if filename is undefined:
                 print('undefined filename for param:', parameter_name)
             # TODO: directories are ignored !
-            if filename in (None, traits.Undefined) \
+            if filename in (None, undefined) \
                     or os.path.isdir(filename):
                 continue
             if not os.path.exists(filename):

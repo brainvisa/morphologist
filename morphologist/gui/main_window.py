@@ -1,6 +1,4 @@
-from __future__ import print_function
 
-from __future__ import absolute_import
 import os
 import types
 import six
@@ -85,6 +83,7 @@ class StudyActionHandler(ActionHandler):
     @QtCore.Slot()
     def _on_create_updated_study_thread_finished(self):
         study = self._create_updated_study_thread.res
+        print('NEW STUDY:', study)
         self.study_updated.emit(study)
         self._create_updated_study_thread = None
         self.pb.deleteLater()

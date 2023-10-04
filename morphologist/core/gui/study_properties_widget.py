@@ -200,7 +200,7 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
     #SPM_STANDALONE_COL = 4
     #SPM_EXEC_COL = 5
     COMPUTING_RESOURCE_COL = 4
-    attributes = ["study_name", "output_directory",
+    attributes = ["label", "output_directory",
                   "volumes_format_index", "meshes_format_index",
                   #"spm_standalone", "spm_exec",
                   "computing_resource_index"]

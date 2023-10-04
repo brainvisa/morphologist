@@ -1,5 +1,3 @@
-from __future__ import print_function
-from __future__ import absolute_import
 
 import os
 import json
@@ -14,6 +12,10 @@ from morphologist.core.analysis \
 from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.subject import Subject
 
+# CAPSUL
+from capsul.api import Capsul
+from soma.controller import Controller, Directory, undefined
+
 # Axon config
 argv = sys.argv
 # Temporarily change argv[0] since it is used in neuroConfig initialization
@@ -26,36 +28,66 @@ from brainvisa.axon import processes as axon_processes
 sys.argv = argv
 del argv
 
-# CAPSUL
-from capsul.api import StudyConfig
 
-import traits.api as traits
+STUDY_FORMAT_VERSION = '1.0'
 
 
-STUDY_FORMAT_VERSION = '0.5'
-
-
-class Study(StudyConfig):
+class Study(Controller, Capsul):
     default_output_directory = os.path.join(
         os.path.expanduser("~"), 'morphologist/studies/study')
 
     def __init__(self, analysis_type, study_name="undefined study",
                  output_directory=default_output_directory):
+
+        def get_shared_path():
+            try:
+                from soma import aims
+                return aims.carto.Paths.resourceSearchPath()[-1]
+            except Exception:
+                return '!{dataset.shared.path}'
+
         default_config = {
-            "use_soma_workflow": True,
-            "somaworkflow_computing_resource": "localhost",
-            "study_name": study_name,
-            "input_fom": "morphologist-auto-nonoverlap-1.0",
-            "output_fom": "morphologist-auto-nonoverlap-1.0",
-            "shared_fom": "shared-brainvisa-1.0",
-            "output_directory": output_directory,
-            "input_directory": output_directory,
-            "volumes_format": "NIFTI",
-            "meshes_format": "GIFTI",
+            'builtin': {
+                'config_modules': [
+                    'spm',
+                    'axon',
+                    'fsl',
+                    'freesurfer',
+                ],
+                'dataset': {
+                    'input': {
+                        'path': output_directory,
+                        'metadata_schema': 'brainvisa',
+                    },
+                    'output': {
+                        'path': output_directory,
+                        'metadata_schema': 'brainvisa',
+                    },
+                    'shared': {
+                        'path': get_shared_path(),
+                        'metadata_schema': 'brainvisa_shared',
+                    },
+                },
+                'spm': {
+                    'spm12_standalone': {
+                        'directory': '/volatile/local/spm12-standalone',
+                        'standalone': True,
+                        'version': '12',
+                    }
+                },
+                'matlab': {
+                    'matlab_mcr': {
+                        'mcr_directory': '/volatile/local/spm12-standalone/mcr/v97' # '/tmp/matlab_mcr/v97',
+                    }
+                },
+            }
         }
-        super(Study, self).__init__(init_config=default_config,
-            modules=StudyConfig.default_modules + \
-            ['BrainVISAConfig', 'FSLConfig', 'FomConfig', 'FreeSurferConfig'])
+        super().__init__(app_name=study_name)
+        # make config a field in order to save it via asdict()
+        config = self.config
+        self.add_field('config', type_=type(config))
+        self.config = config
+        self.config.import_dict(default_config)
 
         # init/read axon config
         neuroConfig.fastStart = True
@@ -64,18 +96,41 @@ class Study(StudyConfig):
             axon_capsul_config_link.AxonCapsulConfSynchronizer(self)
         self.axon_link.sync_axon_to_capsul()
 
-        # study_name is marked as transient in StudyConfig. I don't know why.
-        self.trait('study_name').transient = False
-
-        self.analysis_type = analysis_type # string : name of the analysis class
-        self.add_trait("subjects", traits.Trait(OrderedDict()))
+        self.analysis_type = analysis_type  # string : name of the analysis class
+        self.add_field("subjects", type_=OrderedDict)
+        #self.output_directory = output_directory
+        #self.input_directory = output_directory
         self.subjects = OrderedDict()
         self.template_pipeline = None
         self.analyses = {}
-        self.on_trait_change(self._force_input_dir, 'output_directory')
+        self.computing_resource = 'builtin'
+        self.volumes_format = 'NIFTI gz'
+        self.meshes_format = 'GIFTI'
+        self.on_attribute_change.add(self._force_input_dir, 'output_directory')
+
+    @property
+    def study_name(self):
+        return self.label
+
+    @property
+    def output_directory(self):
+        return self.config[self.computing_resource].dataset.output.path
+
+    @output_directory.setter
+    def output_directory(self, value):
+        self.config[self.computing_resource].dataset.output.path = value
+
+    @property
+    def input_directory(self):
+        return self.config[self.computing_resource].dataset.input.path
 
     def _force_input_dir(self, value):
-        self.input_directory = value
+        self.config[self.computing_resource].dataset.input.path = value
+
+    @property
+    def somaworkflow_computing_resource(self):
+        return {'builtin': 'localhost'}.get(
+            self.computing_resource, self.computing_resource)
 
     def analysis_cls(self):
         return AnalysisFactory.get_analysis_cls(self.analysis_type)
@@ -84,7 +139,7 @@ class Study(StudyConfig):
         return AnalysisFactory.create_analysis(
             self.analysis_type, self)
 
-    @property 
+    @property
     def backup_filepath(self):
         return self._get_backup_filepath_from_output_directory(
             self.output_directory)
@@ -103,9 +158,9 @@ class Study(StudyConfig):
             cls._get_output_directory_from_backup_filepath(backup_filepath)
         try:
             with open(backup_filepath, "r") as fd:
-                    serialized_study = json.load(fd)
+                serialized_study = json.load(fd)
         except Exception as e:
-            raise StudySerializationError("%s" %(e))
+            raise StudySerializationError("%s" % e)
         try:
             study = cls.unserialize(serialized_study, output_directory)
         except KeyError as e:
@@ -119,20 +174,20 @@ class Study(StudyConfig):
     def unserialize(cls, serialized, output_directory):
         try:
             version = serialized['study_format_version']
-        except:
+        except Exception:
             msg = "unknown study format version"
             raise StudySerializationError(msg)
         if version != STUDY_FORMAT_VERSION:
             msg = "find unsupported study format version '%s'" % version
             raise StudySerializationError(msg)
-        study = cls(analysis_type=serialized['analysis_type'], 
-                    study_name=serialized['study_name'],
+        study = cls(analysis_type=serialized['analysis_type'],
+                    study_name=serialized['label'],
                     output_directory=output_directory)
         serialized_dict = dict(
             [(key, value) for key, value in six.iteritems(serialized)
              if key not in ('subjects', 'study_format_version',
                             'analysis_type', 'inputs', 'outputs')])
-        study.set_study_configuration(serialized_dict)
+        study.import_dict(serialized_dict)
         for subject_id, serialized_subject in \
                 six.iteritems(serialized['subjects']):
             subject = Subject.unserialize(
@@ -172,6 +227,7 @@ class Study(StudyConfig):
                 scl_progess = 1.
                 progress_callback = (callback, init_progress, scl_progess)
         study_name = os.path.basename(organized_directory)
+        print('study class:', cls, ', dir:', organized_directory)
         new_study = cls(
             analysis_type, study_name=study_name,
             output_directory=organized_directory)
@@ -180,6 +236,7 @@ class Study(StudyConfig):
             progress_callback = (callback,
                                  init_progress + .05 * scl_progess,
                                  0.25 * scl_progess)
+        print('study dir:', new_study.output_directory)
         subjects = new_study.get_subjects_from_pattern(
             progress_callback=progress_callback) ##exact_match=True)
         nsubjects = len(subjects)
@@ -203,9 +260,9 @@ class Study(StudyConfig):
             print('** WARNING: input_directory != output_directory')
             print('input: ', self.input_directory)
             print('output:', self.output_directory)
-        serialized = self.export_to_dict(
-            exclude_undefined=True, exclude_none=True, exclude_transient=True,
-            exclude_empty=True, dict_class=dict)
+        serialized = self.asdict(dict_factory=dict, exclude_empty=True,
+                                 exclude_none=True)
+        serialized['label'] = self.label
         serialized['study_format_version'] = STUDY_FORMAT_VERSION
         serialized['analysis_type'] = self.analysis_type
         serialized['subjects'] = {}
@@ -294,7 +351,7 @@ class Study(StudyConfig):
         return resource_list
 
     def __repr__(self):
-        s = 'study_name: ' + str(self.study_name) + '\n'
+        s = 'label: ' + str(self.label) + '\n'
         s += 'output_directory: ' + str(self.output_directory) + '\n'
         s += 'subjects: ' + repr(self.subjects) + '\n'
         return s
@@ -337,10 +394,7 @@ class Study(StudyConfig):
                                  + "\\2\.((?:nii(?:\.gz)?)|(?:ima))$")
 
         vol_format = None
-        formats_dict = self.modules_data.fom_atp['input'].foms.formats
-        ext_dict = dict([(ext, name)
-                         for name, ext in six.iteritems(formats_dict)
-                         if not name.lower().startswith('series ')])
+        ext_dict = {}  # TODO get if from capsul when it handles formats...
         # fix ambiguities in formats/ext dict
         ext_dict.update({
             "nii.gz": "NIFTI gz",
@@ -368,7 +422,7 @@ class Study(StudyConfig):
                     format_ext = match.group(3)
                 else:
                     format_ext = match.group(4)
-                format_name = ext_dict.get(format_ext, 'NIFTI')
+                format_name = ext_dict.get(format_ext, 'NIFTI gz')
                 if vol_format is None:
                     vol_format = format_name
                     self.volumes_format = vol_format
@@ -411,7 +465,7 @@ class Study(StudyConfig):
                         parent[name] = os.path.join(
                             '${output_directory}',
                             os.path.relpath(sub_item, directory))
-                    elif sub_item == traits.Undefined:
+                    elif sub_item == undefined:
                         #parent[name] = '<undefined>'
                         pass
                     else:
@@ -430,7 +484,7 @@ class Study(StudyConfig):
                         parent.append(os.path.join(
                             '${output_directory}',
                             os.path.relpath(sub_item, directory)))
-                    elif sub_item == traits.Undefined:
+                    elif sub_item == undefined:
                         #parent.append('<undefined>')
                         pass
                     else:
@@ -454,7 +508,7 @@ class Study(StudyConfig):
                         parent[name] = sub_item.replace(
                             '${output_directory}', directory)
                     elif sub_item == '<undefined>':
-                        parent[name] = traits.Undefined
+                        parent[name] = undefined
                     else:
                         parent[name] = sub_item
             elif isinstance(item, list):
@@ -468,7 +522,7 @@ class Study(StudyConfig):
                         parent.append(sub_item.replace(
                             '${output_directory}', directory))
                     elif sub_item == '<undefined>':
-                        parent.append(traits.Undefined)
+                        parent.append(undefined)
                     else:
                         parent.append(sub_item)
         return new_params

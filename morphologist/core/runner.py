@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-
-from __future__ import absolute_import
-import os
 import time
-import threading
 import multiprocessing
 import six
 
 import soma_workflow as sw
-from soma_workflow.client import WorkflowController, Helper, Workflow, Job, Group
+from soma_workflow.client import (WorkflowController, Helper, Workflow, Job,
+                                  Group)
 from soma_workflow import configuration as swconf
 
-from capsul.pipeline import pipeline_workflow
+from capsul.execution_context import CapsulWorkflow
 from capsul.pipeline import pipeline_tools
 
 from morphologist.core.settings import settings
@@ -260,9 +256,8 @@ class  SomaWorkflowRunner(Runner):
                 print('MISSING INPUTS IN NODES:', missing)
                 raise MissingInputFileError("subject: %s" % subject_id)
 
-            wf = pipeline_workflow.workflow_from_pipeline(
-                pipeline, study_config=study_config,
-                jobs_priority=priority)
+            cwf = CapsulWorkflow(pipeline)
+            wf = cwf.to_soma_workflow(pipeline.name)
             njobs = len([j for j in wf.jobs if isinstance(j, Job)])
             if njobs != 0:
                 priority -= 100

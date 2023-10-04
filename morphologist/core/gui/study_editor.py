@@ -1,7 +1,6 @@
-from __future__ import absolute_import
+
 import os
 from collections import namedtuple
-import copy
 import six
 
 from morphologist.core.analysis import ImportationError
@@ -48,6 +47,7 @@ class StudyEditor(object):
         study.convert_from_formats(old_vol_format, old_mesh_format,
                                    progress_callback)
         self.study = study  # WARNING we change the study in a thread.
+        print('create_updated_study:', study)
         return self.study
 
     def add_observer(self, observer):
@@ -63,7 +63,7 @@ class StudyPropertiesEditor(object):
     OUTPUTDIR_NOT_EMPTY = 0x2
     
     def __init__(self, study, mode):
-        self.study_name = study.study_name
+        self.label = study.label
         self.output_directory = study.output_directory
         self.volumes_formats = [
             'NIFTI', 'NIFTI gz', 'MINC', 'GIS',
@@ -79,39 +79,49 @@ class StudyPropertiesEditor(object):
             "PLY mesh"]
         self.available_computing_resources \
             = study.get_available_computing_resources()
-        if study.somaworkflow_computing_resource \
+        computing_resource = {'builtin': 'localhost'}.get(
+            study.computing_resource, study.computing_resource)
+        if computing_resource \
                 not in self.available_computing_resources:
-            self.available_computing_resources.insert(
-                0, study.somaworkflow_computing_resource)
+            self.available_computing_resources.insert(0, computing_resource)
 
         self.mode = mode
         self.volumes_format_index \
             = self.volumes_formats.index(study.volumes_format)
         self.meshes_format_index \
             = self.meshes_formats.index(study.meshes_format)
-        self.spm_standalone = study.spm_standalone
-        self.spm_version = study.spm_version
-        self.spm_exec = study.spm_exec
+        config = study.engine(study.computing_resource).config
+        c = None
+        for field in config.spm.fields():
+            c = getattr(config.spm, field.name)
+            break
+        if c is None:
+            config.spm.spm = {}
+            c = config.spm.spm
+        self.spm_standalone = c.standalone
+        self.spm_version = c.version
+        self.spm_directory = c.directory
         self.computing_resource_index \
-            = self.available_computing_resources.index(
-                study.somaworkflow_computing_resource)
+            = self.available_computing_resources.index(computing_resource)
 
     def update_study(self, study):
-        study.study_name = self.study_name
+        study.label = self.label
         study.output_directory = self.output_directory
         study.volumes_format = self.volumes_formats[self.volumes_format_index]
         study.meshes_format = self.meshes_formats[self.meshes_format_index]
-        study.spm_exec = self.spm_exec
-        study.spm_version = self.spm_version
-        study.spm_standalone = self.spm_standalone
-        study.use_spm = True
-        try:
-            # autocheck / complete config
-            study.modules['SPMConfig'].initialize_module()
-        except:
-            pass
-        study.somaworkflow_computing_resource \
+        config = study.engine(study.computing_resource).config
+        c = None
+        for field in config.spm.fields():
+            c = getattr(config.spm, field.name)
+            break
+        if c is not None:
+            c.directory = self.spm_directory
+            c.version = self.spm_version
+            c.standalone = self.spm_standalone
+        study.computing_resource \
             = self.available_computing_resources[self.computing_resource_index]
+        if study.computing_resource == 'localhost':
+            study.computing_resource = 'builtin'
 
     def get_consistency_status(self):
         if self.mode == StudyEditor.NEW_STUDY:

@@ -15,14 +15,20 @@ from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
 
 # CAPSUL
 from capsul.pipeline import pipeline_tools
+from capsul.schemas.brainvisa import declare_morpho_schemas
 
-# CAPSUL morphologist
-from morphologist.capsul.morphologist import Morphologist
+
+declare_morpho_schemas('morphologist.capsul')
 
 
 class IntraAnalysis(SharedPipelineAnalysis):
 
     def __init__(self, study):
+        '''
+        Parameters
+        ----------
+        stydy: Capsul insance
+        '''
         super(IntraAnalysis, self).__init__(study)
 
         self.ACQUISITION = 'default_acquisition'
@@ -56,7 +62,7 @@ class IntraAnalysis(SharedPipelineAnalysis):
         ]
 
     def build_pipeline(self):
-        pipeline = self.study.get_process_instance(
+        pipeline = self.study.executable(
             'morphologist.capsul.morphologist.Morphologist')
         # rework steps with finer grain
         pipeline.remove_pipeline_step('grey_white_segmentation')
@@ -86,12 +92,12 @@ class IntraAnalysis(SharedPipelineAnalysis):
         pipeline.add_pipeline_step('sulci_labelling_right',
                                    ['SulciRecognition_1'])
         # listen to config activation and adapt normalization steps
-        pipeline.attach_config_activations()
+        pipeline.attach_config_activations(self.study)
 
         return pipeline
 
     def import_data(self, subject):
-        import_step = self.study.get_process_instance(
+        import_step = self.study.executable(
             'morphologist.capsul.import_t1_mri.ImportT1Mri')
 
         import_step.input = subject.filename
@@ -118,7 +124,7 @@ class IntraAnalysis(SharedPipelineAnalysis):
             'subject': subject.name,
             'acquisition': self.ACQUISITION,
             'analysis': self.ANALYSIS,
-            'graph_version': self.GRAPH_VERSION,
+            'sulci_graph_version': self.GRAPH_VERSION,
             'sulci_recognition_session': self.FOLDS_SESSION
         }
         return attributes_dict
