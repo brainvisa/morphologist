@@ -1,10 +1,7 @@
-from __future__ import print_function
 
-from __future__ import absolute_import
 import os
-import traits.api as traits
-
-from morphologist.core.utils import create_filename_compatible_string
+import sys
+import traceback
 from morphologist.core.gui.qt_backend import QtGui, QtCore
 from morphologist.core.gui.study_editor import StudyEditor
 
@@ -13,7 +10,7 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
     validity_changed = QtCore.pyqtSignal(bool)
 
     def __init__(self, study_properties_editor, parent=None,
-                editor_mode=StudyEditor.NEW_STUDY):
+                 editor_mode=StudyEditor.NEW_STUDY):
         super(StudyPropertiesEditorWidget, self).__init__(parent)
         self._study_properties_editor = study_properties_editor
         self._item_model \
@@ -112,7 +109,7 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
             QtGui.QFileDialog.ShowDirsOnly
                 | QtGui.QFileDialog.DontUseNativeDialog)
         if selected_directory != '':
-            self._item_model.set_data(\
+            self._item_model.set_data(
                 StudyPropertiesEditorItemModel.OUTPUTDIR_COL,
                 selected_directory)
 
@@ -121,7 +118,7 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         #caption = 'Select SPM standalone executable'
         #if self._study_properties_editor.spm_exec \
                 #and self._study_properties_editor.spm_exec \
-                    #is not traits.Undefined:
+                    #is not undefined:
             #default_directory = os.path.dirname(
                 #self._study_properties_editor.spm_exec)
         #else:
@@ -170,7 +167,7 @@ class StudyPropertiesEditorItemDelegate(QtGui.QItemDelegate):
         if model.is_data_colorable(index):
             bg_color = model.data(index, QtCore.Qt.BackgroundRole)
             style_sheet = '''
-            QLineEdit { 
+            QLineEdit {
                 background-color: %s;
                 border: 1px solid grey;
                 border-radius: 4px;
@@ -191,7 +188,6 @@ class StudyPropertiesEditorItemDelegate(QtGui.QItemDelegate):
         #print('StudyPropertiesEditorItemDelegate.setModelData', editor, model, index)
 
 
-
 class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
     NAME_COL = 0
     OUTPUTDIR_COL = 1
@@ -209,7 +205,7 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
     def __init__(self, study_properties_editor, parent=None):
         super(StudyPropertiesEditorItemModel, self).__init__(parent)
         self._study_properties_editor = study_properties_editor
-        self._status = True # ok si 3 first attributes != ''
+        self._status = True  # ok si 3 first attributes != ''
 
     # overridden Qt method
     def columnCount(self):
@@ -234,7 +230,6 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
             value = self._study_properties_editor.__getattribute__(
                 self.attributes[column])
         except IndexError as e:
-            import traceback, sys
             print('index:', index)
             print('column:', column)
             print(e)
@@ -256,7 +251,8 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
         row = index.row()
         column = index.column()
         old_status = self._status
-        if role != QtCore.Qt.EditRole: return
+        if role != QtCore.Qt.EditRole:
+            return
         self._set_value(row, column, value)
         #if (column == self.NAME_COL and
             #self._study_properties_editor.mode == StudyEditor.NEW_STUDY):
@@ -268,7 +264,7 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
         #elif column == self.OUTPUTDIR_COL:
             #name = os.path.basename(value).replace('_', ' ')
             #self._set_value(row, self.NAME_COL, name)
-        self._status = not self._invalid_value(value) 
+        self._status = not self._invalid_value(value)
         if old_status != self._status:
             self.status_changed.emit(self._status)
         return True
@@ -295,4 +291,3 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
 
     def widget(self):
         return self._study_properties_editor
-

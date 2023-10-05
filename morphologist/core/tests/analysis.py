@@ -1,14 +1,14 @@
-from __future__ import absolute_import
-import os
-import traits.api as traits
 
+import os
 from morphologist.core.subject import Subject
 from morphologist.core.tests.mocks.analysis import MockAnalysis
 from morphologist.core.tests import reset_directory
+from soma.controller import undefined
 
 
 class AnalysisTestCase(object):
     ''' abstract class '''
+
     def __init__(self):
         self.analysis = None
         self.output_directory = None
@@ -56,8 +56,8 @@ class MockAnalysisTestCase(AnalysisTestCase):
         self.analysis.set_parameters(subject=subject)
 
     def delete_some_parameter_values(self):
-        self.analysis.pipeline.output_image = traits.Undefined
-        self.analysis.pipeline.other_output = traits.Undefined
+        self.analysis.pipeline.output_image = undefined
+        self.analysis.pipeline.other_output = undefined
 
     def create_some_output_files(self):
         parameter_names = ['output_image', 'output_image']
@@ -69,6 +69,3 @@ class MockAnalysisTestCase(AnalysisTestCase):
 
     def get_wrong_parameter_name(self):
         return "toto"
-
-
- 

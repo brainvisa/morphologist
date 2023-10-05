@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 import sys
 import time
 import unittest
@@ -111,8 +111,9 @@ class TestRunnerOnSuccessStudy(TestRunner):
     def assert_output_files_exist_only_for_succeed_steps_after_stop(self):
         for subject_id in self.study.subjects:
             analysis = self.study.analyses[subject_id]
-            for step_id in \
-                    analysis.pipeline.pipeline_steps.user_traits():
+            for step_field in \
+                    analysis.pipeline.pipeline_steps.fields():
+                step_id = step_field.name
                 status = self.runner.get_status(subject_id, step_id,
                                                 update_status=False)
                 if status == Runner.SUCCESS:
