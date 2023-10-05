@@ -118,6 +118,16 @@ class IntraAnalysis(SharedPipelineAnalysis):
         self.subject = subject
         super(IntraAnalysis, self).set_parameters(subject)
 
+    def volume_extension(self):
+        format = self.study.volumes_format
+        ext_dict = {
+            "NIFTI gz": "nii.gz",
+            "NIFTI": "nii",
+            "GIS": "ima",
+            "MINC": "mnc",
+        }
+        return ext_dict[format]
+
     def get_attributes(self, subject):
         attributes_dict = {
             'center': subject.groupname,
@@ -125,7 +135,8 @@ class IntraAnalysis(SharedPipelineAnalysis):
             'acquisition': self.ACQUISITION,
             'analysis': self.ANALYSIS,
             'sulci_graph_version': self.GRAPH_VERSION,
-            'sulci_recognition_session': self.FOLDS_SESSION
+            'sulci_recognition_session': self.FOLDS_SESSION,
+            'extension': self.volume_extension(),
         }
         return attributes_dict
 

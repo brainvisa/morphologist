@@ -261,11 +261,15 @@ class SharedPipelineAnalysis(Analysis):
             raise AttributeError('Subject %s/%s has no attributes'
                 % (subject.groupname, subject.name))
         metadata = pipeline.metadata
-        metadata.import_dict(attributes_dict)
-        #print 'create_completion for:', subject.id()
+        # print('create_completion for:', subject.id())
+        schemas = set(
+            [metadata.execution_context.dataset.output.metadata_schema,
+             metadata.execution_context.dataset.input.metadata_schema])
+        for schema in schemas:
+            meta_part = getattr(metadata, schema)
+            meta_part.import_dict(attributes_dict)
         metadata.generate_paths(pipeline)
-        execution_context = self.study.engine().execution_context(pipeline)
-        pipeline.resolve_paths(execution_context)
+        pipeline.resolve_paths(metadata.execution_context)
         self.parameters = pipeline_tools.dump_pipeline_state_as_dict(
             self.pipeline)
         # mark this subject as the one with the current parameters.
