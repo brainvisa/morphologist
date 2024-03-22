@@ -40,7 +40,8 @@ class BrainvisaFormatsManager(FormatsManager):
                         and type[16:] in cls._intra_analysis_acceptable_formats
                     for item in items]
         formats = sorted(set(formats))
-        formats.remove('BMP')
+        if 'BMP' in formats:
+            formats.remove('BMP')
         return formats
 
     @staticmethod
