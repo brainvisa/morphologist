@@ -450,9 +450,15 @@ class SelectOrganizedDirectoryDialog(QtGui.QDialog):
         self.ui.in_place_checkbox.setVisible(False)
 
         self._analysis_type = analysis_type
+        foms = list(StudyPropertiesEditor.parameter_templates.keys())
+        for fom in foms:
+            self.ui.parameter_template_combobox.addItem(fom)
 
     def get_organized_directory(self):
         return self.ui.organized_directory_lineEdit.text()
+
+    def get_directory_layout(self):
+        return self.ui.parameter_template_combobox.currentText()
 
     def get_subjects(self):
         organized_directory = self.get_organized_directory()

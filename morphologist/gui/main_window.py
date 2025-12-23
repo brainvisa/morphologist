@@ -170,10 +170,13 @@ class ImportStudyActionHandler(ActionHandler):
                 QtCore.Qt.WaitCursor)
             pb = _create_import_progress_dialog(self.parent())
             organized_directory = dialog.get_organized_directory()
+            print('_on_import_study_dialog_accepted, dir:', organized_directory)
+            layout = dialog.get_directory_layout()
             study = ApplicationStudy.from_organized_directory(\
                                             self._analysis_type,
                                             organized_directory,
-                                            progress_callback=pb.update_value)
+                                            progress_callback=pb.update_value,
+                                            layout=layout)
             subjects = None
             pb.deleteLater()
             del pb

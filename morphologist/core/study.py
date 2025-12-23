@@ -1,5 +1,3 @@
-from __future__ import print_function
-from __future__ import absolute_import
 
 import os
 import json
@@ -7,12 +5,15 @@ import re
 import glob
 import sys
 import six
+import os.path as osp
 
 from morphologist.core.utils import OrderedDict
 from morphologist.core.analysis \
     import AnalysisFactory, ImportationError
 from morphologist.core.constants import ALL_SUBJECTS
 from morphologist.core.subject import Subject
+from capsul.api import capsul_engine
+from capsul.attributes.completion_engine import ProcessCompletionEngine
 
 # Axon config
 argv = sys.argv
@@ -45,8 +46,8 @@ class Study(StudyConfig):
             "use_soma_workflow": True,
             "somaworkflow_computing_resource": "localhost",
             "study_name": study_name,
-            "input_fom": "morphologist-auto-nonoverlap-1.0",
-            "output_fom": "morphologist-auto-nonoverlap-1.0",
+            "input_fom": "morphologist-bids-2.0",
+            "output_fom": "morphologist-bids-2.0",
             "shared_fom": "shared-brainvisa-1.0",
             "output_directory": output_directory,
             "input_directory": output_directory,
@@ -161,7 +162,8 @@ class Study(StudyConfig):
 
     @classmethod
     def from_organized_directory(cls, analysis_type, organized_directory,
-                                 progress_callback=None):
+                                 progress_callback=None,
+                                 layout=None):
         if progress_callback:
             if isinstance(progress_callback, tuple):
                 callback, init_progress, scl_progess \
@@ -172,6 +174,7 @@ class Study(StudyConfig):
                 scl_progess = 1.
                 progress_callback = (callback, init_progress, scl_progess)
         study_name = os.path.basename(organized_directory)
+        print('from_organized_directory', cls, layout)
         new_study = cls(
             analysis_type, study_name=study_name,
             output_directory=organized_directory)
@@ -181,7 +184,8 @@ class Study(StudyConfig):
                                  init_progress + .05 * scl_progess,
                                  0.25 * scl_progess)
         subjects = new_study.get_subjects_from_pattern(
-            progress_callback=progress_callback) ##exact_match=True)
+            progress_callback=progress_callback,
+            layout=layout) ##exact_match=True)
         nsubjects = len(subjects)
         for n, subject in enumerate(subjects):
             new_study.add_subject(subject, import_data=False)
@@ -300,7 +304,19 @@ class Study(StudyConfig):
         return s
 
     def get_subjects_from_pattern(self, exact_match=False,
-                                  progress_callback=None):
+                                  progress_callback=None, layout=None):
+        if layout == 'brainvisa classic':
+            return self.get_subjects_from_brainvisa_pattern(
+                exact_match=exact_match, progress_callback=progress_callback)
+        elif layout == 'morphologist-bids-2.0':
+            return self.get_subjects_from_fom(
+                progress_callback=progress_callback, layout=layout)
+
+    def get_subjects_from_fom(self, progress_callback=None, layout=None):
+        from .gui.study_editor import StudyPropertiesEditor
+        from soma.application import Application
+        from soma import fom
+
         if progress_callback is not None:
             if isinstance(progress_callback, tuple):
                 progress_callback, init_progress, scl_progess \
@@ -308,6 +324,91 @@ class Study(StudyConfig):
             else:
                 init_progress = 0.
                 scl_progess = 1.
+
+        engine = capsul_engine()
+        engine.load_modules(['fom', 'axon'])
+        fomname = StudyPropertiesEditor.parameter_templates.get(layout, layout)
+        with engine.settings as session:
+            config = session.config('fom', 'global')
+            config.input_fom = fomname
+            config.output_fom = fomname
+            config.input_directory = self.output_directory
+            config.output_directory = self.output_directory
+
+        if progress_callback:
+            progress_callback(init_progress)
+
+        proc = engine.get_process_instance(
+            'morphologist.capsul.import_t1_mri.ImportT1Mri')
+
+        pc = ProcessCompletionEngine.get_completion_engine(proc)
+        attributes = pc.get_attribute_values()
+        for t in attributes.user_traits():
+            setattr(attributes, t, '*')
+        pc.complete_parameters()
+        inputs = glob.glob(proc.input)
+        outputs = glob.glob(proc.output)
+
+        if progress_callback:
+            progress_callback(init_progress + scl_progess * 0.5)
+
+        soma_app = Application("capsul", plugin_modules=["soma.fom"])
+        if "soma.fom" not in soma_app.loaded_plugin_modules:
+            # WARNING: this is unsafe, may erase configured things, and
+            # probably not thread-safe.
+            soma_app.initialize()
+
+        bfom = soma_app.fom_manager.load_foms('raw-bids-1.0')
+        pta = fom.PathToAttributes(bfom)
+
+        subjects = []
+        used_sub = set()
+        to_remove = {'fom_name', 'fom_process', 'fom_parameter',
+                     'fom_directory', 'fom_format'}
+        for path in inputs:
+            attribs = list(pta.parse_path(path))
+            if len(attribs) != 0:
+                attribs = attribs[0][2]
+                attribs = {k: v for k, v in attribs.items()
+                           if k not in to_remove}
+                if attribs:
+                    groupname = attribs.get('center', 'undef')
+                    subjectname = attribs.get('subject')
+                    used_sub.add(subjectname)
+                    subject = Subject(subjectname, groupname, path)
+                    subjects.append(subject)
+
+        bfom = soma_app.fom_manager.load_foms(fomname)
+        pta = fom.PathToAttributes(bfom)
+
+        for path in outputs:
+            attribs = list(pta.parse_path(osp.relpath(path,
+                                                      self.output_directory)))
+            if len(attribs) != 0:
+                attribs = attribs[0][2]
+                attribs = {k: v for k, v in attribs.items()
+                           if k not in to_remove}
+                if attribs:
+                    subjectname = attribs.get('subject')
+                    if subjectname not in used_sub:
+                        groupname = attribs.get('center', 'undef')
+                        subject = Subject(subjectname, groupname, path)
+                        subjects.append(subject)
+
+        if progress_callback:
+            progress_callback(init_progress + scl_progess)
+        return subjects
+
+    def get_subjects_from_brainvisa_pattern(self, exact_match=False,
+                                            progress_callback=None):
+        if progress_callback is not None:
+            if isinstance(progress_callback, tuple):
+                progress_callback, init_progress, scl_progess \
+                    = progress_callback
+            else:
+                init_progress = 0.
+                scl_progess = 1.
+
         subjects = []
         MODALITY = 't1mri'
         ACQUISITION = 'default_acquisition'

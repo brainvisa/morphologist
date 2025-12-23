@@ -61,7 +61,10 @@ class StudyPropertiesEditor(object):
     STUDY_PROPERTIES_VALID = 0x0
     OUTPUTDIR_NOT_EXISTS = 0x1
     OUTPUTDIR_NOT_EMPTY = 0x2
-    
+    parameter_templates = {
+        'morphologist-bids-2.0': 'morpho-deepsulci-bids-2.0',
+        'brainvisa classic': 'morpho-deepsulci-1.0'}
+
     def __init__(self, study, mode):
         self.study_name = study.study_name
         self.output_directory = study.output_directory
@@ -70,9 +73,6 @@ class StudyPropertiesEditor(object):
             "gz compressed MINC image"]
         self.meshes_formats = [
             'GIFTI', 'MESH', 'PLY']
-        self.parameter_templates = {
-            'morphologist-bids-2.0': 'morpho-deepsulci-bids-2.0',
-            'brainvisa classic': 'morpho-deepsulci-1.0'}
         self.available_computing_resources \
             = study.get_available_computing_resources()
         if study.somaworkflow_computing_resource \
