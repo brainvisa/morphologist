@@ -13,8 +13,7 @@ from morphologist.core.gui.viewport_widget import AnalysisViewportModel, \
 from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
 from brainvisa.morphologist.qt4gui.histo_analysis_editor \
     import create_histo_editor
-#from brainvisa.morphologist.qt4gui.histo_analysis_widget \
-    #import load_histo_analysis
+
 
 class IntraAnalysisViewportModel(AnalysisViewportModel):
 
@@ -22,23 +21,23 @@ class IntraAnalysisViewportModel(AnalysisViewportModel):
         super(IntraAnalysisViewportModel, self).__init__(model)
 
     def _init_3d_objects(self):
-        self.observed_objects = { \
-            IntraAnalysisParameterNames.MRI : None,
-            IntraAnalysisParameterNames.COMMISSURE_COORDINATES : None, 
-            IntraAnalysisParameterNames.CORRECTED_MRI : None,
-            IntraAnalysisParameterNames.HISTO_ANALYSIS : None,
-            IntraAnalysisParameterNames.BRAIN_MASK : None,
-            IntraAnalysisParameterNames.SPLIT_MASK : None,
-            IntraAnalysisParameterNames.LEFT_GREY_WHITE : None,
-            IntraAnalysisParameterNames.RIGHT_GREY_WHITE : None,
-            IntraAnalysisParameterNames.LEFT_GREY_SURFACE : None,
-            IntraAnalysisParameterNames.RIGHT_GREY_SURFACE : None,
-            IntraAnalysisParameterNames.LEFT_WHITE_SURFACE : None,
-            IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE : None,
-            IntraAnalysisParameterNames.LEFT_SULCI : None, 
-            IntraAnalysisParameterNames.RIGHT_SULCI : None,
-            IntraAnalysisParameterNames.LEFT_LABELED_SULCI : None, 
-            IntraAnalysisParameterNames.RIGHT_LABELED_SULCI : None,
+        self.observed_objects = {
+            IntraAnalysisParameterNames.MRI: None,
+            IntraAnalysisParameterNames.COMMISSURE_COORDINATES: None,
+            IntraAnalysisParameterNames.CORRECTED_MRI: None,
+            IntraAnalysisParameterNames.HISTO_ANALYSIS: None,
+            IntraAnalysisParameterNames.BRAIN_MASK: None,
+            IntraAnalysisParameterNames.SPLIT_MASK: None,
+            IntraAnalysisParameterNames.LEFT_GREY_WHITE: None,
+            IntraAnalysisParameterNames.RIGHT_GREY_WHITE: None,
+            IntraAnalysisParameterNames.LEFT_GREY_SURFACE: None,
+            IntraAnalysisParameterNames.RIGHT_GREY_SURFACE: None,
+            IntraAnalysisParameterNames.LEFT_WHITE_SURFACE: None,
+            IntraAnalysisParameterNames.RIGHT_WHITE_SURFACE: None,
+            IntraAnalysisParameterNames.LEFT_SULCI: None,
+            IntraAnalysisParameterNames.RIGHT_SULCI: None,
+            IntraAnalysisParameterNames.LEFT_LABELED_SULCI: None,
+            IntraAnalysisParameterNames.RIGHT_LABELED_SULCI: None,
         }
 
     @staticmethod
@@ -93,16 +92,16 @@ class IntraAnalysisViewportWidget(AnalysisViewportWidget):
 
 
 class RawMriACPCView(Object3DViewportView):
-    
+
     def __init__(self, model, parent=None, view_type=ViewType.AXIAL, 
                  restricted_controls=True):
-        super(RawMriACPCView, self).__init__(model, parent, view_type, 
+        super(RawMriACPCView, self).__init__(model, parent, view_type,
                                              restricted_controls)
         self._observed_parameters = [IntraAnalysisParameterNames.MRI, 
                                      IntraAnalysisParameterNames.COMMISSURE_COORDINATES]
         self.set_title(" 1 ) Raw MRI, AC/PC")
         self.set_tooltip("Raw T1 MRI + Anterior(blue)/Posterior(yellow) commissures")
-        
+
     def update(self):
         self._view.clear()
         mri = self._viewport_model.observed_objects[IntraAnalysisParameterNames.MRI]

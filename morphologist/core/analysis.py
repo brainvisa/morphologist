@@ -252,7 +252,7 @@ class SharedPipelineAnalysis(Analysis):
     def get_attributes(self, subject):
         raise NotImplementedError("SharedPipelineAnalysis is an Abstract class. get_attributes must be redefined.")
 
-    def complete_parameters(self, subject):
+    def complete_parameters_lowlevel(self, subject):
         pipeline = self.pipeline
         if hasattr(pipeline, 'current_subject_id') \
                 and pipeline.current_subject_id \
@@ -273,10 +273,13 @@ class SharedPipelineAnalysis(Analysis):
         #print 'create_completion for:', subject.id()
         pipeline.completion_engine.complete_parameters(
             {'capsul_attributes': attributes})
+
+    def complete_parameters(self, subject):
+        self.complete_parameters_lowlevel(subject)
         self.parameters = pipeline_tools.dump_pipeline_state_as_dict(
             self.pipeline)
         # mark this subject as the one with the current parameters.
-        pipeline.current_subject_id = subject.id()
+        self.pipeline.current_subject_id = subject.id()
 
     def existing_results(self, step_ids=None):
         pipeline = self.pipeline
@@ -322,6 +325,7 @@ class SharedPipelineAnalysis(Analysis):
             value = getattr(pipeline, param_name)
             if isinstance(value, six.string_types) and os.path.exists(value):
                 params[param_name] = value
+
         return params
 
     def list_output_parameters_with_existing_files(self):

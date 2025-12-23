@@ -95,22 +95,19 @@ class IntraAnalysis(SharedPipelineAnalysis):
             'morphologist.capsul.import_t1_mri.ImportT1Mri')
 
         import_step.input = subject.filename
-        import_step.output = self.pipeline.t1mri
+        import_step.output = self.pipeline.imported_t1mri
         import_step.referential = self.pipeline.t1mri_referential
         pipeline_tools.create_output_directories(import_step)
-        import_step() # run
+        import_step()  # run
         return import_step.output
-
-    #def get_subject_filename(self, subject):
-        #format = self.study.volumes_format or "NIFTI"
-        #ext = self.study.modules_data.foms["input"].formats[format]
-        #return os.path.join(
-            #self.study.output_directory, subject.groupname, subject.name,
-            #self.MODALITY, self.ACQUISITION, subject.name + "." + ext)
 
     def set_parameters(self, subject):
         self.subject = subject
         super(IntraAnalysis, self).set_parameters(subject)
+
+    def complete_parameters_lowlevel(self, subject):
+        super().complete_parameters_lowlevel(subject)
+        self.pipeline.t1mri = self.pipeline.imported_t1mri
 
     def get_attributes(self, subject):
         attributes_dict = {
@@ -125,7 +122,7 @@ class IntraAnalysis(SharedPipelineAnalysis):
 
     def remove_subject_dir(self):
         self.propagate_parameters()
-        t1mri_dir = self.pipeline.t1mri
+        t1mri_dir = self.pipeline.imported_t1mri
         acquisition_dir = os.path.dirname(t1mri_dir)
         modality_dir = os.path.dirname(acquisition_dir)
         subject_dir = os.path.dirname(modality_dir)
@@ -138,4 +135,3 @@ class IntraAnalysis(SharedPipelineAnalysis):
         # from a pipeline if all outputs are expected or not (many are
         # optional, but still useful in our context)
         return IntraAnalysisParameterNames.get_output_file_parameter_names()
-

@@ -13,7 +13,7 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
     validity_changed = QtCore.pyqtSignal(bool)
 
     def __init__(self, study_properties_editor, parent=None,
-                editor_mode=StudyEditor.NEW_STUDY):
+                 editor_mode=StudyEditor.NEW_STUDY):
         super(StudyPropertiesEditorWidget, self).__init__(parent)
         self._study_properties_editor = study_properties_editor
         self._item_model \
@@ -33,6 +33,8 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self.ui.output_directory_button = parent.ui.output_directory_button
         self.ui.volume_format_combobox = parent.ui.volume_format_combobox
         self.ui.mesh_format_combobox = parent.ui.mesh_format_combobox
+        self.ui.parameter_template_combobox \
+            = parent.ui.parameter_template_combobox
         #self.ui.spm_standalone_checkbox = parent.ui.spm_standalone_checkbox
         #self.ui.spm_exec_lineedit = parent.ui.spm_exec_lineedit
         #self.ui.spm_exec_button = parent.ui.spm_exec_button
@@ -49,6 +51,8 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
             self.ui.volume_format_combobox.addItem(format_name)
         for format_name in self._study_properties_editor.meshes_formats:
             self.ui.mesh_format_combobox.addItem(format_name)
+        for fom in self._study_properties_editor.parameter_templates:
+            self.ui.parameter_template_combobox.addItem(fom)
 
     def _create_computing_resources_combobox(self):
         for resource_name \
@@ -75,6 +79,9 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         #self._mapper.addMapping(self.ui.spm_standalone_checkbox, 4, "checked")
         #self._mapper.addMapping(self.ui.spm_exec_lineedit, 5)
         self._mapper.addMapping(
+            self.ui.parameter_template_combobox,
+            StudyPropertiesEditorItemModel.PARAM_TEMPLATE_COL, b"currentIndex")
+        self._mapper.addMapping(
             self.ui.computing_resource_combobox,
             StudyPropertiesEditorItemModel.COMPUTING_RESOURCE_COL,
             b"currentIndex")
@@ -87,6 +94,8 @@ class StudyPropertiesEditorWidget(QtGui.QWidget):
         self.ui.volume_format_combobox.currentIndexChanged.connect(
             self._mapper.submit)
         self.ui.mesh_format_combobox.currentIndexChanged.connect(
+            self._mapper.submit)
+        self.ui.parameter_template_combobox.currentIndexChanged.connect(
             self._mapper.submit)
         #self.ui.spm_standalone_checkbox.stateChanged.connect(
             #self._mapper.submit)
@@ -200,10 +209,12 @@ class StudyPropertiesEditorItemModel(QtCore.QAbstractItemModel):
     #SPM_STANDALONE_COL = 4
     #SPM_EXEC_COL = 5
     COMPUTING_RESOURCE_COL = 4
+    PARAM_TEMPLATE_COL = 5
     attributes = ["study_name", "output_directory",
                   "volumes_format_index", "meshes_format_index",
                   #"spm_standalone", "spm_exec",
-                  "computing_resource_index"]
+                  "computing_resource_index",
+                  "parameter_template_index"]
     status_changed = QtCore.pyqtSignal(bool)
 
     def __init__(self, study_properties_editor, parent=None):

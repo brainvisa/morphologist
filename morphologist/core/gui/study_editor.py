@@ -66,17 +66,13 @@ class StudyPropertiesEditor(object):
         self.study_name = study.study_name
         self.output_directory = study.output_directory
         self.volumes_formats = [
-            'NIFTI', 'NIFTI gz', 'MINC', 'GIS',
-            "gz compressed NIFTI-1 image",
-            "NIFTI-1 image",
-            "GIS image",
-            "MINC image",
+            'NIFTI gz', 'NIFTI', 'MINC', 'GIS',
             "gz compressed MINC image"]
         self.meshes_formats = [
-            'GIFTI', 'MESH', 'PLY',
-            "GIFTI file",
-            "MESH mesh",
-            "PLY mesh"]
+            'GIFTI', 'MESH', 'PLY']
+        self.parameter_templates = {
+            'morphologist-bids-2.0': 'morpho-deepsulci-bids-2.0',
+            'brainvisa classic': 'morpho-deepsulci-1.0'}
         self.available_computing_resources \
             = study.get_available_computing_resources()
         if study.somaworkflow_computing_resource \
@@ -92,6 +88,14 @@ class StudyPropertiesEditor(object):
         self.spm_standalone = study.spm_standalone
         self.spm_version = study.spm_version
         self.spm_exec = study.spm_exec
+        fom_equiv = {'morphologist-bids-2.0': 'morpho-deepsulci-bids-2.0',
+                     'morphologist-auto-1.0': 'morpho-deepsulci-1.0',
+                     'morphologist-auto-nonoverlap-1.0':
+                         'morpho-deepsulci-1.0',
+                     }
+        fom = fom_equiv.get(study.output_fom, study.output_fom)
+        self.parameter_template_index \
+            = list(self.parameter_templates.values()).index(fom)
         self.computing_resource_index \
             = self.available_computing_resources.index(
                 study.somaworkflow_computing_resource)
@@ -105,6 +109,12 @@ class StudyPropertiesEditor(object):
         study.spm_version = self.spm_version
         study.spm_standalone = self.spm_standalone
         study.use_spm = True
+        param_template \
+            = list(self.parameter_templates.keys())[
+                self.parameter_template_index]
+        fom = self.parameter_templates[param_template]
+        study.input_fom = fom
+        study.output_fom = fom
         try:
             # autocheck / complete config
             study.modules['SPMConfig'].initialize_module()

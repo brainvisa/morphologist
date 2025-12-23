@@ -50,7 +50,7 @@ class Study(StudyConfig):
             "shared_fom": "shared-brainvisa-1.0",
             "output_directory": output_directory,
             "input_directory": output_directory,
-            "volumes_format": "NIFTI",
+            "volumes_format": "NIFTI gz",
             "meshes_format": "GIFTI",
         }
         super(Study, self).__init__(init_config=default_config,

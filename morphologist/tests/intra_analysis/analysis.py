@@ -49,7 +49,7 @@ class IntraAnalysisTestCase(AnalysisTestCase):
 
         import_step.input = subject.filename
         import_step.output \
-            = self.analysis.pipeline.t1mri
+            = self.analysis.pipeline.imported_t1mri
         import_step.referential = self.analysis.pipeline.t1mri_referential
         pipeline_tools.create_output_directories(import_step)
 
@@ -57,7 +57,7 @@ class IntraAnalysisTestCase(AnalysisTestCase):
 
     def delete_some_parameter_values(self):
         self.analysis.pipeline.edges = None
-        self.analysis.pipeline.t1mri = traits.Undefined
+        self.analysis.pipeline.imported_t1mri = traits.Undefined
 
     def create_some_output_files(self):
         parameter_names = [IntraAnalysisParameterNames.SPLIT_MASK, 
