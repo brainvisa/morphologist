@@ -466,7 +466,8 @@ class SelectOrganizedDirectoryDialog(QtGui.QDialog):
         temp_study = Study('IntraAnalysis',
                            output_directory=organized_directory)
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-        subjects = temp_study.get_subjects_from_pattern()
+        subjects = temp_study.get_subjects_from_pattern(
+            layout=self.get_directory_layout())
         QtGui.QApplication.restoreOverrideCursor()
         return subjects
 

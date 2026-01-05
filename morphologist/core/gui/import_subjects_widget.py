@@ -1,6 +1,4 @@
-from __future__ import absolute_import
 import os
-import time
 
 from morphologist.core.gui.qt_backend import QtGui, QtCore, loadUi
 from morphologist.core.gui import ui_directory
@@ -30,7 +28,7 @@ class ImportSubjectsDialog(QtGui.QDialog, Observer):
         uifile = os.path.join(ui_directory, 'import_subjects_widget.ui')
         self.ui = loadUi(uifile, self)
         wflags = self.ui.windowFlags()
-        self.ui.setWindowFlags(wflags & ~QtCore.Qt.WindowCloseButtonHint \
+        self.ui.setWindowFlags(wflags & ~QtCore.Qt.WindowCloseButtonHint
                                       & ~QtCore.Qt.WindowSystemMenuHint)
         self.on_show_details_button_toggled(False)
         self.ui.progressbar.setValue(self._observed_subjects_n)
@@ -52,10 +50,10 @@ class ImportSubjectsDialog(QtGui.QDialog, Observer):
             text = '+'
             visible = False
             size_constraint = QtGui.QLayout.SetFixedSize
-        self.ui.show_details_button.setText(text) 
+        self.ui.show_details_button.setText(text)
         self.ui.details_textedit.setVisible(visible)
         self.ui.layout().setSizeConstraint(size_constraint)
-        self.ui.adjustSize() # warning: min/max size are fixed by this line
+        self.ui.adjustSize()  # warning: min/max size are fixed by this line
         if checked:
             self.ui.setMinimumHeight(0)
             self.ui.setMaximumHeight(16777215)
@@ -90,7 +88,7 @@ class ImportSubjectsDialog(QtGui.QDialog, Observer):
     def _subject_repr(self, subject):
         filename = os.path.basename(subject.filename)
         if len(filename) > self.details_text_width:
-            filename = filename[:max_subject_repr_len]
+            filename = filename[:self.max_subject_repr_len]
         return "%s/%s: %s" % (subject.groupname, subject.name, filename)
 
     def _update_details(self):
