@@ -33,6 +33,9 @@ class IntraAnalysis(SharedPipelineAnalysis):
 
         self.subject = None
 
+        if 'bids' in study.output_fom:
+            self.FOLDS_SESSION = '0'
+
     def _init_steps(self):
         self._steps = [
             SpatialNormalization(),
