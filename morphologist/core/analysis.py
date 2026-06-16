@@ -266,7 +266,7 @@ class SharedPipelineAnalysis(Analysis):
         attributes = pipeline.completion_engine.get_attribute_values() \
             .export_to_dict()
         for attribute, value in six.iteritems(attributes_dict):
-            if attributes[attribute] != value:
+            if attributes.get(attribute) != value:
                 attributes[attribute] = value
                 #do_completion = True
         # FIXME: only if do_completion ?
