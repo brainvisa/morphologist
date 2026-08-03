@@ -1,6 +1,4 @@
-from __future__ import print_function
 
-from __future__ import absolute_import
 import os
 import types
 import six
@@ -13,7 +11,8 @@ from morphologist.core.study import Study, StudySerializationError
 from morphologist.core.analysis import AnalysisFactory
 from morphologist.core.gui.study_model import LazyStudyModel
 from morphologist.core.gui.analysis_model import LazyAnalysisModel
-from morphologist.core.gui.qt_backend import QtCore, QtGui, QtWebKit, loadUi
+from morphologist.core.gui.qt_backend import QtCore, QtGui, \
+    QtWebEngineWidgets, loadUi
 from morphologist.core.gui.subjects_widget import SubjectsWidget
 from morphologist.core.gui.runner_widget import RunnerView
 from morphologist.core.gui.runner_settings_widget \
@@ -25,14 +24,15 @@ from morphologist.core.gui.import_study_widget import ImportStudyDialog, \
 from morphologist.core.gui.import_subjects_widget import ImportSubjectsDialog
 from morphologist.core.backends.mixins import ViewType
 from morphologist.gui import ui_directory
-from morphologist.gui.viewport_widget import IntraAnalysisViewportModel,\
+from morphologist.gui.viewport_widget import IntraAnalysisViewportModel, \
                                              IntraAnalysisViewportWidget
 from morphologist.intra_analysis.parameters import IntraAnalysisParameterNames
 from morphologist import info
 from soma.qt_gui import qt_backend
+from soma import aims
 
 
-ApplicationStudy = None # dynamically defined
+ApplicationStudy = None  # dynamically defined
 
 
 class ActionHandler(QtCore.QObject):
@@ -58,7 +58,7 @@ class StudyActionHandler(ActionHandler):
         self._study_editor_dialog = None
         self.pb = _create_import_progress_dialog(self.parent())
         qt = QtThreadCall()
-        self._create_updated_study_thread = FuncQThread(\
+        self._create_updated_study_thread = FuncQThread(
                     study_editor.create_updated_study,
                     kwargs={'progress_callback':
                                 partial(qt.push, self.pb.update_value)})
@@ -454,15 +454,15 @@ class MainWindow(QtGui.QMainWindow):
     @QtCore.Slot()
     def on_action_documentation_triggered(self):
         if not hasattr(self, 'browser'):
-            self.browser = QtWebKit.QWebView()
+            self.browser = QtWebEngineWidgets.QWebEngineView()
             self.browser.setWindowTitle('Morphologist UI documentation')
             self.browser.setAttribute(QtCore.Qt.WA_DeleteOnClose)
             self.browser.destroyed.connect(self._remove_browser)
         version = '%d.%d' % (info.version_major, info.version_minor)
-        help_index = os.path.dirname(os.path.dirname(os.path.dirname(
-            os.path.dirname(__file__))))
+        bsh = aims.carto.Paths.findResourceFile('README.md')
+        help_index = os.path.dirname(os.path.dirname(bsh))
         help_index = os.path.join(
-            help_index, 'share', 'doc', 'morphologist-ui-%s' % version,
+            help_index, 'doc', 'morphologist-ui-%s' % version,
             'index.html')
         print('help_index:', help_index)
         self.browser.setUrl(QtCore.QUrl.fromLocalFile(help_index))
