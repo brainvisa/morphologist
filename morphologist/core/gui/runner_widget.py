@@ -1,6 +1,4 @@
-from __future__ import print_function
 
-from __future__ import absolute_import
 import os
 import soma.subprocess
 
@@ -12,7 +10,7 @@ from morphologist.core.constants import ALL_SUBJECTS
 
 class RunnerView(QtGui.QWidget):
     uifile = os.path.join(ui_directory, 'runner_widget.ui')
-    
+
     def __init__(self, model, parent=None):
         super(RunnerView, self).__init__(parent)
         self.ui = loadUi(self.uifile, self)
@@ -31,7 +29,7 @@ class RunnerView(QtGui.QWidget):
     def on_model_changed(self):
         self._set_not_running_state()
         self._set_all_subjects_state()
-        
+
     @QtCore.Slot(bool)
     def on_runner_status_changed(self, running):
         if running:
@@ -46,17 +44,17 @@ class RunnerView(QtGui.QWidget):
         else:
             self._set_all_subjects_state()
         self._set_not_running_state()
-            
+
     def _set_selected_subjects_state(self):
         self.ui.label.setText("For selected subjects of the current study :")
-        
+
     def _set_all_subjects_state(self):
         self.ui.label.setText("For all subjects of the current study :")
-        
+
     # this slot is automagically connected
     @QtCore.Slot()
     def on_run_button_clicked(self):
-        assert(self._runner_model is not None)
+        assert self._runner_model is not None
         if self._run_analyses():
             self._set_running_state()
         else:
@@ -73,7 +71,7 @@ class RunnerView(QtGui.QWidget):
                 QtGui.QMessageBox.warning(
                     self, "Already done",
                     "Nothing to do, processing is finished.")
-        except MissingModelsError as e:
+        except MissingModelsError:
             res = QtGui.QMessageBox.question(
                 self, "Missing sulci identification models",
                 "Sulci statistical models (SPAMs) are not installed.\n"
@@ -85,9 +83,9 @@ class RunnerView(QtGui.QWidget):
         except MissingInputFileError as e:
             QtGui.QMessageBox.critical(
                 self, "Run analysis error",
-                "Some input files do not exist.\n%s" %(e))
+                "Some input files do not exist.\n%s" % e)
         return run
- 
+
     # this slot is automagically connected
     @QtCore.Slot()
     def on_stop_button_clicked(self):
