@@ -178,6 +178,9 @@ class Study(StudyConfig):
         new_study = cls(
             analysis_type, study_name=study_name,
             output_directory=organized_directory)
+        if layout == 'brainvisa classic':
+            new_study.input_fom = 'morpho-deepsulci-1.0'
+            new_study.output_fom = 'morpho-deepsulci-1.0'
         if progress_callback:
             callback(init_progress + 0.05 * scl_progess)
             progress_callback = (callback,
@@ -576,6 +579,7 @@ class Study(StudyConfig):
 
     def convert_from_formats(self, old_volumes_format, old_meshes_format,
                              progress_callback=None):
+        print('convert_from_formats, subjects:', self.subjects)
         if progress_callback:
             if isinstance(progress_callback, tuple):
                 callback, progr_init, progr_scl = progress_callback
@@ -587,8 +591,10 @@ class Study(StudyConfig):
         ns = len(self.subjects)
         if progress_callback:
             callback(progr_init)
+        print('looping...')
         for n, subject_id in enumerate(self.subjects):
             print('convert', subject_id)
+            sys.stdout.flush()
             self.analyses[subject_id].convert_from_formats(
                 old_volumes_format, old_meshes_format)
             if progress_callback:

@@ -1,11 +1,8 @@
-from __future__ import print_function
 
-from __future__ import absolute_import
-import copy
 import os
+import os.path as osp
 import shutil
 import traits.api as traits
-import sys
 import six
 
 from morphologist.core.utils import OrderedDict
@@ -14,6 +11,7 @@ from capsul.pipeline import pipeline_tools
 from capsul.attributes.completion_engine import ProcessCompletionEngine
 # AIMS
 from soma import aims
+
 
 class AnalysisFactory(object):
     _registered_analyses = {}
@@ -24,7 +22,7 @@ class AnalysisFactory(object):
 
     @classmethod
     def create_analysis(cls, analysis_type, study):
-        analysis_cls = cls.get_analysis_cls(analysis_type) 
+        analysis_cls = cls.get_analysis_cls(analysis_type)
         return analysis_cls(study)
 
     @classmethod
@@ -192,15 +190,15 @@ class Analysis(six.with_metaclass(AnalysisMetaClass, object)):
             old_state = old_dict.get('state', {})
             new_state = new_dict.get('state', {})
             for key, value in six.iteritems(old_state):
-                if isinstance(value, six.string_types):
+                if isinstance(value, str):
                     new_value = new_state.get(key)
                     if not os.path.exists(value) \
-                            and (not isinstance(new_value, six.string_types)
+                            and (not isinstance(new_value, str)
                                  or not os.path.exists(new_value)):
                         value = _look_for_other_formats(value, new_value)
                     if os.path.exists(value):
                         if new_value not in ('', None, traits.Undefined) \
-                                and new_value != value:
+                                and osp.normpath(new_value) != osp.normpath(value):
                             _convert_data(value, new_value)
                         if new_value != value:
                             _remove_data(value)
@@ -265,7 +263,7 @@ class SharedPipelineAnalysis(Analysis):
                 % (subject.groupname, subject.name))
         attributes = pipeline.completion_engine.get_attribute_values() \
             .export_to_dict()
-        for attribute, value in six.iteritems(attributes_dict):
+        for attribute, value in attributes_dict.items():
             if attributes.get(attribute) != value:
                 attributes[attribute] = value
                 #do_completion = True
