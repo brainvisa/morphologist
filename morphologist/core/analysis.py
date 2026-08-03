@@ -3,7 +3,6 @@ import os
 import os.path as osp
 import shutil
 import traits.api as traits
-import six
 
 from morphologist.core.utils import OrderedDict
 # CAPSUL
@@ -45,7 +44,7 @@ class AnalysisMetaClass(type):
         super(AnalysisMetaClass, cls).__init__(name, bases, dct)
 
 
-class Analysis(six.with_metaclass(AnalysisMetaClass, object)):
+class Analysis(metaclass=AnalysisMetaClass):
     # XXX the metaclass automatically registers the Analysis class in the
     # AnalysisFactory and initializes the param_template_map
 
@@ -57,7 +56,7 @@ class Analysis(six.with_metaclass(AnalysisMetaClass, object)):
         self.parameters = None
 
     def _init_steps(self):
-        raise NotImplementedError("Analysis is an Abstract class.") 
+        raise NotImplementedError("Analysis is an Abstract class.")
 
     def _init_step_ids(self):
         self._step_ids = OrderedDict()
@@ -162,7 +161,7 @@ class Analysis(six.with_metaclass(AnalysisMetaClass, object)):
             for fexts in exts:
                 if not fexts[0] in typed_formats[dtype]:
                     continue
-                if not isinstance(new_value, six.string_types) \
+                if not isinstance(new_value, str) \
                         or not new_value.endswith(fexts[0]):
                     for ext in fexts:
                         new_old_value = old_base + ext
@@ -189,7 +188,7 @@ class Analysis(six.with_metaclass(AnalysisMetaClass, object)):
             old_dict, new_dict = todo.pop(0)
             old_state = old_dict.get('state', {})
             new_state = new_dict.get('state', {})
-            for key, value in six.iteritems(old_state):
+            for key, value in old_state.items():
                 if isinstance(value, str):
                     new_value = new_state.get(key)
                     if not os.path.exists(value) \
@@ -206,7 +205,7 @@ class Analysis(six.with_metaclass(AnalysisMetaClass, object)):
             new_nodes = new_dict.get('nodes', {})
             if old_nodes:
                 todo += [(node, new_nodes.get(key, {}))
-                         for key, node in six.iteritems(old_nodes)]
+                         for key, node in old_nodes.items()]
 
 
 class SharedPipelineAnalysis(Analysis):
@@ -290,14 +289,14 @@ class SharedPipelineAnalysis(Analysis):
         outputs = pipeline_tools.nodes_with_existing_outputs(
             pipeline, recursive=True, exclude_inputs=True)
         existing = set()
-        for node, item_list in six.iteritems(outputs):
+        for node, item_list in outputs.items():
             existing.update([filename for param, filename in item_list])
         # WARNING inputs may appear in outputs
         # (reorientation steps)
-        for param_name, trait in six.iteritems(pipeline.user_traits()):
+        for param_name, trait in pipeline.user_traits().items():
             if not trait.output:
                 value = getattr(pipeline, param_name)
-                if isinstance(value, six.string_types) and value in existing:
+                if isinstance(value, str) and value in existing:
                     existing.remove(value)
         return existing
 
@@ -312,7 +311,7 @@ class SharedPipelineAnalysis(Analysis):
         self.propagate_parameters()
         param_names = [param_name
                        for param_name, trait
-                          in six.iteritems(pipeline.user_traits())
+                          in pipeline.user_traits().items()
                        if not trait.output
                           and (isinstance(trait.trait_type, traits.File)
                                or isinstance(trait.trait_type,
@@ -321,7 +320,7 @@ class SharedPipelineAnalysis(Analysis):
         params = {}
         for param_name in param_names:
             value = getattr(pipeline, param_name)
-            if isinstance(value, six.string_types) and os.path.exists(value):
+            if isinstance(value, str) and os.path.exists(value):
                 params[param_name] = value
 
         return params
@@ -334,7 +333,7 @@ class SharedPipelineAnalysis(Analysis):
         self.propagate_parameters()
         param_names = [param_name
                        for param_name, trait
-                          in six.iteritems(pipeline.user_traits())
+                          in pipeline.user_traits().items()
                        if trait.output
                           and (isinstance(trait.trait_type, traits.File)
                                or isinstance(trait.trait_type,
@@ -343,14 +342,14 @@ class SharedPipelineAnalysis(Analysis):
         params = {}
         for param_name in param_names:
             value = getattr(pipeline, param_name)
-            if isinstance(value, six.string_types) and os.path.exists(value):
+            if isinstance(value, str) and os.path.exists(value):
                 params[param_name] = value
         return params
 
         #existing =  pipeline_tools.nodes_with_existing_outputs(
             #self.pipeline)
         #params = []
-        #for node_name, values in  six.iteritems(existing):
+        #for node_name, values in existing.items():
             #parmams.update(dict(values))
         #return params
 
@@ -361,7 +360,7 @@ class SharedPipelineAnalysis(Analysis):
         plug = pipeline.pipeline_node.plugs[param_name]
         steps_nodes = set()
         for step_id, trait \
-                in six.iteritems(pipeline.pipeline_steps.user_traits()):
+                in pipeline.pipeline_steps.user_traits().items():
             if step_id in step_ids:
                 steps_nodes.update(trait.nodes)
         if plug.output:
@@ -392,7 +391,7 @@ class SharedPipelineAnalysis(Analysis):
         for parameter in self.get_output_file_parameter_names():
             if self.is_parameter_in_steps(parameter, step_ids=step_ids):
                 value = getattr(pipeline, parameter)
-                if not isinstance(value, six.string_types) \
+                if not isinstance(value, str) \
                         or not os.path.exists(value):
                     return False
         return True
