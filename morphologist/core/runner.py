@@ -12,6 +12,7 @@ import six
 import soma_workflow as sw
 from soma_workflow.client import WorkflowController, Helper, Workflow, Job, Group
 from soma_workflow import configuration as swconf
+import soma_workflow.errors as swerrors
 
 from capsul.pipeline import pipeline_workflow
 from capsul.pipeline import pipeline_tools
@@ -446,8 +447,12 @@ class  SomaWorkflowRunner(Runner):
         return status
 
     def _get_workflow_status(self):
-        sw_status \
-            = self._workflow_controller.workflow_status(self._workflow_id)
+        try:
+            sw_status \
+                = self._workflow_controller.workflow_status(self._workflow_id)
+        except swerrors.UnknownObjectError:
+            # workflow deleted
+            return Runner.INTERRUPTED
         if (sw_status in [sw.constants.WORKFLOW_IN_PROGRESS,
                           sw.constants.WORKFLOW_NOT_STARTED]):
             status = Runner.RUNNING
@@ -466,7 +471,7 @@ class  SomaWorkflowRunner(Runner):
         status = Runner.NOT_STARTED
         subject_jobs = self._get_subject_jobs(subject_id)
         if subject_jobs:
-            jobs_status=self._get_jobs_status(update_status)
+            jobs_status = self._get_jobs_status(update_status)
             status = Runner.SUCCESS
             for job_id in subject_jobs:
                 job_status = jobs_status[job_id]
@@ -498,17 +503,26 @@ class  SomaWorkflowRunner(Runner):
 
     def _update_jobs_status(self):
         jobs_status = {} # job_id -> status
-        job_info_seq = self._workflow_controller.workflow_elements_status(
-            self._workflow_id)[0]
-        for job_info in job_info_seq:
-            job_id = job_info[0]
-            sw_status = job_info[1]
-            exit_info = job_info[3]
-            exit_status, exit_value, _, _ = exit_info
-            status = self._sw_status_to_runner_status(sw_status, exit_status,
-                                                      exit_value)
-            jobs_status[job_id] = status
-        self._cached_jobs_status = jobs_status
+        try:
+            job_info_seq = self._workflow_controller.workflow_elements_status(
+                self._workflow_id)[0]
+            for job_info in job_info_seq:
+                job_id = job_info[0]
+                sw_status = job_info[1]
+                exit_info = job_info[3]
+                exit_status, exit_value, _, _ = exit_info
+                status = self._sw_status_to_runner_status(
+                    sw_status, exit_status, exit_value)
+                jobs_status[job_id] = status
+            self._cached_jobs_status = jobs_status
+        except swerrors.UnknownObjectError:
+            # WF has been deleted in the meantime: set all jobs to failed
+            for job_id, status in self._cached_jobs_status.items():
+                if status not in (Runner.FAILED, Runner.SUCCESS,
+                                  Runner.STOPPED_BY_USER,
+                                  Runner.ABORTED_NOTRUN):
+                    self._cached_jobs_status[job_id] = Runner.INTERRUPTED
+
 
     def _sw_status_to_runner_status(self, sw_status, exit_status, exit_value):
         if sw_status in [sw.constants.FAILED,
